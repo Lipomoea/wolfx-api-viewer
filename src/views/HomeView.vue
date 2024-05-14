@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="container">
     <EewComponent></EewComponent>
     <StationComponent></StationComponent>
   </div>
@@ -11,5 +11,8 @@ import StationComponent from '@/components/StationComponent.vue';
 </script>
 
 <style lang="scss" scoped>
-
+.container{
+  display: grid;
+  
+}
 </style>

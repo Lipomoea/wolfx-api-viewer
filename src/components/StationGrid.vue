@@ -1,7 +1,12 @@
 <template>
     <div>
-        {{ stationMessage.Max_CalcShindo }}
-        <button @click="closeConnection">Disconnect</button>
+        <div class="container">
+            <div>PGA: {{ stationMessage.PGA }}</div>
+            <div>PGV: {{ stationMessage.PGV }}</div>
+            <div>计测震度: {{ stationMessage.CalcShindo }}</div>
+            <div>最大计测震度: {{ stationMessage.Max_CalcShindo }}</div>
+            <button @click="closeConnection">Disconnect</button>
+        </div>
     </div>
 </template>
 
@@ -55,5 +60,13 @@ onBeforeUnmount(()=>{
 </script>
 
 <style lang="scss" scoped>
-
+.container{
+    width: 200px;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    border: black 1px solid;
+}
 </style>
