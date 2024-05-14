@@ -12,7 +12,10 @@ import StationComponent from '@/components/StationComponent.vue';
 
 <style lang="scss" scoped>
 .container{
-  display: grid;
-  
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
 }
 </style>

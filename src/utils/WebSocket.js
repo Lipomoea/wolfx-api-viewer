@@ -1,23 +1,55 @@
-class WebSocketEew {
+class WebSocketObj {
     constructor(url){
         this.url = url
-        this.ws = new WebSocket(this.url)
+        this.socket = new WebSocket(this.url)
         this.setupWebSocket()
+        this.shouldConnect = true
+        this.retryInterval = 1000
+        this.messageHandler = null
     }
     setupWebSocket(){
-        this.ws.onopen = ()=>{
+        this.socket.onopen = ()=>{
             console.log(`${this.url} 连接成功`)
         }
-        this.ws.onerror = ()=>{
-            throw new Error(`${this.url} 连接失败`)
+        this.socket.onerror = ()=>{
+            console.log(`${this.url} 连接失败`)
+            if(this.shouldConnect){
+                setTimeout(() => {
+                    this.reconnect()
+                }, this.retryInterval);
+            }
         }
-        this.ws.onclose = (e)=>{
+        this.socket.onclose = ()=>{
             console.log(`${this.url} 断开连接`)
+            if(this.shouldConnect){
+                setTimeout(() => {
+                    this.reconnect()
+                }, this.retryInterval);
+            }
         }
     }
     setMessageHandler(handler){
-        this.ws.onmessage = handler
+        this.messageHandler = this.socket.onmessage = handler
+    }
+    reconnect(){
+        if(this.socket){
+            this.socket.onopen = null
+            this.socket.onclose = null
+            this.socket.onerror = null
+            this.socket.onmessage = null
+            this.socket.close()
+        }
+        this.socket = new WebSocket(this.url)
+        this.setupWebSocket()
+        if(this.messageHandler)
+            this.socket.onmessage = this.messageHandler
+    }
+    close(){
+        this.shouldConnect = false
+        if(this.socket){
+            this.socket.close()
+        }
     }
 }
 
-export default WebSocketEew
+export default WebSocketObj

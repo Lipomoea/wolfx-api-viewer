@@ -1,18 +1,22 @@
 <template>
-    <div>
-      <EewGrid :source="'jmaEew_ws'"></EewGrid>
-      <EewGrid :source="'scEew_ws'"></EewGrid>
-      <EewGrid :source="'fjEew_ws'"></EewGrid>
-      <EewGrid :source="'cwaEew_http'"></EewGrid>
-      <EewGrid :source="'cencEqlist_ws'"></EewGrid>
-      <EewGrid :source="'jmaEqlist_ws'"></EewGrid>
+  <div>
+    <div class="container">
+      <EewGrid source="jmaEew"></EewGrid>
     </div>
-  </template>
-  
-  <script setup>
-  import EewGrid from '@/components/EewGrid.vue';
-  </script>
-  
-  <style lang="scss" scoped>
-  
+  </div>
+</template>
+
+<script setup>
+import EewGrid from '@/components/EewGrid.vue';
+import { eqUrls } from '@/utils/Url';
+const urls = Object.keys(eqUrls)
+</script>
+
+<style lang="scss" scoped>
+.container{
+gap: 10px;
+display: flex;
+flex-wrap: wrap;
+justify-content: center;
+}
   </style>

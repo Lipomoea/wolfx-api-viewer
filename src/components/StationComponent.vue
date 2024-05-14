@@ -1,20 +1,15 @@
 <template>
   <div>
     <div class="container">
-      <StationGrid :source="'CQ_BEB_00_ws'"></StationGrid>
-      <StationGrid :source="'SC_CHD_00_ws'"></StationGrid>
-      <StationGrid :source="'NM_EEDS_00_ws'"></StationGrid>
-      <StationGrid :source="'CQ_TOL_00_ws'"></StationGrid>
-      <StationGrid :source="'GD_SHZ_00_ws'"></StationGrid>
-      <StationGrid :source="'CQ_DAZ_00_ws'"></StationGrid>
-      <StationGrid :source="'NX_YIC_00_ws'"></StationGrid>
-      <StationGrid :source="'CQ_TOL_01_ws'"></StationGrid>
+      <StationGrid v-for="(source, index) of wsUrls" :key="index" :source="source"></StationGrid>
     </div>
   </div>
 </template>
 
 <script setup>
 import StationGrid from '@/components/StationGrid.vue';
+import { stationUrls } from '@/utils/Url';
+const wsUrls = Object.keys(stationUrls).filter(key=>key.endsWith('ws')&&key != 'ALL_PUSH_ws')
 </script>
 
 <style lang="scss" scoped>
