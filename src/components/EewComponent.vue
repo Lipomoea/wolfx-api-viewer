@@ -2,6 +2,8 @@
   <div>
     <div class="container">
       <EewGrid source="jmaEew"></EewGrid>
+      <EewGrid source="scEew"></EewGrid>
+      <EewGrid source="fjEew"></EewGrid>
     </div>
   </div>
 </template>
