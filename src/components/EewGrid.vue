@@ -9,27 +9,17 @@
 import { onMounted, onBeforeUnmount, reactive, defineProps } from 'vue'
 import Http from '@/utils/Http';
 import WebSocketEew from '@/utils/WebSocket';
+import { eqUrls } from '@/utils/Url';
 const eewMessage = reactive({})
 const props = defineProps({
     source: String,
 })
-const urls = {
-    scEew_http: 'https://api.wolfx.jp/sc_eew.json',
-    scEew_ws: 'wss://ws-api.wolfx.jp/sc_eew',
-    jmaEew_http: 'https://api.wolfx.jp/jma_eew.json',
-    jmaEew_ws: 'wss://ws-api.wolfx.jp/jma_eew',
-    fjEew_http: 'https://api.wolfx.jp/fj_eew.json',
-    fjEew_ws: 'wss://ws-api.wolfx.jp/fj_eew',
-    cwaEew_http: 'https://api.wolfx.jp/cwa_eew.json',
-    cencEqlist_http: 'https://api.wolfx.jp/cenc_eqlist.json',
-    cencEqlist_ws: 'wss://ws-api.wolfx.jp/cenc_eqlist',
-    jmaEqlist_http: 'https://api.wolfx.jp/jma_eqlist.json',
-    jmaEqlist_ws: 'wss://ws-api.wolfx.jp/jma_eqlist'
-}
 let request, socket;
+const urls = eqUrls;
 onMounted(()=>{
     const source = props.source
-    const protocol = source.split('_')[1]
+    const split_string = source.split('_')
+    const protocol = split_string[split_string.length - 1]
     // console.log(protocol);
     switch(protocol){
         case 'http': {
