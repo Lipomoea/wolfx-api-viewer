@@ -1,15 +1,17 @@
 <template>
   <div>
     <div class="container">
-      <EewGrid source="jmaEew"></EewGrid>
-      <EewGrid source="scEew"></EewGrid>
-      <EewGrid source="fjEew"></EewGrid>
+      <EqGrid source="jmaEew"></EqGrid>
+      <EqGrid source="scEew"></EqGrid>
+      <EqGrid source="fjEew"></EqGrid>
+      <EqGrid source="jmaEqlist"></EqGrid>
+      <EqGrid source="cencEqlist"></EqGrid>
     </div>
   </div>
 </template>
 
 <script setup>
-import EewGrid from '@/components/EewGrid.vue';
+import EqGrid from '@/components/EqGrid.vue';
 import { eqUrls } from '@/utils/Url';
 const urls = Object.keys(eqUrls)
 </script>

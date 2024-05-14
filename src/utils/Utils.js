@@ -7,6 +7,14 @@ const formatNumber = (value, digit)=>{
         return 'N/A'
     }
 }
+const formatText = (text)=>{
+    if(text){
+        return text
+    }
+    else {
+        return 'N/A'
+    }
+}
 const compareTime = (time1, time2, interval)=>{
     if(!time1 || !time2 || !interval) return
     time1 = time1.replace(' ', 'T')
@@ -15,4 +23,4 @@ const compareTime = (time1, time2, interval)=>{
     const date2 = new Date(time2).getTime()
     return Math.abs(date1 - date2) < interval * 1000
 }
-export {formatNumber, compareTime}
+export {formatNumber, formatText, compareTime}

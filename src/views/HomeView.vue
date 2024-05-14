@@ -1,12 +1,12 @@
 <template>
   <div class="container">
-    <EewComponent></EewComponent>
+    <EqComponent></EqComponent>
     <StationComponent></StationComponent>
   </div>
 </template>
 
 <script setup>
-import EewComponent from '@/components/EewComponent.vue';
+import EqComponent from '@/components/EqComponent.vue';
 import StationComponent from '@/components/StationComponent.vue';
 </script>
 
