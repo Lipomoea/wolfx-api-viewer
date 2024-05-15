@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="outer">
         <div class="container" :style="gridStyle">
             <div :style='{fontWeight: 700}'>{{ formatText(eqMessage.title) }}</div>
             <div v-if="eqMessage.isEew">{{ formatText(eqMessage.reportNo) }}</div>
@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, reactive, computed, watch } from 'vue'
+import { onMounted, onBeforeUnmount, ref, reactive, computed, watch } from 'vue'
 import Http from '@/utils/Http';
 import WebSocketObj from '@/utils/WebSocket';
 import { eqUrls } from '@/utils/Url';
@@ -131,7 +131,6 @@ const setEqMessage = (data)=>{
 }
 const connect = (protocol)=>{
     const source = props.source + '_' + protocol
-    // console.log(protocol);
     switch(protocol){
         case 'http': {
             request = setInterval(() => {
@@ -181,12 +180,16 @@ onMounted(()=>{
 })
 onBeforeUnmount(()=>{
     disconnect()
+    if(blinkController) clearInterval(blinkController)
+    if(blinkTimeout) clearTimeout(blinkTimeout)
+    if(timer) clearTimeout(timer)
 })
 
 const gridStyle = reactive({
     backgroundColor: '#ffffff'
 })
-let time, timer
+let time, timer, blinkController, blinkTimeout
+let blinkState = ref(true)
 watch(eqMessage,()=>{
     let color = '#ffffff'
     time = 0
@@ -224,7 +227,22 @@ watch(eqMessage,()=>{
             }
         }
     }
-    gridStyle.backgroundColor = color
+    if(blinkController) clearInterval(blinkController)
+    blinkController = setInterval(() => {
+        if(blinkState.value){
+            gridStyle.backgroundColor = color
+        }
+        else{
+            gridStyle.backgroundColor = '#ffffff'
+        }
+        blinkState.value = !blinkState.value
+    }, 500);
+    if(blinkTimeout) clearTimeout(blinkTimeout)
+    blinkTimeout = setTimeout(() => {
+        clearInterval(blinkController)
+        blinkState.value = true
+        gridStyle.backgroundColor = color
+    }, 4000);
     if(timer) clearTimeout(timer)
     timer = setTimeout(() => {
         gridStyle.backgroundColor = '#ffffff'
@@ -233,19 +251,17 @@ watch(eqMessage,()=>{
 </script>
 
 <style lang="scss" scoped>
-.container{
-    width: 400px;
-    height: 300px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-evenly;
-    border: black 1px solid;
-    .button{
+.outer{
+    // flex: 1 1 400px;
+    .container{
+        width: 100%;
+        height: 300px;
         display: flex;
-        justify-content: center;
+        flex-direction: column;
         align-items: center;
-        gap: 10px;
+        justify-content: space-evenly;
+        border: black 1px solid;
+        border-radius: 5px;
     }
 }
 </style>

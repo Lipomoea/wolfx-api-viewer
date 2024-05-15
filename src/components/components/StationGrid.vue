@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="outer">
         <div class="container" :style="gridStyle">
             <div :style='{fontWeight: 700}'>站点: {{ stationMessage.type?stationMessage.type:'N/A' }}{{ stationMessage.PGA_EW?'':'*' }}</div>
             <div>PGA: {{ formatNumber(stationMessage.PGA, 3) }} gal</div>
@@ -111,20 +111,17 @@ onBeforeUnmount(()=>{
 </script>
 
 <style lang="scss" scoped>
-.container{
-    width: 200px;
-    height: 300px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-evenly;
-    border: black 1px solid;
-    .button{
+.outer{
+    // flex: 1 1 200px;
+    .container{
+        width: 100%;
+        height: 300px;
         display: flex;
-        justify-content: center;
+        flex-direction: column;
         align-items: center;
-        gap: 10px;
-        // color: #ff6f00;
+        justify-content: space-evenly;
+        border: black 1px solid;
+        border-radius: 5px;
     }
 }
 </style>
