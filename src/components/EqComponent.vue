@@ -1,6 +1,7 @@
 <template>
   <div class="outer">
     <div class="container">
+      <div class="title">地震情报</div>
       <div class="eqGrid">
         <EqGrid source="jmaEew"></EqGrid>
         <EqGrid source="cwaEew"></EqGrid>
@@ -28,7 +29,12 @@ const urls = Object.keys(eqUrls)
     margin: 20px 20px;
     border-radius: 10px;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    gap: 20px;
+    .title{
+      font-size: 24px;
+      font-weight: 700;
+    }
     .eqGrid{
       width: 100%;
       gap: 10px;

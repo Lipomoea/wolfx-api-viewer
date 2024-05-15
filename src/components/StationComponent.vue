@@ -1,6 +1,7 @@
 <template>
   <div class="outer">
     <div class="container">
+      <div class="title">测站信息</div>
       <div class="stationGrid">
         <StationGrid v-for="(source, index) of wsUrls" :key="index" :source="source"></StationGrid>
       </div>
@@ -23,7 +24,12 @@ const wsUrls = Object.keys(stationUrls).filter(key=>key.endsWith('ws')&&key != '
     margin: 20px 20px;
     border-radius: 10px;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    gap: 20px;
+    .title{
+      font-size: 24px;
+      font-weight: 700;
+    }
     .stationGrid{
       width: 100%;
       gap: 10px;
