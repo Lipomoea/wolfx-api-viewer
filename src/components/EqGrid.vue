@@ -104,7 +104,7 @@ const setEqMessage = (data)=>{
         }
         case 'jmaEqlist':{
             eqMessage.id = data.md5
-            eqMessage.title = data.No1.Title
+            eqMessage.title = '日本気象庁' + data.No1.Title
             eqMessage.epicCenter = '震源地: ' + data.No1.location
             eqMessage.depth = '深さ: ' + data.No1.depth
             eqMessage.originTime = '発震時刻: ' + data.No1.time_full + ' (JST)'
