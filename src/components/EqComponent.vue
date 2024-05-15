@@ -2,6 +2,7 @@
   <div>
     <div class="container">
       <EqGrid source="jmaEew"></EqGrid>
+      <EqGrid source="cwaEew"></EqGrid>
       <EqGrid source="scEew"></EqGrid>
       <EqGrid source="fjEew"></EqGrid>
       <EqGrid source="jmaEqlist"></EqGrid>

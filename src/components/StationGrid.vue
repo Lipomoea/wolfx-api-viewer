@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="container" :style="gridStyle">
-            <div>站点: {{ stationMessage.type?stationMessage.type:'N/A' }}{{ stationMessage.PGA_EW?'':'*' }}</div>
+            <div :style='{fontWeight: 700}'>站点: {{ stationMessage.type?stationMessage.type:'N/A' }}{{ stationMessage.PGA_EW?'':'*' }}</div>
             <div>PGA: {{ formatNumber(stationMessage.PGA, 3) }} gal</div>
             <div>PGV: {{ formatNumber(stationMessage.PGV, 3) }} cm/s</div>
             <div>计测震度: {{ formatNumber(stationMessage.CalcShindo, 2) }}</div>
@@ -70,25 +70,28 @@ const reconnect = ()=>{
 }
 const gridStyle = computed(()=>{
     let color = '#ffffff'
-    let isLatest = compareTime(currentTime.value, stationMessage.update_at, 10)
-    if(isLatest){
-        color = '#3fafff'
-        if(stationMessage.Max_CalcShindo >= 0.5){
-            color = '#7fff1f'
+    if(statusCode.value == '1'){
+        let isLatest = compareTime(currentTime.value, stationMessage.update_at, 10000)
+        if(isLatest){
+            color = '#3fafff'
+            if(stationMessage.Max_CalcShindo >= 0.5){
+                color = '#7fff1f'
+            }
+            if(stationMessage.Max_CalcShindo >= 2.5){
+                color = '#ffff00'
+            }
+            if(stationMessage.Max_CalcShindo >= 4.5){
+                color = '#ff6f00'
+            }
+            if(stationMessage.Max_CalcShindo >= 6.5){
+                color = '#cf0000'
+            }
         }
-        if(stationMessage.Max_CalcShindo >= 2.5){
-            color = '#ffff00'
-        }
-        if(stationMessage.Max_CalcShindo >= 4.5){
-            color = '#ff6f00'
-        }
-        if(stationMessage.Max_CalcShindo >= 6.5){
-            color = '#cf0000'
+        else if(stationMessage.update_at){
+            color = '#cfcfcf'
         }
     }
-    else if(stationMessage.update_at){
-        color = '#cfcfcf'
-    }
+    
     return {
         backgroundColor: color
     }

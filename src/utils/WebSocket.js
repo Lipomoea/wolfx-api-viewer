@@ -4,15 +4,15 @@ class WebSocketObj {
         this.socket = new WebSocket(this.url)
         this.setupWebSocket()
         this.shouldConnect = true
-        this.retryInterval = 1000
+        this.retryInterval = 5000
         this.messageHandler = null
     }
     setupWebSocket(){
         this.socket.onopen = ()=>{
-            console.log(`${this.url} 连接成功`)
+            // console.log(`${this.url} 连接成功`)
         }
         this.socket.onerror = ()=>{
-            console.log(`${this.url} 连接失败`)
+            // console.log(`${this.url} 连接失败`)
             if(this.shouldConnect){
                 setTimeout(() => {
                     this.reconnect()
@@ -20,7 +20,7 @@ class WebSocketObj {
             }
         }
         this.socket.onclose = ()=>{
-            console.log(`${this.url} 断开连接`)
+            // console.log(`${this.url} 断开连接`)
             if(this.shouldConnect){
                 setTimeout(() => {
                     this.reconnect()
