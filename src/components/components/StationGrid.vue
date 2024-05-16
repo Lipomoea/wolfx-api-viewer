@@ -8,25 +8,22 @@
             <div>2min计测震度: {{ formatNumber(stationMessage.Max_CalcShindo, 2) }}</div>
             <div>{{ stationMessage.update_at?stationMessage.update_at:'N/A' }}</div>
             <div>WebSocket状态: {{ statusCode?statusList[statusCode]:'N/A' }}</div>
-            <!-- <div class="button">
-                <button @click="reconnect">重新连接</button>
-                <button @click="disconnect">断开连接</button>
-            </div> -->
         </div>
     </div>
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref, reactive, computed } from 'vue'
+import { onMounted, onBeforeUnmount, ref, reactive, computed, watch } from 'vue'
 import WebSocketObj from '@/utils/WebSocket';
 import { formatNumber, compareTime } from '@/utils/Utils';
 const stationMessage = reactive({})
-const currentTime = ref(), statusCode = ref()
+const statusCode = ref()
 const props = defineProps({
     source: String,
     url: String,
+    currentTime: String,
 })
-let socketObj, clock;
+let socketObj
 const { source, url } = props
 const statusList = ['正在连接', '已连接', '正在断开', '已断开']
 
@@ -49,7 +46,7 @@ const reconnect = ()=>{
 const gridStyle = computed(()=>{
     let color = '#ffffff'
     if(statusCode.value == '1'){
-        let isLatest = compareTime(currentTime.value, stationMessage.update_at, 10000)
+        let isLatest = compareTime(props.currentTime, stationMessage.update_at, 10000)
         if(isLatest){
             color = '#3fafff'
             if(stationMessage.Max_CalcShindo >= 0.5){
@@ -80,14 +77,12 @@ const gridStyle = computed(()=>{
 
 onMounted(()=>{
     connect()
-    clock = setInterval(() => {
-        currentTime.value = (new Date()).toISOString()
-        statusCode.value = socketObj.socket.readyState
-    }, 1000);
 })
 onBeforeUnmount(()=>{
     disconnect()
-    clearInterval(clock)
+})
+watch(()=>props.currentTime, ()=>{
+    statusCode.value = socketObj.socket.readyState
 })
 </script>
 

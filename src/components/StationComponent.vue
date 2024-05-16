@@ -6,8 +6,9 @@
         <StationGrid 
         v-for="(source, index) of stationList" 
         :key="index" 
-        :source="source" 
-        :url="urlHead + source"></StationGrid>
+        :source
+        :url="urlHead + source"
+        :currentTime></StationGrid>
       </div>
     </div>
   </div>
@@ -17,14 +18,23 @@
 import StationGrid from '@/components/components/StationGrid.vue';
 import { stationUrls } from '@/utils/Url';
 import Http from '@/utils/Http';
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 
 const stationList = ref()
 const urlHead = 'wss://seis.wolfx.jp/'
+
+let tick
+const currentTime = ref()
 onMounted(()=>{
   Http.get(stationUrls.STATION_LIST_http).then(data=>{
     stationList.value = Object.keys(data)
   })
+  tick = setInterval(() => {
+    currentTime.value = (new Date()).toISOString()
+  }, 500);
+})
+onBeforeUnmount(()=>{
+  if(tick) clearInterval(tick)
 })
 </script>
 

@@ -192,7 +192,7 @@ const gridStyle = reactive({
 })
 let time, timer, blinkController, blinkTimeout
 let blinkState = ref(true)
-watch(eqMessage,()=>{
+watch(eqMessage, ()=>{
     let color = '#ffffff'
     time = 0
     if(eqMessage.isEew){
