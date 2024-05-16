@@ -196,7 +196,7 @@ watch(eqMessage,()=>{
     let color = '#ffffff'
     time = 0
     if(eqMessage.isEew){
-        color = '#ffff00'
+        color = '#ff7f00'
         time = 300 * 1000
         switch(props.source){
             case 'jmaEew':
@@ -215,14 +215,14 @@ watch(eqMessage,()=>{
         switch(props.source){
             case 'jmaEqlist':{
                 if(eqMessage.maxIntensity.split(' ')[1] > '4'){
-                    color = '#ffff00'
+                    color = '#ff7f00'
                     time = 300 * 1000
                 }
                 break
             }
             case 'cencEqlist':{
                 if(eqMessage.maxIntensity.split(' ')[1] > '6'){
-                    color = '#ffff00'
+                    color = '#ff7f00'
                     time = 300 * 1000
                 }
                 break

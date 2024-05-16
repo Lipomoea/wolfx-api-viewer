@@ -3,7 +3,11 @@
     <div class="container">
       <div class="title">测站信息</div>
       <div class="stationGrid">
-        <StationGrid v-for="(source, index) of wsUrls" :key="index" :source="source"></StationGrid>
+        <StationGrid 
+        v-for="(source, index) of stationList" 
+        :key="index" 
+        :source="source" 
+        :url="urlHead + source"></StationGrid>
       </div>
     </div>
   </div>
@@ -12,7 +16,16 @@
 <script setup>
 import StationGrid from '@/components/components/StationGrid.vue';
 import { stationUrls } from '@/utils/Url';
-const wsUrls = Object.keys(stationUrls).filter(key=>key.endsWith('ws')&&key != 'ALL_PUSH_ws')
+import Http from '@/utils/Http';
+import { ref, onMounted } from 'vue'
+
+const stationList = ref()
+const urlHead = 'wss://seis.wolfx.jp/'
+onMounted(()=>{
+  Http.get(stationUrls.STATION_LIST_http).then(data=>{
+    stationList.value = Object.keys(data)
+  })
+})
 </script>
 
 <style lang="scss" scoped>
