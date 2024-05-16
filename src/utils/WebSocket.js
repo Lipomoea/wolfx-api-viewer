@@ -32,13 +32,8 @@ class WebSocketObj {
         this.messageHandler = this.socket.onmessage = handler
     }
     reconnect(){
-        if(this.socket){
-            this.socket.onopen = null
-            this.socket.onclose = null
-            this.socket.onerror = null
-            this.socket.onmessage = null
-            this.socket.close()
-        }
+        this.close()
+        this.shouldConnect = true
         this.socket = new WebSocket(this.url)
         this.setupWebSocket()
         if(this.messageHandler)
@@ -47,6 +42,10 @@ class WebSocketObj {
     close(){
         this.shouldConnect = false
         if(this.socket){
+            this.socket.onopen = null
+            this.socket.onclose = null
+            this.socket.onerror = null
+            this.socket.onmessage = null
             this.socket.close()
         }
     }

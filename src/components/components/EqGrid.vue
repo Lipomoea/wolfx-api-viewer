@@ -3,7 +3,7 @@
         <div class="container" :style="gridStyle">
             <div :style='{fontWeight: 700}'>{{ formatText(eqMessage.title) }}</div>
             <div v-if="eqMessage.isEew">{{ formatText(eqMessage.reportNo) }}</div>
-            <div>{{ formatText(eqMessage.epicCenter) }}</div>
+            <div>{{ formatText(eqMessage.hypoCenter) }}</div>
             <div>{{ formatText(eqMessage.depth) }}</div>
             <div>{{ formatText(eqMessage.originTime) }}</div>
             <div>{{ formatText(eqMessage.magnitude) }}</div>
@@ -24,11 +24,12 @@ const eqMessage = reactive({
     isEew: false,
     reportNo: '',
     reportTime: '',
-    isWarning: false,
+    isWarn: false,
     isFinal: false,
     isCanceled: false,
     title: '',
-    epicCenter: '',
+    hypoCenter: '',
+    lngLat: [],
     depth: '',
     originTime: '',
     magnitude: '',
@@ -38,6 +39,7 @@ const eqMessage = reactive({
 const props = defineProps({
     source: String,
 })
+const useWebSocket = ['jmaEew', 'scEew', 'fjEew', 'jmaEqlist', 'cencEqlist']
 let request, socketObj;
 const urls = eqUrls;
 let protocol
@@ -48,11 +50,11 @@ const setEqMessage = (data)=>{
             eqMessage.isEew = true
             eqMessage.reportNo = '第' + data.Serial + '報' + (data.isFinal?'（最終）':'')
             eqMessage.reportTime = data.AnnouncedTime
-            eqMessage.isWarning = data.isWarn
+            eqMessage.isWarn = data.isWarn
             eqMessage.isCanceled = data.isCancel
             eqMessage.isFinal = data.isFinal
             eqMessage.title = data.Title + (data.isCancel?'（取消）':'')
-            eqMessage.epicCenter = '震源地: ' + data.Hypocenter
+            eqMessage.hypoCenter = '震源地: ' + data.Hypocenter
             eqMessage.depth = '深さ: ' + data.Depth + 'km'
             eqMessage.originTime = '発震時刻: ' + data.OriginTime + ' (JST)'
             eqMessage.magnitude = 'マグニチュード: ' + data.Magunitude
@@ -64,10 +66,10 @@ const setEqMessage = (data)=>{
             eqMessage.isEew = true
             eqMessage.reportNo = '第' + data.ReportNum + '報'
             eqMessage.reportTime = data.ReportTime
-            eqMessage.isWarning = data.MaxIntensity > '4'
+            eqMessage.isWarn = data.MaxIntensity > '4'
             eqMessage.isCanceled = data.isCancel
             eqMessage.title = '中央氣象署地震速報' + (data.isCancel?'（取消）':'')
-            eqMessage.epicCenter = '震央: ' + data.HypoCenter
+            eqMessage.hypoCenter = '震央: ' + data.HypoCenter
             eqMessage.depth = '深度: ' + data.Depth + 'km'
             eqMessage.originTime = '時間: ' + data.OriginTime
             eqMessage.magnitude = '規模: ' + data.Magunitude
@@ -79,9 +81,9 @@ const setEqMessage = (data)=>{
             eqMessage.isEew = true
             eqMessage.reportNo = '第' + data.ReportNum + '报'
             eqMessage.reportTime = data.ReportTime
-            eqMessage.isWarning = data.MaxIntensity >= 6.5
+            eqMessage.isWarn = data.MaxIntensity >= 6.5
             eqMessage.title = '四川地震局地震预警'
-            eqMessage.epicCenter = '震源: ' + data.HypoCenter
+            eqMessage.hypoCenter = '震源: ' + data.HypoCenter
             eqMessage.depth = '深度: ' + (data.Depth?data.Depth + 'km':'未知')
             eqMessage.originTime = '发震时间: ' + data.OriginTime
             eqMessage.magnitude = '震级: ' + data.Magunitude
@@ -95,7 +97,7 @@ const setEqMessage = (data)=>{
             eqMessage.reportTime = data.ReportTime
             eqMessage.isFinal = data.isFinal
             eqMessage.title = '福建地震局地震预警'
-            eqMessage.epicCenter = '震源: ' + data.HypoCenter
+            eqMessage.hypoCenter = '震源: ' + data.HypoCenter
             eqMessage.depth = '深度: 未知'
             eqMessage.originTime = '发震时间: ' + data.OriginTime
             eqMessage.magnitude = '震级: ' + data.Magunitude
@@ -105,8 +107,8 @@ const setEqMessage = (data)=>{
         case 'jmaEqlist':{
             eqMessage.id = data.md5
             eqMessage.title = '日本気象庁' + data.No1.Title
-            eqMessage.epicCenter = '震源地: ' + data.No1.location
-            eqMessage.depth = '深さ: ' + data.No1.depth
+            eqMessage.hypoCenter = '震源地: ' + data.No1.location
+            eqMessage.depth = '深さ: ' + (data.No1.depth == '0km'?'ごく浅い':data.No1.depth)
             eqMessage.originTime = '発震時刻: ' + data.No1.time_full + ' (JST)'
             eqMessage.magnitude = 'マグニチュード: ' + data.No1.magnitude
             eqMessage.maxIntensity = '最大震度: ' + data.No1.shindo
@@ -116,7 +118,7 @@ const setEqMessage = (data)=>{
         case 'cencEqlist':{
             eqMessage.id = data.md5
             eqMessage.title = '中国地震台网' + (data.No1.type == 'reviewed'?'正式':'自动') + '测定'
-            eqMessage.epicCenter = '震源: ' + data.No1.location
+            eqMessage.hypoCenter = '震源: ' + data.No1.location
             eqMessage.depth = '深度: ' + data.No1.depth + 'km'
             eqMessage.originTime = '发震时间: ' + data.No1.time
             eqMessage.magnitude = '震级: ' + data.No1.magnitude
@@ -167,7 +169,7 @@ const reconnect = ()=>{
 onMounted(()=>{
     protocol = 'http'
     connect(protocol)
-    if(props.source != 'cwaEew'){
+    if(useWebSocket.includes(props.source)){
         setTimeout(() => {
             disconnect()
             protocol = 'ws'
@@ -200,7 +202,7 @@ watch(eqMessage,()=>{
             case 'jmaEew':
             case 'cwaEew':
             case 'scEew':{
-                if(eqMessage.isWarning){
+                if(eqMessage.isWarn){
                     color = '#ff0000'
                 }
                 break

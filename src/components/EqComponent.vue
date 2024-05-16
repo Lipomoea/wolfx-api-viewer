@@ -1,12 +1,15 @@
 <template>
   <div class="outer">
     <div class="container">
-      <div class="title">地震情报</div>
+      <div class="title">地震预警</div>
       <div class="eqGrid">
         <EqGrid source="jmaEew"></EqGrid>
         <EqGrid source="cwaEew"></EqGrid>
         <EqGrid source="scEew"></EqGrid>
         <EqGrid source="fjEew"></EqGrid>
+      </div>
+      <div class="title">地震信息</div>
+      <div class="eqGrid">
         <EqGrid source="jmaEqlist"></EqGrid>
         <EqGrid source="cencEqlist"></EqGrid>
       </div>
