@@ -136,7 +136,7 @@ const connect = (protocol)=>{
     switch(protocol){
         case 'http': {
             request = setInterval(() => {
-                Http.get(urls[source]).then(data=>{
+                Http.get(urls[source] + `?t=${Date.now()}`).then(data=>{
                     setEqMessage(data)
                 })
             }, 1000);
