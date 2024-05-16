@@ -16,4 +16,5 @@ const stationUrls = {
     STATION_LIST_http: 'https://api.wolfx.jp/seis_list.json',
     ALL_PUSH_ws: 'wss://seis.wolfx.jp/all_seis',
 }
+
 export { eqUrls, stationUrls }

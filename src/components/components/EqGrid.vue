@@ -190,11 +190,10 @@ onBeforeUnmount(()=>{
 const gridStyle = reactive({
     backgroundColor: '#ffffff'
 })
-let time, timer, blinkController, blinkTimeout
+let timer, blinkController, blinkTimeout
 let blinkState = ref(true)
 watch(eqMessage, ()=>{
-    let color = '#ffffff'
-    time = 0
+    let color, time
     if(eqMessage.isEew){
         color = '#ff7f00'
         time = 300 * 1000
