@@ -29,7 +29,8 @@ const eqMessage = reactive({
     isCanceled: false,
     title: '',
     hypoCenter: '',
-    lngLat: [],
+    lat: 0.0,
+    lng: 0.0,
     depth: '',
     originTime: '',
     magnitude: '',
@@ -42,7 +43,7 @@ const props = defineProps({
 const useWebSocket = ['jmaEew', 'scEew', 'fjEew', 'jmaEqlist', 'cencEqlist']
 let request, socketObj;
 const urls = eqUrls;
-let protocol
+let protocol, httpInterval
 const setEqMessage = (data)=>{
     switch(props.source){
         case 'jmaEew':{
@@ -55,9 +56,11 @@ const setEqMessage = (data)=>{
             eqMessage.isFinal = data.isFinal
             eqMessage.title = data.Title + (data.isCancel?'（取消）':'')
             eqMessage.hypoCenter = '震源地: ' + data.Hypocenter
+            eqMessage.lat = data.Latitude
+            eqMessage.lng = data.Longitude
             eqMessage.depth = '深さ: ' + data.Depth + 'km'
             eqMessage.originTime = '発震時刻: ' + data.OriginTime + ' (JST)'
-            eqMessage.magnitude = 'マグニチュード: ' + data.Magunitude
+            eqMessage.magnitude = 'マグニチュード: ' + data.Magunitude.toFixed(1)
             eqMessage.maxIntensity = '推定最大震度: ' + data.MaxIntensity
             break
         }
@@ -70,9 +73,11 @@ const setEqMessage = (data)=>{
             eqMessage.isCanceled = data.isCancel
             eqMessage.title = '中央氣象署地震速報' + (data.isCancel?'（取消）':'')
             eqMessage.hypoCenter = '震央: ' + data.HypoCenter
+            eqMessage.lat = data.Latitude
+            eqMessage.lng = data.Longitude
             eqMessage.depth = '深度: ' + data.Depth + 'km'
             eqMessage.originTime = '時間: ' + data.OriginTime
-            eqMessage.magnitude = '規模: ' + data.Magunitude
+            eqMessage.magnitude = '規模: ' + data.Magunitude.toFixed(1)
             eqMessage.maxIntensity = '預估最大震度: ' + data.MaxIntensity
             break
         }
@@ -84,9 +89,11 @@ const setEqMessage = (data)=>{
             eqMessage.isWarn = data.MaxIntensity >= 6.5
             eqMessage.title = '四川地震局地震预警'
             eqMessage.hypoCenter = '震源: ' + data.HypoCenter
+            eqMessage.lat = data.Latitude
+            eqMessage.lng = data.Longitude
             eqMessage.depth = '深度: ' + (data.Depth?data.Depth + 'km':'未知')
             eqMessage.originTime = '发震时间: ' + data.OriginTime
-            eqMessage.magnitude = '震级: ' + data.Magunitude
+            eqMessage.magnitude = '震级: ' + data.Magunitude.toFixed(1)
             eqMessage.maxIntensity = '估计最大烈度: ' + data.MaxIntensity.toFixed(1)
             break
         }
@@ -98,9 +105,11 @@ const setEqMessage = (data)=>{
             eqMessage.isFinal = data.isFinal
             eqMessage.title = '福建地震局地震预警'
             eqMessage.hypoCenter = '震源: ' + data.HypoCenter
+            eqMessage.lat = data.Latitude
+            eqMessage.lng = data.Longitude
             eqMessage.depth = '深度: 未知'
             eqMessage.originTime = '发震时间: ' + data.OriginTime
-            eqMessage.magnitude = '震级: ' + data.Magunitude
+            eqMessage.magnitude = '震级: ' + data.Magunitude.toFixed(1)
             eqMessage.maxIntensity = '估计最大烈度: 未知'
             break
         }
@@ -108,6 +117,8 @@ const setEqMessage = (data)=>{
             eqMessage.id = data.md5
             eqMessage.title = '日本気象庁' + data.No1.Title
             eqMessage.hypoCenter = '震源地: ' + data.No1.location
+            eqMessage.lat = Number(data.No1.latitude)
+            eqMessage.lng = Number(data.No1.longitude)
             eqMessage.depth = '深さ: ' + (data.No1.depth == '0km'?'ごく浅い':data.No1.depth)
             eqMessage.originTime = '発震時刻: ' + data.No1.time_full + ' (JST)'
             eqMessage.magnitude = 'マグニチュード: ' + data.No1.magnitude
@@ -119,6 +130,8 @@ const setEqMessage = (data)=>{
             eqMessage.id = data.md5
             eqMessage.title = '中国地震台网' + (data.No1.type == 'reviewed'?'正式':'自动') + '测定'
             eqMessage.hypoCenter = '震源: ' + data.No1.location
+            eqMessage.lat = Number(data.No1.latitude)
+            eqMessage.lng = Number(data.No1.longitude)
             eqMessage.depth = '深度: ' + data.No1.depth + 'km'
             eqMessage.originTime = '发震时间: ' + data.No1.time
             eqMessage.magnitude = '震级: ' + data.No1.magnitude
@@ -131,7 +144,7 @@ const setEqMessage = (data)=>{
         }
     }
 }
-const connect = (protocol)=>{
+const connect = (protocol, httpInterval)=>{
     const source = props.source + '_' + protocol
     switch(protocol){
         case 'http': {
@@ -139,7 +152,7 @@ const connect = (protocol)=>{
                 Http.get(urls[source] + `?t=${Date.now()}`).then(data=>{
                     setEqMessage(data)
                 })
-            }, 1000);
+            }, httpInterval);
             break;
         }
         case 'ws': {
@@ -163,17 +176,20 @@ const disconnect = ()=>{
 }
 const reconnect = ()=>{
     disconnect()
-    connect(protocol)
+    connect(protocol, httpInterval)
 }
 
 onMounted(()=>{
     protocol = 'http'
-    connect(protocol)
+    httpInterval = 1000
+    connect(protocol, httpInterval)
     if(useWebSocket.includes(props.source)){
         setTimeout(() => {
             disconnect()
+            httpInterval = 30000
+            connect(protocol, httpInterval)
             protocol = 'ws'
-            connect(protocol)
+            connect(protocol, httpInterval)
         }, 3000);
     }
     setTimeout(() => {
@@ -193,6 +209,7 @@ const gridStyle = reactive({
 let timer, blinkController, blinkTimeout
 let blinkState = ref(true)
 watch(eqMessage, ()=>{
+    // console.log(eqMessage);
     let color, time
     if(eqMessage.isEew){
         color = '#ff7f00'
