@@ -43,7 +43,7 @@ const props = defineProps({
 const useWebSocket = ['jmaEew', 'scEew', 'fjEew', 'jmaEqlist', 'cencEqlist']
 let request, socketObj;
 const urls = eqUrls;
-let protocol, httpInterval
+let protocol = 'http', httpInterval = 1000
 const setEqMessage = (data)=>{
     switch(props.source){
         case 'jmaEew':{
@@ -144,7 +144,7 @@ const setEqMessage = (data)=>{
         }
     }
 }
-const connect = (protocol, httpInterval)=>{
+const connect = ()=>{
     const source = props.source + '_' + protocol
     switch(protocol){
         case 'http': {
@@ -176,25 +176,22 @@ const disconnect = ()=>{
 }
 const reconnect = ()=>{
     disconnect()
-    connect(protocol, httpInterval)
+    connect()
 }
 
 onMounted(()=>{
     protocol = 'http'
     httpInterval = 1000
-    connect(protocol, httpInterval)
+    connect()
     if(useWebSocket.includes(props.source)){
         setTimeout(() => {
             disconnect()
             httpInterval = 30000
-            connect(protocol, httpInterval)
+            connect()
             protocol = 'ws'
-            connect(protocol, httpInterval)
+            connect()
         }, 3000);
     }
-    setTimeout(() => {
-        gridStyle.backgroundColor = '#ffffff'
-    }, 10000);
 })
 onBeforeUnmount(()=>{
     disconnect()
@@ -208,8 +205,13 @@ const gridStyle = reactive({
 })
 let timer, blinkController, blinkTimeout
 let blinkState = ref(true)
+let isLoad = true
 watch(eqMessage, ()=>{
-    // console.log(eqMessage);
+    console.log(eqMessage);
+    if(isLoad){
+        isLoad = false
+        return
+    }
     let color, time
     if(eqMessage.isEew){
         color = '#ff7f00'
