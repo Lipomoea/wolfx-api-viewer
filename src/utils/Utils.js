@@ -15,12 +15,16 @@ const formatText = (text)=>{
         return 'N/A'
     }
 }
-const compareTime = (time, timeZone, interval)=>{
-    if(!time || !timeZone || !interval) return
+const calcPassedTime = (time, timeZone)=>{
+    if(!time || !timeZone) return
     let date1 = Date.now()
     let isoTime = time.replace(' ', 'T').replace(/\//g, '-') + 'Z'
     let date2 = new Date(isoTime).getTime()
     date2 -= timeZone * 3600 * 1000
-    return Math.abs(date1 - date2) <= interval
+    return Math.abs(date1 - date2)
 }
-export {formatNumber, formatText, compareTime}
+const compareTime = (time, timeZone, interval)=>{
+    if(!time || !timeZone || !interval) return
+    return calcPassedTime(time, timeZone) <= interval
+}
+export {formatNumber, formatText, calcPassedTime, compareTime}

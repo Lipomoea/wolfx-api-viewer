@@ -1,6 +1,6 @@
 <template>
     <div class="outer">
-        <div class="container" :style="gridStyle">
+        <div class="container" :class="className" @click="reconnect">
             <div :style='{fontWeight: 700}'>站点: {{ source }}{{ stationMessage.PGA_EW?'':'*' }}</div>
             <div>PGA: {{ formatNumber(stationMessage.PGA, 3) }} gal</div>
             <div>PGV: {{ formatNumber(stationMessage.PGV, 3) }} cm/s</div>
@@ -28,6 +28,7 @@ const { source, url } = props
 const statusList = ['正在连接', '已连接', '正在断开', '已断开']
 
 const connect = ()=>{
+    if(socketObj) socketObj.close()
     socketObj = new WebSocketObj(url)
     socketObj.setMessageHandler((e)=>{
         let data = JSON.parse(e.data)
@@ -43,36 +44,31 @@ const reconnect = ()=>{
     disconnect()
     connect()
 }
-const gridStyle = computed(()=>{
-    let color = '#ffffff'
-    if(statusCode.value == '1'){
+const className = computed(()=>{
+    let className = 'white'
+    if(statusCode.value == '1' && stationMessage.update_at){
+        className = 'gray'
         let isLatest = compareTime(stationMessage.update_at, 8, 10000)
         if(isLatest){
-            color = '#3fafff'
+            className = 'blue'
             if(stationMessage.Max_CalcShindo >= 0.5){
-                color = '#7fff1f'
+                className = 'green'
             }
             if(stationMessage.Max_CalcShindo >= 2.5){
-                color = '#ffff00'
+                className = 'yellow'
             }
             if(stationMessage.Max_CalcShindo >= 4.5){
-                color = '#ff7f00'
+                className = 'orange'
             }
             if(stationMessage.Max_CalcShindo >= 5.5){
-                color = '#ff0000'
+                className = 'red'
             }
             if(stationMessage.Max_CalcShindo >= 6.5){
-                color = '#cf00af'
+                className = 'purple'
             }
         }
-        else if(stationMessage.update_at){
-            color = '#cfcfcf'
-        }
     }
-    
-    return {
-        backgroundColor: color
-    }
+    return className
 })
 
 onMounted(()=>{
@@ -98,6 +94,80 @@ watch(()=>props.currentTime, ()=>{
         justify-content: space-evenly;
         border: black 1px solid;
         border-radius: 5px;
+    }
+    .white{
+        background-color: #ffffff;
+    }
+    .white:hover{
+        background-color: #efefef;
+    }
+    .white:active{
+        background-color: #dfdfdf;
+    }
+    .gray{
+        background-color: #cfcfcf;
+    }
+    .gray:hover{
+        background-color: #bfbfbf;
+    }
+    .gray:active{
+        background-color: #afafaf;
+    }
+    .blue{
+        background-color: #3fafff;
+    }
+    .blue:hover{
+        background-color: #2f9fef;
+    }
+    .blue:active{
+        background-color: #1f8fdf;
+    }
+    .green{
+        background-color: #7fff1f;
+    }
+    .green:hover{
+        background-color: #6fef0f;
+    }
+    .green:active{
+        background-color: #5fdf00;
+    }
+    .yellow{
+        background-color: #ffff00;
+    }
+    .yellow:hover{
+        background-color: #efef00;
+    }
+    .yellow:active{
+        background-color: #dfdf00;
+    }
+    .orange{
+        background-color: #ff7f00;
+    }
+    .orange:hover{
+        background-color: #ef6f00;
+    }
+    .orange:active{
+        background-color: #df5f00;
+    }
+    .red{
+        background-color: #df0000;
+        color: #ffffff;
+    }
+    .red:hover{
+        background-color: #cf0000;
+    }
+    .red:active{
+        background-color: #bf0000;
+    }
+    .purple{
+        background-color: #cf00af;
+        color: #ffffff;
+    }
+    .purple:hover{
+        background-color: #bf009f;
+    }
+    .purple:active{
+        background-color: #af008f;
     }
 }
 </style>

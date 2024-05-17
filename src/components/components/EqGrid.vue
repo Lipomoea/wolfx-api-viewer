@@ -1,6 +1,6 @@
 <template>
     <div class="outer">
-        <div class="container" :style="gridStyle">
+        <div class="container" :class="className" @click="reconnect">
             <div :style='{fontWeight: 700}'>{{ formatText(eqMessage.titleText) }}</div>
             <div v-if="eqMessage.isEew">{{ formatText(eqMessage.reportNumText) }}</div>
             <div>{{ formatText(eqMessage.hypocenterText) }}</div>
@@ -18,7 +18,7 @@ import { onMounted, onBeforeUnmount, ref, reactive, computed, watch } from 'vue'
 import Http from '@/utils/Http';
 import WebSocketObj from '@/utils/WebSocket';
 import { eqUrls } from '@/utils/Url';
-import { formatNumber, formatText, compareTime } from '@/utils/Utils';
+import { formatText, calcPassedTime } from '@/utils/Utils';
 const eqMessage = reactive({
     id: '',
     isEew: false,
@@ -187,30 +187,28 @@ const setEqMessage = (data)=>{
         }
     }
 }
-const connect = ()=>{
+const connect = (protocol)=>{
     const source = props.source + '_' + protocol
-    switch(protocol){
-        case 'http': {
-            request = setInterval(() => {
-                Http.get(urls[source] + `?t=${Date.now()}`).then(data=>{
-                    setEqMessage(data)
-                })
-            }, httpInterval);
-            break;
-        }
-        case 'ws': {
-            socketObj = new WebSocketObj(urls[source])
-            socketObj.setMessageHandler((e)=>{
-                let data = JSON.parse(e.data)
-                if(data.type != 'heartbeat'){
-                    setEqMessage(data)
-                }
+    if(protocol == 'http'){
+        if(request) clearInterval(request)
+        request = setInterval(() => {
+            Http.get(urls[source] + `?t=${Date.now()}`).then(data=>{
+                setEqMessage(data)
             })
-            break;
-        }
-        default: {
-            throw new Error('Unrecognized protocol type.')
-        }
+        }, httpInterval);
+    }
+    else if(protocol == 'ws'){
+        if(socketObj) socketObj.close()
+        socketObj = new WebSocketObj(urls[source])
+        socketObj.setMessageHandler((e)=>{
+            let data = JSON.parse(e.data)
+            if(data.type != 'heartbeat'){
+                setEqMessage(data)
+            }
+        })
+    }
+    else{
+        throw new Error('Unrecognized protocol type.')
     }
 }
 const disconnect = ()=>{
@@ -219,20 +217,27 @@ const disconnect = ()=>{
 }
 const reconnect = ()=>{
     disconnect()
-    connect()
+    if(protocol == 'http'){
+        connect('http')
+    }
+    else if(protocol == 'ws'){
+        connect('http')
+        connect('ws')
+    }
+    else{
+        throw new Error('Unrecognized protocol type.')
+    }
 }
 
 onMounted(()=>{
     protocol = 'http'
     httpInterval = 1000
-    connect()
+    connect('http')
     if(useWebSocket.includes(props.source)){
         setTimeout(() => {
-            disconnect()
-            httpInterval = 30000
-            connect()
             protocol = 'ws'
-            connect()
+            httpInterval = 30000
+            reconnect()
         }, 3000);
     }
 })
@@ -243,50 +248,35 @@ onBeforeUnmount(()=>{
     if(timer) clearTimeout(timer)
 })
 
-const gridStyle = reactive({
-    backgroundColor: '#ffffff'
-})
+const className = ref('white')
 let timer, blinkController, blinkTimeout
 let blinkState = ref(true)
 let isLoad = true
+const blinkTime = 4000
 watch(eqMessage, ()=>{
+    let passedTime = 0
     if(isLoad){
         isLoad = false
-        if(eqMessage.isEew){
-            if(props.source == 'jmaEew'){
-                if(!compareTime(eqMessage.reportTime, 9, 300 * 1000)){
-                    return
-                }
-            }
-            else{
-                if(!compareTime(eqMessage.reportTime, 8, 300 * 1000)){
-                    return
-                }
-            }
+        if(props.source == 'jmaEew'){
+            passedTime = calcPassedTime(eqMessage.reportTime, 9)
+        }
+        else if(props.source == 'jmaEqlist'){
+            passedTime = calcPassedTime(eqMessage.originTime, 9) - 300 * 1000
         }
         else{
-            if(props.source == 'jmaEqlist'){
-                if(!compareTime(eqMessage.originTime, 9, 600 * 1000)){
-                    return
-                }
-            }
-            else{
-                if(!compareTime(eqMessage.reportTime, 8, 300 * 1000)){
-                    return
-                }
-            }
+            passedTime = calcPassedTime(eqMessage.reportTime, 8)
         }
     }
-    let color, time
+    let time, cls
     if(eqMessage.isEew){
-        color = '#ff7f00'
+        cls = 'orange'
         time = 300 * 1000
         switch(props.source){
             case 'jmaEew':
             case 'cwaEew':
             case 'scEew':{
                 if(eqMessage.isWarn){
-                    color = '#ff0000'
+                    cls = 'red'
                     time = 600 * 1000
                 }
                 break
@@ -294,20 +284,20 @@ watch(eqMessage, ()=>{
         }
     }
     else{
-        color = '#3fafff'
+        cls = 'blue'
         time = 180 * 1000
         switch(props.source){
             case 'jmaEqlist':{
                 if(eqMessage.maxIntensity >= '3' || eqMessage.magnitude >= 5.0 || eqMessage.info.includes('若干の海面変動')){
-                    color = '#ffff00'
+                    cls = 'yellow'
                     time = 300 * 1000
                 }
                 if(eqMessage.maxIntensity >= '5' || eqMessage.magnitude >= 6.0 || eqMessage.info.includes('津波警報')){
-                    color = '#ff7f00'
+                    cls = 'orange'
                     time = 600 * 1000
                 }
                 if(eqMessage.maxIntensity >= '6' || eqMessage.magnitude >= 7.0){
-                    color = '#ff0000'
+                    cls = 'red'
                     time = 900 * 1000
                 }
                 if(eqMessage.info.includes('津波警報')){
@@ -317,41 +307,44 @@ watch(eqMessage, ()=>{
             }
             case 'cencEqlist':{
                 if(eqMessage.maxIntensity >= '5' || eqMessage.magnitude >= 5.0){
-                    color = '#ffff00'
+                    cls = 'yellow'
                     time = 300 * 1000
                 }
                 if(eqMessage.maxIntensity >= '7' || eqMessage.magnitude >= 6.0){
-                    color = '#ff7f00'
+                    cls = 'orange'
                     time = 600 * 1000
                 }
                 if(eqMessage.maxIntensity >= '9' || eqMessage.magnitude >= 7.0){
-                    color = '#ff0000'
+                    cls = 'red'
                     time = 900 * 1000
                 }
                 break
             }
         }
     }
-    if(blinkController) clearInterval(blinkController)
-    blinkController = setInterval(() => {
-        if(blinkState.value){
-            gridStyle.backgroundColor = color
-        }
-        else{
-            gridStyle.backgroundColor = '#ffffff'
-        }
-        blinkState.value = !blinkState.value
-    }, 500);
-    if(blinkTimeout) clearTimeout(blinkTimeout)
-    blinkTimeout = setTimeout(() => {
-        clearInterval(blinkController)
-        blinkState.value = true
-        gridStyle.backgroundColor = color
-    }, 4000);
-    if(timer) clearTimeout(timer)
-    timer = setTimeout(() => {
-        gridStyle.backgroundColor = '#ffffff'
-    }, time);
+    time -= passedTime
+    if(time > 0){
+        if(blinkController) clearInterval(blinkController)
+        blinkController = setInterval(() => {
+            if(blinkState.value){
+                className.value = cls
+            }
+            else{
+                className.value = 'white'
+            }
+            blinkState.value = !blinkState.value
+        }, 500);
+        if(blinkTimeout) clearTimeout(blinkTimeout)
+        blinkTimeout = setTimeout(() => {
+            clearInterval(blinkController)
+            blinkState.value = true
+            className.value = cls
+        }, blinkTime);
+        if(timer) clearTimeout(timer)
+        timer = setTimeout(() => {
+            className.value = 'white'
+        }, Math.max(time, blinkTime));
+    }
 })
 </script>
 
@@ -367,6 +360,80 @@ watch(eqMessage, ()=>{
         justify-content: space-evenly;
         border: black 1px solid;
         border-radius: 5px;
+    }
+    .white{
+        background-color: #ffffff;
+    }
+    .white:hover{
+        background-color: #efefef;
+    }
+    .white:active{
+        background-color: #dfdfdf;
+    }
+    .gray{
+        background-color: #cfcfcf;
+    }
+    .gray:hover{
+        background-color: #bfbfbf;
+    }
+    .gray:active{
+        background-color: #afafaf;
+    }
+    .blue{
+        background-color: #3fafff;
+    }
+    .blue:hover{
+        background-color: #2f9fef;
+    }
+    .blue:active{
+        background-color: #1f8fdf;
+    }
+    .green{
+        background-color: #7fff1f;
+    }
+    .green:hover{
+        background-color: #6fef0f;
+    }
+    .green:active{
+        background-color: #5fdf00;
+    }
+    .yellow{
+        background-color: #ffff00;
+    }
+    .yellow:hover{
+        background-color: #efef00;
+    }
+    .yellow:active{
+        background-color: #dfdf00;
+    }
+    .orange{
+        background-color: #ff7f00;
+    }
+    .orange:hover{
+        background-color: #ef6f00;
+    }
+    .orange:active{
+        background-color: #df5f00;
+    }
+    .red{
+        background-color: #df0000;
+        color: #ffffff;
+    }
+    .red:hover{
+        background-color: #cf0000;
+    }
+    .red:active{
+        background-color: #bf0000;
+    }
+    .purple{
+        background-color: #cf00af;
+        color: #ffffff;
+    }
+    .purple:hover{
+        background-color: #bf009f;
+    }
+    .purple:active{
+        background-color: #af008f;
     }
 }
 </style>
