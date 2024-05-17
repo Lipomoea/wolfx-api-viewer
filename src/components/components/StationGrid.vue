@@ -46,7 +46,7 @@ const reconnect = ()=>{
 const gridStyle = computed(()=>{
     let color = '#ffffff'
     if(statusCode.value == '1'){
-        let isLatest = compareTime(props.currentTime, stationMessage.update_at, 10000)
+        let isLatest = compareTime(stationMessage.update_at, 8, 10000)
         if(isLatest){
             color = '#3fafff'
             if(stationMessage.Max_CalcShindo >= 0.5){

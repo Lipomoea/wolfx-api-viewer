@@ -1,13 +1,13 @@
 <template>
     <div class="outer">
         <div class="container" :style="gridStyle">
-            <div :style='{fontWeight: 700}'>{{ formatText(eqMessage.title) }}</div>
-            <div v-if="eqMessage.isEew">{{ formatText(eqMessage.reportNo) }}</div>
-            <div>{{ formatText(eqMessage.hypoCenter) }}</div>
-            <div>{{ formatText(eqMessage.depth) }}</div>
-            <div>{{ formatText(eqMessage.originTime) }}</div>
-            <div>{{ formatText(eqMessage.magnitude) }}</div>
-            <div>{{ formatText(eqMessage.maxIntensity) }}</div>
+            <div :style='{fontWeight: 700}'>{{ formatText(eqMessage.titleText) }}</div>
+            <div v-if="eqMessage.isEew">{{ formatText(eqMessage.reportNumText) }}</div>
+            <div>{{ formatText(eqMessage.hypocenterText) }}</div>
+            <div>{{ formatText(eqMessage.depthText) }}</div>
+            <div>{{ formatText(eqMessage.originTimeText) }}</div>
+            <div>{{ formatText(eqMessage.magnitudeText) }}</div>
+            <div>{{ formatText(eqMessage.maxIntensityText) }}</div>
             <div v-if="props.source == 'jmaEqlist'">{{ formatText(eqMessage.info) }}</div>
         </div>
     </div>
@@ -22,19 +22,26 @@ import { formatNumber, formatText, compareTime } from '@/utils/Utils';
 const eqMessage = reactive({
     id: '',
     isEew: false,
-    reportNo: '',
+    reportNum: 0,
+    reportNumText: '',
     reportTime: '',
     isWarn: false,
     isFinal: false,
     isCanceled: false,
     title: '',
-    hypoCenter: '',
-    lat: 0.0,
-    lng: 0.0,
-    depth: '',
+    titleText: '',
+    hypocenter: '',
+    hypocenterText: '',
+    lat: 0,
+    lng: 0,
+    depth: 0,
+    depthText: '',
     originTime: '',
-    magnitude: '',
+    originTimeText: '',
+    magnitude: 0,
+    magnitudeText: '',
     maxIntensity: '',
+    maxIntensityText: '',
     info: '',
 })
 const props = defineProps({
@@ -49,93 +56,129 @@ const setEqMessage = (data)=>{
         case 'jmaEew':{
             eqMessage.id = data.EventID
             eqMessage.isEew = true
-            eqMessage.reportNo = '第' + data.Serial + '報' + (data.isFinal?'（最終）':'')
+            eqMessage.reportNum = data.Serial
+            eqMessage.reportNumText = '第' + data.Serial + '報' + (data.isFinal?'（最終）':'')
             eqMessage.reportTime = data.AnnouncedTime
             eqMessage.isWarn = data.isWarn
             eqMessage.isCanceled = data.isCancel
             eqMessage.isFinal = data.isFinal
-            eqMessage.title = data.Title + (data.isCancel?'（取消）':'')
-            eqMessage.hypoCenter = '震源地: ' + data.Hypocenter
+            eqMessage.title = data.Title
+            eqMessage.titleText = data.Title + (data.isCancel?'（取消）':'')
+            eqMessage.hypocenter = data.Hypocenter
+            eqMessage.hypocenterText = '震源地: ' + data.Hypocenter
             eqMessage.lat = data.Latitude
             eqMessage.lng = data.Longitude
-            eqMessage.depth = '深さ: ' + data.Depth + 'km'
-            eqMessage.originTime = '発震時刻: ' + data.OriginTime + ' (JST)'
-            eqMessage.magnitude = 'マグニチュード: ' + data.Magunitude.toFixed(1)
-            eqMessage.maxIntensity = '推定最大震度: ' + data.MaxIntensity
+            eqMessage.depth = data.Depth
+            eqMessage.depthText = '深さ: ' + data.Depth + 'km'
+            eqMessage.originTime = data.OriginTime
+            eqMessage.originTimeText = '発震時刻: ' + data.OriginTime + ' (JST)'
+            eqMessage.magnitude = data.Magunitude
+            eqMessage.magnitudeText = 'マグニチュード: ' + data.Magunitude.toFixed(1)
+            eqMessage.maxIntensity = data.MaxIntensity
+            eqMessage.maxIntensityText = '推定最大震度: ' + data.MaxIntensity
             break
         }
         case 'cwaEew':{
             eqMessage.id = data.ID
             eqMessage.isEew = true
-            eqMessage.reportNo = '第' + data.ReportNum + '報'
+            eqMessage.reportNum = data.ReportNum
+            eqMessage.reportNumText = '第' + data.ReportNum + '報'
             eqMessage.reportTime = data.ReportTime
             eqMessage.isWarn = data.MaxIntensity > '4'
             eqMessage.isCanceled = data.isCancel
-            eqMessage.title = '中央氣象署地震速報' + (data.isCancel?'（取消）':'')
-            eqMessage.hypoCenter = '震央: ' + data.HypoCenter
+            eqMessage.titleText = '中央氣象署地震速報' + (data.isCancel?'（取消）':'')
+            eqMessage.hypocenter = data.HypoCenter
+            eqMessage.hypocenterText = '震央: ' + data.HypoCenter
             eqMessage.lat = data.Latitude
             eqMessage.lng = data.Longitude
-            eqMessage.depth = '深度: ' + data.Depth + 'km'
-            eqMessage.originTime = '時間: ' + data.OriginTime
-            eqMessage.magnitude = '規模: ' + data.Magunitude.toFixed(1)
-            eqMessage.maxIntensity = '預估最大震度: ' + data.MaxIntensity
+            eqMessage.depth = data.Depth
+            eqMessage.depthText = '深度: ' + data.Depth + 'km'
+            eqMessage.originTime = data.OriginTime
+            eqMessage.originTimeText = '時間: ' + data.OriginTime
+            eqMessage.magnitude = data.Magunitude
+            eqMessage.magnitudeText = '規模: ' + data.Magunitude.toFixed(1)
+            eqMessage.maxIntensity = data.MaxIntensity
+            eqMessage.maxIntensityText = '預估最大震度: ' + data.MaxIntensity
             break
         }
         case 'scEew':{
             eqMessage.id = data.ID
             eqMessage.isEew = true
-            eqMessage.reportNo = '第' + data.ReportNum + '报'
+            eqMessage.reportNum = data.ReportNum
+            eqMessage.reportNumText = '第' + data.ReportNum + '报'
             eqMessage.reportTime = data.ReportTime
             eqMessage.isWarn = data.MaxIntensity >= 6.5
-            eqMessage.title = '四川地震局地震预警'
-            eqMessage.hypoCenter = '震源: ' + data.HypoCenter
+            eqMessage.titleText = '四川地震局地震预警'
+            eqMessage.hypocenter = data.HypoCenter
+            eqMessage.hypocenterText = '震源: ' + data.HypoCenter
             eqMessage.lat = data.Latitude
             eqMessage.lng = data.Longitude
-            eqMessage.depth = '深度: ' + (data.Depth?data.Depth + 'km':'未知')
-            eqMessage.originTime = '发震时间: ' + data.OriginTime
-            eqMessage.magnitude = '震级: ' + data.Magunitude.toFixed(1)
-            eqMessage.maxIntensity = '估计最大烈度: ' + data.MaxIntensity.toFixed(1)
+            eqMessage.depth = data.Depth
+            eqMessage.depthText = '深度: ' + (data.Depth?data.Depth + 'km':'未知')
+            eqMessage.originTime = data.OriginTime
+            eqMessage.originTimeText = '发震时间: ' + data.OriginTime
+            eqMessage.magnitude = data.Magunitude
+            eqMessage.magnitudeText = '震级: ' + data.Magunitude.toFixed(1)
+            eqMessage.maxIntensity = data.MaxIntensity.toFixed(1)
+            eqMessage.maxIntensityText = '估计最大烈度: ' + data.MaxIntensity.toFixed(1)
             break
         }
         case 'fjEew':{
             eqMessage.id = data.EventID
             eqMessage.isEew = true
-            eqMessage.reportNo = '第' + data.ReportNum + '报' + (data.isFinal?'（最终）':'')
+            eqMessage.reportNum = data.ReportNum
+            eqMessage.reportNumText = '第' + data.ReportNum + '报' + (data.isFinal?'（最终）':'')
             eqMessage.reportTime = data.ReportTime
             eqMessage.isFinal = data.isFinal
-            eqMessage.title = '福建地震局地震预警'
-            eqMessage.hypoCenter = '震源: ' + data.HypoCenter
+            eqMessage.titleText = '福建地震局地震预警'
+            eqMessage.hypocenter = data.HypoCenter
+            eqMessage.hypocenterText = '震源: ' + data.HypoCenter
             eqMessage.lat = data.Latitude
             eqMessage.lng = data.Longitude
-            eqMessage.depth = '深度: 未知'
-            eqMessage.originTime = '发震时间: ' + data.OriginTime
-            eqMessage.magnitude = '震级: ' + data.Magunitude.toFixed(1)
-            eqMessage.maxIntensity = '估计最大烈度: 未知'
+            eqMessage.depthText = '深度: 未知'
+            eqMessage.originTime = data.OriginTime
+            eqMessage.originTimeText = '发震时间: ' + data.OriginTime
+            eqMessage.magnitude = data.Magunitude
+            eqMessage.magnitudeText = '震级: ' + data.Magunitude.toFixed(1)
+            eqMessage.maxIntensityText = '估计最大烈度: 未知'
             break
         }
         case 'jmaEqlist':{
             eqMessage.id = data.md5
-            eqMessage.title = '日本気象庁' + data.No1.Title
-            eqMessage.hypoCenter = '震源地: ' + data.No1.location
+            eqMessage.title = data.No1.Title
+            eqMessage.titleText = '日本気象庁' + data.No1.Title
+            eqMessage.hypocenter = data.No1.location
+            eqMessage.hypocenterText = '震源地: ' + data.No1.location
             eqMessage.lat = Number(data.No1.latitude)
             eqMessage.lng = Number(data.No1.longitude)
-            eqMessage.depth = '深さ: ' + (data.No1.depth == '0km'?'ごく浅い':data.No1.depth)
-            eqMessage.originTime = '発震時刻: ' + data.No1.time_full + ' (JST)'
-            eqMessage.magnitude = 'マグニチュード: ' + data.No1.magnitude
-            eqMessage.maxIntensity = '最大震度: ' + data.No1.shindo
+            eqMessage.depth = Number(data.No1.depth.replace('km', ''))
+            eqMessage.depthText = '深さ: ' + (data.No1.depth == '0km'?'ごく浅い':data.No1.depth)
+            eqMessage.originTime = data.No1.time_full
+            eqMessage.originTimeText = '発震時刻: ' + data.No1.time_full + ' (JST)'
+            eqMessage.magnitude = Number(data.No1.magnitude)
+            eqMessage.magnitudeText = 'マグニチュード: ' + data.No1.magnitude
+            eqMessage.maxIntensity = data.No1.shindo
+            eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
             eqMessage.info = data.No1.info
             break
         }
         case 'cencEqlist':{
             eqMessage.id = data.md5
-            eqMessage.title = '中国地震台网' + (data.No1.type == 'reviewed'?'正式':'自动') + '测定'
-            eqMessage.hypoCenter = '震源: ' + data.No1.location
+            eqMessage.reportTime = data.No1.ReportTime
+            eqMessage.title = data.No1.type
+            eqMessage.titleText = '中国地震台网' + (data.No1.type == 'reviewed'?'正式':'自动') + '测定'
+            eqMessage.hypocenter = data.No1.location
+            eqMessage.hypocenterText = '震源: ' + data.No1.location
             eqMessage.lat = Number(data.No1.latitude)
             eqMessage.lng = Number(data.No1.longitude)
-            eqMessage.depth = '深度: ' + data.No1.depth + 'km'
-            eqMessage.originTime = '发震时间: ' + data.No1.time
-            eqMessage.magnitude = '震级: ' + data.No1.magnitude
-            eqMessage.maxIntensity = '估计最大烈度: ' + data.No1.intensity
+            eqMessage.depth = Number(data.No1.depth)
+            eqMessage.depthText = '深度: ' + data.No1.depth + 'km'
+            eqMessage.originTime = data.No1.time
+            eqMessage.originTimeText = '发震时间: ' + data.No1.time
+            eqMessage.magnitude = Number(data.No1.magnitude)
+            eqMessage.magnitudeText = '震级: ' + data.No1.magnitude
+            eqMessage.maxIntensity = data.No1.intensity
+            eqMessage.maxIntensityText = '估计最大烈度: ' + data.No1.intensity
             break
         }
         default:{
@@ -207,10 +250,32 @@ let timer, blinkController, blinkTimeout
 let blinkState = ref(true)
 let isLoad = true
 watch(eqMessage, ()=>{
-    console.log(eqMessage);
     if(isLoad){
         isLoad = false
-        return
+        if(eqMessage.isEew){
+            if(props.source == 'jmaEew'){
+                if(!compareTime(eqMessage.reportTime, 9, 300 * 1000)){
+                    return
+                }
+            }
+            else{
+                if(!compareTime(eqMessage.reportTime, 8, 300 * 1000)){
+                    return
+                }
+            }
+        }
+        else{
+            if(props.source == 'jmaEqlist'){
+                if(!compareTime(eqMessage.originTime, 9, 600 * 1000)){
+                    return
+                }
+            }
+            else{
+                if(!compareTime(eqMessage.reportTime, 8, 300 * 1000)){
+                    return
+                }
+            }
+        }
     }
     let color, time
     if(eqMessage.isEew){
@@ -222,6 +287,7 @@ watch(eqMessage, ()=>{
             case 'scEew':{
                 if(eqMessage.isWarn){
                     color = '#ff0000'
+                    time = 600 * 1000
                 }
                 break
             }
@@ -232,16 +298,35 @@ watch(eqMessage, ()=>{
         time = 180 * 1000
         switch(props.source){
             case 'jmaEqlist':{
-                if(eqMessage.maxIntensity.split(' ')[1] > '4'){
-                    color = '#ff7f00'
+                if(eqMessage.maxIntensity >= '3' || eqMessage.magnitude >= 5.0 || eqMessage.info.includes('若干の海面変動')){
+                    color = '#ffff00'
                     time = 300 * 1000
+                }
+                if(eqMessage.maxIntensity >= '5' || eqMessage.magnitude >= 6.0 || eqMessage.info.includes('津波警報')){
+                    color = '#ff7f00'
+                    time = 600 * 1000
+                }
+                if(eqMessage.maxIntensity >= '6' || eqMessage.magnitude >= 7.0){
+                    color = '#ff0000'
+                    time = 900 * 1000
+                }
+                if(eqMessage.info.includes('津波警報')){
+                    time = 1200 * 1000
                 }
                 break
             }
             case 'cencEqlist':{
-                if(eqMessage.maxIntensity.split(' ')[1] > '6'){
-                    color = '#ff7f00'
+                if(eqMessage.maxIntensity >= '5' || eqMessage.magnitude >= 5.0){
+                    color = '#ffff00'
                     time = 300 * 1000
+                }
+                if(eqMessage.maxIntensity >= '7' || eqMessage.magnitude >= 6.0){
+                    color = '#ff7f00'
+                    time = 600 * 1000
+                }
+                if(eqMessage.maxIntensity >= '9' || eqMessage.magnitude >= 7.0){
+                    color = '#ff0000'
+                    time = 900 * 1000
                 }
                 break
             }

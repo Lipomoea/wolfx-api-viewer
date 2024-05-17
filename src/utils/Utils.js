@@ -15,12 +15,12 @@ const formatText = (text)=>{
         return 'N/A'
     }
 }
-const compareTime = (time1, time2, interval)=>{
-    if(!time1 || !time2 || !interval) return
-    time1 = time1.replace(' ', 'T')
-    time2 = time2.replace(' ', 'T')
-    const date1 = new Date(time1).getTime()
-    const date2 = new Date(time2).getTime()
-    return Math.abs(date1 - date2) < interval
+const compareTime = (time, timeZone, interval)=>{
+    if(!time || !timeZone || !interval) return
+    let date1 = Date.now()
+    let isoTime = time.replace(' ', 'T').replace(/\//g, '-') + 'Z'
+    let date2 = new Date(isoTime).getTime()
+    date2 -= timeZone * 3600 * 1000
+    return Math.abs(date1 - date2) <= interval
 }
 export {formatNumber, formatText, compareTime}
