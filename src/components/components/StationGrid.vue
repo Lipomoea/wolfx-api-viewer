@@ -32,7 +32,13 @@ const connect = ()=>{
     socketObj = new WebSocketObj(url)
     socketObj.setMessageHandler((e)=>{
         let data = JSON.parse(e.data)
-        if(data.type != 'heartbeat'){
+        if(data.type == 'heartbeat'){
+            socketObj.ping()
+        }
+        else if(data.type == 'pong'){
+            // console.log('pong', props.source);
+        }
+        else{
             Object.assign(stationMessage, data);
         }
     })

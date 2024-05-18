@@ -49,6 +49,11 @@ class WebSocketObj {
             this.socket.close()
         }
     }
+    ping(){
+        if(this.socket.readyState == 1){
+            this.socket.send('ping')
+        }
+    }
 }
 
 export default WebSocketObj

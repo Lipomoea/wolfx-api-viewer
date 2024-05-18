@@ -202,7 +202,13 @@ const connect = (protocol)=>{
         socketObj = new WebSocketObj(urls[source])
         socketObj.setMessageHandler((e)=>{
             let data = JSON.parse(e.data)
-            if(data.type != 'heartbeat'){
+            if(data.type == 'heartbeat'){
+                socketObj.ping()
+            }
+            else if(data.type == 'pong'){
+                // console.log('pong', props.source);
+            }
+            else{
                 setEqMessage(data)
             }
         })
