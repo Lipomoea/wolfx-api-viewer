@@ -27,4 +27,14 @@ const compareTime = (time, timeZone, interval)=>{
     if(!time || !timeZone || !interval) return
     return calcPassedTime(time, timeZone) <= interval
 }
-export {formatNumber, formatText, calcPassedTime, compareTime}
+const sendNotification = (title, body)=>{
+    if(Notification.permission == 'granted'){
+        const notification = new Notification(title, {
+            body
+        })
+        notification.onclick = ()=>{
+            window.focus()
+        }
+    }
+}
+export {formatNumber, formatText, calcPassedTime, compareTime, sendNotification}

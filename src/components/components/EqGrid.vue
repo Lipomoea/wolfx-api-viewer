@@ -14,11 +14,11 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref, reactive, computed, watch } from 'vue'
+import { onMounted, onBeforeUnmount, ref, reactive, watch } from 'vue'
 import Http from '@/utils/Http';
 import WebSocketObj from '@/utils/WebSocket';
 import { eqUrls } from '@/utils/Url';
-import { formatText, calcPassedTime } from '@/utils/Utils';
+import { formatText, calcPassedTime, sendNotification } from '@/utils/Utils';
 const eqMessage = reactive({
     id: '',
     isEew: false,
@@ -267,7 +267,7 @@ watch(eqMessage, ()=>{
             passedTime = calcPassedTime(eqMessage.reportTime, 9)
         }
         else if(props.source == 'jmaEqlist'){
-            passedTime = calcPassedTime(eqMessage.originTime, 9) - 300 * 1000
+            passedTime = Math.max(calcPassedTime(eqMessage.originTime, 9) - 300 * 1000, 0)
         }
         else{
             passedTime = calcPassedTime(eqMessage.reportTime, 8)
@@ -330,6 +330,7 @@ watch(eqMessage, ()=>{
     }
     time -= passedTime
     if(time > 0){
+        sendNotification(`${eqMessage.titleText}`, `${eqMessage.hypocenterText}\n${eqMessage.depthText}\n${eqMessage.magnitudeText}\n${eqMessage.maxIntensityText}`)
         if(blinkController) clearInterval(blinkController)
         blinkController = setInterval(() => {
             if(blinkState.value){

@@ -15,7 +15,7 @@
 <script setup>
 import { onMounted, onBeforeUnmount, ref, reactive, computed, watch } from 'vue'
 import WebSocketObj from '@/utils/WebSocket';
-import { formatNumber, compareTime } from '@/utils/Utils';
+import { formatNumber, compareTime, sendNotification } from '@/utils/Utils';
 const stationMessage = reactive({})
 const statusCode = ref()
 const props = defineProps({
@@ -39,7 +39,7 @@ const connect = ()=>{
             // console.log('pong', props.source);
         }
         else{
-            Object.assign(stationMessage, data);
+            Object.assign(stationMessage, data)
         }
     })
 }
@@ -50,12 +50,12 @@ const reconnect = ()=>{
     disconnect()
     connect()
 }
+const isLatest = computed(()=>compareTime(stationMessage.update_at, 8, 10000))
 const className = computed(()=>{
     let className = 'white'
     if(statusCode.value == '1' && stationMessage.update_at){
         className = 'gray'
-        let isLatest = compareTime(stationMessage.update_at, 8, 10000)
-        if(isLatest){
+        if(isLatest.value){
             className = 'blue'
             if(stationMessage.Max_CalcShindo >= 0.5){
                 className = 'green'
@@ -76,6 +76,13 @@ const className = computed(()=>{
     }
     return className
 })
+const shakingState = computed(()=>{
+    if(stationMessage.Max_CalcShindo < 0.5) return 0
+    else if(stationMessage.Max_CalcShindo < 2.5) return 1
+    else if(stationMessage.Max_CalcShindo < 4.5) return 2
+    else if(stationMessage.Max_CalcShindo < 5.5) return 3
+    else return 4
+})
 
 onMounted(()=>{
     connect()
@@ -85,6 +92,14 @@ onBeforeUnmount(()=>{
 })
 watch(()=>props.currentTime, ()=>{
     statusCode.value = socketObj.socket.readyState
+})
+watch(shakingState, (newValue, oldValue)=>{
+    if((newValue > oldValue) && isLatest.value){
+        if(newValue == 1) sendNotification('检测到测站摇晃', `站点: ${source}`)
+        if(newValue == 2) sendNotification('检测到测站稍强摇晃', `站点: ${source}`)
+        if(newValue == 3) sendNotification('检测到测站强烈摇晃', `站点: ${source}`)
+        if(newValue == 4) sendNotification('检测到测站极强摇晃', `站点: ${source}`)
+    }
 })
 </script>
 

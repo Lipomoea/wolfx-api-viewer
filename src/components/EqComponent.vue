@@ -19,8 +19,6 @@
 
 <script setup>
 import EqGrid from '@/components/components/EqGrid.vue';
-import { eqUrls } from '@/utils/Url';
-const urls = Object.keys(eqUrls)
 </script>
 
 <style lang="scss" scoped>
