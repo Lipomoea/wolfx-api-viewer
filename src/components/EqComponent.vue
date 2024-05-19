@@ -3,15 +3,15 @@
     <div class="container">
       <div class="title">地震预警</div>
       <div class="eqGrid">
-        <EqGrid source="jmaEew"></EqGrid>
-        <EqGrid source="cwaEew"></EqGrid>
-        <EqGrid source="scEew"></EqGrid>
-        <EqGrid source="fjEew"></EqGrid>
+        <EqGrid v-for="(source, index) of eewList"
+        :key="index"
+        :source></EqGrid>
       </div>
       <div class="title">地震信息</div>
       <div class="eqGrid">
-        <EqGrid source="jmaEqlist"></EqGrid>
-        <EqGrid source="cencEqlist"></EqGrid>
+        <EqGrid v-for="(source, index) of eqlistList"
+        :key="index"
+        :source></EqGrid>
       </div>
     </div>
   </div>
@@ -19,6 +19,8 @@
 
 <script setup>
 import EqGrid from '@/components/components/EqGrid.vue';
+const eewList = ['jmaEew', 'cwaEew', 'scEew', 'fjEew']
+const eqlistList = ['jmaEqlist', 'cencEqlist']
 </script>
 
 <style lang="scss" scoped>

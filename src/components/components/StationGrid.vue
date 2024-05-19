@@ -7,7 +7,7 @@
             <div>计测震度: {{ formatNumber(stationMessage.CalcShindo, 2) }}</div>
             <div>2min计测震度: {{ formatNumber(stationMessage.Max_CalcShindo, 2) }}</div>
             <div>{{ stationMessage.update_at?stationMessage.update_at:'N/A' }}</div>
-            <div>WebSocket状态: {{ statusCode?statusList[statusCode]:'N/A' }}</div>
+            <div>WebSocket状态: {{ statusCode >= 0 && statusCode <= 3?statusList[statusCode]:'未连接' }}</div>
         </div>
     </div>
 </template>
@@ -16,16 +16,17 @@
 import { onMounted, onBeforeUnmount, ref, reactive, computed, watch } from 'vue'
 import WebSocketObj from '@/utils/WebSocket';
 import { formatNumber, compareTime, sendNotification } from '@/utils/Utils';
+import { useTimeStore } from '@/stores/time';
 const stationMessage = reactive({})
 const statusCode = ref()
 const props = defineProps({
     source: String,
     url: String,
-    currentTime: String,
 })
 let socketObj
 const { source, url } = props
 const statusList = ['正在连接', '已连接', '正在断开', '已断开']
+const timeStore = useTimeStore()
 
 const connect = ()=>{
     if(socketObj) socketObj.close()
@@ -90,8 +91,9 @@ onMounted(()=>{
 onBeforeUnmount(()=>{
     disconnect()
 })
-watch(()=>props.currentTime, ()=>{
-    statusCode.value = socketObj.socket.readyState
+watch(()=>timeStore.currentTime, ()=>{
+    if(socketObj) statusCode.value = socketObj.socket.readyState
+    else statusCode.value = -1
 })
 watch(shakingState, (newValue, oldValue)=>{
     if((newValue > oldValue) && isLatest.value){

@@ -15,6 +15,19 @@ const formatText = (text)=>{
         return 'N/A'
     }
 }
+const msToTime = (duration)=>{
+    if(!duration) return
+    let seconds = Math.floor((duration / 1000) % 60)
+    let minutes = Math.floor((duration / (1000 * 60)) % 60)
+    let hours = Math.floor((duration / (1000 * 60 * 60)) % 24)
+    let days = Math.floor(duration / (1000 * 60 * 60 * 24))
+  
+    hours = (hours < 10) ? "0" + hours : hours;
+    minutes = (minutes < 10) ? "0" + minutes : minutes;
+    seconds = (seconds < 10) ? "0" + seconds : seconds;
+  
+    return days + "d " + hours + ":" + minutes + ":" + seconds;
+}
 const calcPassedTime = (time, timeZone)=>{
     if(!time || !timeZone) return
     let date1 = Date.now()
@@ -37,4 +50,4 @@ const sendNotification = (title, body)=>{
         }
     }
 }
-export {formatNumber, formatText, calcPassedTime, compareTime, sendNotification}
+export {formatNumber, formatText, msToTime, calcPassedTime, compareTime, sendNotification}

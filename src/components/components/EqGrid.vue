@@ -9,16 +9,20 @@
             <div>{{ formatText(eqMessage.magnitudeText) }}</div>
             <div>{{ formatText(eqMessage.maxIntensityText) }}</div>
             <div v-if="props.source == 'jmaEqlist'">{{ formatText(eqMessage.info) }}</div>
+            <div>经过时间: {{ formatText(msToTime(passedTimeFromOrigin)) }}</div>
+            <div>WebSocket状态: {{ statusCode >= 0 && statusCode <= 3?statusList[statusCode]:'未连接' }}</div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref, reactive, watch } from 'vue'
+import { onMounted, onBeforeUnmount, ref, reactive, computed, watch } from 'vue'
 import Http from '@/utils/Http';
 import WebSocketObj from '@/utils/WebSocket';
 import { eqUrls } from '@/utils/Url';
-import { formatText, calcPassedTime, sendNotification } from '@/utils/Utils';
+import { formatText, msToTime, calcPassedTime, sendNotification } from '@/utils/Utils';
+import { useTimeStore } from '@/stores/time';
+const statusList = ['正在连接', '已连接', '正在断开', '已断开']
 const eqMessage = reactive({
     id: '',
     isEew: false,
@@ -47,7 +51,9 @@ const eqMessage = reactive({
 const props = defineProps({
     source: String,
 })
+const timeStore = useTimeStore()
 const useWebSocket = ['jmaEew', 'scEew', 'fjEew', 'jmaEqlist', 'cencEqlist']
+const useJst = ['jmaEew', 'jmaEqlist']
 let request, socketObj;
 const urls = eqUrls;
 let protocol = 'http', httpInterval = 1000
@@ -352,6 +358,18 @@ watch(eqMessage, ()=>{
             className.value = 'white'
         }, Math.max(time, blinkTime));
     }
+})
+const statusCode = ref()
+const passedTimeFromOrigin = ref()
+watch(()=>timeStore.currentTime, ()=>{
+    if(useJst.includes(props.source)){
+        passedTimeFromOrigin.value = calcPassedTime(eqMessage.originTime, 9)
+    }
+    else{
+        passedTimeFromOrigin.value = calcPassedTime(eqMessage.originTime, 8)
+    }
+    if(socketObj) statusCode.value = socketObj.socket.readyState
+    else statusCode.value = -1
 })
 </script>
 

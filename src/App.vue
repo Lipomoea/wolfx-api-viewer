@@ -4,12 +4,19 @@
 
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
-import { onMounted } from 'vue'
+import { onMounted, onBeforeUnmount } from 'vue'
+import { useTimeStore } from './stores/time';
+
+const timeStore = useTimeStore()
 
 onMounted(()=>{
   if (Notification.permission !== 'granted') {
     Notification.requestPermission()
   }
+  timeStore.startUpdatingTime()
+})
+onBeforeUnmount(()=>{
+  timeStore.stopUpdatingTime()
 })
 </script>
 
