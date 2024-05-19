@@ -122,14 +122,17 @@ watch(shakingState, (newValue, oldValue)=>{
         justify-content: space-evenly;
         border: black 1px solid;
         border-radius: 5px;
+        user-select: none;
         *{
-            z-index: 1;
+            z-index: 10;
+            pointer-events: none;
         }
         .bg{
             position: absolute;
             width: 100%;
             height: 100%;
             z-index: 0;
+            pointer-events: auto;
         }
     }
 }
