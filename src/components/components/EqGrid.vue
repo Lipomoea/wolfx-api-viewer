@@ -1,6 +1,8 @@
 <template>
     <div class="outer">
-        <div class="container" :class="className" @click="reconnect">
+        <div class="container" @click="reconnect">
+            <div class="bg" :class="className"></div>
+            <div class="intensity">{{ eqMessage.maxIntensity }}</div>
             <div :style='{fontWeight: 700}'>{{ formatText(eqMessage.titleText) }}</div>
             <div v-if="eqMessage.isEew">{{ formatText(eqMessage.reportNumText) }}</div>
             <div>{{ formatText(eqMessage.hypocenterText) }}</div>
@@ -10,7 +12,7 @@
             <div>{{ formatText(eqMessage.maxIntensityText) }}</div>
             <div v-if="props.source == 'jmaEqlist'">{{ formatText(eqMessage.info) }}</div>
             <div>经过时间: {{ formatText(msToTime(passedTimeFromOrigin)) }}</div>
-            <div>WebSocket状态: {{ statusCode >= 0 && statusCode <= 3?statusList[statusCode]:'未连接' }}</div>
+            <div>WebSocket状态: {{ statusCode >= 0 && statusCode <= 5?statusList[statusCode]:'N/A' }}</div>
         </div>
     </div>
 </template>
@@ -22,7 +24,10 @@ import WebSocketObj from '@/utils/WebSocket';
 import { eqUrls } from '@/utils/Url';
 import { formatText, msToTime, calcPassedTime, sendNotification } from '@/utils/Utils';
 import { useTimeStore } from '@/stores/time';
-const statusList = ['正在连接', '已连接', '正在断开', '已断开']
+import '@/assets/background.css'
+import '@/assets/opacity.css'
+
+const statusList = ['正在连接', '已连接', '正在断开', '已断开', '未连接', '不使用']
 const eqMessage = reactive({
     id: '',
     isEew: false,
@@ -44,8 +49,10 @@ const eqMessage = reactive({
     originTimeText: '',
     magnitude: 0,
     magnitudeText: '',
+    useShindo: false,
     maxIntensity: '',
     maxIntensityText: '',
+    className: '',
     info: '',
 })
 const props = defineProps({
@@ -80,8 +87,10 @@ const setEqMessage = (data)=>{
             eqMessage.originTimeText = '発震時刻: ' + data.OriginTime + ' (JST)'
             eqMessage.magnitude = data.Magunitude
             eqMessage.magnitudeText = 'マグニチュード: ' + data.Magunitude.toFixed(1)
+            eqMessage.useShindo = true
             eqMessage.maxIntensity = data.MaxIntensity
             eqMessage.maxIntensityText = '推定最大震度: ' + data.MaxIntensity
+            eqMessage.className = setClassName(data.MaxIntensity, true)
             break
         }
         case 'cwaEew':{
@@ -90,7 +99,7 @@ const setEqMessage = (data)=>{
             eqMessage.reportNum = data.ReportNum
             eqMessage.reportNumText = '第' + data.ReportNum + '報'
             eqMessage.reportTime = data.ReportTime
-            eqMessage.isWarn = data.MaxIntensity > '4'
+            eqMessage.isWarn = data.MaxIntensity >= '5'
             eqMessage.isCanceled = data.isCancel
             eqMessage.titleText = '中央氣象署地震速報' + (data.isCancel?'（取消）':'')
             eqMessage.hypocenter = data.HypoCenter
@@ -103,8 +112,10 @@ const setEqMessage = (data)=>{
             eqMessage.originTimeText = '時間: ' + data.OriginTime
             eqMessage.magnitude = data.Magunitude
             eqMessage.magnitudeText = '規模: ' + data.Magunitude.toFixed(1)
+            eqMessage.useShindo = true
             eqMessage.maxIntensity = data.MaxIntensity
             eqMessage.maxIntensityText = '預估最大震度: ' + data.MaxIntensity
+            eqMessage.className = setClassName(data.MaxIntensity, true)
             break
         }
         case 'scEew':{
@@ -125,8 +136,9 @@ const setEqMessage = (data)=>{
             eqMessage.originTimeText = '发震时间: ' + data.OriginTime
             eqMessage.magnitude = data.Magunitude
             eqMessage.magnitudeText = '震级: ' + data.Magunitude.toFixed(1)
-            eqMessage.maxIntensity = data.MaxIntensity.toFixed(1)
+            eqMessage.maxIntensity = data.MaxIntensity.toFixed(0)
             eqMessage.maxIntensityText = '估计最大烈度: ' + data.MaxIntensity.toFixed(1)
+            eqMessage.className = setClassName(data.MaxIntensity.toFixed(0), false)
             break
         }
         case 'fjEew':{
@@ -146,7 +158,9 @@ const setEqMessage = (data)=>{
             eqMessage.originTimeText = '发震时间: ' + data.OriginTime
             eqMessage.magnitude = data.Magunitude
             eqMessage.magnitudeText = '震级: ' + data.Magunitude.toFixed(1)
+            eqMessage.maxIntensity = '?'
             eqMessage.maxIntensityText = '估计最大烈度: 未知'
+            eqMessage.className = 'gray'
             break
         }
         case 'jmaEqlist':{
@@ -163,9 +177,11 @@ const setEqMessage = (data)=>{
             eqMessage.originTimeText = '発震時刻: ' + data.No1.time_full + ' (JST)'
             eqMessage.magnitude = Number(data.No1.magnitude)
             eqMessage.magnitudeText = 'マグニチュード: ' + data.No1.magnitude
+            eqMessage.useShindo = true
             eqMessage.maxIntensity = data.No1.shindo
             eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
             eqMessage.info = data.No1.info
+            eqMessage.className = setClassName(data.No1.shindo, true)
             break
         }
         case 'cencEqlist':{
@@ -185,6 +201,7 @@ const setEqMessage = (data)=>{
             eqMessage.magnitudeText = '震级: ' + data.No1.magnitude
             eqMessage.maxIntensity = data.No1.intensity
             eqMessage.maxIntensityText = '估计最大烈度: ' + data.No1.intensity
+            eqMessage.className = setClassName(data.No1.intensity, false)
             break
         }
         default:{
@@ -192,6 +209,28 @@ const setEqMessage = (data)=>{
             break
         }
     }
+}
+const setClassName = (intensity, useShindo)=>{
+    let className = 'gray'
+    if(useShindo){
+        if(intensity >= '1') className = 'gray'
+        if(intensity >= '2') className = 'blue'
+        if(intensity >= '3') className = 'green'
+        if(intensity >= '4') className = 'yellow'
+        if(intensity >= '5') className = 'orange'
+        if(intensity >= '6') className = 'red'
+        if(intensity >= '7') className = 'purple'
+    }
+    else{
+        if(intensity >= '1') className = 'gray'
+        if(intensity >= '3') className = 'blue'
+        if(intensity >= '5') className = 'green'
+        if(intensity >= '6') className = 'yellow'
+        if(intensity >= '7') className = 'orange'
+        if(intensity >= '8') className = 'red'
+        if(intensity >= '9') className = 'purple'
+    }
+    return className
 }
 const connect = (protocol)=>{
     const source = props.source + '_' + protocol
@@ -260,12 +299,13 @@ onBeforeUnmount(()=>{
     if(timer) clearTimeout(timer)
 })
 
-const className = ref('white')
+const className = ref('')
 let timer, blinkController, blinkTimeout
 let blinkState = ref(true)
 let isLoad = true
 const blinkTime = 4000
 watch(eqMessage, ()=>{
+    className.value = eqMessage.className + ' midOpacity'
     let passedTime = 0
     if(isLoad){
         isLoad = false
@@ -279,59 +319,23 @@ watch(eqMessage, ()=>{
             passedTime = calcPassedTime(eqMessage.reportTime, 8)
         }
     }
-    let time, cls
+    let time
     if(eqMessage.isEew){
-        cls = 'orange'
         time = 300 * 1000
-        switch(props.source){
-            case 'jmaEew':
-            case 'cwaEew':
-            case 'scEew':{
-                if(eqMessage.isWarn){
-                    cls = 'red'
-                    time = 600 * 1000
-                }
-                break
-            }
+        if(eqMessage.isWarn){
+            time = 600 * 1000
         }
     }
     else{
-        cls = 'blue'
-        time = 180 * 1000
-        switch(props.source){
-            case 'jmaEqlist':{
-                if(eqMessage.maxIntensity >= '3' || eqMessage.magnitude >= 5.0 || eqMessage.info.includes('若干の海面変動')){
-                    cls = 'yellow'
-                    time = 300 * 1000
-                }
-                if(eqMessage.maxIntensity >= '5' || eqMessage.magnitude >= 6.0 || eqMessage.info.includes('津波警報')){
-                    cls = 'orange'
-                    time = 600 * 1000
-                }
-                if(eqMessage.maxIntensity >= '6' || eqMessage.magnitude >= 7.0){
-                    cls = 'red'
-                    time = 900 * 1000
-                }
-                if(eqMessage.info.includes('津波警報')){
-                    time = 1200 * 1000
-                }
-                break
-            }
-            case 'cencEqlist':{
-                if(eqMessage.maxIntensity >= '5' || eqMessage.magnitude >= 5.0){
-                    cls = 'yellow'
-                    time = 300 * 1000
-                }
-                if(eqMessage.maxIntensity >= '7' || eqMessage.magnitude >= 6.0){
-                    cls = 'orange'
-                    time = 600 * 1000
-                }
-                if(eqMessage.maxIntensity >= '9' || eqMessage.magnitude >= 7.0){
-                    cls = 'red'
-                    time = 900 * 1000
-                }
-                break
-            }
+        time = 300 * 1000
+        if(eqMessage.className == 'orange' || eqMessage.magnitude >= 6.0){
+            time = 600 * 1000
+        }
+        if(eqMessage.className == 'red' || eqMessage.magnitude >= 7.0){
+            time = 900 * 1000
+        }
+        if(eqMessage.className == 'purple' || eqMessage.magnitude >= 7.5){
+            time = 1200 * 1000
         }
     }
     time -= passedTime
@@ -340,10 +344,10 @@ watch(eqMessage, ()=>{
         if(blinkController) clearInterval(blinkController)
         blinkController = setInterval(() => {
             if(blinkState.value){
-                className.value = cls
+                className.value = eqMessage.className + ' highOpacity'
             }
             else{
-                className.value = 'white'
+                className.value = eqMessage.className + ' zeroOpacity'
             }
             blinkState.value = !blinkState.value
         }, 500);
@@ -351,11 +355,11 @@ watch(eqMessage, ()=>{
         blinkTimeout = setTimeout(() => {
             clearInterval(blinkController)
             blinkState.value = true
-            className.value = cls
+            className.value = eqMessage.className + ' highOpacity'
         }, blinkTime);
         if(timer) clearTimeout(timer)
         timer = setTimeout(() => {
-            className.value = 'white'
+            className.value = eqMessage.className + ' midOpacity'
         }, Math.max(time, blinkTime));
     }
 })
@@ -369,96 +373,44 @@ watch(()=>timeStore.currentTime, ()=>{
         passedTimeFromOrigin.value = calcPassedTime(eqMessage.originTime, 8)
     }
     if(socketObj) statusCode.value = socketObj.socket.readyState
-    else statusCode.value = -1
+    else if(!useWebSocket.includes(props.source)) statusCode.value = 5
+    else statusCode.value = 4
 })
 </script>
 
 <style lang="scss" scoped>
 .outer{
-    // flex: 1 1 400px;
     .container{
+        position: relative;
+        overflow: hidden;
         width: 100%;
-        height: 300px;
+        height: 350px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: space-evenly;
         border: black 1px solid;
         border-radius: 5px;
-    }
-    .white{
-        background-color: #ffffff;
-    }
-    .white:hover{
-        background-color: #efefef;
-    }
-    .white:active{
-        background-color: #dfdfdf;
-    }
-    .gray{
-        background-color: #cfcfcf;
-    }
-    .gray:hover{
-        background-color: #bfbfbf;
-    }
-    .gray:active{
-        background-color: #afafaf;
-    }
-    .blue{
-        background-color: #3fafff;
-    }
-    .blue:hover{
-        background-color: #2f9fef;
-    }
-    .blue:active{
-        background-color: #1f8fdf;
-    }
-    .green{
-        background-color: #7fff1f;
-    }
-    .green:hover{
-        background-color: #6fef0f;
-    }
-    .green:active{
-        background-color: #5fdf00;
-    }
-    .yellow{
-        background-color: #ffff00;
-    }
-    .yellow:hover{
-        background-color: #efef00;
-    }
-    .yellow:active{
-        background-color: #dfdf00;
-    }
-    .orange{
-        background-color: #ff7f00;
-    }
-    .orange:hover{
-        background-color: #ef6f00;
-    }
-    .orange:active{
-        background-color: #df5f00;
-    }
-    .red{
-        background-color: #df0000;
-        color: #ffffff;
-    }
-    .red:hover{
-        background-color: #cf0000;
-    }
-    .red:active{
-        background-color: #bf0000;
-    }
-    .purple{
-        background-color: #cf00af;
-        color: #ffffff;
-    }
-    .purple:hover{
-        background-color: #bf009f;
-    }
-    .purple:active{
-        background-color: #af008f;
+        *{
+            z-index: 1;
+        }
+        .bg{
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        .intensity{
+            position: absolute;
+            z-index: 0;
+            user-select: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 200px;
+            font-weight: 700;
+            color: #0000003f;
+        }
     }
 }
 </style>

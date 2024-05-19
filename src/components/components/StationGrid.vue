@@ -1,13 +1,14 @@
 <template>
     <div class="outer">
-        <div class="container" :class="className" @click="reconnect">
+        <div class="container" @click="reconnect">
+            <div class="bg" :class="className"></div>
             <div :style='{fontWeight: 700}'>站点: {{ source }}{{ stationMessage.PGA_EW?'':'*' }}</div>
             <div>PGA: {{ formatNumber(stationMessage.PGA, 3) }} gal</div>
             <div>PGV: {{ formatNumber(stationMessage.PGV, 3) }} cm/s</div>
             <div>计测震度: {{ formatNumber(stationMessage.CalcShindo, 2) }}</div>
             <div>2min计测震度: {{ formatNumber(stationMessage.Max_CalcShindo, 2) }}</div>
             <div>{{ stationMessage.update_at?stationMessage.update_at:'N/A' }}</div>
-            <div>WebSocket状态: {{ statusCode >= 0 && statusCode <= 3?statusList[statusCode]:'未连接' }}</div>
+            <div>WebSocket状态: {{ statusCode >= 0 && statusCode <= 4?statusList[statusCode]:'N/A' }}</div>
         </div>
     </div>
 </template>
@@ -17,6 +18,9 @@ import { onMounted, onBeforeUnmount, ref, reactive, computed, watch } from 'vue'
 import WebSocketObj from '@/utils/WebSocket';
 import { formatNumber, compareTime, sendNotification } from '@/utils/Utils';
 import { useTimeStore } from '@/stores/time';
+import '@/assets/background.css'
+import '@/assets/opacity.css'
+
 const stationMessage = reactive({})
 const statusCode = ref()
 const props = defineProps({
@@ -25,7 +29,7 @@ const props = defineProps({
 })
 let socketObj
 const { source, url } = props
-const statusList = ['正在连接', '已连接', '正在断开', '已断开']
+const statusList = ['正在连接', '已连接', '正在断开', '已断开', '未连接']
 const timeStore = useTimeStore()
 
 const connect = ()=>{
@@ -75,7 +79,7 @@ const className = computed(()=>{
             }
         }
     }
-    return className
+    return className + ' highOpacity'
 })
 const shakingState = computed(()=>{
     if(stationMessage.Max_CalcShindo < 0.5) return 0
@@ -93,7 +97,7 @@ onBeforeUnmount(()=>{
 })
 watch(()=>timeStore.currentTime, ()=>{
     if(socketObj) statusCode.value = socketObj.socket.readyState
-    else statusCode.value = -1
+    else statusCode.value = 4
 })
 watch(shakingState, (newValue, oldValue)=>{
     if((newValue > oldValue) && isLatest.value){
@@ -107,8 +111,9 @@ watch(shakingState, (newValue, oldValue)=>{
 
 <style lang="scss" scoped>
 .outer{
-    // flex: 1 1 200px;
     .container{
+        position: relative;
+        overflow: hidden;
         width: 100%;
         height: 300px;
         display: flex;
@@ -117,80 +122,15 @@ watch(shakingState, (newValue, oldValue)=>{
         justify-content: space-evenly;
         border: black 1px solid;
         border-radius: 5px;
-    }
-    .white{
-        background-color: #ffffff;
-    }
-    .white:hover{
-        background-color: #efefef;
-    }
-    .white:active{
-        background-color: #dfdfdf;
-    }
-    .gray{
-        background-color: #cfcfcf;
-    }
-    .gray:hover{
-        background-color: #bfbfbf;
-    }
-    .gray:active{
-        background-color: #afafaf;
-    }
-    .blue{
-        background-color: #3fafff;
-    }
-    .blue:hover{
-        background-color: #2f9fef;
-    }
-    .blue:active{
-        background-color: #1f8fdf;
-    }
-    .green{
-        background-color: #7fff1f;
-    }
-    .green:hover{
-        background-color: #6fef0f;
-    }
-    .green:active{
-        background-color: #5fdf00;
-    }
-    .yellow{
-        background-color: #ffff00;
-    }
-    .yellow:hover{
-        background-color: #efef00;
-    }
-    .yellow:active{
-        background-color: #dfdf00;
-    }
-    .orange{
-        background-color: #ff7f00;
-    }
-    .orange:hover{
-        background-color: #ef6f00;
-    }
-    .orange:active{
-        background-color: #df5f00;
-    }
-    .red{
-        background-color: #df0000;
-        color: #ffffff;
-    }
-    .red:hover{
-        background-color: #cf0000;
-    }
-    .red:active{
-        background-color: #bf0000;
-    }
-    .purple{
-        background-color: #cf00af;
-        color: #ffffff;
-    }
-    .purple:hover{
-        background-color: #bf009f;
-    }
-    .purple:active{
-        background-color: #af008f;
+        *{
+            z-index: 1;
+        }
+        .bg{
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
     }
 }
 </style>

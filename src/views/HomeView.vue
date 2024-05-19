@@ -14,8 +14,6 @@ import StationComponent from '@/components/StationComponent.vue';
 .container{
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  justify-content: center;
   align-items: center;
 }
 </style>

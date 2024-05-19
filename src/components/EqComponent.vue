@@ -19,6 +19,7 @@
 
 <script setup>
 import EqGrid from '@/components/components/EqGrid.vue';
+
 const eewList = ['jmaEew', 'cwaEew', 'scEew', 'fjEew']
 const eqlistList = ['jmaEqlist', 'cencEqlist']
 </script>
@@ -28,8 +29,8 @@ const eqlistList = ['jmaEqlist', 'cencEqlist']
   width: 100%;
   .container{
     border: black 1px solid;
-    padding: 20px 20px;
-    margin: 20px 20px;
+    padding: 15px;
+    margin: 20px 20px 10px;
     border-radius: 10px;
     display: flex;
     flex-direction: column;
