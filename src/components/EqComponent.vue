@@ -3,7 +3,8 @@
     <div class="container">
       <div class="title">地震预警</div>
       <div class="eqGrid">
-        <EqGrid v-for="(source, index) of eewList"
+        <EqGrid
+        v-for="(source, index) of eewList"
         :key="index"
         :source></EqGrid>
       </div>

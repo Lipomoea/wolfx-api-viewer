@@ -1,7 +1,9 @@
 <template>
-  <div class="container">
-    <EqComponent></EqComponent>
-    <StationComponent></StationComponent>
+  <div>
+    <div class="container">
+      <EqComponent></EqComponent>
+      <StationComponent></StationComponent>
+    </div>
   </div>
 </template>
 
@@ -12,6 +14,7 @@ import StationComponent from '@/components/StationComponent.vue';
 
 <style lang="scss" scoped>
 .container{
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;

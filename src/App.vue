@@ -1,5 +1,9 @@
 <template>
-  <RouterView />
+    <RouterView v-slot="{ Component }">
+      <keep-alive include="HomeView">
+        <component :is="Component"></component>
+      </keep-alive>
+    </RouterView>
 </template>
 
 <script setup>

@@ -53,19 +53,19 @@
     background-color: #df5f00;
 }
 .red{
-    background-color: #df0000;
+    background-color: #ef1f1f;
 }
 .red:hover{
-    background-color: #cf0000;
+    background-color: #df0f0f;
 }
 .red:active{
-    background-color: #bf0000;
+    background-color: #cf0000;
 }
 .purple{
-    background-color: #cf00af;
+    background-color: #cf1faf;
 }
 .purple:hover{
-    background-color: #bf009f;
+    background-color: #bf0f9f;
 }
 .purple:active{
     background-color: #af008f;

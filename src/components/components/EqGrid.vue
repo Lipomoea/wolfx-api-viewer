@@ -1,6 +1,6 @@
 <template>
-    <div class="outer">
-        <div class="container" @click="reconnect">
+    <div>
+        <div class="container" @click="handleClick">
             <div class="bg" :class="className"></div>
             <div class="intensity">{{ eqMessage.maxIntensity }}</div>
             <div :style='{fontWeight: 700}'>{{ formatText(eqMessage.titleText) }}</div>
@@ -22,10 +22,11 @@ import { onMounted, onBeforeUnmount, ref, reactive, computed, watch } from 'vue'
 import Http from '@/utils/Http';
 import WebSocketObj from '@/utils/WebSocket';
 import { eqUrls } from '@/utils/Url';
-import { formatText, msToTime, calcPassedTime, sendNotification } from '@/utils/Utils';
+import { formatText, msToTime, calcPassedTime, sendNotification, setClassName } from '@/utils/Utils';
 import { useTimeStore } from '@/stores/time';
 import '@/assets/background.css'
 import '@/assets/opacity.css'
+import router from '@/router';
 
 const statusList = ['正在连接', '已连接', '正在断开', '已断开', '未连接', '不使用']
 const eqMessage = reactive({
@@ -210,28 +211,6 @@ const setEqMessage = (data)=>{
         }
     }
 }
-const setClassName = (intensity, useShindo)=>{
-    let className = 'gray'
-    if(useShindo){
-        if(intensity >= '1') className = 'gray'
-        if(intensity >= '2') className = 'blue'
-        if(intensity >= '3') className = 'green'
-        if(intensity >= '4') className = 'yellow'
-        if(intensity >= '5') className = 'orange'
-        if(intensity >= '6') className = 'red'
-        if(intensity >= '7') className = 'purple'
-    }
-    else{
-        if(intensity >= '1') className = 'gray'
-        if(intensity >= '3') className = 'blue'
-        if(intensity >= '5') className = 'green'
-        if(intensity >= '6') className = 'yellow'
-        if(intensity >= '7') className = 'orange'
-        if(intensity >= '8') className = 'red'
-        if(intensity >= '9') className = 'purple'
-    }
-    return className
-}
 const connect = (protocol)=>{
     const source = props.source + '_' + protocol
     if(protocol == 'http'){
@@ -277,6 +256,11 @@ const reconnect = ()=>{
     }
     else{
         throw new Error('Unrecognized protocol type.')
+    }
+}
+const handleClick = ()=>{
+    if(!eqMessage.isEew){
+        router.push('/eq-history')
     }
 }
 
@@ -379,40 +363,38 @@ watch(()=>timeStore.currentTime, ()=>{
 </script>
 
 <style lang="scss" scoped>
-.outer{
-    .container{
-        position: relative;
-        overflow: hidden;
+.container{
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    height: 350px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    border: black 1px solid;
+    border-radius: 5px;
+    user-select: none;
+    *{
+        z-index: 10;
+        pointer-events: none;
+    }
+    .bg{
+        position: absolute;
         width: 100%;
-        height: 350px;
+        height: 100%;
+        z-index: 0;
+        pointer-events: auto;
+    }
+    .intensity{
+        position: absolute;
+        z-index: 5;
         display: flex;
-        flex-direction: column;
+        justify-content: center;
         align-items: center;
-        justify-content: space-evenly;
-        border: black 1px solid;
-        border-radius: 5px;
-        user-select: none;
-        *{
-            z-index: 10;
-            pointer-events: none;
-        }
-        .bg{
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            pointer-events: auto;
-        }
-        .intensity{
-            position: absolute;
-            z-index: 5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 200px;
-            font-weight: 700;
-            color: #0000003f;
-        }
+        font-size: 200px;
+        font-weight: 700;
+        color: #0000003f;
     }
 }
 </style>

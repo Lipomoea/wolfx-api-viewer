@@ -1,5 +1,5 @@
 <template>
-    <div class="outer">
+    <div>
         <div class="container" @click="reconnect">
             <div class="bg" :class="className"></div>
             <div :style='{fontWeight: 700}'>站点: {{ source }}{{ stationMessage.PGA_EW?'':'*' }}</div>
@@ -110,30 +110,28 @@ watch(shakingState, (newValue, oldValue)=>{
 </script>
 
 <style lang="scss" scoped>
-.outer{
-    .container{
-        position: relative;
-        overflow: hidden;
+.container{
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    border: black 1px solid;
+    border-radius: 5px;
+    user-select: none;
+    *{
+        z-index: 10;
+        pointer-events: none;
+    }
+    .bg{
+        position: absolute;
         width: 100%;
-        height: 300px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: space-evenly;
-        border: black 1px solid;
-        border-radius: 5px;
-        user-select: none;
-        *{
-            z-index: 10;
-            pointer-events: none;
-        }
-        .bg{
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            pointer-events: auto;
-        }
+        height: 100%;
+        z-index: 0;
+        pointer-events: auto;
     }
 }
 </style>
