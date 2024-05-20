@@ -283,7 +283,7 @@ onBeforeUnmount(()=>{
     if(timer) clearTimeout(timer)
 })
 
-const className = ref('')
+const className = ref('white midOpacity')
 let timer, blinkController, blinkTimeout
 let blinkState = ref(true)
 let isLoad = true

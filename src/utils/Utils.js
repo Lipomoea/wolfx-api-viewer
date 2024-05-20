@@ -64,14 +64,15 @@ const setClassName = (intensity, useShindo)=>{
         }
     }
     else{
-        if(Number(intensity) >= 1 && Number(intensity) <= 12)
-        if(Number(intensity) >= 1) className = 'gray'
-        if(Number(intensity) >= 3) className = 'blue'
-        if(Number(intensity) >= 5) className = 'green'
-        if(Number(intensity) >= 6) className = 'yellow'
-        if(Number(intensity) >= 7) className = 'orange'
-        if(Number(intensity) >= 8) className = 'red'
-        if(Number(intensity) >= 9) className = 'purple'
+        if(Number(intensity) >= 1 && Number(intensity) <= 12){
+            if(Number(intensity) >= 1) className = 'gray'
+            if(Number(intensity) >= 3) className = 'blue'
+            if(Number(intensity) >= 5) className = 'green'
+            if(Number(intensity) >= 6) className = 'yellow'
+            if(Number(intensity) >= 7) className = 'orange'
+            if(Number(intensity) >= 8) className = 'red'
+            if(Number(intensity) >= 9) className = 'purple'
+        }
     }
     return className
 }
