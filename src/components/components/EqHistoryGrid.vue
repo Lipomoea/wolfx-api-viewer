@@ -5,12 +5,16 @@
             <div class="item" v-for="(item, index) of eqList" 
             :key="index">
                 <div class="intensity" :class="item.className">{{ item.maxIntensity == '不明'?'0':item.maxIntensity }}</div>
-                <div class="mid">
+                <div class="right">
                     <div class="location">{{ item.hypoCenter }}</div>
-                    <div class="time">{{ item.originTime + (useJst?' (UTC+9)':' (UTC+8)') }}</div>
-                    <div class="depth">{{ item.depth }}</div>
+                    <div class="rightBottom">
+                        <div class="timeDepth">
+                            <div class="time">{{ item.originTime + (useJst?' (UTC+9)':' (UTC+8)') }}</div>
+                            <div class="depth">{{ item.depth }}</div>
+                        </div>
+                        <div class="magnitude">M{{ item.magnitude }}</div>
+                    </div>
                 </div>
-                <div class="magnitude">M{{ item.magnitude }}</div>
             </div>
         </div>
     </div>
@@ -41,7 +45,7 @@ const getEqList = ()=>{
                         id: data[keys[i]].EventID,
                         originTime: data[keys[i]].time_full,
                         hypoCenter: data[keys[i]].location,
-                        depth: data[keys[i]].depth,
+                        depth: data[keys[i]].depth == '0km'?'ごく浅い':data[keys[i]].depth,
                         magnitude: data[keys[i]].magnitude,
                         maxIntensity: data[keys[i]].shindo,
                         className: setClassName(data[keys[i]].shindo, true)
@@ -118,24 +122,38 @@ onBeforeUnmount(()=>{
             line-height: 80px;
             pointer-events: none;
             border-right: black 1px solid;
+            user-select: none;
         }
         .intensity::first-letter{
             font-size: 70px;
         }
-        .mid{
-            width: 250px;
+        .right{
+            width: 340px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
             .location{
                 font-size: 1.5em;
-            }
-            .location,.time,.depth{
                 white-space: nowrap;
                 text-overflow: ellipsis;
                 overflow: hidden;
             }
-        }
-        .magnitude{
-            font-size: 1.75em;
-            align-self: self-end;
+            .rightBottom{
+                display: flex;
+                justify-content: space-between;
+                .timeDepth{
+                    .time,.depth{
+                        font-size: 1.1em;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                        overflow: hidden;
+                    }
+                }
+                .magnitude{
+                    font-size: 1.75em;
+                    align-self: self-end;
+                }
+            }
         }
     }
 }

@@ -31,7 +31,10 @@ const back = ()=>{
     display: flex;
     flex-direction: column;
     gap: 10px;
-    margin-top: 10px;
+    margin: 20px 0px;
+    border: black 1px solid;
+    padding: 10px 20px 20px;
+    border-radius: 20px;
     .bar{
         display: flex;
         align-items: center;
@@ -54,6 +57,7 @@ const back = ()=>{
         display: flex;
         justify-content: center;
         gap: 20px;
+        flex-wrap: wrap;
     }
 }
 </style>
