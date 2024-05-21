@@ -47,7 +47,7 @@ const eqlistList = ['jmaEqlist', 'cencEqlist']
       // flex-wrap: wrap;
       // justify-content: center;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(410px, 1fr));
     }
   }
 }
