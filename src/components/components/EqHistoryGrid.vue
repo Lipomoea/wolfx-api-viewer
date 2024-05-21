@@ -65,7 +65,7 @@ const getEqList = ()=>{
                     break
                 }
             }
-        } 
+        }
     })
 }
 const title = computed(()=>{

@@ -132,7 +132,7 @@ const setEqMessage = (data)=>{
             eqMessage.lat = data.Latitude
             eqMessage.lng = data.Longitude
             eqMessage.depth = data.Depth
-            eqMessage.depthText = '深度: ' + (data.Depth?data.Depth + 'km':'未知')
+            eqMessage.depthText = '深度: ' + (data.Depth?data.Depth + 'km':'不明')
             eqMessage.originTime = data.OriginTime
             eqMessage.originTimeText = '发震时间: ' + data.OriginTime
             eqMessage.magnitude = data.Magunitude
@@ -154,13 +154,13 @@ const setEqMessage = (data)=>{
             eqMessage.hypocenterText = '震源: ' + data.HypoCenter
             eqMessage.lat = data.Latitude
             eqMessage.lng = data.Longitude
-            eqMessage.depthText = '深度: 未知'
+            eqMessage.depthText = '深度: 不明'
             eqMessage.originTime = data.OriginTime
             eqMessage.originTimeText = '发震时间: ' + data.OriginTime
             eqMessage.magnitude = data.Magunitude
             eqMessage.magnitudeText = '震级: ' + data.Magunitude.toFixed(1)
             eqMessage.maxIntensity = '不明'
-            eqMessage.maxIntensityText = '估计最大烈度: 未知'
+            eqMessage.maxIntensityText = '估计最大烈度: 不明'
             eqMessage.className = 'gray'
             break
         }
