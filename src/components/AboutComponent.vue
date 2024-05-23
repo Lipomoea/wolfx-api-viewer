@@ -20,6 +20,7 @@
                 <p>作为个人实验性质作品，本网页没有（也不会有）域名，且可能在服务器到期后停止运行。</p>
                 <p>本页面未针对移动端进行适配，建议使用电脑端浏览器访问本网页。</p>
                 <p>联系我：<a href="https://space.bilibili.com/316757498" target="_blank">リッポミャ</a>（哔哩哔哩）</p>
+                <p>Github: <a href="https://github.com/Lipomoea/wolfx-api-viewer" target="_blank">https://github.com/Lipomoea/wolfx-api-viewer</a></p>
                 <p>上次维护：2024.5.23</p>
             </div>
         </div>
