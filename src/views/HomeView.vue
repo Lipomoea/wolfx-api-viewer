@@ -4,6 +4,7 @@
       <EqComponent></EqComponent>
       <!-- <StationComponent></StationComponent> -->
       <SettingsComponent></SettingsComponent>
+      <AboutComponent v-show="settingsStore.mainSettings.showAbout"></AboutComponent>
     </div>
   </div>
 </template>
@@ -12,6 +13,10 @@
 import EqComponent from '@/components/EqComponent.vue';
 import StationComponent from '@/components/StationComponent.vue';
 import SettingsComponent from '@/components/SettingsComponent.vue';
+import AboutComponent from '@/components/AboutComponent.vue';
+import { useSettingsStore } from '@/stores/settings';
+
+const settingsStore = useSettingsStore()
 </script>
 
 <style lang="scss" scoped>

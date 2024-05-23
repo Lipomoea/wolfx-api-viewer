@@ -181,8 +181,10 @@ const setEqMessage = (data)=>{
             eqMessage.magnitude = Number(data.No1.magnitude)
             eqMessage.magnitudeText = 'マグニチュード: ' + (data.No1.magnitude?data.No1.magnitude:'調査中')
             eqMessage.useShindo = true
-            eqMessage.maxIntensity = data.No1.shindo
-            eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
+            if(data.No1.Title != '震源に関する情報' || !eqMessage.maxIntensity){
+                eqMessage.maxIntensity = data.No1.shindo
+                eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
+            }
             eqMessage.info = data.No1.info
             eqMessage.className = setClassName(data.No1.shindo, true)
             break

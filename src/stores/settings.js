@@ -15,6 +15,7 @@ export const useSettingsStore = defineStore('settingsStore', {
                 notification: false,
                 focus: false,
             },
+            showAbout: false,
         },
     }),
     getters: {
@@ -26,9 +27,12 @@ export const useSettingsStore = defineStore('settingsStore', {
     },
     actions: {
         setMainSettings(json){
-            Object.assign(this.mainSettings.onEew, json.onEew)
-            Object.assign(this.mainSettings.onEewWarn, json.onEewWarn)
-            Object.assign(this.mainSettings.onReport, json.onReport)
+            if(json){
+                Object.assign(this.mainSettings.onEew, json.onEew)
+                Object.assign(this.mainSettings.onEewWarn, json.onEewWarn)
+                Object.assign(this.mainSettings.onReport, json.onReport)
+                this.mainSettings.showAbout = json.showAbout
+            }
         },
     }
 })

@@ -42,6 +42,14 @@
                         </div> -->
                     </div>
                 </div>
+                <div class="row">
+                    <div class="switchGroup">
+                        <div class="switch">
+                            <span>显示关于页面</span>
+                            <el-switch v-model="settingsStore.mainSettings.showAbout"></el-switch>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -60,7 +68,7 @@ const settingsStore = useSettingsStore()
         border: black 1px solid;
         border-radius: 10px;
         padding: 15px;
-        margin: 0px 20px;
+        margin: 0px 20px 20px;
         display: flex;
         flex-direction: column;
         gap: 10px;
