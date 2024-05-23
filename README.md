@@ -1,4 +1,4 @@
-# leafpeach-api-vue3
+# wolfx-api-viewer
 
 This template should help get you started developing with Vue 3 in Vite.
 
