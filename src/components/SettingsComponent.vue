@@ -1,13 +1,56 @@
 <template>
     <div class="outer">
         <div class="container">
-
+            <div class="title">设置</div>
+            <div class="settings">
+                <div class="row">
+                    <span>收到地震预警（警报）时：</span>
+                    <div class="switchGroup">
+                        <div class="switch">
+                            <span>发送通知</span>
+                            <el-switch v-model="settingsStore.mainSettings.onEewWarn.notification" :disabled="settingsStore.mainSettings.onEew.notification"></el-switch>
+                        </div>
+                        <!-- <div class="switch">
+                            <span>弹出界面</span>
+                            <el-switch v-model="settingsStore.mainSettings.onEewWarn.focus" :disabled="settingsStore.mainSettings.onEew.focus"></el-switch>
+                        </div> -->
+                    </div>
+                </div>
+                <div class="row">
+                    <span>收到地震预警（全部）时：</span>
+                    <div class="switchGroup">
+                        <div class="switch">
+                            <span>发送通知</span>
+                            <el-switch v-model="settingsStore.mainSettings.onEew.notification"></el-switch>
+                        </div>
+                        <!-- <div class="switch">
+                            <span>弹出界面</span>
+                            <el-switch v-model="settingsStore.mainSettings.onEew.focus"></el-switch>
+                        </div> -->
+                    </div>
+                </div>
+                <div class="row">
+                    <span>收到地震信息时：</span>
+                    <div class="switchGroup">
+                        <div class="switch">
+                            <span>发送通知</span>
+                            <el-switch v-model="settingsStore.mainSettings.onReport.notification"></el-switch>
+                        </div>
+                        <!-- <div class="switch">
+                            <span>弹出界面</span>
+                            <el-switch v-model="settingsStore.mainSettings.onReport.focus"></el-switch>
+                        </div> -->
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
 
 <script setup>
+import { useSettingsStore } from '@/stores/settings';
 
+const settingsStore = useSettingsStore()
 </script>
 
 <style lang="scss" scoped>
@@ -19,6 +62,34 @@
         padding: 15px;
         margin: 0px 20px;
         display: flex;
+        flex-direction: column;
+        gap: 10px;
+        .title{
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .settings{
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            .row{
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-right: 50px;
+                .switchGroup{
+                    display: flex;
+                    align-items: center;
+                    gap: 20px;
+                    .switch{
+                        display: flex;
+                        align-items: center;
+                        gap: 5px;
+                    }
+                }
+            }
+        }
     }
 }
 </style>

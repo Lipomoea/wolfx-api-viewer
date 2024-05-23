@@ -24,6 +24,7 @@ import WebSocketObj from '@/utils/WebSocket';
 import { eqUrls } from '@/utils/Url';
 import { formatText, msToTime, calcPassedTime, sendNotification, setClassName } from '@/utils/Utils';
 import { useTimeStore } from '@/stores/time';
+import { useSettingsStore } from '@/stores/settings';
 import '@/assets/background.css'
 import '@/assets/opacity.css'
 import router from '@/router';
@@ -60,6 +61,7 @@ const props = defineProps({
     source: String,
 })
 const timeStore = useTimeStore()
+const settingsStore = useSettingsStore()
 const useWebSocket = ['jmaEew', 'scEew', 'fjEew', 'jmaEqlist', 'cencEqlist']
 const useJst = ['jmaEew', 'jmaEqlist']
 let request, socketObj;
@@ -324,7 +326,15 @@ watch(eqMessage, ()=>{
     }
     time -= passedTime
     if(time > 0){
-        sendNotification(`${eqMessage.titleText}`, `${eqMessage.hypocenterText}\n${eqMessage.depthText}\n${eqMessage.magnitudeText}\n${eqMessage.maxIntensityText}`)
+        let notification = false
+        if(eqMessage.isEew){
+            if(settingsStore.mainSettings.onEew.notification) notification = true
+            else if(settingsStore.mainSettings.onEewWarn.notification && eqMessage.isWarn) notification = true
+        }
+        else{
+            if(settingsStore.mainSettings.onReport.notification) notification = true
+        }
+        if(notification) sendNotification(`${eqMessage.titleText}`, `${eqMessage.hypocenterText}\n${eqMessage.depthText}\n${eqMessage.magnitudeText}\n${eqMessage.maxIntensityText}`)
         if(blinkController) clearInterval(blinkController)
         blinkController = setInterval(() => {
             if(blinkState.value){

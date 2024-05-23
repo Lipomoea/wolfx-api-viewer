@@ -8,13 +8,16 @@
 
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
-import { onMounted, onBeforeUnmount } from 'vue'
+import { onMounted, onBeforeUnmount, watch } from 'vue'
 import { useTimeStore } from './stores/time';
+import { useSettingsStore } from './stores/settings';
 
 const timeStore = useTimeStore()
+const settingsStore = useSettingsStore()
 
 onMounted(()=>{
-  if (Notification.permission !== 'granted') {
+  settingsStore.setMainSettings(JSON.parse(localStorage.getItem('mainSettings')))
+  if (Notification.permission !== 'granted' && settingsStore.requestNotification) {
     Notification.requestPermission()
   }
   timeStore.startUpdatingTime()
@@ -22,6 +25,19 @@ onMounted(()=>{
 onBeforeUnmount(()=>{
   timeStore.stopUpdatingTime()
 })
+watch(()=>settingsStore.mainSettings.onEew.notification, (newValue)=>{
+  if(newValue){
+    settingsStore.mainSettings.onEewWarn.notification = true
+  }
+})
+watch(()=>settingsStore.mainSettings.onEew.focus, (newValue)=>{
+  if(newValue){
+    settingsStore.mainSettings.onEewWarn.focus = true
+  }
+})
+watch(()=>settingsStore.mainSettings, (newValue)=>{
+  localStorage.setItem('mainSettings', JSON.stringify(newValue))
+}, { deep: true })
 </script>
 
 <style lang="scss" scoped>
