@@ -13,7 +13,6 @@
                 <p>2. 关于连接：除台湾省中央气象署资料均采用WebSocket+每30秒一次GET方法（保证WebSocket连接断开时资料延迟不至于过大）连接。通常情况下WebSocket会在断连数秒后自动重连，如长时间无法重连成功，请刷新页面或关闭网页并等待一段时间再试。台湾省中央气象署资料采用1秒1次GET方法连接，仅可在大陆访问。</p>
                 <p>3. 关于延迟：日本气象厅地震情报未接入Project DM-D.S.S，具有延迟是正常现象。</p>
             </div>
-
             <div class="title">关于</div>
             <div class="about">
                 <p>本页面基于Wolfx Open API (<a href="https://api.wolfx.jp" target="_blank">api.wolfx.jp</a>) 开发，不属于Wolfx官方，与本网页相关的问题请勿咨询Wolfx官方。特别感谢Wolfx Project提供接口支持。</p>
@@ -23,7 +22,6 @@
                 <p>联系我：<a href="https://space.bilibili.com/316757498" target="_blank">リッポミャ</a>（哔哩哔哩）</p>
                 <p>上次维护：2024.5.23</p>
             </div>
-
         </div>
     </div>
 </template>
