@@ -7,7 +7,7 @@
                 <div class="title">历史地震</div>
             </div>
             <hr>
-            <el-scrollbar max-height="100%" noresize>
+            <el-scrollbar max-height="100%">
                 <div class="eqHistory">
                     <EqHistoryGrid
                     v-for="(source, index) of eqHistoryList"
