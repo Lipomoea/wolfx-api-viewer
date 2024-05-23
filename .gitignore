@@ -28,3 +28,6 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+
+# dist zip file
+dist.zip
