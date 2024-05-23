@@ -45,7 +45,7 @@ onBeforeUnmount(()=>{
   .container{
     border: black 1px solid;
     padding: 15px;
-    margin: 10px 20px;
+    margin: 0px 20px 20px;
     border-radius: 10px;
     display: flex;
     flex-direction: column;

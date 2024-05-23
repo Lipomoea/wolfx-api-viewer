@@ -2,8 +2,7 @@
     <div>
         <div class="container">
             <div class="title">{{ title }}</div>
-            <div class="item" v-for="(item, index) of eqList" 
-            :key="index">
+            <div class="item" v-for="(item, index) of eqList" :key="index">
                 <div class="intensity" :class="item.className">{{ item.maxIntensity == '不明'?'0':item.maxIntensity }}</div>
                 <div class="right">
                     <div class="location">{{ item.hypoCenter }}</div>

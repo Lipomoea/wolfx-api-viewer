@@ -31,7 +31,7 @@ const eqlistList = ['jmaEqlist', 'cencEqlist']
   .container{
     border: black 1px solid;
     padding: 15px;
-    margin: 20px 20px 10px;
+    margin: 20px;
     border-radius: 10px;
     display: flex;
     flex-direction: column;

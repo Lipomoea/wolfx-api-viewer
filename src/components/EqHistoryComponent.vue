@@ -2,16 +2,19 @@
     <div>
         <div class="container">
             <div class="bar">
-                <div class="back white" @click="back">返回</div>
+                <el-button class="back" @click="back" 
+                :icon="Back" plain round></el-button>
                 <div class="title">历史地震</div>
             </div>
             <hr>
-            <div class="eqHistory">
-                <EqHistoryGrid
-                v-for="(source, index) of eqHistoryList"
-                :key="index"
-                :source></EqHistoryGrid>
-            </div>
+            <el-scrollbar max-height="100%" noresize>
+                <div class="eqHistory">
+                    <EqHistoryGrid
+                    v-for="(source, index) of eqHistoryList"
+                    :key="index"
+                    :source></EqHistoryGrid>
+                </div>
+            </el-scrollbar>
         </div>
     </div>
 </template>
@@ -20,6 +23,7 @@
 import router from '@/router';
 import EqHistoryGrid from './components/EqHistoryGrid.vue';
 import '@/assets/background.css'
+import { Back } from '@element-plus/icons-vue'
 const eqHistoryList = ['jmaEqlist', 'cencEqlist']
 const back = ()=>{
     router.back()
@@ -28,30 +32,31 @@ const back = ()=>{
 
 <style lang="scss" scoped>
 .container{
+    height: 95vh;
     display: flex;
     flex-direction: column;
     gap: 10px;
     margin: 20px 0px;
     border: black 1px solid;
-    padding: 10px 20px 20px;
+    padding: 10px 5px 10px 20px;
     border-radius: 20px;
     .bar{
         display: flex;
         align-items: center;
         position: relative;
         .back{
-            font-size: 1.25em;
-            cursor: pointer;
-            border: #cfcfcf 1px solid;
-            padding: 5px 10px;
-            border-radius: 5px;
             position: absolute;
+            font-size: 1.25em;
+            height: 36px;
         }
         .title{
             font-size: 2em;
             text-align: center;
             flex: 1;
         }
+    }
+    hr,.eqHistory{
+        margin-right: 15px;
     }
     .eqHistory{
         display: flex;
