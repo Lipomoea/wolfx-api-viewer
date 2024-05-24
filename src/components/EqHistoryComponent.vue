@@ -44,6 +44,7 @@ const back = ()=>{
         display: flex;
         align-items: center;
         position: relative;
+        margin-right: 15px;
         .back{
             position: absolute;
             font-size: 1.25em;
