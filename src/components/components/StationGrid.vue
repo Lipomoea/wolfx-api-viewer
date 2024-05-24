@@ -2,7 +2,7 @@
     <div>
         <div class="container" @click="reconnect">
             <div class="bg" :class="className"></div>
-            <div :style='{fontWeight: 700}'>站点: {{ source }}{{ stationMessage.PGA_EW?'':'*' }}</div>
+            <div :style='{fontSize: "18px", fontWeight: "700"}'>站点: {{ source }}{{ stationMessage.PGA_EW?'':'*' }}</div>
             <div>PGA: {{ formatNumber(stationMessage.PGA, 3) }} gal</div>
             <div>PGV: {{ formatNumber(stationMessage.PGV, 3) }} cm/s</div>
             <div>计测震度: {{ formatNumber(stationMessage.CalcShindo, 2) }}</div>

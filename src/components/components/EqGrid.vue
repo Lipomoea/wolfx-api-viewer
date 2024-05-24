@@ -3,7 +3,7 @@
         <div class="container" @click="handleClick">
             <div class="bg" :class="className"></div>
             <div class="intensity">{{ eqMessage.maxIntensity }}</div>
-            <div :style='{fontWeight: 700}'>{{ formatText(eqMessage.titleText) }}</div>
+            <div :style='{fontSize: "18px", fontWeight: "700"}'>{{ formatText(eqMessage.titleText) }}</div>
             <div v-if="eqMessage.isEew">{{ formatText(eqMessage.reportNumText) }}</div>
             <div>{{ formatText(eqMessage.hypocenterText) }}</div>
             <div>{{ formatText(eqMessage.depthText) }}</div>
@@ -167,25 +167,69 @@ const setEqMessage = (data)=>{
             break
         }
         case 'jmaEqlist':{
-            eqMessage.id = data.md5
             eqMessage.title = data.No1.Title
             eqMessage.titleText = '日本気象庁' + data.No1.Title
-            eqMessage.hypocenter = data.No1.location
-            eqMessage.hypocenterText = '震源地: ' + (data.No1.location?data.No1.location:'調査中')
-            eqMessage.lat = Number(data.No1.latitude)
-            eqMessage.lng = Number(data.No1.longitude)
-            eqMessage.depth = Number(data.No1.depth.replace('km', ''))
-            eqMessage.depthText = '深さ: ' + (data.No1.location?(data.No1.depth == '0km'?'ごく浅い':data.No1.depth):'調査中')
-            eqMessage.originTime = data.No1.time_full
-            eqMessage.originTimeText = '発震時刻: ' + data.No1.time_full + ' (JST)'
-            eqMessage.magnitude = Number(data.No1.magnitude)
-            eqMessage.magnitudeText = 'マグニチュード: ' + (data.No1.magnitude?data.No1.magnitude:'調査中')
             eqMessage.useShindo = true
-            if(data.No1.Title != '震源に関する情報' || !eqMessage.maxIntensity){
-                eqMessage.maxIntensity = data.No1.shindo
-                eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
+            switch(data.No1.Title){
+                case '震度速報':{
+                    if(eqMessage.id == data.No1.EventID){
+                        eqMessage.maxIntensity = data.No1.shindo
+                        eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
+                    }
+                    else{
+                        eqMessage.id = data.No1.EventID
+                        eqMessage.hypocenter = data.No1.location
+                        eqMessage.hypocenterText = '震源地: 調査中'
+                        eqMessage.lat = Number(data.No1.latitude)
+                        eqMessage.lng = Number(data.No1.longitude)
+                        eqMessage.depth = Number(data.No1.depth.replace('km', ''))
+                        eqMessage.depthText = '深さ: 調査中'
+                        eqMessage.originTime = data.No1.time_full
+                        eqMessage.originTimeText = '発震時刻: ' + data.No1.time_full + ' (JST)'
+                        eqMessage.magnitude = Number(data.No1.magnitude)
+                        eqMessage.magnitudeText = 'マグニチュード: 調査中'
+                        eqMessage.maxIntensity = data.No1.shindo
+                        eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
+                        eqMessage.info = data.No1.info
+                    }
+                    break
+                }
+                case '震源に関する情報':{
+                    eqMessage.id = data.No1.EventID
+                    eqMessage.hypocenter = data.No1.location
+                    eqMessage.hypocenterText = '震源地: ' + data.No1.location
+                    eqMessage.lat = Number(data.No1.latitude)
+                    eqMessage.lng = Number(data.No1.longitude)
+                    eqMessage.depth = Number(data.No1.depth.replace('km', ''))
+                    eqMessage.depthText = '深さ: ' + (data.No1.depth == '0km'?'ごく浅い':data.No1.depth)
+                    eqMessage.originTime = data.No1.time_full
+                    eqMessage.originTimeText = '発震時刻: ' + data.No1.time_full + ' (JST)'
+                    eqMessage.magnitude = Number(data.No1.magnitude)
+                    eqMessage.magnitudeText = 'マグニチュード: ' + data.No1.magnitude
+                    eqMessage.info = data.No1.info
+                    break
+                }
+                case '震源・震度情報':{
+                    eqMessage.id = data.No1.EventID
+                    eqMessage.hypocenter = data.No1.location
+                    eqMessage.hypocenterText = '震源地: ' + data.No1.location
+                    eqMessage.lat = Number(data.No1.latitude)
+                    eqMessage.lng = Number(data.No1.longitude)
+                    eqMessage.depth = Number(data.No1.depth.replace('km', ''))
+                    eqMessage.depthText = '深さ: ' + (data.No1.depth == '0km'?'ごく浅い':data.No1.depth)
+                    eqMessage.originTime = data.No1.time_full
+                    eqMessage.originTimeText = '発震時刻: ' + data.No1.time_full + ' (JST)'
+                    eqMessage.magnitude = Number(data.No1.magnitude)
+                    eqMessage.magnitudeText = 'マグニチュード: ' + data.No1.magnitude
+                    eqMessage.maxIntensity = data.No1.shindo
+                    eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
+                    eqMessage.info = data.No1.info
+                    break
+                }
+                default:{
+                    console.log(data.No1);
+                }
             }
-            eqMessage.info = data.No1.info
             eqMessage.className = setClassName(data.No1.shindo, true)
             break
         }
