@@ -1,6 +1,6 @@
 # wolfx-api-viewer
 
-This template should help get you started developing with Vue 3 in Vite.
+本页面基于Wolfx Open API (api.wolfx.jp) 开发，不属于Wolfx官方，与本网页相关的问题请勿咨询Wolfx官方。特别感谢Wolfx Project提供接口支持。
 
 ## Recommended IDE Setup
 
