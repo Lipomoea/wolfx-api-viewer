@@ -93,7 +93,6 @@ const setEqMessage = (data)=>{
             eqMessage.useShindo = true
             eqMessage.maxIntensity = data.MaxIntensity
             eqMessage.maxIntensityText = '推定最大震度: ' + data.MaxIntensity
-            eqMessage.className = setClassName(data.MaxIntensity, true)
             break
         }
         case 'cwaEew':{
@@ -118,7 +117,6 @@ const setEqMessage = (data)=>{
             eqMessage.useShindo = true
             eqMessage.maxIntensity = data.MaxIntensity
             eqMessage.maxIntensityText = '預估最大震度: ' + data.MaxIntensity
-            eqMessage.className = setClassName(data.MaxIntensity, true)
             break
         }
         case 'scEew':{
@@ -141,7 +139,6 @@ const setEqMessage = (data)=>{
             eqMessage.magnitudeText = '震级: ' + data.Magunitude.toFixed(1)
             eqMessage.maxIntensity = data.MaxIntensity.toFixed(0)
             eqMessage.maxIntensityText = '估计最大烈度: ' + data.MaxIntensity.toFixed(1)
-            eqMessage.className = setClassName(data.MaxIntensity.toFixed(0), false)
             break
         }
         case 'fjEew':{
@@ -163,7 +160,6 @@ const setEqMessage = (data)=>{
             eqMessage.magnitudeText = '震级: ' + data.Magunitude.toFixed(1)
             eqMessage.maxIntensity = '不明'
             eqMessage.maxIntensityText = '估计最大烈度: 不明'
-            eqMessage.className = 'gray'
             break
         }
         case 'jmaEqlist':{
@@ -228,9 +224,9 @@ const setEqMessage = (data)=>{
                 }
                 default:{
                     console.log(data.No1);
+                    break
                 }
             }
-            eqMessage.className = setClassName(data.No1.shindo, true)
             break
         }
         case 'cencEqlist':{
@@ -250,7 +246,6 @@ const setEqMessage = (data)=>{
             eqMessage.magnitudeText = '震级: ' + data.No1.magnitude
             eqMessage.maxIntensity = data.No1.intensity
             eqMessage.maxIntensityText = '估计最大烈度: ' + data.No1.intensity
-            eqMessage.className = setClassName(data.No1.intensity, false)
             break
         }
         default:{
@@ -258,6 +253,7 @@ const setEqMessage = (data)=>{
             break
         }
     }
+    eqMessage.className = setClassName(eqMessage.maxIntensity, eqMessage.useShindo)
 }
 const connect = (protocol)=>{
     const source = props.source + '_' + protocol
