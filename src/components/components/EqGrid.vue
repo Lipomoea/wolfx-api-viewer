@@ -166,6 +166,8 @@ const setEqMessage = (data)=>{
             eqMessage.title = data.No1.Title
             eqMessage.titleText = '日本気象庁' + data.No1.Title
             eqMessage.useShindo = true
+            eqMessage.originTime = data.No1.time_full
+            eqMessage.originTimeText = '検知時刻: ' + data.No1.time_full + ' (JST)'
             switch(data.No1.Title){
                 case '震度速報':{
                     if(eqMessage.id == data.No1.EventID){
@@ -173,15 +175,12 @@ const setEqMessage = (data)=>{
                         eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
                     }
                     else{
-                        eqMessage.id = data.No1.EventID
                         eqMessage.hypocenter = data.No1.location
                         eqMessage.hypocenterText = '震源地: 調査中'
                         eqMessage.lat = Number(data.No1.latitude)
                         eqMessage.lng = Number(data.No1.longitude)
                         eqMessage.depth = Number(data.No1.depth.replace('km', ''))
                         eqMessage.depthText = '深さ: 調査中'
-                        eqMessage.originTime = data.No1.time_full
-                        eqMessage.originTimeText = '発震時刻: ' + data.No1.time_full + ' (JST)'
                         eqMessage.magnitude = Number(data.No1.magnitude)
                         eqMessage.magnitudeText = 'マグニチュード: 調査中'
                         eqMessage.maxIntensity = data.No1.shindo
@@ -191,30 +190,24 @@ const setEqMessage = (data)=>{
                     break
                 }
                 case '震源に関する情報':{
-                    eqMessage.id = data.No1.EventID
                     eqMessage.hypocenter = data.No1.location
                     eqMessage.hypocenterText = '震源地: ' + data.No1.location
                     eqMessage.lat = Number(data.No1.latitude)
                     eqMessage.lng = Number(data.No1.longitude)
                     eqMessage.depth = Number(data.No1.depth.replace('km', ''))
                     eqMessage.depthText = '深さ: ' + (data.No1.depth == '0km'?'ごく浅い':data.No1.depth)
-                    eqMessage.originTime = data.No1.time_full
-                    eqMessage.originTimeText = '発震時刻: ' + data.No1.time_full + ' (JST)'
                     eqMessage.magnitude = Number(data.No1.magnitude)
                     eqMessage.magnitudeText = 'マグニチュード: ' + data.No1.magnitude
                     eqMessage.info = data.No1.info
                     break
                 }
                 case '震源・震度情報':{
-                    eqMessage.id = data.No1.EventID
                     eqMessage.hypocenter = data.No1.location
                     eqMessage.hypocenterText = '震源地: ' + data.No1.location
                     eqMessage.lat = Number(data.No1.latitude)
                     eqMessage.lng = Number(data.No1.longitude)
                     eqMessage.depth = Number(data.No1.depth.replace('km', ''))
                     eqMessage.depthText = '深さ: ' + (data.No1.depth == '0km'?'ごく浅い':data.No1.depth)
-                    eqMessage.originTime = data.No1.time_full
-                    eqMessage.originTimeText = '発震時刻: ' + data.No1.time_full + ' (JST)'
                     eqMessage.magnitude = Number(data.No1.magnitude)
                     eqMessage.magnitudeText = 'マグニチュード: ' + data.No1.magnitude
                     eqMessage.maxIntensity = data.No1.shindo
@@ -227,6 +220,7 @@ const setEqMessage = (data)=>{
                     break
                 }
             }
+            eqMessage.id = data.No1.EventID
             break
         }
         case 'cencEqlist':{
