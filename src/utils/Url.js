@@ -17,4 +17,22 @@ const stationUrls = {
     ALL_PUSH_ws: 'wss://seis.wolfx.jp/all_seis',
 }
 
-export { eqUrls, stationUrls }
+const iconUrls = {
+    info: '/icon/info.png',
+    caution: '/icon/caution.png',
+    warn: '/icon/warn.png',
+}
+const chimeUrls = {
+    srev: {
+        happyou: '/sound/srev/happyou.mp3',
+        yohou: '/sound/srev/yohou.mp3',
+        keihou: '/sound/srev/keihou.mp3',
+        koushin: '/sound/srev/koushin.mp3',
+        saisyuu: '/sound/srev/saisyuu.mp3',
+        torikeshi: '/sound/srev/torikeshi.mp3',
+        shindosokuhou: '/sound/srev/shindosokuhou.mp3',
+        shingenzyouhou: '/sound/srev/shingenzyouhou.mp3',
+        jishinzyouhou: '/sound/srev/jishinzyouhou.mp3',
+    },
+}
+export { eqUrls, stationUrls, iconUrls, chimeUrls }

@@ -21,8 +21,8 @@
 import { onMounted, onBeforeUnmount, ref, reactive, computed, watch } from 'vue'
 import Http from '@/utils/Http';
 import WebSocketObj from '@/utils/WebSocket';
-import { eqUrls } from '@/utils/Url';
-import { formatText, msToTime, calcPassedTime, sendNotification, setClassName } from '@/utils/Utils';
+import { eqUrls, iconUrls, chimeUrls } from '@/utils/Url';
+import { formatText, msToTime, calcPassedTime, sendNotification, setClassName, playSound } from '@/utils/Utils';
 import { useTimeStore } from '@/stores/time';
 import { useSettingsStore } from '@/stores/settings';
 import '@/assets/background.css'
@@ -65,11 +65,12 @@ const settingsStore = useSettingsStore()
 const useWebSocket = ['jmaEew', 'scEew', 'fjEew', 'jmaEqlist', 'cencEqlist']
 const useJst = ['jmaEew', 'jmaEqlist']
 let request, socketObj;
-const urls = eqUrls;
 let protocol = 'http', httpInterval = 1000
+let isNewEvent = false
 const setEqMessage = (data)=>{
     switch(props.source){
         case 'jmaEew':{
+            isNewEvent = eqMessage.id != data.EventID
             eqMessage.id = data.EventID
             eqMessage.isEew = true
             eqMessage.reportNum = data.Serial
@@ -96,6 +97,7 @@ const setEqMessage = (data)=>{
             break
         }
         case 'cwaEew':{
+            isNewEvent = eqMessage.id != data.ID
             eqMessage.id = data.ID
             eqMessage.isEew = true
             eqMessage.reportNum = data.ReportNum
@@ -120,6 +122,7 @@ const setEqMessage = (data)=>{
             break
         }
         case 'scEew':{
+            isNewEvent = eqMessage.id != data.ID
             eqMessage.id = data.ID
             eqMessage.isEew = true
             eqMessage.reportNum = data.ReportNum
@@ -142,6 +145,7 @@ const setEqMessage = (data)=>{
             break
         }
         case 'fjEew':{
+            isNewEvent = eqMessage.id != data.EventID
             eqMessage.id = data.EventID
             eqMessage.isEew = true
             eqMessage.reportNum = data.ReportNum
@@ -163,6 +167,8 @@ const setEqMessage = (data)=>{
             break
         }
         case 'jmaEqlist':{
+            isNewEvent = eqMessage.id != data.No1.EventID
+            eqMessage.id = data.No1.EventID
             eqMessage.title = data.No1.Title
             eqMessage.titleText = '日本気象庁' + data.No1.Title
             eqMessage.useShindo = true
@@ -170,11 +176,9 @@ const setEqMessage = (data)=>{
             eqMessage.originTimeText = '検知時刻: ' + data.No1.time_full + ' (JST)'
             switch(data.No1.Title){
                 case '震度速報':{
-                    if(eqMessage.id == data.No1.EventID){
-                        eqMessage.maxIntensity = data.No1.shindo
-                        eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
-                    }
-                    else{
+                    eqMessage.maxIntensity = data.No1.shindo
+                    eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
+                    if(isNewEvent){
                         eqMessage.hypocenter = data.No1.location
                         eqMessage.hypocenterText = '震源地: 調査中'
                         eqMessage.lat = Number(data.No1.latitude)
@@ -183,8 +187,6 @@ const setEqMessage = (data)=>{
                         eqMessage.depthText = '深さ: 調査中'
                         eqMessage.magnitude = Number(data.No1.magnitude)
                         eqMessage.magnitudeText = 'マグニチュード: 調査中'
-                        eqMessage.maxIntensity = data.No1.shindo
-                        eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
                         eqMessage.info = data.No1.info
                     }
                     break
@@ -199,6 +201,10 @@ const setEqMessage = (data)=>{
                     eqMessage.magnitude = Number(data.No1.magnitude)
                     eqMessage.magnitudeText = 'マグニチュード: ' + data.No1.magnitude
                     eqMessage.info = data.No1.info
+                    if(isNewEvent){
+                        eqMessage.maxIntensity = data.No1.shindo
+                        eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
+                    }
                     break
                 }
                 case '震源・震度情報':{
@@ -220,10 +226,10 @@ const setEqMessage = (data)=>{
                     break
                 }
             }
-            eqMessage.id = data.No1.EventID
             break
         }
         case 'cencEqlist':{
+            isNewEvent = eqMessage.id != data.md5
             eqMessage.id = data.md5
             eqMessage.reportTime = data.No1.ReportTime
             eqMessage.title = data.No1.type
@@ -254,14 +260,14 @@ const connect = (protocol)=>{
     if(protocol == 'http'){
         if(request) clearInterval(request)
         request = setInterval(() => {
-            Http.get(urls[source] + `?t=${Date.now()}`).then(data=>{
+            Http.get(eqUrls[source] + `?t=${Date.now()}`).then(data=>{
                 setEqMessage(data)
             })
         }, httpInterval);
     }
     else if(protocol == 'ws'){
         if(socketObj) socketObj.close()
-        socketObj = new WebSocketObj(urls[source])
+        socketObj = new WebSocketObj(eqUrls[source])
         socketObj.setMessageHandler((e)=>{
             let data = JSON.parse(e.data)
             if(data.type == 'heartbeat'){
@@ -326,6 +332,9 @@ let timer, blinkController, blinkTimeout
 let blinkState = ref(true)
 let isLoad = true
 const blinkTime = 4000
+const soundEffect = computed(()=>settingsStore.mainSettings.soundEffect)
+const cautionList = ['green', 'yellow', 'orange', 'red', 'purple']
+let first = false, caution = false, warn = false
 watch(eqMessage, ()=>{
     className.value = eqMessage.className + ' midOpacity'
     let passedTime = 0
@@ -362,15 +371,105 @@ watch(eqMessage, ()=>{
     }
     time -= passedTime
     if(time > 0){
-        let notification = false
+        let icon = ''
+        if(isNewEvent){
+            first = false
+            caution = false
+            warn = false
+        }
         if(eqMessage.isEew){
-            if(settingsStore.mainSettings.onEew.notification) notification = true
-            else if(settingsStore.mainSettings.onEewWarn.notification && eqMessage.isWarn) notification = true
+            if(settingsStore.mainSettings.onEew.notification){
+                icon = iconUrls.caution
+                if(eqMessage.isWarn) icon = iconUrls.warn
+            }
+            else if(settingsStore.mainSettings.onEewWarn.notification && eqMessage.isWarn) icon = iconUrls.warn
+            if(settingsStore.mainSettings.onEew.sound){
+                if(eqMessage.isCanceled){
+                    playSound(chimeUrls[soundEffect.value].torikeshi)
+                }
+                else{
+                    if(!first){
+                        playSound(chimeUrls[soundEffect.value].happyou)
+                        first = true
+                    }
+                    else{
+                        if(!eqMessage.isFinal){
+                            playSound(chimeUrls[soundEffect.value].koushin)
+                        }
+                        else{
+                            playSound(chimeUrls[soundEffect.value].saisyuu)
+                        }
+                    }
+                    if(eqMessage.isWarn && !warn){
+                        playSound(chimeUrls[soundEffect.value].keihou)
+                        caution = true
+                        warn = true
+                    }
+                    else if(cautionList.includes(eqMessage.className) && !caution){
+                        playSound(chimeUrls[soundEffect.value].yohou)
+                        caution = true
+                    }
+                }
+            }
+            else if(settingsStore.mainSettings.onEewWarn.sound && eqMessage.isWarn){
+                if(eqMessage.isCanceled){
+                    playSound(chimeUrls[soundEffect.value].torikeshi)
+                }
+                else{
+                    if(!first){
+                        playSound(chimeUrls[soundEffect.value].happyou)
+                        first = true
+                    }
+                    else{
+                        if(!eqMessage.isFinal){
+                            playSound(chimeUrls[soundEffect.value].koushin)
+                        }
+                        else{
+                            playSound(chimeUrls[soundEffect.value].saisyuu)
+                        }
+                    }
+                    if(!warn){
+                        playSound(chimeUrls[soundEffect.value].keihou)
+                        caution = true
+                        warn = true
+                    }
+                }
+            }
         }
         else{
-            if(settingsStore.mainSettings.onReport.notification) notification = true
+            if(settingsStore.mainSettings.onReport.notification) icon = iconUrls.info
+            if(settingsStore.mainSettings.onReport.sound){
+                switch(props.source){
+                    case 'jmaEqlist':{
+                        switch(eqMessage.title){
+                            case '震度速報':{
+                                playSound(chimeUrls[soundEffect.value].shindosokuhou)
+                                break
+                            }
+                            case '震源に関する情報':{
+                                playSound(chimeUrls[soundEffect.value].shingenzyouhou)
+                                break
+                            }
+                            case '震源・震度情報':{
+                                playSound(chimeUrls[soundEffect.value].jishinzyouhou)
+                                break
+                            }
+                        }
+                        break
+                    }
+                    case 'cencEqlist':{
+                        playSound(chimeUrls[soundEffect.value].jishinzyouhou)
+                        break
+                    }
+                }
+            }
         }
-        if(notification) sendNotification(`${eqMessage.titleText}`, `${eqMessage.hypocenterText}\n${eqMessage.depthText}\n${eqMessage.magnitudeText}\n${eqMessage.maxIntensityText}`)
+        if(icon){
+            sendNotification(`${eqMessage.titleText}`, 
+                `${eqMessage.hypocenterText}\n${eqMessage.depthText}\n${eqMessage.magnitudeText}\n${eqMessage.maxIntensityText}`, 
+                icon, 
+                settingsStore.mainSettings.muteNotification)
+        }
         if(blinkController) clearInterval(blinkController)
         blinkController = setInterval(() => {
             if(blinkState.value){

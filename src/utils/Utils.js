@@ -40,10 +40,12 @@ const compareTime = (time, timeZone, interval)=>{
     if(!time || !timeZone || !interval) return
     return calcPassedTime(time, timeZone) <= interval
 }
-const sendNotification = (title, body)=>{
+const sendNotification = (title, body, icon, silent)=>{
     if(Notification.permission == 'granted'){
         const notification = new Notification(title, {
-            body
+            body,
+            icon,
+            silent,
         })
         notification.onclick = ()=>{
             window.focus()
@@ -76,5 +78,9 @@ const setClassName = (intensity, useShindo)=>{
     }
     return className
 }
+const playSound = (url)=>{
+    const audio = new Audio(url)
+    audio.play()
+}
 
-export {formatNumber, formatText, msToTime, calcPassedTime, compareTime, sendNotification, setClassName}
+export {formatNumber, formatText, msToTime, calcPassedTime, compareTime, sendNotification, setClassName, playSound}
