@@ -122,8 +122,8 @@ const setEqMessage = (data)=>{
             break
         }
         case 'scEew':{
-            isNewEvent = eqMessage.id != data.ID
-            eqMessage.id = data.ID
+            isNewEvent = eqMessage.id != data.EventID.split('_')[0]
+            eqMessage.id = data.EventID.split('_')[0]
             eqMessage.isEew = true
             eqMessage.reportNum = data.ReportNum
             eqMessage.reportNumText = '第' + data.ReportNum + '报'
@@ -145,8 +145,8 @@ const setEqMessage = (data)=>{
             break
         }
         case 'fjEew':{
-            isNewEvent = eqMessage.id != data.EventID
-            eqMessage.id = data.EventID
+            isNewEvent = eqMessage.id != data.EventID.split('_')[0]
+            eqMessage.id = data.EventID.split('_')[0]
             eqMessage.isEew = true
             eqMessage.reportNum = data.ReportNum
             eqMessage.reportNumText = '第' + data.ReportNum + '报' + (data.isFinal?'（最终）':'')
