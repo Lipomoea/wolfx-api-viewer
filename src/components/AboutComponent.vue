@@ -24,7 +24,7 @@
                 <p>本页面未针对移动端进行适配，建议使用电脑端浏览器访问本网页。</p>
                 <p>联系我：<a href="https://space.bilibili.com/316757498" target="_blank">リッポミャ</a>（哔哩哔哩）</p>
                 <p>Github: <a href="https://github.com/Lipomoea/wolfx-api-viewer" target="_blank">https://github.com/Lipomoea/wolfx-api-viewer</a></p>
-                <p>上次维护：2024.5.30</p>
+                <p>上次维护：2024.5.31</p>
             </div>
         </div>
     </div>

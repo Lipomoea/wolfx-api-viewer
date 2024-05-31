@@ -458,7 +458,12 @@ watch(eqMessage, ()=>{
                         break
                     }
                     case 'cencEqlist':{
-                        playSound(chimeUrls[soundEffect.value].jishinzyouhou)
+                        if(eqMessage.title != 'reviewed'){
+                            playSound(chimeUrls[soundEffect.value].shingenzyouhou)
+                        }
+                        else{
+                            playSound(chimeUrls[soundEffect.value].jishinzyouhou)
+                        }
                         break
                     }
                 }
