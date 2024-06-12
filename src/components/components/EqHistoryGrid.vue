@@ -3,7 +3,11 @@
         <div class="container">
             <div class="title">{{ title }}</div>
             <div class="item" v-for="(item, index) of eqList" :key="index">
-                <div class="intensity" :class="item.className">{{ item.maxIntensity == '不明'?'0':item.maxIntensity }}</div>
+                <div class="intensity" :class="item.className">
+                    <div class="intText">
+                        {{ item.maxIntensity == '不明'?'0':item.maxIntensity }}
+                    </div>
+                </div>
                 <div class="right">
                     <div class="location">{{ item.hypoCenter }}</div>
                     <div class="rightBottom">
@@ -116,15 +120,22 @@ onBeforeUnmount(()=>{
         .intensity{
             width: 80px;
             height: 80px;
-            font-size: 25px;
-            text-align: center;
-            line-height: 80px;
             pointer-events: none;
             border-right: black 1px solid;
             user-select: none;
-        }
-        .intensity::first-letter{
-            font-size: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            .intText{
+                font-size: 50px;
+                text-align: center;
+                letter-spacing: -10px;
+                padding-right: 10px;
+            }
+            .intText::first-letter{
+                font-size: 70px;
+                vertical-align: top;
+            }
         }
         .right{
             width: 340px;

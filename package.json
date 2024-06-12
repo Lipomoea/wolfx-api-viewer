@@ -1,6 +1,6 @@
 {
-  "name": "leafpeach-api-vue3",
-  "version": "0.0.0",
+  "name": "wolfx-api-viewer",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "scripts": {

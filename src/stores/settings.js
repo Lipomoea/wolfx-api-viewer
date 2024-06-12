@@ -5,16 +5,21 @@ export const useSettingsStore = defineStore('settingsStore', {
         mainSettings: {
             onEew: {
                 notification: false,
-                focus: false,
+                sound: false,
+                focus:false,
             },
             onEewWarn: {
                 notification: false,
-                focus: false,
+                sound: false,
+                focus:false,
             },
             onReport: {
                 notification: false,
-                focus: false,
+                sound: false,
+                focus:false,
             },
+            muteNotification: false,
+            soundEffect: 'srev',
             showAbout: false,
         },
     }),
@@ -31,6 +36,8 @@ export const useSettingsStore = defineStore('settingsStore', {
                 Object.assign(this.mainSettings.onEew, json.onEew)
                 Object.assign(this.mainSettings.onEewWarn, json.onEewWarn)
                 Object.assign(this.mainSettings.onReport, json.onReport)
+                this.mainSettings.muteNotification = json.muteNotification
+                this.mainSettings.soundEffect = json.soundEffect
                 this.mainSettings.showAbout = json.showAbout
             }
         },
