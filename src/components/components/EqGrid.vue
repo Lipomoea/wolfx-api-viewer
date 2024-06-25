@@ -25,6 +25,7 @@ import { eqUrls, iconUrls, chimeUrls } from '@/utils/Url';
 import { formatText, msToTime, calcPassedTime, sendNotification, setClassName, playSound } from '@/utils/Utils';
 import { useTimeStore } from '@/stores/time';
 import { useSettingsStore } from '@/stores/settings';
+import { useEqMessageStore } from '@/stores/eqMessage';
 import '@/assets/background.css'
 import '@/assets/opacity.css'
 import router from '@/router';
@@ -335,7 +336,9 @@ const blinkTime = 4000
 const soundEffect = computed(()=>settingsStore.mainSettings.soundEffect)
 const cautionList = ['green', 'yellow', 'orange', 'red', 'purple']
 let first = false, caution = false, warn = false
+const eqMessageStore = useEqMessageStore()
 watch(eqMessage, ()=>{
+    eqMessageStore.setEqMessage(props.source, eqMessage)
     className.value = eqMessage.className + ' midOpacity'
     let passedTime = 0
     if(isLoad){
