@@ -10,19 +10,17 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import Http from '@/utils/Http';
-import { reactive, onMounted, watch } from 'vue';
-import { useEqMessageStore } from '@/stores/eqMessage';
-const eqMessageStore = useEqMessageStore()
+import { ref, onMounted, watch } from 'vue';
+import { useTimeStore } from '@/stores/time';
+
+const props = defineProps({
+    eqMessage: Object,
+    source: String,
+})
+const timeStore = useTimeStore()
 let map, crossMarker
 let userLatLng = [30.3, 120.1]
-const figures = reactive({
-    jmaEew: {},
-    cwaEew: {},
-    scEew: {},
-    fjEew: {},
-    jmaEqlist: {},
-    cencEqlist: {},
-})
+const hypoLatLng = ref([props.eqMessage.lat, props.eqMessage.lng])
 let zoomLevel = 6
 let crossIcon = `<svg t="1719226920212" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2481" width="50" height="50"><path d="M602.512147 511.99738l402.747939-402.747939a63.999673 63.999673 0 0 0-90.509537-90.509537L512.00261 421.487843 109.254671 18.749904a63.999673 63.999673 0 0 0-90.509537 90.509537L421.493073 511.99738 18.755134 914.745319a63.999673 63.999673 0 0 0 90.509537 90.509537L512.00261 602.506917l402.747939 402.747939a63.999673 63.999673 0 0 0 90.509537-90.509537z" p-id="2482" fill="#d81e06"></path></svg>`
 let crossDivIcon = L.divIcon({
@@ -32,57 +30,56 @@ let crossDivIcon = L.divIcon({
 })
 onMounted(()=>{
     map = L.map('map', {attributionControl: false})
-    map.setView(userLatLng, zoomLevel)
     map.removeControl(map.zoomControl)
+    setView()
     Http.get('/json/global.geo.json')
     .then(data=>{
         L.geoJson(data).addTo(map)
     })
-    crossMarker = L.marker(userLatLng, {icon: crossDivIcon})
-    crossMarker.addTo(map)
+    setMark()
 })
-// const setBlink = ()=>{
-//     setInterval(() => {
-//         if(!map.hasLayer(crossMarker)){
-//             crossMarker.addTo(map)
-//         }
-//         else{
-//             map.removeLayer(crossMarker)
-//         }
-//     }, 500);
-// }
-const setMarks = ()=>{
-    const eqMessage = eqMessageStore.eqMessage
-    for(let key in eqMessage){
-        if(eqMessage[key].id){
-            figures[key].latLng = [eqMessage[key].lat, eqMessage[key].lng]
-            if(figures[key].marker && map.hasLayer(figures[key].marker)) map.removeLayer(figures[key].marker)
-            figures[key].marker = L.marker(figures[key].latLng, {icon: crossDivIcon})
-            figures[key].marker.addTo(map)
-        }
+const setView = ()=>{
+    map.setView(hypoLatLng.value, zoomLevel)
+}
+const blink = ()=>{
+    if(!map.hasLayer(crossMarker)){
+        crossMarker.addTo(map)
+    }
+    else{
+        map.removeLayer(crossMarker)
     }
 }
-watch(()=>eqMessageStore.eqMessage, ()=>{
-    setMarks()
-}, { deep: true })
+const setMark = ()=>{
+    if(crossMarker && map.hasLayer(crossMarker)) map.removeLayer(crossMarker)
+    crossMarker = L.marker(hypoLatLng.value, {icon: crossDivIcon})
+    crossMarker.addTo(map)
+}
+watch(()=>props.eqMessage, ()=>{
+    setMark()
+})
+watch(()=>timeStore.currentTime, ()=>{
+    blink()
+})
 </script>
 
 <style lang="scss" scoped>
 .outer{
     width: 100%;
+    height: 100%;
     .container{
+        width: 100%;
+        height: 100%;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        margin: 20px;
         border: black 1px solid;
         border-radius: 10px;
         overflow: hidden;
         #map{
             width: 100%;
-            // height: 600px;
-            padding-bottom: 50%;
+            height: 100%;
+            // padding-bottom: 50%;
         }
         .crossDivIcon{
             background: none;

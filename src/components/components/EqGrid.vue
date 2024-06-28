@@ -14,6 +14,10 @@
             <div>经过时间: {{ formatText(msToTime(passedTimeFromOrigin)) }}</div>
             <div>WebSocket状态: {{ statusCode >= 0 && statusCode <= 5?statusList[statusCode]:'N/A' }}</div>
         </div>
+        <div class="map" v-if="showMap">
+            <MapComponent :eqMessage :source></MapComponent>
+        </div>
+        <div class="overlay" v-if="showMap" @click="showMap = false"></div>
     </div>
 </template>
 
@@ -25,11 +29,12 @@ import { eqUrls, iconUrls, chimeUrls } from '@/utils/Url';
 import { formatText, msToTime, calcPassedTime, sendNotification, setClassName, playSound } from '@/utils/Utils';
 import { useTimeStore } from '@/stores/time';
 import { useSettingsStore } from '@/stores/settings';
-import { useEqMessageStore } from '@/stores/eqMessage';
 import '@/assets/background.css'
 import '@/assets/opacity.css'
 import router from '@/router';
+import MapComponent from './components/MapComponent.vue';
 
+let showMap = ref(false)
 const statusList = ['正在连接', '已连接', '正在断开', '已断开', '未连接', '不使用']
 const eqMessage = reactive({
     id: '',
@@ -307,6 +312,9 @@ const handleClick = ()=>{
     if(!eqMessage.isEew){
         router.push('/eq-history')
     }
+    else{
+        showMap.value = true
+    }
 }
 
 onMounted(()=>{
@@ -336,9 +344,7 @@ const blinkTime = 4000
 const soundEffect = computed(()=>settingsStore.mainSettings.soundEffect)
 const cautionList = ['green', 'yellow', 'orange', 'red', 'purple']
 let first = false, caution = false, warn = false
-const eqMessageStore = useEqMessageStore()
 watch(eqMessage, ()=>{
-    eqMessageStore.setEqMessage(props.source, eqMessage)
     className.value = eqMessage.className + ' midOpacity'
     let passedTime = 0
     if(isLoad){
@@ -549,5 +555,24 @@ watch(()=>timeStore.currentTime, ()=>{
         font-weight: 700;
         color: #0000003f;
     }
+}
+.map{
+    width: 60vw;
+    height: 60vh;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+}
+.overlay{
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #fff;
+    opacity: 0.5;
+    z-index: 15;
 }
 </style>

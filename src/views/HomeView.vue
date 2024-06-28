@@ -1,7 +1,6 @@
 <template>
   <div>
     <div class="container">
-      <MapComponent></MapComponent>
       <EqComponent></EqComponent>
       <!-- <StationComponent></StationComponent> -->
       <SettingsComponent></SettingsComponent>
@@ -15,7 +14,6 @@ import EqComponent from '@/components/EqComponent.vue';
 // import StationComponent from '@/components/StationComponent.vue';
 import SettingsComponent from '@/components/SettingsComponent.vue';
 import AboutComponent from '@/components/AboutComponent.vue';
-import MapComponent from '@/components/MapComponent.vue';
 import { useSettingsStore } from '@/stores/settings';
 
 const settingsStore = useSettingsStore()
