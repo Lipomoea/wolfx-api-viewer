@@ -15,7 +15,7 @@
             <div>WebSocket状态: {{ statusCode >= 0 && statusCode <= 5?statusList[statusCode]:'N/A' }}</div>
         </div>
         <div class="map" v-if="showMap">
-            <MapComponent :eqMessage :source></MapComponent>
+            <MapComponent :eqMessage :source="props.source" :isActive></MapComponent>
         </div>
         <div class="overlay" v-if="showMap" @click="showMap = false"></div>
     </div>
@@ -147,7 +147,7 @@ const setEqMessage = (data)=>{
             eqMessage.magnitude = data.Magunitude
             eqMessage.magnitudeText = '震级: ' + data.Magunitude.toFixed(1)
             eqMessage.maxIntensity = data.MaxIntensity.toFixed(0)
-            eqMessage.maxIntensityText = '估计最大烈度: ' + data.MaxIntensity.toFixed(1)
+            eqMessage.maxIntensityText = '估计最大烈度: ' + data.MaxIntensity.toFixed(0)
             break
         }
         case 'fjEew':{
@@ -344,7 +344,9 @@ const blinkTime = 4000
 const soundEffect = computed(()=>settingsStore.mainSettings.soundEffect)
 const cautionList = ['green', 'yellow', 'orange', 'red', 'purple']
 let first = false, caution = false, warn = false
+const isActive = ref(false)
 watch(eqMessage, ()=>{
+    isActive.value = false
     className.value = eqMessage.className + ' midOpacity'
     let passedTime = 0
     if(isLoad){
@@ -380,6 +382,7 @@ watch(eqMessage, ()=>{
     }
     time -= passedTime
     if(time > 0){
+        isActive.value = true
         let icon = ''
         if(isNewEvent){
             first = false
@@ -503,6 +506,7 @@ watch(eqMessage, ()=>{
         if(timer) clearTimeout(timer)
         timer = setTimeout(() => {
             className.value = eqMessage.className + ' midOpacity'
+            isActive.value = false
         }, Math.max(time, blinkTime));
     }
 })
