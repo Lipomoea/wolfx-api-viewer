@@ -1,6 +1,3 @@
-import Papa from 'papaparse'
-import Http from './Http'
-
 const formatNumber = (value, digit)=>{
     if(value){
         if(digit) return value.toFixed(digit)
@@ -85,32 +82,27 @@ const playSound = (url)=>{
     const audio = new Audio(url)
     audio.play()
 }
-const calcWaveDistance = async (path, depth, time)=>{
-    try {
-        const res = await Http.get(path)
-        const data = Papa.parse(res, {
-            header: false,
-            dynamicTyping: true
-        }).data
-        const distances = data[0].slice(1)
-        const rows = data.slice(1)
-        let i = 0
-        while(rows[i][0] < depth && i < rows.length - 1) i++
-        if(i == 0) i = 1
-        if(depth <= ((rows[i - 1][0] + rows[i][0]) / 2)) i--
-        const times = rows[i].slice(1)
-        if(time <= times[0]) return { reach: times[0] - time, radius: 0 }
-        let j = 0
-        while(times[j] < time && j < times.length - 1) j++
-        const k = (distances[j] - distances[j - 1]) / (times[j] - times[j - 1])
-        const b = distances[j] - k * times[j]
-        const distance = k * time + b
-        return { reach: 0, radius: distance }
+const calcWaveDistance = (travelTime, isPWave, depth, time)=>{
+    const { depths, distances } = travelTime
+    let data
+    if(isPWave) {
+        data = travelTime.p_times
     }
-    catch (error) {
-        console.log(error);
-        return { reach: -1, radius: -1 }
+    else {
+        data = travelTime.s_times
     }
+    let i = 0
+    while(depths[i] < depth && i < depths.length - 1) i++
+    if(i == 0) i = 1
+    if(depth <= (depths[i - 1] + depths[i]) / 2) i--
+    const times = data[i]
+    if(time <= times[0]) return { reach: times[0] - time, radius: 0 }
+    let j = 1
+    while(times[j] < time && j < times.length - 1) j++
+    const k = (distances[j] - distances[j - 1]) / (times[j] - times[j - 1])
+    const b = distances[j] - k * times[j]
+    const distance = k * time + b
+    return { reach: 0, radius: distance }
 }
 
-export {formatNumber, formatText, msToTime, calcPassedTime, compareTime, sendNotification, setClassName, playSound, calcWaveDistance}
+export { formatNumber, formatText, msToTime, calcPassedTime, compareTime, sendNotification, setClassName, playSound, calcWaveDistance }

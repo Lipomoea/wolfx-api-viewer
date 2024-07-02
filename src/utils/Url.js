@@ -35,10 +35,5 @@ const chimeUrls = {
         jishinzyouhou: '/sound/srev/jishinzyouhou.mp3',
     },
 }
-const travelTimeUrls = {
-    jma2001: {
-        p: '/csv/jma2001_p.csv',
-        s: '/csv/jma2001_s.csv',
-    },
-}
-export { eqUrls, stationUrls, iconUrls, chimeUrls, travelTimeUrls }
+
+export { eqUrls, stationUrls, iconUrls, chimeUrls }

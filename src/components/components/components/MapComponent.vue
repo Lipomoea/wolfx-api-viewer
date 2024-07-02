@@ -13,7 +13,7 @@ import Http from '@/utils/Http';
 import { ref, computed, onMounted, watch } from 'vue';
 import { useTimeStore } from '@/stores/time';
 import { calcPassedTime, calcWaveDistance } from '@/utils/Utils';
-import { travelTimeUrls } from '@/utils/Url';
+import travelTimes from '@/utils/TravelTimes';
 
 const props = defineProps({
     eqMessage: Object,
@@ -40,6 +40,7 @@ onMounted(()=>{
         L.geoJson(data).addTo(map)
     })
     setMark()
+    drawWaves()
 })
 const setView = ()=>{
     map.setView(hypoLatLng.value, zoomLevel)
@@ -57,34 +58,67 @@ const setMark = ()=>{
     crossMarker = L.marker(hypoLatLng.value, {icon: crossDivIcon})
     crossMarker.addTo(map)
 }
+let pWave, sWave
+const switchDrawWaves = (time, travelTime)=>{
+    let p_reach, p_radius, s_reach, s_radius
+    const maxRadius = 2000
+    const p_info = calcWaveDistance(travelTime, true, props.eqMessage.depth, time)
+    p_reach = p_info.reach
+    p_radius = p_info.radius
+    const s_info = calcWaveDistance(travelTime, false, props.eqMessage.depth, time)
+    s_reach = s_info.reach
+    s_radius = s_info.radius
+    if(pWave && map.hasLayer(pWave)) map.removeLayer(pWave)
+    if(p_radius > 0 && p_radius < maxRadius){
+        pWave = L.circle(hypoLatLng.value, {
+            color: 'blue',
+            weight: 1,
+            fillOpacity: 0,
+            radius: p_radius * 1000,
+        })
+        pWave.addTo(map)
+    }
+    if(sWave && map.hasLayer(sWave)) map.removeLayer(sWave)
+    if(s_radius > 0 && s_radius < maxRadius){
+        sWave = L.circle(hypoLatLng.value, {
+            color: 'red',
+            weight: 1,
+            fillOpacity: 0.5,
+            radius: s_radius * 1000,
+        })
+        sWave.addTo(map)
+    }
+}
+const drawWaves = ()=>{
+    switch(props.source){
+        case 'jmaEew':{
+            let time = calcPassedTime(props.eqMessage.originTime, 9) / 1000
+            switchDrawWaves(time, travelTimes.jma2001)
+            break
+        }
+        default:{
+            let time = calcPassedTime(props.eqMessage.originTime, 8) / 1000
+            switchDrawWaves(time, travelTimes.jma2001)
+            break
+        }
+    }
+}
 watch(()=>props.eqMessage, ()=>{
     setMark()
+    drawWaves()
 })
-let pWave, sWave
 watch(()=>timeStore.currentTime, ()=>{
     if(props.isActive){
         blink()
+        drawWaves()
     }
-    let time = calcPassedTime(props.eqMessage.originTime, 9) / 1000
-    let p_reach, p_radius, s_reach, s_radius
-    switch(props.source){
-        case 'jmaEew':{
-            calcWaveDistance(travelTimeUrls.jma2001.p, props.eqMessage.depth, time).then(res=>{
-                console.log(res.radius);
-                p_reach = res.reach
-                p_radius = res.radius
-            })
-            console.log(p_radius);
+    else{
+        if(!map.hasLayer(crossMarker)){
+            crossMarker.addTo(map)
         }
+        if(pWave && map.hasLayer(pWave)) map.removeLayer(pWave)
+        if(sWave && map.hasLayer(sWave)) map.removeLayer(sWave)
     }
-    if(pWave && map.hasLayer(pWave)) map.removeLayer(pWave)
-    pWave = L.circle(hypoLatLng.value, {
-        color: 'blue',
-        weight: 1,
-        fillOpacity: 0,
-        radius: 725 * 1000,
-    })
-    pWave.addTo(map)
 })
 </script>
 
