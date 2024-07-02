@@ -2,6 +2,24 @@
     <div class="outer">
         <div class="container">
             <div id="map"></div>
+            <div class="eew">
+                <div class="bar" :class="barClass">{{ props.eqMessage.titleText + ' ' + props.eqMessage.reportNumText }}</div>
+                <div class="info gray">
+                    <div class="intensity" :class="props.eqMessage.className">
+                        <div class="intText">
+                            {{ props.eqMessage.maxIntensity == '不明'?'?':props.eqMessage.maxIntensity }}
+                        </div>
+                    </div>
+                    <div class="right">
+                        <div class="location">{{ props.eqMessage.hypocenter }}</div>
+                        <div class="time">{{ props.eqMessage.originTime + (useJst?' (UTC+9)':' (UTC+8)') }}</div>
+                        <div class="bottom">
+                            <div class="magnitude">M{{ props.eqMessage.magnitude.toFixed(1) }}</div>
+                            <div class="depth">{{ props.eqMessage.depthText }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -14,11 +32,33 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useTimeStore } from '@/stores/time';
 import { calcPassedTime, calcWaveDistance } from '@/utils/Utils';
 import travelTimes from '@/utils/TravelTimes';
+import '@/assets/background.css'
 
 const props = defineProps({
     eqMessage: Object,
     source: String,
     isActive: Boolean,
+})
+const useJst = computed(()=>{
+    if(props.source == 'jmaEew'){
+        return true
+    }
+    else{
+        return false
+    }
+})
+const barClass = computed(()=>{
+    if(props.isActive){
+        if(props.eqMessage.isWarn){
+            return 'red'
+        }
+        else{
+            return 'orange'
+        }
+    }
+    else{
+        return 'gray'
+    }
 })
 const timeStore = useTimeStore()
 let map, crossMarker
@@ -77,7 +117,7 @@ const switchDrawWaves = (time, travelTime)=>{
     if(pWave && map.hasLayer(pWave)) map.removeLayer(pWave)
     if(p_radius > 0 && p_radius < maxRadius){
         pWave = L.circle(hypoLatLng.value, {
-            color: 'blue',
+            color: 'royalblue',
             weight: 1,
             fillOpacity: 0,
             radius: p_radius * 1000,
@@ -88,9 +128,9 @@ const switchDrawWaves = (time, travelTime)=>{
     if(sWave && map.hasLayer(sWave)) map.removeLayer(sWave)
     if(s_radius > 0 && s_radius < maxRadius){
         sWave = L.circle(hypoLatLng.value, {
-            color: 'red',
+            color: props.eqMessage.isWarn?'red':'orange',
             weight: 1,
-            fillOpacity: 0.5,
+            fillOpacity: 0.3,
             radius: s_radius * 1000,
             pane: 'wavePane',
         })
@@ -144,6 +184,7 @@ watch(()=>timeStore.currentTime, ()=>{
         border: black 1px solid;
         border-radius: 10px;
         overflow: hidden;
+        position: relative;
         #map{
             width: 100%;
             height: 100%;
@@ -152,6 +193,88 @@ watch(()=>timeStore.currentTime, ()=>{
         .crossDivIcon{
             background: none;
             border: none;
+        }
+        .leaflet-grab {
+            cursor: default;
+        }
+        .eew{
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 500;   // >=400才会显示在地图上方？
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: black 1px solid;
+            border-top: 0px;
+            border-left: 0px;
+            pointer-events: none;
+            user-select: none;
+            .bar{
+                width: 100%;
+                height: 30px;
+                border-bottom: black 1px solid;
+                display: flex;
+                align-items: center;
+                font-size: 18px;
+                font-weight: 700;
+                padding-left: 5px;
+            }
+            .info{
+                display: flex;
+                gap: 10px;
+                align-items: center;
+                .intensity{
+                    width: 80px;
+                    height: 80px;
+                    border-right: black 1px solid;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    .intText{
+                        font-size: 50px;
+                        text-align: center;
+                        letter-spacing: -10px;
+                        padding-right: 10px;
+                    }
+                    .intText::first-letter{
+                        font-size: 70px;
+                        vertical-align: top;
+                    }
+                }
+                .right{
+                    width: 300px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    .location{
+                        font-size: 1.3em;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                        overflow: hidden;
+                    }
+                    .time{
+                        font-size: 1.1em;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                        overflow: hidden;
+                    }
+                    .bottom{
+                        display: flex;
+                        align-items: center;
+                        gap: 15px;
+                        .magnitude{
+                            font-size: 1.2em;
+                        }
+                        .depth{
+                            font-size: 1.1em;
+                            white-space: nowrap;
+                            text-overflow: ellipsis;
+                            overflow: hidden;
+                        }
+                    }
+                }
+            }
         }
     }
 }

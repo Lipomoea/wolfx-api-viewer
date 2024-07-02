@@ -5,11 +5,11 @@
             <div class="item" v-for="(item, index) of eqList" :key="index">
                 <div class="intensity" :class="item.className">
                     <div class="intText">
-                        {{ item.maxIntensity == '不明'?'0':item.maxIntensity }}
+                        {{ item.maxIntensity == '不明'?'?':item.maxIntensity }}
                     </div>
                 </div>
                 <div class="right">
-                    <div class="location">{{ item.hypoCenter }}</div>
+                    <div class="location">{{ item.hypocenter }}</div>
                     <div class="rightBottom">
                         <div class="timeDepth">
                             <div class="time">{{ item.originTime + (useJst?' (UTC+9)':' (UTC+8)') }}</div>
@@ -47,7 +47,7 @@ const getEqList = ()=>{
                     eqList[i] = {
                         id: data[keys[i]].EventID,
                         originTime: data[keys[i]].time_full,
-                        hypoCenter: data[keys[i]].location,
+                        hypocenter: data[keys[i]].location,
                         depth: data[keys[i]].depth == '0km'?'ごく浅い':data[keys[i]].depth,
                         magnitude: data[keys[i]].magnitude,
                         maxIntensity: data[keys[i]].shindo,
@@ -59,7 +59,7 @@ const getEqList = ()=>{
                     eqList[i] = {
                         id: i,
                         originTime: data[keys[i]].time,
-                        hypoCenter: data[keys[i]].location,
+                        hypocenter: data[keys[i]].location,
                         depth: data[keys[i]].depth + 'km',
                         magnitude: data[keys[i]].magnitude,
                         maxIntensity: data[keys[i]].intensity,
