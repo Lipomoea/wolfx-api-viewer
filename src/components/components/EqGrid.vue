@@ -180,6 +180,7 @@ const setEqMessage = (data)=>{
             eqMessage.useShindo = true
             eqMessage.originTime = data.No1.time_full
             eqMessage.originTimeText = '検知時刻: ' + data.No1.time_full + ' (JST)'
+            eqMessage.info = data.No1.info
             switch(data.No1.Title){
                 case '震度速報':{
                     eqMessage.maxIntensity = data.No1.shindo
@@ -193,7 +194,6 @@ const setEqMessage = (data)=>{
                         eqMessage.depthText = '深さ: 調査中'
                         eqMessage.magnitude = Number(data.No1.magnitude)
                         eqMessage.magnitudeText = 'マグニチュード: 調査中'
-                        eqMessage.info = data.No1.info
                     }
                     break
                 }
@@ -206,7 +206,6 @@ const setEqMessage = (data)=>{
                     eqMessage.depthText = '深さ: ' + (data.No1.depth == '0km'?'ごく浅い':data.No1.depth)
                     eqMessage.magnitude = Number(data.No1.magnitude)
                     eqMessage.magnitudeText = 'マグニチュード: ' + data.No1.magnitude
-                    eqMessage.info = data.No1.info
                     if(isNewEvent){
                         eqMessage.maxIntensity = data.No1.shindo
                         eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
@@ -224,19 +223,27 @@ const setEqMessage = (data)=>{
                     eqMessage.magnitudeText = 'マグニチュード: ' + data.No1.magnitude
                     eqMessage.maxIntensity = data.No1.shindo
                     eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
-                    eqMessage.info = data.No1.info
                     break
                 }
-                default:{
-                    console.log(data.No1);
+                case '遠地地震に関する情報':{
+                    eqMessage.hypocenter = data.No1.location
+                    eqMessage.hypocenterText = '震源地: ' + data.No1.location
+                    eqMessage.lat = Number(data.No1.latitude)
+                    eqMessage.lng = Number(data.No1.longitude)
+                    eqMessage.depth = Number(data.No1.depth.replace('km', ''))
+                    eqMessage.depthText = '深さ: 不明'
+                    eqMessage.magnitude = Number(data.No1.magnitude)
+                    eqMessage.magnitudeText = 'マグニチュード: ' + data.No1.magnitude
+                    eqMessage.maxIntensity = data.No1.shindo
+                    eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
                     break
                 }
             }
             break
         }
         case 'cencEqlist':{
-            isNewEvent = eqMessage.id != data.No1.time + ' ' + data.No1.ReportTime
-            eqMessage.id = data.No1.time + ' ' + data.No1.ReportTime
+            isNewEvent = eqMessage.id != data.No1.time
+            eqMessage.id = data.No1.time
             eqMessage.reportTime = data.No1.ReportTime
             eqMessage.title = data.No1.type
             eqMessage.titleText = '中国地震台网' + (data.No1.type == 'reviewed'?'正式':'自动') + '测定'
@@ -252,10 +259,6 @@ const setEqMessage = (data)=>{
             eqMessage.magnitudeText = '震级: ' + data.No1.magnitude
             eqMessage.maxIntensity = data.No1.intensity
             eqMessage.maxIntensityText = '估计最大烈度: ' + data.No1.intensity
-            break
-        }
-        default:{
-            console.log(data);
             break
         }
     }
@@ -463,6 +466,10 @@ watch(eqMessage, ()=>{
                                 break
                             }
                             case '震源・震度情報':{
+                                playSound(chimeUrls[soundEffect.value].jishinzyouhou)
+                                break
+                            }
+                            case '遠地地震に関する情報':{
                                 playSound(chimeUrls[soundEffect.value].jishinzyouhou)
                                 break
                             }
