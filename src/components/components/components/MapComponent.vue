@@ -34,10 +34,16 @@ let crossDivIcon = L.divIcon({
 onMounted(()=>{
     map = L.map('map', {attributionControl: false})
     map.removeControl(map.zoomControl)
+    map.createPane('basePane')
+    map.getPane('basePane').style.zIndex = 0
+    map.createPane('wavePane')
+    map.getPane('wavePane').style.zIndex = 10
+    map.createPane('markerPane')
+    map.getPane('markerPane').style.zIndex = 20
     setView()
     Http.get('/json/global.geo.json')
     .then(data=>{
-        L.geoJson(data).addTo(map)
+        L.geoJson(data, {pane: 'basePane'}).addTo(map)
     })
     setMark()
     drawWaves()
@@ -55,7 +61,7 @@ const blink = ()=>{
 }
 const setMark = ()=>{
     if(crossMarker && map.hasLayer(crossMarker)) map.removeLayer(crossMarker)
-    crossMarker = L.marker(hypoLatLng.value, {icon: crossDivIcon})
+    crossMarker = L.marker(hypoLatLng.value, {icon: crossDivIcon, pane: 'markerPane'})
     crossMarker.addTo(map)
 }
 let pWave, sWave
@@ -75,6 +81,7 @@ const switchDrawWaves = (time, travelTime)=>{
             weight: 1,
             fillOpacity: 0,
             radius: p_radius * 1000,
+            pane: 'wavePane',
         })
         pWave.addTo(map)
     }
@@ -85,6 +92,7 @@ const switchDrawWaves = (time, travelTime)=>{
             weight: 1,
             fillOpacity: 0.5,
             radius: s_radius * 1000,
+            pane: 'wavePane',
         })
         sWave.addTo(map)
     }

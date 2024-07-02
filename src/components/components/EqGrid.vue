@@ -140,8 +140,8 @@ const setEqMessage = (data)=>{
             eqMessage.hypocenterText = '震源: ' + data.HypoCenter
             eqMessage.lat = data.Latitude
             eqMessage.lng = data.Longitude
-            eqMessage.depth = data.Depth
-            eqMessage.depthText = '深度: ' + (data.Depth?data.Depth + 'km':'不明')
+            eqMessage.depth = data.Depth === null?0:data.Depth
+            eqMessage.depthText = '深度: ' + (data.Depth === null?'不明':data.Depth + 'km')
             eqMessage.originTime = data.OriginTime
             eqMessage.originTimeText = '发震时间: ' + data.OriginTime
             eqMessage.magnitude = data.Magunitude
@@ -163,6 +163,7 @@ const setEqMessage = (data)=>{
             eqMessage.hypocenterText = '震源: ' + data.HypoCenter
             eqMessage.lat = data.Latitude
             eqMessage.lng = data.Longitude
+            eqMessage.depth = 0
             eqMessage.depthText = '深度: 不明'
             eqMessage.originTime = data.OriginTime
             eqMessage.originTimeText = '发震时间: ' + data.OriginTime
@@ -346,7 +347,9 @@ let isLoad = true
 const blinkTime = 4000
 const soundEffect = computed(()=>settingsStore.mainSettings.soundEffect)
 const cautionList = ['green', 'yellow', 'orange', 'red', 'purple']
-let first = false, caution = false, warn = false
+let firstSound = false, cautionSound = false, warnSound = false
+let openMap = false, noOperation = false
+let mouseListener
 const isActive = ref(false)
 watch(eqMessage, ()=>{
     isActive.value = false
@@ -388,24 +391,40 @@ watch(eqMessage, ()=>{
         isActive.value = true
         let icon = ''
         if(isNewEvent){
-            first = false
-            caution = false
-            warn = false
+            firstSound = false
+            cautionSound = false
+            warnSound = false
+            openMap = false
+            noOperation = false
         }
         if(eqMessage.isEew){
             if(settingsStore.mainSettings.onEew.notification){
-                icon = iconUrls.caution
-                if(eqMessage.isWarn) icon = iconUrls.warn
+                if(eqMessage.isCanceled){
+                    icon = iconUrls.info
+                }
+                else if(!eqMessage.isWarn){
+                    icon = iconUrls.caution
+                }
+                else{
+                    icon = iconUrls.warn
+                }
             }
-            else if(settingsStore.mainSettings.onEewWarn.notification && eqMessage.isWarn) icon = iconUrls.warn
+            else if(settingsStore.mainSettings.onEewWarn.notification && eqMessage.isWarn){
+                if(eqMessage.isCanceled){
+                    icon = iconUrls.info
+                }
+                else{
+                    icon = iconUrls.warn
+                }
+            }
             if(settingsStore.mainSettings.onEew.sound){
                 if(eqMessage.isCanceled){
                     playSound(chimeUrls[soundEffect.value].torikeshi)
                 }
                 else{
-                    if(!first){
+                    if(!firstSound){
                         playSound(chimeUrls[soundEffect.value].happyou)
-                        first = true
+                        firstSound = true
                     }
                     else{
                         if(!eqMessage.isFinal){
@@ -415,14 +434,14 @@ watch(eqMessage, ()=>{
                             playSound(chimeUrls[soundEffect.value].saisyuu)
                         }
                     }
-                    if(eqMessage.isWarn && !warn){
+                    if(eqMessage.isWarn && !warnSound){
                         playSound(chimeUrls[soundEffect.value].keihou)
-                        caution = true
-                        warn = true
+                        cautionSound = true
+                        warnSound = true
                     }
-                    else if(cautionList.includes(eqMessage.className) && !caution){
+                    else if(cautionList.includes(eqMessage.className) && !cautionSound){
                         playSound(chimeUrls[soundEffect.value].yohou)
-                        caution = true
+                        cautionSound = true
                     }
                 }
             }
@@ -431,9 +450,9 @@ watch(eqMessage, ()=>{
                     playSound(chimeUrls[soundEffect.value].torikeshi)
                 }
                 else{
-                    if(!first){
+                    if(!firstSound){
                         playSound(chimeUrls[soundEffect.value].happyou)
-                        first = true
+                        firstSound = true
                     }
                     else{
                         if(!eqMessage.isFinal){
@@ -443,12 +462,24 @@ watch(eqMessage, ()=>{
                             playSound(chimeUrls[soundEffect.value].saisyuu)
                         }
                     }
-                    if(!warn){
+                    if(!warnSound){
                         playSound(chimeUrls[soundEffect.value].keihou)
-                        caution = true
-                        warn = true
+                        cautionSound = true
+                        warnSound = true
                     }
                 }
+            }
+            if(settingsStore.mainSettings.autoShowMap){
+                if(!openMap && !showMap.value){
+                    showMap.value = true
+                    noOperation = true
+                    if(mouseListener) document.removeEventListener(mouseListener)
+                    mouseListener = document.addEventListener('mousemove', ()=>{
+                        noOperation = false
+                        document.removeEventListener(mouseListener)
+                    })
+                }
+                openMap = true
             }
         }
         else{
@@ -514,6 +545,11 @@ watch(eqMessage, ()=>{
         timer = setTimeout(() => {
             className.value = eqMessage.className + ' midOpacity'
             isActive.value = false
+            if(noOperation){
+                noOperation = false
+                document.removeEventListener(mouseListener)
+                showMap.value = false
+            }
         }, Math.max(time, blinkTime));
     }
 })

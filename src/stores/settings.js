@@ -20,6 +20,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             },
             muteNotification: false,
             soundEffect: 'srev',
+            autoShowMap: false,
             showAbout: false,
         },
     }),
@@ -31,14 +32,9 @@ export const useSettingsStore = defineStore('settingsStore', {
         ),
     },
     actions: {
-        setMainSettings(json){
-            if(json){
-                Object.assign(this.mainSettings.onEew, json.onEew)
-                Object.assign(this.mainSettings.onEewWarn, json.onEewWarn)
-                Object.assign(this.mainSettings.onReport, json.onReport)
-                this.mainSettings.muteNotification = json.muteNotification
-                this.mainSettings.soundEffect = json.soundEffect
-                this.mainSettings.showAbout = json.showAbout
+        setMainSettings(jsonString){
+            if(jsonString){
+                Object.assign(this.mainSettings, JSON.parse(jsonString))
             }
         },
     }

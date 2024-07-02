@@ -77,6 +77,14 @@
                 <div class="row">
                     <div class="switchGroup">
                         <div class="switch">
+                            <span>自动打开地图</span>
+                            <el-switch v-model="settingsStore.mainSettings.autoShowMap"></el-switch>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="switchGroup">
+                        <div class="switch">
                             <span>显示关于页面</span>
                             <el-switch v-model="settingsStore.mainSettings.showAbout"></el-switch>
                         </div>
