@@ -235,8 +235,8 @@ const setEqMessage = (data)=>{
             break
         }
         case 'cencEqlist':{
-            isNewEvent = eqMessage.id != data.md5
-            eqMessage.id = data.md5
+            isNewEvent = eqMessage.id != data.No1.time + ' ' + data.No1.ReportTime
+            eqMessage.id = data.No1.time + ' ' + data.No1.ReportTime
             eqMessage.reportTime = data.No1.ReportTime
             eqMessage.title = data.No1.type
             eqMessage.titleText = '中国地震台网' + (data.No1.type == 'reviewed'?'正式':'自动') + '测定'
