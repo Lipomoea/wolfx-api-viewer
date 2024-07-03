@@ -177,18 +177,10 @@ watch(()=>timeStore.currentTime, ()=>{
     .container{
         width: 100%;
         height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        border: black 1px solid;
-        border-radius: 10px;
-        overflow: hidden;
         position: relative;
         #map{
             width: 100%;
             height: 100%;
-            // padding-bottom: 50%;
         }
         .crossDivIcon{
             background: none;

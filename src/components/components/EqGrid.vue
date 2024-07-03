@@ -611,6 +611,10 @@ watch(()=>timeStore.currentTime, ()=>{
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 20;
+    border: black 1px solid;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 10px 0px #7f7f7f;
 }
 .overlay{
     width: 100vw;
