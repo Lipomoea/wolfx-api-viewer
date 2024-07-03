@@ -34,7 +34,7 @@ import '@/assets/opacity.css'
 import router from '@/router';
 import MapComponent from './components/MapComponent.vue';
 
-let showMap = ref(false)
+const showMap = ref(false)
 const statusList = ['正在连接', '已连接', '正在断开', '已断开', '未连接', '不使用']
 const eqMessage = reactive({
     id: '',
@@ -604,8 +604,8 @@ watch(()=>timeStore.currentTime, ()=>{
     }
 }
 .map{
-    width: 60vw;
-    height: 60vh;
+    width: 70vw;
+    height: 70vh;
     position: fixed;
     top: 50%;
     left: 50%;

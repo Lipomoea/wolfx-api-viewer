@@ -1,7 +1,7 @@
 <template>
     <div class="outer">
         <div class="container">
-            <div id="map"></div>
+            <div id="map" @wheel="isAutoZoom = false"></div>
             <div class="eew">
                 <div class="bar" :class="barClass">{{ props.eqMessage.titleText + ' ' + props.eqMessage.reportNumText }}</div>
                 <div class="info gray">
@@ -20,6 +20,11 @@
                     </div>
                 </div>
             </div>
+            <el-button
+            class="home"
+            :icon="HomeFilled"
+            v-if="!isAutoZoom"
+            @click="handleHome"></el-button>
         </div>
     </div>
 </template>
@@ -28,11 +33,11 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import Http from '@/utils/Http';
-import { ref, computed, onMounted, watch } from 'vue';
-import { useTimeStore } from '@/stores/time';
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { calcPassedTime, calcWaveDistance } from '@/utils/Utils';
 import travelTimes from '@/utils/TravelTimes';
 import '@/assets/background.css'
+import { HomeFilled } from '@element-plus/icons-vue';
 
 const props = defineProps({
     eqMessage: Object,
@@ -40,37 +45,28 @@ const props = defineProps({
     isActive: Boolean,
 })
 const useJst = computed(()=>{
-    if(props.source == 'jmaEew'){
-        return true
-    }
-    else{
-        return false
-    }
+    if(props.source == 'jmaEew') return true
+    else return false
 })
 const barClass = computed(()=>{
     if(props.isActive){
-        if(props.eqMessage.isWarn){
-            return 'red'
-        }
-        else{
-            return 'orange'
-        }
+        if(props.eqMessage.isWarn) return 'red'
+        else return 'orange'
     }
-    else{
-        return 'gray'
-    }
+    else return 'gray'
 })
-const timeStore = useTimeStore()
 let map, crossMarker
 let userLatLng = [30.3, 120.1]
 const hypoLatLng = computed(()=>[props.eqMessage.lat, props.eqMessage.lng])
 let zoomLevel = 7
-let crossIcon = `<svg t="1719226920212" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2481" width="50" height="50"><path d="M602.512147 511.99738l402.747939-402.747939a63.999673 63.999673 0 0 0-90.509537-90.509537L512.00261 421.487843 109.254671 18.749904a63.999673 63.999673 0 0 0-90.509537 90.509537L421.493073 511.99738 18.755134 914.745319a63.999673 63.999673 0 0 0 90.509537 90.509537L512.00261 602.506917l402.747939 402.747939a63.999673 63.999673 0 0 0 90.509537-90.509537z" p-id="2482" fill="#d81e06"></path></svg>`
+let crossIcon = `<svg t="1719226920212" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2481" width="40" height="40"><path d="M602.512147 511.99738l402.747939-402.747939a63.999673 63.999673 0 0 0-90.509537-90.509537L512.00261 421.487843 109.254671 18.749904a63.999673 63.999673 0 0 0-90.509537 90.509537L421.493073 511.99738 18.755134 914.745319a63.999673 63.999673 0 0 0 90.509537 90.509537L512.00261 602.506917l402.747939 402.747939a63.999673 63.999673 0 0 0 90.509537-90.509537z" p-id="2482" fill="#d81e06"></path></svg>`
 let crossDivIcon = L.divIcon({
     html: crossIcon,
     className: 'crossDivIcon',
-    iconAnchor: [25, 25],
+    iconAnchor: [20, 20],
 })
+const isAutoZoom = ref(true)
+// let time = 10
 onMounted(()=>{
     map = L.map('map', {attributionControl: false})
     map.removeControl(map.zoomControl)
@@ -80,18 +76,47 @@ onMounted(()=>{
     map.getPane('wavePane').style.zIndex = 10
     map.createPane('markerPane')
     map.getPane('markerPane').style.zIndex = 20
-    setView()
     Http.get('/json/global.geo.json')
     .then(data=>{
-        L.geoJson(data, {pane: 'basePane'}).addTo(map)
+        L.geoJson(data, {
+            pane: 'basePane',
+            style: {
+                color: '#ccc',
+            }
+        }).addTo(map)
+    })
+    map.setView(hypoLatLng.value, zoomLevel)
+    map.on('dragstart', ()=>{
+        isAutoZoom.value = false
     })
     setMark()
     drawWaves()
+    // switchDrawWaves(time, travelTimes.jma2001)
+    setView()
+    // setInterval(() => {
+    //     time += 0.05
+    //     switchDrawWaves(time, travelTimes.jma2001)
+    // }, 50);
 })
 const setView = ()=>{
-    map.setView(hypoLatLng.value, zoomLevel)
+    let bounds = null
+    if(pWave && map.hasLayer(pWave)){
+        bounds = pWave.getBounds()
+    }
+    else if(sWave && map.hasLayer(sWave)){
+        bounds = sWave.getBounds()
+    }
+    if(bounds) map.fitBounds(bounds, {
+        maxZoom: 8,
+        minZoom: 5,
+    })
+    else map.setView(hypoLatLng.value, zoomLevel)
 }
-const blink = ()=>{
+const handleHome = ()=>{
+    isAutoZoom.value = true
+    setView()
+}
+const blinkOnce = ()=>{
     if(!map.hasLayer(crossMarker)){
         crossMarker.addTo(map)
     }
@@ -117,7 +142,7 @@ const switchDrawWaves = (time, travelTime)=>{
     if(pWave && map.hasLayer(pWave)) map.removeLayer(pWave)
     if(p_radius > 0 && p_radius < maxRadius){
         pWave = L.circle(hypoLatLng.value, {
-            color: 'royalblue',
+            color: 'white',
             weight: 1,
             fillOpacity: 0,
             radius: p_radius * 1000,
@@ -155,18 +180,39 @@ watch(()=>props.eqMessage, ()=>{
     setMark()
     drawWaves()
 })
-watch(()=>timeStore.currentTime, ()=>{
-    if(props.isActive){
-        blink()
-        drawWaves()
+let drawWavesInterval, blinkInterval
+watch(()=>props.isActive, (newVal)=>{
+    if(newVal){
+        drawWavesInterval = setInterval(() => {
+            drawWaves()
+        }, 100);
+        blinkInterval = setInterval(() => {
+            blinkOnce()
+        }, 500);
     }
     else{
-        if(!map.hasLayer(crossMarker)){
-            crossMarker.addTo(map)
-        }
+        if(drawWavesInterval) clearInterval(drawWavesInterval)
+        if(blinkInterval) clearInterval(blinkInterval)
+        if(crossMarker && !map.hasLayer(crossMarker)) crossMarker.addTo(map)
         if(pWave && map.hasLayer(pWave)) map.removeLayer(pWave)
         if(sWave && map.hasLayer(sWave)) map.removeLayer(sWave)
     }
+}, { immediate: true })
+let autoZoomInterval
+watch(isAutoZoom, (newVal)=>{
+    if(newVal){
+        autoZoomInterval = setInterval(() => {
+            setView()
+        }, 10000);
+    }
+    else{
+        if(autoZoomInterval) clearInterval(autoZoomInterval)
+    }
+}, { immediate: true })
+onBeforeUnmount(()=>{
+    if(drawWavesInterval) clearInterval(drawWavesInterval)
+    if(blinkInterval) clearInterval(blinkInterval)
+    if(autoZoomInterval) clearInterval(autoZoomInterval)
 })
 </script>
 
@@ -185,6 +231,9 @@ watch(()=>timeStore.currentTime, ()=>{
         .crossDivIcon{
             background: none;
             border: none;
+        }
+        .leaflet-container{
+            background-color: #333;
         }
         .leaflet-grab {
             cursor: default;
@@ -267,6 +316,15 @@ watch(()=>timeStore.currentTime, ()=>{
                     }
                 }
             }
+        }
+        .home{
+            position: absolute;
+            right: 1px;
+            bottom: 1px;
+            z-index: 500;
+            border-radius: 10px;
+            overflow: hidden;
+            width: 20px;
         }
     }
 }
