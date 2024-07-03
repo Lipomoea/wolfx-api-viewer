@@ -473,10 +473,10 @@ watch(eqMessage, ()=>{
                 if(!openMap && !showMap.value){
                     showMap.value = true
                     noOperation = true
-                    if(mouseListener) document.removeEventListener(mouseListener)
+                    if(mouseListener) document.removeEventListener('mousemove', mouseListener)
                     mouseListener = document.addEventListener('mousemove', ()=>{
                         noOperation = false
-                        document.removeEventListener(mouseListener)
+                        document.removeEventListener('mousemove', mouseListener)
                     })
                 }
                 openMap = true
@@ -547,7 +547,7 @@ watch(eqMessage, ()=>{
             isActive.value = false
             if(noOperation){
                 noOperation = false
-                document.removeEventListener(mouseListener)
+                document.removeEventListener('mousemove', mouseListener)
                 showMap.value = false
             }
         }, Math.max(time, blinkTime));
