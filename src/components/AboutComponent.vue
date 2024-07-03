@@ -3,7 +3,7 @@
         <div class="container">
             <div class="title">使用方法</div>
             <div class="about">
-                <p>主要功能：接收日本气象厅、台湾省中央气象署、四川省地震局、福建省地震局地震预警信息以及日本气象厅、中国地震台网地震测定信息。可点击“地震信息”中的任一模块查看历史地震。</p>
+                <p>主要功能：接收日本气象厅、台湾省中央气象署、四川省地震局、福建省地震局地震预警信息以及日本气象厅、中国地震台网地震测定信息。点击“地震预警”任一模块打开地图，点击“地震信息”任一模块查看历史地震。</p>
                 <p>通知推送：本网页支持地震信息推送功能（仅Windows端经过测试，需授予通知权限）。出于安全性考虑，现代浏览器对于无域名网站默认采取保护措施，无法授予通知权限。如您确需此功能且充分信赖本页面，请自行搜索解决方案。由此导致的一切后果请自行承担。Chrome浏览器参考：<a href="https://tieba.baidu.com/p/7526026826" target="_blank">https://tieba.baidu.com/p/7526026826</a></p>
                 <p>播放声音：收到地震信息时播放对应音效。此功能需要开启网页声音权限，否则声音播放可能失效。Chrome：点击网页链接左侧按钮-网站设置-声音-允许，重新加载页面。若无法授予权限参照上一条。</p>
                 <p>作为Chrome应用安装：Chrome打开此页面，右上角三点-保存并分享-将网页作为应用安装。</p>
@@ -15,6 +15,7 @@
                 <p>3. 关于连接：除台湾省中央气象署资料均采用WebSocket+每30秒一次GET方法（保证WebSocket连接断开时资料延迟不至于过大）连接。通常情况下WebSocket会在断连数秒后自动重连，如长时间无法重连成功，请刷新页面或关闭网页并等待一段时间再试。台湾省中央气象署资料采用1秒1次GET方法连接，仅可在大陆访问。</p>
                 <p>4. 关于延迟：受API限制，部分资料具有延迟是正常现象。</p>
                 <p>5. 关于音效：Scratch Realtime Earthquake Viewer (SREV) 音效由SREV作者基于Scratch素材加工，遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，本网页未进行二次加工。</p>
+                <p>6. 关于走时：目前所有地震预警的地震波位置均采用jma2001走时表计算，对日本以外地区可能有较大误差。未知震源深度视为0km。</p>
             </div>
             <div class="title">关于</div>
             <div class="about">
@@ -24,7 +25,7 @@
                 <p>本页面未针对移动端进行适配，建议使用电脑端浏览器访问本网页。</p>
                 <p>联系我：<a href="https://space.bilibili.com/316757498" target="_blank">リッポミャ</a>（哔哩哔哩）</p>
                 <p>Github: <a href="https://github.com/Lipomoea/wolfx-api-viewer" target="_blank">https://github.com/Lipomoea/wolfx-api-viewer</a></p>
-                <p>上次维护：2024.6.3</p>
+                <p>上次维护：2024.7.4</p>
             </div>
         </div>
     </div>
