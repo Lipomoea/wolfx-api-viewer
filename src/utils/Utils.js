@@ -52,28 +52,30 @@ const sendNotification = (title, body, icon, silent)=>{
         }
     }
 }
-const setClassName = (intensity, useShindo)=>{
+const setClassName = (intensity, useShindo, isCanceled = false)=>{
     let className = 'gray'
-    if(useShindo){
-        if(intensity >= '1' && intensity <= '7'){
-            if(intensity >= '1') className = 'gray'
-            if(intensity >= '2') className = 'blue'
-            if(intensity >= '3') className = 'green'
-            if(intensity >= '4') className = 'yellow'
-            if(intensity >= '5') className = 'orange'
-            if(intensity >= '6') className = 'red'
-            if(intensity >= '7') className = 'purple'
+    if(!isCanceled){
+        if(useShindo){
+            if(intensity >= '1' && intensity <= '7'){
+                if(intensity >= '1') className = 'gray'
+                if(intensity >= '2') className = 'blue'
+                if(intensity >= '3') className = 'green'
+                if(intensity >= '4') className = 'yellow'
+                if(intensity >= '5') className = 'orange'
+                if(intensity >= '6') className = 'red'
+                if(intensity >= '7') className = 'purple'
+            }
         }
-    }
-    else{
-        if(Number(intensity) >= 1 && Number(intensity) <= 12){
-            if(Number(intensity) >= 1) className = 'gray'
-            if(Number(intensity) >= 3) className = 'blue'
-            if(Number(intensity) >= 5) className = 'green'
-            if(Number(intensity) >= 6) className = 'yellow'
-            if(Number(intensity) >= 7) className = 'orange'
-            if(Number(intensity) >= 8) className = 'red'
-            if(Number(intensity) >= 9) className = 'purple'
+        else{
+            if(Number(intensity) >= 1 && Number(intensity) <= 12){
+                if(Number(intensity) >= 1) className = 'gray'
+                if(Number(intensity) >= 3) className = 'blue'
+                if(Number(intensity) >= 5) className = 'green'
+                if(Number(intensity) >= 6) className = 'yellow'
+                if(Number(intensity) >= 7) className = 'orange'
+                if(Number(intensity) >= 8) className = 'red'
+                if(Number(intensity) >= 9) className = 'purple'
+            }
         }
     }
     return className

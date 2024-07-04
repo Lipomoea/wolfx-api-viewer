@@ -7,7 +7,7 @@
                 <div class="info gray">
                     <div class="intensity" :class="props.eqMessage.className">
                         <div class="intText">
-                            {{ props.eqMessage.maxIntensity == '不明'?'?':props.eqMessage.maxIntensity }}
+                            {{ formattedIntensity }}
                         </div>
                     </div>
                     <div class="right">
@@ -51,7 +51,8 @@ const useJst = computed(()=>{
 })
 const barClass = computed(()=>{
     if(props.isActive){
-        if(props.eqMessage.isWarn) return 'red'
+        if(props.eqMessage.isCanceled) return 'gray'
+        else if(props.eqMessage.isWarn) return 'red'
         else return 'orange'
     }
     else return 'gray'
@@ -67,7 +68,6 @@ let crossDivIcon = L.divIcon({
     iconAnchor: [20, 20],
 })
 const isAutoZoom = ref(true)
-// let time = 10
 onMounted(()=>{
     map = L.map('map', {attributionControl: false})
     map.removeControl(map.zoomControl)
@@ -91,14 +91,10 @@ onMounted(()=>{
         isAutoZoom.value = false
     })
     setMark()
-    drawWaves()
-    // switchDrawWaves(time, travelTimes.jma2001)
+    if(!props.eqMessage.isCanceled) drawWaves()
     setView()
-    // setInterval(() => {
-    //     time += 0.05
-    //     switchDrawWaves(time, travelTimes.jma2001)
-    // }, 50);
 })
+const formattedIntensity = computed(()=>props.eqMessage.maxIntensity.replace('強', '+').replace('弱', '-').replace('不明', '?'))
 const setView = ()=>{
     let bounds = null
     if(pWave && map.hasLayer(pWave)){
@@ -107,10 +103,12 @@ const setView = ()=>{
     else if(sWave && map.hasLayer(sWave)){
         bounds = sWave.getBounds()
     }
-    if(bounds) map.fitBounds(bounds, {
-        maxZoom: 8,
-        minZoom: 5,
-    })
+    if(bounds){
+        map.fitBounds(bounds, {
+            maxZoom: 8,
+            minZoom: 5,
+        })
+    }
     else map.setView(hypoLatLng.value, zoomLevel)
 }
 const handleHome = ()=>{
@@ -177,13 +175,25 @@ const drawWaves = ()=>{
         }
     }
 }
+let drawWavesInterval, blinkInterval
+const goStatic = ()=>{
+    if(drawWavesInterval) clearInterval(drawWavesInterval)
+    if(blinkInterval) clearInterval(blinkInterval)
+    if(crossMarker && !map.hasLayer(crossMarker)) crossMarker.addTo(map)
+    if(pWave && map.hasLayer(pWave)) map.removeLayer(pWave)
+    if(sWave && map.hasLayer(sWave)) map.removeLayer(sWave)
+}
 watch(()=>props.eqMessage, ()=>{
     setMark()
-    drawWaves()
-})
-let drawWavesInterval, blinkInterval
+    if(!props.eqMessage.isCanceled){
+        drawWaves()
+    }
+    else{
+        goStatic()
+    }
+}, { deep: true })
 watch(()=>props.isActive, (newVal)=>{
-    if(newVal){
+    if(newVal && !props.eqMessage.isCanceled){
         drawWavesInterval = setInterval(() => {
             drawWaves()
         }, 100);
@@ -192,11 +202,7 @@ watch(()=>props.isActive, (newVal)=>{
         }, 500);
     }
     else{
-        if(drawWavesInterval) clearInterval(drawWavesInterval)
-        if(blinkInterval) clearInterval(blinkInterval)
-        if(crossMarker && !map.hasLayer(crossMarker)) crossMarker.addTo(map)
-        if(pWave && map.hasLayer(pWave)) map.removeLayer(pWave)
-        if(sWave && map.hasLayer(sWave)) map.removeLayer(sWave)
+        goStatic()
     }
 }, { immediate: true })
 let autoZoomInterval

@@ -263,7 +263,7 @@ const setEqMessage = (data)=>{
             break
         }
     }
-    eqMessage.className = setClassName(eqMessage.maxIntensity, eqMessage.useShindo)
+    eqMessage.className = setClassName(eqMessage.maxIntensity, eqMessage.useShindo, eqMessage.isCanceled)
 }
 const connect = (protocol)=>{
     const source = props.source + '_' + protocol
@@ -369,10 +369,9 @@ watch(eqMessage, ()=>{
     }
     let time
     if(eqMessage.isEew){
-        time = 300 * 1000
-        if(eqMessage.isWarn){
-            time = 600 * 1000
-        }
+        if(eqMessage.isCanceled) time = 30 * 1000
+        else if(!eqMessage.isWarn) time = 300 * 1000
+        else time = 600 * 1000
     }
     else{
         time = 300 * 1000
@@ -566,6 +565,15 @@ watch(()=>timeStore.currentTime, ()=>{
     else if(!useWebSocket.includes(props.source)) statusCode.value = 5
     else statusCode.value = 4
 })
+
+// import { generateEqMessage } from '@/utils/test';
+// if(props.source == 'jmaEew'){
+//     setTimeout(() => {
+//         disconnect()
+//     }, 3500);
+//     generateEqMessage(eqMessage)
+// }
+
 </script>
 
 <style lang="scss" scoped>
