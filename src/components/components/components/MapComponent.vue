@@ -38,6 +38,7 @@ import { calcPassedTime, calcWaveDistance } from '@/utils/Utils';
 import travelTimes from '@/utils/TravelTimes';
 import '@/assets/background.css'
 import { HomeFilled } from '@element-plus/icons-vue';
+import { geojsonUrls } from '@/utils/Urls';
 
 const props = defineProps({
     eqMessage: Object,
@@ -76,7 +77,7 @@ onMounted(()=>{
     map.getPane('wavePane').style.zIndex = 10
     map.createPane('markerPane')
     map.getPane('markerPane').style.zIndex = 20
-    Http.get('/json/global.geo.json')
+    Http.get(geojsonUrls.global)
     .then(data=>{
         L.geoJson(data, {
             pane: 'basePane',

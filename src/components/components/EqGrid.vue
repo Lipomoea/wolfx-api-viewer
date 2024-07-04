@@ -25,7 +25,7 @@
 import { onMounted, onBeforeUnmount, ref, reactive, computed, watch } from 'vue'
 import Http from '@/utils/Http';
 import WebSocketObj from '@/utils/WebSocket';
-import { eqUrls, iconUrls, chimeUrls } from '@/utils/Url';
+import { eqUrls, iconUrls, chimeUrls } from '@/utils/Urls';
 import { formatText, msToTime, calcPassedTime, sendNotification, setClassName, playSound } from '@/utils/Utils';
 import { useTimeStore } from '@/stores/time';
 import { useSettingsStore } from '@/stores/settings';

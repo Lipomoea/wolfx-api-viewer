@@ -26,7 +26,7 @@
 <script setup>
 import { reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import Http from '@/utils/Http';
-import { eqUrls } from '@/utils/Url';
+import { eqUrls } from '@/utils/Urls';
 import { setClassName } from '@/utils/Utils';
 import '@/assets/background.css'
 import '@/assets/opacity.css'
