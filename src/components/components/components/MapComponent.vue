@@ -93,7 +93,7 @@ onMounted(()=>{
         isAutoZoom.value = false
     })
     setMark()
-    if(props.eqMessage.isEew && !props.eqMessage.isCanceled) drawWaves()
+    if(props.isActive && props.eqMessage.isEew && !props.eqMessage.isCanceled) drawWaves()
     setView()
 })
 const formattedIntensity = computed(()=>props.eqMessage.maxIntensity.replace('強', '+').replace('弱', '-').replace('不明', '?'))
