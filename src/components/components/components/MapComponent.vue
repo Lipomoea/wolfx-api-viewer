@@ -200,8 +200,8 @@ const loadBaseMap = (geojson)=>{
         baseMap.addTo(map)
     }
 }
-watch(()=>dataStore.geojson, (newVal)=>{
-    loadBaseMap(toRaw(newVal.global))
+watch(()=>dataStore.geojson.global, (newVal)=>{
+    loadBaseMap(toRaw(newVal))
 })
 watch(()=>props.eqMessage, (newVal)=>{
     setMark()
