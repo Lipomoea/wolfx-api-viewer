@@ -23,8 +23,12 @@
             <el-button
             class="home"
             :icon="HomeFilled"
-            v-if="!isAutoZoom"
+            v-show="!isAutoZoom"
             @click="handleHome"></el-button>
+            <el-button
+            class="more"
+            v-if="!props.eqMessage.isEew"
+            @click="handleMore">查看更多<el-icon class="el-icon--right"><Right /></el-icon></el-button>
         </div>
     </div>
 </template>
@@ -32,13 +36,13 @@
 <script setup>
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import Http from '@/utils/Http';
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch, toRaw } from 'vue';
 import { calcPassedTime, calcWaveDistance } from '@/utils/Utils';
 import travelTimes from '@/utils/TravelTimes';
 import '@/assets/background.css'
-import { HomeFilled } from '@element-plus/icons-vue';
-import { geojsonUrls } from '@/utils/Urls';
+import { HomeFilled, Right } from '@element-plus/icons-vue';
+import { useDataStore } from '@/stores/data';
+import router from '@/router';
 
 const props = defineProps({
     eqMessage: Object,
@@ -46,18 +50,23 @@ const props = defineProps({
     isActive: Boolean,
 })
 const useJst = computed(()=>{
-    if(props.source == 'jmaEew') return true
+    if(props.source.includes('jma')) return true
     else return false
 })
 const barClass = computed(()=>{
-    if(props.isActive){
-        if(props.eqMessage.isCanceled) return 'gray'
-        else if(props.eqMessage.isWarn) return 'red'
-        else return 'orange'
+    if(props.eqMessage.isEew){
+        if(props.isActive){
+            if(props.eqMessage.isCanceled) return 'gray'
+            else if(props.eqMessage.isWarn) return 'red'
+            else return 'orange'
+        }
+        else return 'gray'
     }
-    else return 'gray'
+    else{
+        return props.eqMessage.className
+    }
 })
-let map, crossMarker
+let map, baseMap, crossMarker
 let userLatLng = [30.3, 120.1]
 const hypoLatLng = computed(()=>[props.eqMessage.lat, props.eqMessage.lng])
 let zoomLevel = 7
@@ -68,6 +77,7 @@ let crossDivIcon = L.divIcon({
     iconAnchor: [20, 20],
 })
 const isAutoZoom = ref(true)
+const dataStore = useDataStore()
 onMounted(()=>{
     map = L.map('map', {attributionControl: false})
     map.removeControl(map.zoomControl)
@@ -77,21 +87,13 @@ onMounted(()=>{
     map.getPane('wavePane').style.zIndex = 10
     map.createPane('markerPane')
     map.getPane('markerPane').style.zIndex = 20
-    Http.get(geojsonUrls.global)
-    .then(data=>{
-        L.geoJson(data, {
-            pane: 'basePane',
-            style: {
-                color: '#ccc',
-            }
-        }).addTo(map)
-    })
+    loadBaseMap(toRaw(dataStore.geojson.global))
     map.setView(hypoLatLng.value, zoomLevel)
     map.on('dragstart', ()=>{
         isAutoZoom.value = false
     })
     setMark()
-    if(!props.eqMessage.isCanceled) drawWaves()
+    if(props.eqMessage.isEew && !props.eqMessage.isCanceled) drawWaves()
     setView()
 })
 const formattedIntensity = computed(()=>props.eqMessage.maxIntensity.replace('強', '+').replace('弱', '-').replace('不明', '?'))
@@ -114,6 +116,9 @@ const setView = ()=>{
 const handleHome = ()=>{
     isAutoZoom.value = true
     setView()
+}
+const handleMore = ()=>{
+    router.push('/eq-history')
 }
 const blinkOnce = ()=>{
     if(!map.hasLayer(crossMarker)){
@@ -183,9 +188,24 @@ const goStatic = ()=>{
     if(pWave && map.hasLayer(pWave)) map.removeLayer(pWave)
     if(sWave && map.hasLayer(sWave)) map.removeLayer(sWave)
 }
-watch(()=>props.eqMessage, ()=>{
+const loadBaseMap = (geojson)=>{
+    if(Object.keys(geojson).length != 0){
+        if(baseMap && map.hasLayer(baseMap)) map.removeLayer(baseMap)
+        baseMap = L.geoJson(geojson, {
+            pane: 'basePane',
+            style: {
+                color: '#ccc',
+            }
+        })
+        baseMap.addTo(map)
+    }
+}
+watch(()=>dataStore.geojson, (newVal)=>{
+    loadBaseMap(toRaw(newVal.global))
+})
+watch(()=>props.eqMessage, (newVal)=>{
     setMark()
-    if(!props.eqMessage.isCanceled){
+    if(newVal.isEew && !newVal.isCanceled){
         drawWaves()
     }
     else{
@@ -193,7 +213,7 @@ watch(()=>props.eqMessage, ()=>{
     }
 }, { deep: true })
 watch(()=>props.isActive, (newVal)=>{
-    if(newVal && !props.eqMessage.isCanceled){
+    if(newVal && props.eqMessage.isEew && !props.eqMessage.isCanceled){
         drawWavesInterval = setInterval(() => {
             drawWaves()
         }, 100);
@@ -332,6 +352,15 @@ onBeforeUnmount(()=>{
             border-radius: 10px;
             overflow: hidden;
             width: 20px;
+        }
+        .more{
+            position: absolute;
+            right: 1px;
+            top: 1px;
+            z-index: 500;
+            border-radius: 10px;
+            overflow: hidden;
+            padding: 8px;
         }
     }
 }

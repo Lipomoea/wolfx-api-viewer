@@ -31,7 +31,6 @@ import { useTimeStore } from '@/stores/time';
 import { useSettingsStore } from '@/stores/settings';
 import '@/assets/background.css'
 import '@/assets/opacity.css'
-import router from '@/router';
 import MapComponent from './components/MapComponent.vue';
 
 const showMap = ref(false)
@@ -313,12 +312,7 @@ const reconnect = ()=>{
     }
 }
 const handleClick = ()=>{
-    if(!eqMessage.isEew){
-        router.push('/eq-history')
-    }
-    else{
-        showMap.value = true
-    }
+    showMap.value = true
 }
 
 onMounted(()=>{
