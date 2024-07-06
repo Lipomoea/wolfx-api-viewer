@@ -462,18 +462,6 @@ watch(eqMessage, ()=>{
                     }
                 }
             }
-            if(settingsStore.mainSettings.autoShowMap){
-                if(!openMap && !showMap.value){
-                    showMap.value = true
-                    noOperation = true
-                    if(mouseListener) document.removeEventListener('mousemove', mouseListener)
-                    mouseListener = document.addEventListener('mousemove', ()=>{
-                        noOperation = false
-                        document.removeEventListener('mousemove', mouseListener)
-                    })
-                }
-                openMap = true
-            }
         }
         else{
             if(settingsStore.mainSettings.onReport.notification) icon = iconUrls.info
@@ -511,6 +499,18 @@ watch(eqMessage, ()=>{
                     }
                 }
             }
+        }
+        if(settingsStore.mainSettings.autoShowMap){
+            if(!openMap && !showMap.value){
+                showMap.value = true
+                noOperation = true
+                if(mouseListener) document.removeEventListener('mousemove', mouseListener)
+                mouseListener = document.addEventListener('mousemove', ()=>{
+                    noOperation = false
+                    document.removeEventListener('mousemove', mouseListener)
+                })
+            }
+            openMap = true
         }
         if(icon){
             sendNotification(`${eqMessage.titleText}`, 
