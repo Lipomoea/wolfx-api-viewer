@@ -92,17 +92,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="subTitle">地图</div>
-                <div class="group">
-                    <div class="row">
-                        <div class="switchGroup">
-                            <div class="switch">
-                                <span>自动打开地图</span>
-                                <el-switch v-model="settingsStore.mainSettings.autoShowMap"></el-switch>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 <div class="subTitle">关于</div>
                 <div class="group">
                     <div class="row">
