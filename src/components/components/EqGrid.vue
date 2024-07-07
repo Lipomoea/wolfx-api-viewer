@@ -67,8 +67,8 @@ const props = defineProps({
 })
 const timeStore = useTimeStore()
 const settingsStore = useSettingsStore()
-const useWebSocket = ['jmaEew', 'scEew', 'fjEew', 'jmaEqlist', 'cencEqlist']
-const useJst = ['jmaEew', 'jmaEqlist']
+const useWebSocket = computed(()=>!props.source.includes('cwa'))
+const useJst = computed(()=>props.source.includes('jma'))
 let request, socketObj;
 let protocol = 'http', httpInterval = 1000
 let isNewEvent = false
@@ -319,7 +319,7 @@ onMounted(()=>{
     protocol = 'http'
     httpInterval = 1000
     connect('http')
-    if(useWebSocket.includes(props.source)){
+    if(useWebSocket.value){
         setTimeout(() => {
             protocol = 'ws'
             httpInterval = 30000
@@ -390,79 +390,87 @@ watch(eqMessage, ()=>{
             openMap = false
             noOperation = false
         }
+        //是EEW
         if(eqMessage.isEew){
-            if(settingsStore.mainSettings.onEew.notification){
-                if(eqMessage.isCanceled){
-                    icon = iconUrls.info
+            //是Warn
+            if(eqMessage.isWarn){
+                //通知
+                if(settingsStore.mainSettings.onEew.notification || settingsStore.mainSettings.onEewWarn.notification){
+                    if(eqMessage.isCanceled) icon = iconUrls.info
+                    else icon = iconUrls.warn
                 }
-                else if(!eqMessage.isWarn){
-                    icon = iconUrls.caution
-                }
-                else{
-                    icon = iconUrls.warn
-                }
-            }
-            else if(settingsStore.mainSettings.onEewWarn.notification && eqMessage.isWarn){
-                if(eqMessage.isCanceled){
-                    icon = iconUrls.info
-                }
-                else{
-                    icon = iconUrls.warn
-                }
-            }
-            if(settingsStore.mainSettings.onEew.sound){
-                if(eqMessage.isCanceled){
-                    playSound(chimeUrls[soundEffect.value].torikeshi)
-                }
-                else{
-                    if(!firstSound){
-                        playSound(chimeUrls[soundEffect.value].happyou)
-                        firstSound = true
-                    }
+                //声音
+                if(settingsStore.mainSettings.onEew.sound || settingsStore.mainSettings.onEewWarn.sound){
+                    if(eqMessage.isCanceled) playSound(chimeUrls[soundEffect.value].torikeshi)
                     else{
-                        if(!eqMessage.isFinal){
-                            playSound(chimeUrls[soundEffect.value].koushin)
+                        if(!firstSound){
+                            playSound(chimeUrls[soundEffect.value].happyou)
+                            firstSound = true
                         }
-                        else{
-                            playSound(chimeUrls[soundEffect.value].saisyuu)
+                        else if(eqMessage.isFinal) playSound(chimeUrls[soundEffect.value].saisyuu)
+                        else playSound(chimeUrls[soundEffect.value].koushin)
+                        if(!warnSound){
+                            playSound(chimeUrls[soundEffect.value].keihou)
+                            cautionSound = true
+                            warnSound = true
                         }
                     }
-                    if(eqMessage.isWarn && !warnSound){
-                        playSound(chimeUrls[soundEffect.value].keihou)
-                        cautionSound = true
-                        warnSound = true
+                }
+                //显示地图
+                if(settingsStore.mainSettings.onEew.showMap || settingsStore.mainSettings.onEewWarn.showMap){
+                    if(!openMap && !showMap.value){
+                        showMap.value = true
+                        noOperation = true
+                        if(mouseListener) document.removeEventListener('mousemove', mouseListener)
+                        mouseListener = document.addEventListener('mousemove', ()=>{
+                            noOperation = false
+                            document.removeEventListener('mousemove', mouseListener)
+                        })
                     }
-                    else if(cautionList.includes(eqMessage.className) && !cautionSound){
-                        playSound(chimeUrls[soundEffect.value].yohou)
-                        cautionSound = true
-                    }
+                    openMap = true
                 }
             }
-            else if(settingsStore.mainSettings.onEewWarn.sound && eqMessage.isWarn){
-                if(eqMessage.isCanceled){
-                    playSound(chimeUrls[soundEffect.value].torikeshi)
+            //不是Warn
+            else{
+                //通知
+                if(settingsStore.mainSettings.onEew.notification){
+                    if(eqMessage.isCanceled) icon = iconUrls.info
+                    else icon = iconUrls.caution
                 }
-                else{
-                    if(!firstSound){
-                        playSound(chimeUrls[soundEffect.value].happyou)
-                        firstSound = true
-                    }
+                //声音
+                if(settingsStore.mainSettings.onEew.sound){
+                    if(eqMessage.isCanceled) playSound(chimeUrls[soundEffect.value].torikeshi)
                     else{
-                        if(!eqMessage.isFinal){
-                            playSound(chimeUrls[soundEffect.value].koushin)
+                        if(!firstSound){
+                            playSound(chimeUrls[soundEffect.value].happyou)
+                            firstSound = true
                         }
-                        else{
-                            playSound(chimeUrls[soundEffect.value].saisyuu)
+                        else if(eqMessage.isFinal) playSound(chimeUrls[soundEffect.value].saisyuu)
+                        else playSound(chimeUrls[soundEffect.value].koushin)
+                        if(cautionList.includes(eqMessage.className)){
+                            if(!cautionSound){
+                                playSound(chimeUrls[soundEffect.value].yohou)
+                                cautionSound = true
+                            }
                         }
                     }
-                    if(!warnSound){
-                        playSound(chimeUrls[soundEffect.value].keihou)
-                        cautionSound = true
-                        warnSound = true
+                }
+                //显示地图
+                if(settingsStore.mainSettings.onEew.showMap){
+                    if(!openMap && !showMap.value){
+                        showMap.value = true
+                        noOperation = true
+                        if(mouseListener) document.removeEventListener('mousemove', mouseListener)
+                        mouseListener = document.addEventListener('mousemove', ()=>{
+                            noOperation = false
+                            document.removeEventListener('mousemove', mouseListener)
+                        })
                     }
+                    openMap = true
                 }
             }
         }
+        //不是EEW
         else{
             if(settingsStore.mainSettings.onReport.notification) icon = iconUrls.info
             if(settingsStore.mainSettings.onReport.sound){
@@ -499,18 +507,18 @@ watch(eqMessage, ()=>{
                     }
                 }
             }
-        }
-        if(settingsStore.mainSettings.autoShowMap){
-            if(!openMap && !showMap.value){
-                showMap.value = true
-                noOperation = true
-                if(mouseListener) document.removeEventListener('mousemove', mouseListener)
-                mouseListener = document.addEventListener('mousemove', ()=>{
-                    noOperation = false
-                    document.removeEventListener('mousemove', mouseListener)
-                })
+            if(settingsStore.mainSettings.onReport.showMap){
+                if(!openMap && !showMap.value){
+                    showMap.value = true
+                    noOperation = true
+                    if(mouseListener) document.removeEventListener('mousemove', mouseListener)
+                    mouseListener = document.addEventListener('mousemove', ()=>{
+                        noOperation = false
+                        document.removeEventListener('mousemove', mouseListener)
+                    })
+                }
+                openMap = true
             }
-            openMap = true
         }
         if(icon){
             sendNotification(`${eqMessage.titleText}`, 
@@ -549,14 +557,14 @@ watch(eqMessage, ()=>{
 const statusCode = ref()
 const passedTimeFromOrigin = ref()
 watch(()=>timeStore.currentTime, ()=>{
-    if(useJst.includes(props.source)){
+    if(useJst.value){
         passedTimeFromOrigin.value = calcPassedTime(eqMessage.originTime, 9)
     }
     else{
         passedTimeFromOrigin.value = calcPassedTime(eqMessage.originTime, 8)
     }
     if(socketObj) statusCode.value = socketObj.socket.readyState
-    else if(!useWebSocket.includes(props.source)) statusCode.value = 5
+    else if(!useWebSocket.value) statusCode.value = 5
     else statusCode.value = 4
 })
 

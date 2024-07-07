@@ -3,7 +3,7 @@
         <div class="container">
             <div class="title">设置</div>
             <div class="settings">
-                <div class="subTitle">通知与声音</div>
+                <div class="subTitle">行为</div>
                 <div class="group">
                     <div class="row">
                         <span>收到地震预警（警报）时：</span>
@@ -15,6 +15,10 @@
                             <div class="switch">
                                 <span>播放声音</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEewWarn.sound" :disabled="settingsStore.mainSettings.onEew.sound"></el-switch>
+                            </div>
+                            <div class="switch">
+                                <span>打开地图</span>
+                                <el-switch v-model="settingsStore.mainSettings.onEewWarn.showMap" :disabled="settingsStore.mainSettings.onEew.showMap"></el-switch>
                             </div>
                             <!-- <div class="switch">
                                 <span>弹出界面</span>
@@ -33,6 +37,10 @@
                                 <span>播放声音</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEew.sound"></el-switch>
                             </div>
+                            <div class="switch">
+                                <span>打开地图</span>
+                                <el-switch v-model="settingsStore.mainSettings.onEew.showMap"></el-switch>
+                            </div>
                             <!-- <div class="switch">
                                 <span>弹出界面</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEew.focus"></el-switch>
@@ -50,12 +58,19 @@
                                 <span>播放声音</span>
                                 <el-switch v-model="settingsStore.mainSettings.onReport.sound"></el-switch>
                             </div>
+                            <div class="switch">
+                                <span>打开地图</span>
+                                <el-switch v-model="settingsStore.mainSettings.onReport.showMap"></el-switch>
+                            </div>
                             <!-- <div class="switch">
                                 <span>弹出界面</span>
                                 <el-switch v-model="settingsStore.mainSettings.onReport.focus"></el-switch>
                             </div> -->
                         </div>
                     </div>
+                </div>
+                <div class="subTitle">音效</div>
+                <div class="group">
                     <div class="row">
                         <div class="switchGroup">
                             <div class="switch">
