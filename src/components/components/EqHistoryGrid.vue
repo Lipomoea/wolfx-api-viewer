@@ -2,7 +2,7 @@
     <div>
         <div class="container">
             <div class="title">{{ title }}</div>
-            <div class="item" v-for="(item, index) of eqList" :key="index">
+            <div class="item white" v-for="(item, index) of eqList" :key="index" @click="handleClick(item)">
                 <div class="intensity" :class="item.className">
                     <div class="intText">
                         {{ item.maxIntensity == '不明'?'?':item.maxIntensity }}
@@ -27,7 +27,7 @@
 import { reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import Http from '@/utils/Http';
 import { eqUrls } from '@/utils/Urls';
-import { setClassName } from '@/utils/Utils';
+import { setClassName, extractNumbers } from '@/utils/Utils';
 import '@/assets/background.css'
 import '@/assets/opacity.css'
 const props = defineProps({
@@ -57,7 +57,7 @@ const getEqList = ()=>{
                 }
                 case 'cencEqlist':{
                     eqList[i] = {
-                        id: i,
+                        id: extractNumbers(data[keys[i]].time),
                         originTime: data[keys[i]].time,
                         hypocenter: data[keys[i]].location,
                         depth: data[keys[i]].depth + 'km',
@@ -91,6 +91,15 @@ const useJst = computed(()=>{
         }
     }
 })
+const handleClick = async (item)=>{
+    switch(props.source){
+        case 'jmaEqlist':{
+            const url = `https://typhoon.yahoo.co.jp/weather/jp/earthquake/${item.id}.html?t=2`
+            window.open(url, '_blank')
+            break
+        }
+    }
+}
 onMounted(()=>{
     getEqList()
     if(request) clearInterval(request)
@@ -117,6 +126,7 @@ onBeforeUnmount(()=>{
         border: black 1px solid;
         align-items: center;
         padding-right: 10px;
+        cursor: default;
         .intensity{
             width: 80px;
             height: 80px;

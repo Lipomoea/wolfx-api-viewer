@@ -106,5 +106,12 @@ const calcWaveDistance = (travelTime, isPWave, depth, time)=>{
     const distance = k * time + b
     return { reach: 0, radius: distance }
 }
+const extractNumbers = (str)=>{
+    let numberString = ''
+    for(let i = 0; i < str.length; i++){
+        if(str[i] >= '0' && str[i] <= '9') numberString += str[i]
+    }
+    return numberString
+}
 
-export { formatNumber, formatText, msToTime, calcPassedTime, compareTime, sendNotification, setClassName, playSound, calcWaveDistance }
+export { formatNumber, formatText, msToTime, calcPassedTime, compareTime, sendNotification, setClassName, playSound, calcWaveDistance, extractNumbers }

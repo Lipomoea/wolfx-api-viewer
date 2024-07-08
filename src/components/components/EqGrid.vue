@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="container" @click="handleClick">
+        <div class="container" @click="isShowMap = true">
             <div class="bg" :class="className"></div>
             <div class="intensity">{{ eqMessage.maxIntensity }}</div>
             <div :style='{fontSize: "18px", fontWeight: "700"}'>{{ formatText(eqMessage.titleText) }}</div>
@@ -14,10 +14,10 @@
             <div>经过时间: {{ formatText(msToTime(passedTimeFromOrigin)) }}</div>
             <div>WebSocket状态: {{ statusCode >= 0 && statusCode <= 5?statusList[statusCode]:'N/A' }}</div>
         </div>
-        <div class="map" v-if="showMap">
+        <div class="map" v-if="isShowMap">
             <MapComponent :eqMessage :source="props.source" :isActive></MapComponent>
         </div>
-        <div class="overlay" v-if="showMap" @click="showMap = false"></div>
+        <div class="overlay" v-if="isShowMap" @click="isShowMap = false"></div>
     </div>
 </template>
 
@@ -29,11 +29,11 @@ import { eqUrls, iconUrls, chimeUrls } from '@/utils/Urls';
 import { formatText, msToTime, calcPassedTime, sendNotification, setClassName, playSound } from '@/utils/Utils';
 import { useTimeStore } from '@/stores/time';
 import { useSettingsStore } from '@/stores/settings';
+import { useStatusStore } from '@/stores/status';
 import '@/assets/background.css'
 import '@/assets/opacity.css'
 import MapComponent from './components/MapComponent.vue';
 
-const showMap = ref(false)
 const statusList = ['正在连接', '已连接', '正在断开', '已断开', '未连接', '不使用']
 const eqMessage = reactive({
     id: '',
@@ -67,6 +67,14 @@ const props = defineProps({
 })
 const timeStore = useTimeStore()
 const settingsStore = useSettingsStore()
+const statusStore = useStatusStore()
+const isShowMap = computed({
+    get: ()=>statusStore.currentMap == props.source,
+    set: (val)=>{
+        if(val) statusStore.setCurrentMap(props.source)
+        else statusStore.setCurrentMap('')
+    }
+})
 const useWebSocket = computed(()=>!props.source.includes('cwa'))
 const useJst = computed(()=>props.source.includes('jma'))
 let request, socketObj;
@@ -311,9 +319,6 @@ const reconnect = ()=>{
         throw new Error('Unrecognized protocol type.')
     }
 }
-const handleClick = ()=>{
-    showMap.value = true
-}
 
 onMounted(()=>{
     protocol = 'http'
@@ -418,8 +423,8 @@ watch(eqMessage, ()=>{
                 }
                 //显示地图
                 if(settingsStore.mainSettings.onEew.showMap || settingsStore.mainSettings.onEewWarn.showMap){
-                    if(!openMap && !showMap.value){
-                        showMap.value = true
+                    if(!openMap && !isShowMap.value){
+                        isShowMap.value = true
                         noOperation = true
                         if(mouseListener) document.removeEventListener('mousemove', mouseListener)
                         mouseListener = document.addEventListener('mousemove', ()=>{
@@ -457,8 +462,8 @@ watch(eqMessage, ()=>{
                 }
                 //显示地图
                 if(settingsStore.mainSettings.onEew.showMap){
-                    if(!openMap && !showMap.value){
-                        showMap.value = true
+                    if(!openMap && !isShowMap.value){
+                        isShowMap.value = true
                         noOperation = true
                         if(mouseListener) document.removeEventListener('mousemove', mouseListener)
                         mouseListener = document.addEventListener('mousemove', ()=>{
@@ -508,8 +513,8 @@ watch(eqMessage, ()=>{
                 }
             }
             if(settingsStore.mainSettings.onReport.showMap){
-                if(!openMap && !showMap.value){
-                    showMap.value = true
+                if(!openMap && !isShowMap.value){
+                    isShowMap.value = true
                     noOperation = true
                     if(mouseListener) document.removeEventListener('mousemove', mouseListener)
                     mouseListener = document.addEventListener('mousemove', ()=>{
@@ -549,7 +554,7 @@ watch(eqMessage, ()=>{
             if(noOperation){
                 noOperation = false
                 document.removeEventListener('mousemove', mouseListener)
-                showMap.value = false
+                isShowMap.value = false
             }
         }, Math.max(time, blinkTime));
     }
