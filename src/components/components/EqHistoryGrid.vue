@@ -91,7 +91,7 @@ const useJst = computed(()=>{
         }
     }
 })
-const handleClick = async (item)=>{
+const handleClick = (item)=>{
     switch(props.source){
         case 'jmaEqlist':{
             const url = `https://typhoon.yahoo.co.jp/weather/jp/earthquake/${item.id}.html?t=2`
