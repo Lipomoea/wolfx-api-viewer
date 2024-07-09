@@ -11,12 +11,10 @@ const eqUrls = {
     jmaEqlist_http: 'https://api.wolfx.jp/jma_eqlist.json',
     jmaEqlist_ws: 'wss://ws-api.wolfx.jp/jma_eqlist',
 }
-
 const stationUrls = {
     STATION_LIST_http: 'https://api.wolfx.jp/seis_list.json',
     ALL_PUSH_ws: 'wss://seis.wolfx.jp/all_seis',
 }
-
 const iconUrls = {
     info: '/icon/info.png',
     caution: '/icon/caution.png',
@@ -39,5 +37,8 @@ const geojsonUrls = {
     global: '/json/medium.global.geo.json',
     cn: '/json/cn.geo.json',
 }
+const utilUrls = {
+    geoIp: 'https://api.wolfx.jp/geoip.php',
+}
 
-export { eqUrls, stationUrls, iconUrls, chimeUrls, geojsonUrls }
+export { eqUrls, stationUrls, iconUrls, chimeUrls, geojsonUrls, utilUrls }

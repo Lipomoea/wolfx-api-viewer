@@ -92,6 +92,42 @@
                         </div>
                     </div>
                 </div>
+                <div class="subTitle">地图</div>
+                <div class="group">
+                    <div class="row">
+                        <div class="switchGroup">
+                            <div class="switch">
+                                <span>设置所在地经纬度（均设置时才生效）：</span>
+                                <span>纬度</span>
+                                <el-input
+                                class="latLng"
+                                v-model="settingsStore.mainSettings.userLatLng[0]"
+                                size="small"
+                                maxlength="10"
+                                @change="setLat"></el-input>
+                                <span style="margin-left: 10px;">经度</span>
+                                <el-input
+                                class="latLng"
+                                v-model="settingsStore.mainSettings.userLatLng[1]"
+                                size="small"
+                                maxlength="10"
+                                @change="setLng"></el-input>
+                                <el-button
+                                style="margin-left: 10px;"
+                                size="small"
+                                @click="autoLocate">自动定位</el-button>
+                            </div>
+                            <div class="switch">
+                                <span>在地图上显示所在地</span>
+                                <el-switch v-model="settingsStore.mainSettings.displayUser"></el-switch>
+                            </div>
+                            <div class="switch">
+                                <span>在地图上显示地震波倒计时</span>
+                                <el-switch v-model="settingsStore.mainSettings.displayCountdown"></el-switch>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="subTitle">关于</div>
                 <div class="group">
                     <div class="row">
@@ -110,8 +146,59 @@
 
 <script setup>
 import { useSettingsStore } from '@/stores/settings';
+import { utilUrls } from '@/utils/Urls';
+import Http from '@/utils/Http';
 
 const settingsStore = useSettingsStore()
+const setLat = (val)=>{
+    if(val === '') return
+    let number = Number(val)
+    if(isNaN(number)){
+        settingsStore.mainSettings.userLatLng[0] = ''
+    }
+    else{
+        if(number > 90) number = 90
+        if(number < -90) number = -90
+        settingsStore.mainSettings.userLatLng[0] = number.toString()
+    }
+}
+const setLng = (val)=>{
+    if(val === '') return
+    let number = Number(val)
+    if(isNaN(number)){
+        settingsStore.mainSettings.userLatLng[1] = ''
+    }
+    else{
+        if(number > 180) number = 180
+        if(number < -180) number = -180
+        settingsStore.mainSettings.userLatLng[1] = number.toString()
+    }
+}
+const autoLocate = async ()=>{
+    const res = await Http.get(utilUrls.geoIp)
+    ElMessageBox.confirm(
+        `你的IP定位城市是${res.city_zh}，参考经纬度(${res.latitude}, ${res.longitude})。是否更新设置？`,
+        '自动定位',
+        {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'info',
+            showClose: false,
+        }
+    ).then(()=>{
+        setLat(res.latitude)
+        setLng(res.longitude)
+        ElMessage({
+            message: '位置更新成功',
+            type: 'success',
+        })
+    }).catch(()=>{
+        ElMessage({
+            message: '取消设置',
+            type: 'info',
+        })
+    })
+}
 </script>
 
 <style lang="scss" scoped>
@@ -155,6 +242,9 @@ const settingsStore = useSettingsStore()
                             display: flex;
                             align-items: center;
                             gap: 5px;
+                            .latLng{
+                                width: 60px;
+                            }
                         }
                     }
                 }

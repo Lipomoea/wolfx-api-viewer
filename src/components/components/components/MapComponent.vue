@@ -20,6 +20,10 @@
                     </div>
                 </div>
             </div>
+            <div class="countdown" v-if="isDisplayCountdown">
+                <div class="arrive" :class="untilPReach <= 10?'urgent':''">距离P波抵达：{{ formatTime(untilPReach) }}</div>
+                <div class="arrive" :class="untilSReach <= 10?'urgent':''">距离S波抵达：{{ formatTime(untilSReach) }}</div>
+            </div>
             <el-button
             class="home"
             :icon="HomeFilled"
@@ -37,11 +41,12 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { ref, computed, onMounted, onBeforeUnmount, watch, toRaw } from 'vue';
-import { calcPassedTime, calcWaveDistance } from '@/utils/Utils';
+import { calcPassedTime, calcWaveDistance, calcReachTime } from '@/utils/Utils';
 import travelTimes from '@/utils/TravelTimes';
 import '@/assets/background.css'
 import { HomeFilled, Right } from '@element-plus/icons-vue';
 import { useDataStore } from '@/stores/data';
+import { useSettingsStore } from '@/stores/settings';
 import router from '@/router';
 
 const props = defineProps({
@@ -49,10 +54,7 @@ const props = defineProps({
     source: String,
     isActive: Boolean,
 })
-const useJst = computed(()=>{
-    if(props.source.includes('jma')) return true
-    else return false
-})
+const useJst = computed(()=>props.source.includes('jma'))
 const barClass = computed(()=>{
     if(props.eqMessage.isEew){
         if(props.isActive){
@@ -66,8 +68,12 @@ const barClass = computed(()=>{
         return props.eqMessage.className
     }
 })
+const settingsStore = useSettingsStore()
 let map, baseMap, crossMarker
-let userLatLng = [30.3, 120.1]
+const isValidUserLatLng = settingsStore.mainSettings.userLatLng.every(item=>item !== '')
+const isDisplayUser = isValidUserLatLng && settingsStore.mainSettings.displayUser
+const userLatLng = settingsStore.mainSettings.userLatLng.map(val=>Number(val))
+const isDisplayCountdown = computed(()=>isValidUserLatLng && settingsStore.mainSettings.displayCountdown && props.isActive && props.eqMessage.isEew && !props.eqMessage.isCanceled)
 const hypoLatLng = computed(()=>[props.eqMessage.lat, props.eqMessage.lng])
 let zoomLevel = 7
 let crossIcon = `<svg t="1719226920212" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2481" width="40" height="40"><path d="M602.512147 511.99738l402.747939-402.747939a63.999673 63.999673 0 0 0-90.509537-90.509537L512.00261 421.487843 109.254671 18.749904a63.999673 63.999673 0 0 0-90.509537 90.509537L421.493073 511.99738 18.755134 914.745319a63.999673 63.999673 0 0 0 90.509537 90.509537L512.00261 602.506917l402.747939 402.747939a63.999673 63.999673 0 0 0 90.509537-90.509537z" p-id="2482" fill="#d81e06"></path></svg>`
@@ -92,6 +98,14 @@ onMounted(()=>{
     map.on('dragstart', ()=>{
         isAutoZoom.value = false
     })
+    if(isDisplayUser){
+        L.circleMarker(userLatLng, {
+            radius: 8,
+            fillOpacity: 0.5,
+            weight: 2,
+            pane: 'markerPane',
+        }).addTo(map)
+    }
     setMark()
     if(props.isActive && props.eqMessage.isEew && !props.eqMessage.isCanceled) drawWaves()
     setView()
@@ -134,6 +148,13 @@ const setMark = ()=>{
     crossMarker.addTo(map)
 }
 let pWave, sWave
+const untilPReach = ref(), untilSReach = ref()
+const formatTime = (sec)=>{
+    let minutes = Math.floor(sec / 60).toString()
+    let seconds = Math.floor(sec % 60).toString()
+    if(seconds.length == 1) seconds = '0' + seconds
+    return minutes + ':' + seconds
+}
 const switchDrawWaves = (time, travelTime)=>{
     let p_reach, p_radius, s_reach, s_radius
     const maxRadius = 2000
@@ -167,18 +188,29 @@ const switchDrawWaves = (time, travelTime)=>{
     }
 }
 const drawWaves = ()=>{
-    switch(props.source){
-        case 'jmaEew':{
-            let time = calcPassedTime(props.eqMessage.originTime, 9) / 1000
-            switchDrawWaves(time, travelTimes.jma2001)
-            break
-        }
-        default:{
-            let time = calcPassedTime(props.eqMessage.originTime, 8) / 1000
-            switchDrawWaves(time, travelTimes.jma2001)
-            break
-        }
+    let time, travelTime
+    if(useJst){
+        time = calcPassedTime(props.eqMessage.originTime, 9) / 1000
+        travelTime = travelTimes.jma2001
     }
+    else{
+        time = calcPassedTime(props.eqMessage.originTime, 8) / 1000
+        travelTime = travelTimes.jma2001
+    }
+    switchDrawWaves(time, travelTime)
+    if(isDisplayCountdown.value){
+        const distance = calcDistance(userLatLng, hypoLatLng.value)
+        const totalPReachTime = calcReachTime(travelTime, true, props.eqMessage.depth, distance)
+        const totalSReachTime = calcReachTime(travelTime, false, props.eqMessage.depth, distance)
+        untilPReach.value = Math.max(totalPReachTime - time, 0)
+        untilSReach.value = Math.max(totalSReachTime - time, 0)
+    }
+}
+const calcDistance = (latLng1, latLng2)=>{
+    const LLatLng1 = L.latLng(latLng1)
+    const LLatLng2 = L.latLng(latLng2)
+    const distance = LLatLng1.distanceTo(LLatLng2) / 1000
+    return distance
 }
 let drawWavesInterval, blinkInterval
 const goStatic = ()=>{
@@ -342,6 +374,28 @@ onBeforeUnmount(()=>{
                         }
                     }
                 }
+            }
+        }
+        .countdown{
+            position: absolute;
+            width: 200px;
+            height: 80px;
+            background-color: #cfcfcf;
+            bottom: 0;
+            left: 0;
+            z-index: 500;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            align-items: center;
+            border: black 1px solid;
+            border-bottom: 0px;
+            border-left: 0px;
+            pointer-events: none;
+            user-select: none;
+            font-size: 20px;
+            .urgent{
+                color: red;
             }
         }
         .home{

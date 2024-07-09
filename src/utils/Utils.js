@@ -32,6 +32,10 @@ const calcPassedTime = (time, timeZone)=>{
     if(!time || !timeZone) return
     let date1 = Date.now()
     let isoTime = time.replace(' ', 'T').replace(/\//g, '-') + 'Z'
+    let splitIso = isoTime.split('-')
+    if(splitIso[1].length == 1) splitIso[1] = '0' + splitIso[1]
+    if(splitIso[2].length == 11) splitIso[2] = '0' + splitIso[2]
+    isoTime = splitIso.join('-')
     let date2 = new Date(isoTime).getTime()
     date2 -= timeZone * 3600 * 1000
     return Math.abs(date1 - date2)
@@ -93,9 +97,8 @@ const calcWaveDistance = (travelTime, isPWave, depth, time)=>{
     else {
         data = travelTime.s_times
     }
-    let i = 0
+    let i = 1
     while(depths[i] < depth && i < depths.length - 1) i++
-    if(i == 0) i = 1
     if(depth <= (depths[i - 1] + depths[i]) / 2) i--
     const times = data[i]
     if(time <= times[0]) return { reach: times[0] - time, radius: 0 }
@@ -106,6 +109,26 @@ const calcWaveDistance = (travelTime, isPWave, depth, time)=>{
     const distance = k * time + b
     return { reach: 0, radius: distance }
 }
+const calcReachTime = (travelTime, isPWave, depth, distance)=>{
+    const { depths, distances } = travelTime
+    let data
+    if(isPWave) {
+        data = travelTime.p_times
+    }
+    else {
+        data = travelTime.s_times
+    }
+    let i = 1
+    while(depths[i] < depth && i < depths.length - 1) i++
+    if(depth <= (depths[i - 1] + depths[i]) / 2) i--
+    const times = data[i]
+    let j = 1
+    while(distances[j] < distance && j < distances.length - 1) j++
+    const k = (times[j] - times[j - 1]) / (distances[j] - distances[j - 1])
+    const b = times[j] - k * distances[j]
+    const time = k * distance + b
+    return time
+}
 const extractNumbers = (str)=>{
     let numberString = ''
     for(let i = 0; i < str.length; i++){
@@ -114,4 +137,4 @@ const extractNumbers = (str)=>{
     return numberString
 }
 
-export { formatNumber, formatText, msToTime, calcPassedTime, compareTime, sendNotification, setClassName, playSound, calcWaveDistance, extractNumbers }
+export { formatNumber, formatText, msToTime, calcPassedTime, compareTime, sendNotification, setClassName, playSound, calcWaveDistance, calcReachTime, extractNumbers }
