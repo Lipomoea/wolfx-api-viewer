@@ -74,6 +74,7 @@ const isValidUserLatLng = settingsStore.mainSettings.userLatLng.every(item=>item
 const isDisplayUser = isValidUserLatLng && settingsStore.mainSettings.displayUser
 const userLatLng = settingsStore.mainSettings.userLatLng.map(val=>Number(val))
 const isDisplayCountdown = computed(()=>isValidUserLatLng && settingsStore.mainSettings.displayCountdown && props.isActive && props.eqMessage.isEew && !props.eqMessage.isCanceled)
+const decimalCountdown = settingsStore.mainSettings.decimalCountdown
 const hypoLatLng = computed(()=>[props.eqMessage.lat, props.eqMessage.lng])
 let zoomLevel = 7
 let crossIcon = `<svg t="1719226920212" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2481" width="40" height="40"><path d="M602.512147 511.99738l402.747939-402.747939a63.999673 63.999673 0 0 0-90.509537-90.509537L512.00261 421.487843 109.254671 18.749904a63.999673 63.999673 0 0 0-90.509537 90.509537L421.493073 511.99738 18.755134 914.745319a63.999673 63.999673 0 0 0 90.509537 90.509537L512.00261 602.506917l402.747939 402.747939a63.999673 63.999673 0 0 0 90.509537-90.509537z" p-id="2482" fill="#d81e06"></path></svg>`
@@ -153,6 +154,7 @@ const formatTime = (sec)=>{
     let minutes = Math.floor(sec / 60).toString()
     let seconds = Math.floor(sec % 60).toString()
     if(seconds.length == 1) seconds = '0' + seconds
+    if(decimalCountdown) seconds += ('.' + Math.floor((sec % 1) * 10).toString())
     return minutes + ':' + seconds
 }
 const switchDrawWaves = (time, travelTime)=>{
@@ -378,7 +380,7 @@ onBeforeUnmount(()=>{
         }
         .countdown{
             position: absolute;
-            width: 200px;
+            width: 220px;
             height: 80px;
             background-color: #cfcfcf;
             bottom: 0;

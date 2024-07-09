@@ -97,7 +97,7 @@
                     <div class="row">
                         <div class="switchGroup">
                             <div class="switch">
-                                <span>设置所在地经纬度（均设置时才生效）：</span>
+                                <span>所在地经纬度（均设置时才生效）：</span>
                                 <span>纬度</span>
                                 <el-input
                                 class="latLng"
@@ -118,12 +118,16 @@
                                 @click="autoLocate">自动定位</el-button>
                             </div>
                             <div class="switch">
-                                <span>在地图上显示所在地</span>
+                                <span>显示所在地</span>
                                 <el-switch v-model="settingsStore.mainSettings.displayUser"></el-switch>
                             </div>
                             <div class="switch">
-                                <span>在地图上显示地震波倒计时</span>
+                                <span>显示地震波倒计时</span>
                                 <el-switch v-model="settingsStore.mainSettings.displayCountdown"></el-switch>
+                            </div>
+                            <div class="switch">
+                                <span>地震波倒计时显示小数</span>
+                                <el-switch v-model="settingsStore.mainSettings.decimalCountdown"></el-switch>
                             </div>
                         </div>
                     </div>
@@ -176,28 +180,36 @@ const setLng = (val)=>{
 }
 const autoLocate = async ()=>{
     const res = await Http.get(utilUrls.geoIp)
-    ElMessageBox.confirm(
-        `你的IP定位城市是${res.city_zh}，参考经纬度(${res.latitude}, ${res.longitude})。是否更新设置？`,
-        '自动定位',
-        {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'info',
-            showClose: false,
-        }
-    ).then(()=>{
-        setLat(res.latitude)
-        setLng(res.longitude)
+    if(res.city_zh == null){
         ElMessage({
-            message: '位置更新成功',
-            type: 'success',
+            message: '获取位置失败',
+            type: 'error',
         })
-    }).catch(()=>{
-        ElMessage({
-            message: '取消设置',
-            type: 'info',
+    }
+    else{
+        ElMessageBox.confirm(
+            `你的IP定位城市是${res.city_zh}，参考经纬度(${res.latitude}, ${res.longitude})。是否更新设置？`,
+            '自动定位',
+            {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'info',
+                showClose: false,
+            }
+        ).then(()=>{
+            setLat(res.latitude)
+            setLng(res.longitude)
+            ElMessage({
+                message: '位置更新成功',
+                type: 'success',
+            })
+        }).catch(()=>{
+            ElMessage({
+                message: '取消设置',
+                type: 'info',
+            })
         })
-    })
+    }
 }
 </script>
 

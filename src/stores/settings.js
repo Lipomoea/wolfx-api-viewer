@@ -26,6 +26,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             userLatLng: ['', ''],
             displayUser: false,
             displayCountdown: false,
+            decimalCountdown: false,
             showAbout: false,
         },
     }),
