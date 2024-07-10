@@ -34,8 +34,11 @@ const calcPassedTime = (time, timeZone)=>{
     let isoTime = time.replace(' ', 'T').replace(/\//g, '-') + 'Z'
     let splitIso = isoTime.split('-')
     if(splitIso[1].length == 1) splitIso[1] = '0' + splitIso[1]
-    if(splitIso[2].length == 11) splitIso[2] = '0' + splitIso[2]
+    if(splitIso[2].split('T')[0].length == 1) splitIso[2] = '0' + splitIso[2]
     isoTime = splitIso.join('-')
+    splitIso = isoTime.split('T')
+    if(splitIso[1].split(':')[0].length == 1) splitIso[1] = '0' + splitIso[1]
+    isoTime = splitIso.join('T')
     let date2 = new Date(isoTime).getTime()
     date2 -= timeZone * 3600 * 1000
     return Math.abs(date1 - date2)

@@ -251,7 +251,7 @@ const autoLocate = async ()=>{
                             align-items: center;
                             gap: 5px;
                             .latLng{
-                                width: 60px;
+                                width: 70px;
                             }
                         }
                     }
