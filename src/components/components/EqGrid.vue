@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="container" @click="handleClick">
+        <div class="container" @click="isShowMap = true">
             <div class="bg" :class="className"></div>
             <div class="intensity">{{ eqMessage.maxIntensity }}</div>
             <div :style='{fontSize: "18px", fontWeight: "700"}'>{{ formatText(eqMessage.titleText) }}</div>
@@ -14,6 +14,10 @@
             <div>经过时间: {{ formatText(msToTime(passedTimeFromOrigin)) }}</div>
             <div>WebSocket状态: {{ statusCode >= 0 && statusCode <= 5?statusList[statusCode]:'N/A' }}</div>
         </div>
+        <div class="map" v-if="isShowMap">
+            <MapComponent :eqMessage :source="props.source" :isActive></MapComponent>
+        </div>
+        <div class="overlay" v-if="isShowMap" @click="isShowMap = false"></div>
     </div>
 </template>
 
@@ -21,13 +25,14 @@
 import { onMounted, onBeforeUnmount, ref, reactive, computed, watch } from 'vue'
 import Http from '@/utils/Http';
 import WebSocketObj from '@/utils/WebSocket';
-import { eqUrls, iconUrls, chimeUrls } from '@/utils/Url';
+import { eqUrls, iconUrls, chimeUrls } from '@/utils/Urls';
 import { formatText, msToTime, calcPassedTime, sendNotification, setClassName, playSound } from '@/utils/Utils';
 import { useTimeStore } from '@/stores/time';
 import { useSettingsStore } from '@/stores/settings';
+import { useStatusStore } from '@/stores/status';
 import '@/assets/background.css'
 import '@/assets/opacity.css'
-import router from '@/router';
+import MapComponent from './components/MapComponent.vue';
 
 const statusList = ['正在连接', '已连接', '正在断开', '已断开', '未连接', '不使用']
 const eqMessage = reactive({
@@ -62,8 +67,16 @@ const props = defineProps({
 })
 const timeStore = useTimeStore()
 const settingsStore = useSettingsStore()
-const useWebSocket = ['jmaEew', 'scEew', 'fjEew', 'jmaEqlist', 'cencEqlist']
-const useJst = ['jmaEew', 'jmaEqlist']
+const statusStore = useStatusStore()
+const isShowMap = computed({
+    get: ()=>statusStore.currentMap == props.source,
+    set: (val)=>{
+        if(val) statusStore.setCurrentMap(props.source)
+        else statusStore.setCurrentMap('')
+    }
+})
+const useWebSocket = computed(()=>!props.source.includes('cwa'))
+const useJst = computed(()=>props.source.includes('jma'))
 let request, socketObj;
 let protocol = 'http', httpInterval = 1000
 let isNewEvent = false
@@ -134,14 +147,14 @@ const setEqMessage = (data)=>{
             eqMessage.hypocenterText = '震源: ' + data.HypoCenter
             eqMessage.lat = data.Latitude
             eqMessage.lng = data.Longitude
-            eqMessage.depth = data.Depth
-            eqMessage.depthText = '深度: ' + (data.Depth?data.Depth + 'km':'不明')
+            eqMessage.depth = data.Depth === null?0:data.Depth
+            eqMessage.depthText = '深度: ' + (data.Depth === null?'不明':data.Depth + 'km')
             eqMessage.originTime = data.OriginTime
             eqMessage.originTimeText = '发震时间: ' + data.OriginTime
             eqMessage.magnitude = data.Magunitude
             eqMessage.magnitudeText = '震级: ' + data.Magunitude.toFixed(1)
             eqMessage.maxIntensity = data.MaxIntensity.toFixed(0)
-            eqMessage.maxIntensityText = '估计最大烈度: ' + data.MaxIntensity.toFixed(1)
+            eqMessage.maxIntensityText = '估计最大烈度: ' + data.MaxIntensity.toFixed(0)
             break
         }
         case 'fjEew':{
@@ -157,6 +170,7 @@ const setEqMessage = (data)=>{
             eqMessage.hypocenterText = '震源: ' + data.HypoCenter
             eqMessage.lat = data.Latitude
             eqMessage.lng = data.Longitude
+            eqMessage.depth = 0
             eqMessage.depthText = '深度: 不明'
             eqMessage.originTime = data.OriginTime
             eqMessage.originTimeText = '发震时间: ' + data.OriginTime
@@ -174,6 +188,7 @@ const setEqMessage = (data)=>{
             eqMessage.useShindo = true
             eqMessage.originTime = data.No1.time_full
             eqMessage.originTimeText = '検知時刻: ' + data.No1.time_full + ' (JST)'
+            eqMessage.info = data.No1.info
             switch(data.No1.Title){
                 case '震度速報':{
                     eqMessage.maxIntensity = data.No1.shindo
@@ -187,7 +202,6 @@ const setEqMessage = (data)=>{
                         eqMessage.depthText = '深さ: 調査中'
                         eqMessage.magnitude = Number(data.No1.magnitude)
                         eqMessage.magnitudeText = 'マグニチュード: 調査中'
-                        eqMessage.info = data.No1.info
                     }
                     break
                 }
@@ -200,7 +214,6 @@ const setEqMessage = (data)=>{
                     eqMessage.depthText = '深さ: ' + (data.No1.depth == '0km'?'ごく浅い':data.No1.depth)
                     eqMessage.magnitude = Number(data.No1.magnitude)
                     eqMessage.magnitudeText = 'マグニチュード: ' + data.No1.magnitude
-                    eqMessage.info = data.No1.info
                     if(isNewEvent){
                         eqMessage.maxIntensity = data.No1.shindo
                         eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
@@ -218,19 +231,27 @@ const setEqMessage = (data)=>{
                     eqMessage.magnitudeText = 'マグニチュード: ' + data.No1.magnitude
                     eqMessage.maxIntensity = data.No1.shindo
                     eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
-                    eqMessage.info = data.No1.info
                     break
                 }
-                default:{
-                    console.log(data.No1);
+                case '遠地地震に関する情報':{
+                    eqMessage.hypocenter = data.No1.location
+                    eqMessage.hypocenterText = '震源地: ' + data.No1.location
+                    eqMessage.lat = Number(data.No1.latitude)
+                    eqMessage.lng = Number(data.No1.longitude)
+                    eqMessage.depth = Number(data.No1.depth.replace('km', ''))
+                    eqMessage.depthText = '深さ: 不明'
+                    eqMessage.magnitude = Number(data.No1.magnitude)
+                    eqMessage.magnitudeText = 'マグニチュード: ' + data.No1.magnitude
+                    eqMessage.maxIntensity = data.No1.shindo
+                    eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
                     break
                 }
             }
             break
         }
         case 'cencEqlist':{
-            isNewEvent = eqMessage.id != data.md5
-            eqMessage.id = data.md5
+            isNewEvent = eqMessage.id != data.No1.time
+            eqMessage.id = data.No1.time
             eqMessage.reportTime = data.No1.ReportTime
             eqMessage.title = data.No1.type
             eqMessage.titleText = '中国地震台网' + (data.No1.type == 'reviewed'?'正式':'自动') + '测定'
@@ -248,12 +269,8 @@ const setEqMessage = (data)=>{
             eqMessage.maxIntensityText = '估计最大烈度: ' + data.No1.intensity
             break
         }
-        default:{
-            console.log(data);
-            break
-        }
     }
-    eqMessage.className = setClassName(eqMessage.maxIntensity, eqMessage.useShindo)
+    eqMessage.className = setClassName(eqMessage.maxIntensity, eqMessage.useShindo, eqMessage.isCanceled)
 }
 const connect = (protocol)=>{
     const source = props.source + '_' + protocol
@@ -302,17 +319,12 @@ const reconnect = ()=>{
         throw new Error('Unrecognized protocol type.')
     }
 }
-const handleClick = ()=>{
-    if(!eqMessage.isEew){
-        router.push('/eq-history')
-    }
-}
 
 onMounted(()=>{
     protocol = 'http'
     httpInterval = 1000
     connect('http')
-    if(useWebSocket.includes(props.source)){
+    if(useWebSocket.value){
         setTimeout(() => {
             protocol = 'ws'
             httpInterval = 30000
@@ -334,8 +346,12 @@ let isLoad = true
 const blinkTime = 4000
 const soundEffect = computed(()=>settingsStore.mainSettings.soundEffect)
 const cautionList = ['green', 'yellow', 'orange', 'red', 'purple']
-let first = false, caution = false, warn = false
+let firstSound = false, cautionSound = false, warnSound = false
+let openMap = false, noOperation = false
+let mouseListener
+const isActive = ref(false)
 watch(eqMessage, ()=>{
+    isActive.value = false
     className.value = eqMessage.className + ' midOpacity'
     let passedTime = 0
     if(isLoad){
@@ -352,10 +368,9 @@ watch(eqMessage, ()=>{
     }
     let time
     if(eqMessage.isEew){
-        time = 300 * 1000
-        if(eqMessage.isWarn){
-            time = 600 * 1000
-        }
+        if(eqMessage.isCanceled) time = 30 * 1000
+        else if(!eqMessage.isWarn) time = 300 * 1000
+        else time = 600 * 1000
     }
     else{
         time = 300 * 1000
@@ -371,71 +386,96 @@ watch(eqMessage, ()=>{
     }
     time -= passedTime
     if(time > 0){
+        isActive.value = true
         let icon = ''
         if(isNewEvent){
-            first = false
-            caution = false
-            warn = false
+            firstSound = false
+            cautionSound = false
+            warnSound = false
+            openMap = false
+            noOperation = false
         }
+        //是EEW
         if(eqMessage.isEew){
-            if(settingsStore.mainSettings.onEew.notification){
-                icon = iconUrls.caution
-                if(eqMessage.isWarn) icon = iconUrls.warn
-            }
-            else if(settingsStore.mainSettings.onEewWarn.notification && eqMessage.isWarn) icon = iconUrls.warn
-            if(settingsStore.mainSettings.onEew.sound){
-                if(eqMessage.isCanceled){
-                    playSound(chimeUrls[soundEffect.value].torikeshi)
+            //是Warn
+            if(eqMessage.isWarn){
+                //通知
+                if(settingsStore.mainSettings.onEew.notification || settingsStore.mainSettings.onEewWarn.notification){
+                    if(eqMessage.isCanceled) icon = iconUrls.info
+                    else icon = iconUrls.warn
                 }
-                else{
-                    if(!first){
-                        playSound(chimeUrls[soundEffect.value].happyou)
-                        first = true
-                    }
+                //声音
+                if(settingsStore.mainSettings.onEew.sound || settingsStore.mainSettings.onEewWarn.sound){
+                    if(eqMessage.isCanceled) playSound(chimeUrls[soundEffect.value].torikeshi)
                     else{
-                        if(!eqMessage.isFinal){
-                            playSound(chimeUrls[soundEffect.value].koushin)
+                        if(!firstSound){
+                            playSound(chimeUrls[soundEffect.value].happyou)
+                            firstSound = true
                         }
-                        else{
-                            playSound(chimeUrls[soundEffect.value].saisyuu)
+                        else if(eqMessage.isFinal) playSound(chimeUrls[soundEffect.value].saisyuu)
+                        else playSound(chimeUrls[soundEffect.value].koushin)
+                        if(!warnSound){
+                            playSound(chimeUrls[soundEffect.value].keihou)
+                            cautionSound = true
+                            warnSound = true
                         }
                     }
-                    if(eqMessage.isWarn && !warn){
-                        playSound(chimeUrls[soundEffect.value].keihou)
-                        caution = true
-                        warn = true
+                }
+                //显示地图
+                if(settingsStore.mainSettings.onEew.showMap || settingsStore.mainSettings.onEewWarn.showMap){
+                    if(!openMap && !isShowMap.value){
+                        isShowMap.value = true
+                        noOperation = true
+                        if(mouseListener) document.removeEventListener('mousemove', mouseListener)
+                        mouseListener = document.addEventListener('mousemove', ()=>{
+                            noOperation = false
+                            document.removeEventListener('mousemove', mouseListener)
+                        })
                     }
-                    else if(cautionList.includes(eqMessage.className) && !caution){
-                        playSound(chimeUrls[soundEffect.value].yohou)
-                        caution = true
-                    }
+                    openMap = true
                 }
             }
-            else if(settingsStore.mainSettings.onEewWarn.sound && eqMessage.isWarn){
-                if(eqMessage.isCanceled){
-                    playSound(chimeUrls[soundEffect.value].torikeshi)
+            //不是Warn
+            else{
+                //通知
+                if(settingsStore.mainSettings.onEew.notification){
+                    if(eqMessage.isCanceled) icon = iconUrls.info
+                    else icon = iconUrls.caution
                 }
-                else{
-                    if(!first){
-                        playSound(chimeUrls[soundEffect.value].happyou)
-                        first = true
-                    }
+                //声音
+                if(settingsStore.mainSettings.onEew.sound){
+                    if(eqMessage.isCanceled) playSound(chimeUrls[soundEffect.value].torikeshi)
                     else{
-                        if(!eqMessage.isFinal){
-                            playSound(chimeUrls[soundEffect.value].koushin)
+                        if(!firstSound){
+                            playSound(chimeUrls[soundEffect.value].happyou)
+                            firstSound = true
                         }
-                        else{
-                            playSound(chimeUrls[soundEffect.value].saisyuu)
+                        else if(eqMessage.isFinal) playSound(chimeUrls[soundEffect.value].saisyuu)
+                        else playSound(chimeUrls[soundEffect.value].koushin)
+                        if(cautionList.includes(eqMessage.className)){
+                            if(!cautionSound){
+                                playSound(chimeUrls[soundEffect.value].yohou)
+                                cautionSound = true
+                            }
                         }
                     }
-                    if(!warn){
-                        playSound(chimeUrls[soundEffect.value].keihou)
-                        caution = true
-                        warn = true
+                }
+                //显示地图
+                if(settingsStore.mainSettings.onEew.showMap){
+                    if(!openMap && !isShowMap.value){
+                        isShowMap.value = true
+                        noOperation = true
+                        if(mouseListener) document.removeEventListener('mousemove', mouseListener)
+                        mouseListener = document.addEventListener('mousemove', ()=>{
+                            noOperation = false
+                            document.removeEventListener('mousemove', mouseListener)
+                        })
                     }
+                    openMap = true
                 }
             }
         }
+        //不是EEW
         else{
             if(settingsStore.mainSettings.onReport.notification) icon = iconUrls.info
             if(settingsStore.mainSettings.onReport.sound){
@@ -454,6 +494,10 @@ watch(eqMessage, ()=>{
                                 playSound(chimeUrls[soundEffect.value].jishinzyouhou)
                                 break
                             }
+                            case '遠地地震に関する情報':{
+                                playSound(chimeUrls[soundEffect.value].jishinzyouhou)
+                                break
+                            }
                         }
                         break
                     }
@@ -467,6 +511,18 @@ watch(eqMessage, ()=>{
                         break
                     }
                 }
+            }
+            if(settingsStore.mainSettings.onReport.showMap){
+                if(!openMap && !isShowMap.value){
+                    isShowMap.value = true
+                    noOperation = true
+                    if(mouseListener) document.removeEventListener('mousemove', mouseListener)
+                    mouseListener = document.addEventListener('mousemove', ()=>{
+                        noOperation = false
+                        document.removeEventListener('mousemove', mouseListener)
+                    })
+                }
+                openMap = true
             }
         }
         if(icon){
@@ -494,22 +550,37 @@ watch(eqMessage, ()=>{
         if(timer) clearTimeout(timer)
         timer = setTimeout(() => {
             className.value = eqMessage.className + ' midOpacity'
+            isActive.value = false
+            if(noOperation){
+                noOperation = false
+                document.removeEventListener('mousemove', mouseListener)
+                isShowMap.value = false
+            }
         }, Math.max(time, blinkTime));
     }
 })
 const statusCode = ref()
 const passedTimeFromOrigin = ref()
 watch(()=>timeStore.currentTime, ()=>{
-    if(useJst.includes(props.source)){
+    if(useJst.value){
         passedTimeFromOrigin.value = calcPassedTime(eqMessage.originTime, 9)
     }
     else{
         passedTimeFromOrigin.value = calcPassedTime(eqMessage.originTime, 8)
     }
     if(socketObj) statusCode.value = socketObj.socket.readyState
-    else if(!useWebSocket.includes(props.source)) statusCode.value = 5
+    else if(!useWebSocket.value) statusCode.value = 5
     else statusCode.value = 4
 })
+
+// import { generateEqMessage } from '@/utils/test';
+// if(props.source == 'jmaEew'){
+//     setTimeout(() => {
+//         disconnect()
+//     }, 3500);
+//     generateEqMessage(eqMessage)
+// }
+
 </script>
 
 <style lang="scss" scoped>
@@ -546,5 +617,28 @@ watch(()=>timeStore.currentTime, ()=>{
         font-weight: 700;
         color: #0000003f;
     }
+}
+.map{
+    width: 70vw;
+    height: 70vh;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+    border: black 1px solid;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 10px 0px #7f7f7f;
+}
+.overlay{
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #fff;
+    opacity: 0.5;
+    z-index: 15;
 }
 </style>

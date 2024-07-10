@@ -16,7 +16,7 @@ const timeStore = useTimeStore()
 const settingsStore = useSettingsStore()
 
 onBeforeMount(()=>{
-  settingsStore.setMainSettings(JSON.parse(localStorage.getItem('mainSettings')))
+  settingsStore.setMainSettings(localStorage.getItem('mainSettings'))
 })
 onMounted(()=>{
   if (Notification.permission !== 'granted' && settingsStore.requestNotification) {
