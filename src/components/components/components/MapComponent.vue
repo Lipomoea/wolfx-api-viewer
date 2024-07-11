@@ -199,7 +199,7 @@ const switchDrawWaves = (time, travelTime)=>{
 }
 const drawWaves = ()=>{
     let time, travelTime
-    if(useJst){
+    if(useJst.value){
         time = calcPassedTime(props.eqMessage.originTime, 9) / 1000
         travelTime = travelTimes.jma2001
     }
