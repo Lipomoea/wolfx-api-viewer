@@ -348,8 +348,11 @@ const soundEffect = computed(()=>settingsStore.mainSettings.soundEffect)
 const cautionList = ['green', 'yellow', 'orange', 'red', 'purple']
 let firstSound = false, cautionSound = false, warnSound = false
 let openMap = false, noOperation = false
-let mouseListener
 const isActive = ref(false)
+const handleOperation = ()=>{
+    noOperation = false
+    document.removeEventListener('mousemove', handleOperation)
+}
 watch(eqMessage, ()=>{
     isActive.value = false
     className.value = eqMessage.className + ' midOpacity'
@@ -426,11 +429,8 @@ watch(eqMessage, ()=>{
                     if(!openMap && !isShowMap.value){
                         isShowMap.value = true
                         noOperation = true
-                        if(mouseListener) document.removeEventListener('mousemove', mouseListener)
-                        mouseListener = document.addEventListener('mousemove', ()=>{
-                            noOperation = false
-                            document.removeEventListener('mousemove', mouseListener)
-                        })
+                        document.removeEventListener('mousemove', handleOperation)
+                        document.addEventListener('mousemove', handleOperation)
                     }
                     openMap = true
                 }
@@ -465,11 +465,8 @@ watch(eqMessage, ()=>{
                     if(!openMap && !isShowMap.value){
                         isShowMap.value = true
                         noOperation = true
-                        if(mouseListener) document.removeEventListener('mousemove', mouseListener)
-                        mouseListener = document.addEventListener('mousemove', ()=>{
-                            noOperation = false
-                            document.removeEventListener('mousemove', mouseListener)
-                        })
+                        document.removeEventListener('mousemove', handleOperation)
+                        document.addEventListener('mousemove', handleOperation)
                     }
                     openMap = true
                 }
@@ -516,11 +513,8 @@ watch(eqMessage, ()=>{
                 if(!openMap && !isShowMap.value){
                     isShowMap.value = true
                     noOperation = true
-                    if(mouseListener) document.removeEventListener('mousemove', mouseListener)
-                    mouseListener = document.addEventListener('mousemove', ()=>{
-                        noOperation = false
-                        document.removeEventListener('mousemove', mouseListener)
-                    })
+                    document.removeEventListener('mousemove', handleOperation)
+                    document.addEventListener('mousemove', handleOperation)
                 }
                 openMap = true
             }
@@ -552,8 +546,6 @@ watch(eqMessage, ()=>{
             className.value = eqMessage.className + ' midOpacity'
             isActive.value = false
             if(noOperation){
-                noOperation = false
-                document.removeEventListener('mousemove', mouseListener)
                 isShowMap.value = false
             }
         }, Math.max(time, blinkTime));
@@ -572,13 +564,24 @@ watch(()=>timeStore.currentTime, ()=>{
     else if(!useWebSocket.value) statusCode.value = 5
     else statusCode.value = 4
 })
+watch(isShowMap, (newVal)=>{
+    if(!newVal && noOperation){
+        handleOperation()
+    }
+})
 
-// import { generateEqMessage } from '@/utils/test';
+// import { generateEewMessage, generateEqlistMessage } from '@/utils/test';
 // if(props.source == 'jmaEew'){
 //     setTimeout(() => {
 //         disconnect()
 //     }, 3500);
-//     generateEqMessage(eqMessage)
+//     generateEewMessage(eqMessage)
+// }
+// if(props.source == 'jmaEqlist'){
+//     setTimeout(() => {
+//         disconnect()
+//     }, 3500);
+//     generateEqlistMessage(eqMessage)
 // }
 
 </script>

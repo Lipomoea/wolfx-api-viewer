@@ -1,6 +1,6 @@
 import { onMounted } from 'vue'
 
-const generateEqMessage = (eqMessage)=>{
+const generateEewMessage = (eqMessage)=>{
     onMounted(()=>{
         const time = new Date()
         time.setHours(time.getHours() + 1)
@@ -307,5 +307,132 @@ const generateEqMessage = (eqMessage)=>{
         // }, 15000);
     })
 }
+const generateEqlistMessage = (eqMessage)=>{
+    onMounted(()=>{
+        const time = new Date()
+        time.setHours(time.getHours() + 1)
+        const timeStr = time.toLocaleString()
+        setTimeout(() => {
+            const message = {
+                id: '20110311144640',
+                isEew: false,
+                reportNum: 0,
+                reportNumText: '',
+                reportTime: '',
+                isWarn: false,
+                isFinal: false,
+                isCanceled: false,
+                title: '震度速報',
+                titleText: '日本気象庁震度速報',
+                hypocenter: '',
+                hypocenterText: '震源地: 調査中',
+                lat: 0,
+                lng: 0,
+                depth: 0,
+                depthText: '深さ: 調査中',
+                originTime: timeStr,
+                originTimeText: '発震時刻: ' + timeStr,
+                magnitude: 0,
+                magnitudeText: 'マグニチュード: 調査中',
+                useShindo: true,
+                maxIntensity: '6強',
+                maxIntensityText: '最大震度: 6強',
+                className: 'red',
+                info: '今後の情報に注意してください。',
+            }
+            Object.assign(eqMessage, message)
+        }, 16000);
+        setTimeout(() => {
+            const message = {
+                id: '20110311144640',
+                isEew: false,
+                reportNum: 0,
+                reportNumText: '',
+                reportTime: '',
+                isWarn: false,
+                isFinal: false,
+                isCanceled: false,
+                title: '震源に関する情報',
+                titleText: '日本気象庁震源に関する情報',
+                hypocenter: '三陸沖',
+                hypocenterText: '震源地: 三陸沖',
+                lat: 38.1,
+                lng: 142.9,
+                depth: 10,
+                depthText: '深さ: 10km',
+                originTime: timeStr,
+                originTimeText: '発震時刻: ' + timeStr,
+                magnitude: 7.9,
+                magnitudeText: 'マグニチュード: 7.9',
+                useShindo: true,
+                maxIntensity: '6強',
+                maxIntensityText: '最大震度: 6強',
+                className: 'red',
+                info: '津波警報等（大津波警報・津波警報あるいは津波注意報）を発表中です。',
+            }
+            Object.assign(eqMessage, message)
+        }, 20000);
+        setTimeout(() => {
+            const message = {
+                id: '20110311144640',
+                isEew: false,
+                reportNum: 0,
+                reportNumText: '',
+                reportTime: '',
+                isWarn: false,
+                isFinal: false,
+                isCanceled: false,
+                title: '震度速報',
+                titleText: '日本気象庁震度速報',
+                hypocenter: '三陸沖',
+                hypocenterText: '震源地: 三陸沖',
+                lat: 38.1,
+                lng: 142.9,
+                depth: 10,
+                depthText: '深さ: 10km',
+                originTime: timeStr,
+                originTimeText: '発震時刻: ' + timeStr,
+                magnitude: 7.9,
+                magnitudeText: 'マグニチュード: 7.9',
+                useShindo: true,
+                maxIntensity: '7',
+                maxIntensityText: '最大震度: 7',
+                className: 'purple',
+                info: '津波警報等（大津波警報・津波警報あるいは津波注意報）を発表中です。',
+            }
+            Object.assign(eqMessage, message)
+        }, 24000);
+        setTimeout(() => {
+            const message = {
+                id: '20110311144640',
+                isEew: false,
+                reportNum: 0,
+                reportNumText: '',
+                reportTime: '',
+                isWarn: false,
+                isFinal: false,
+                isCanceled: false,
+                title: '震源・震度情報',
+                titleText: '日本気象庁震源・震度情報',
+                hypocenter: '三陸沖',
+                hypocenterText: '震源地: 三陸沖',
+                lat: 38.1,
+                lng: 142.9,
+                depth: 10,
+                depthText: '深さ: 10km',
+                originTime: timeStr,
+                originTimeText: '発震時刻: ' + timeStr,
+                magnitude: 7.9,
+                magnitudeText: 'マグニチュード: 7.9',
+                useShindo: true,
+                maxIntensity: '7',
+                maxIntensityText: '最大震度: 7',
+                className: 'purple',
+                info: '津波警報等（大津波警報・津波警報あるいは津波注意報）を発表中です。',
+            }
+            Object.assign(eqMessage, message)
+        }, 28000);
+    })
+}
 
-export { generateEqMessage }
+export { generateEewMessage, generateEqlistMessage }

@@ -11,10 +11,10 @@
                         </div>
                     </div>
                     <div class="right">
-                        <div class="location">{{ props.eqMessage.hypocenter }}</div>
+                        <div class="location">{{ props.eqMessage.hypocenter?props.eqMessage.hypocenter:'震源: 調査中' }}</div>
                         <div class="time">{{ props.eqMessage.originTime + (useJst?' (UTC+9)':' (UTC+8)') }}</div>
                         <div class="bottom">
-                            <div class="magnitude">M{{ props.eqMessage.magnitude.toFixed(1) }}</div>
+                            <div class="magnitude">{{ props.eqMessage.magnitude?'M' + props.eqMessage.magnitude.toFixed(1):'規模: 調査中' }}</div>
                             <div class="depth">{{ props.eqMessage.depthText }}</div>
                         </div>
                     </div>
@@ -76,6 +76,7 @@ const userLatLng = settingsStore.mainSettings.userLatLng.map(val=>Number(val))
 const isDisplayCountdown = computed(()=>isValidUserLatLng && settingsStore.mainSettings.displayCountdown && props.isActive && props.eqMessage.isEew && !props.eqMessage.isCanceled)
 const decimalCountdown = settingsStore.mainSettings.decimalCountdown
 const hypoLatLng = computed(()=>[props.eqMessage.lat, props.eqMessage.lng])
+const isInvalidHypo = computed(()=>hypoLatLng.value.every(item=>item == 0))
 let zoomLevel = 7
 let crossIcon = `<svg t="1719226920212" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2481" width="40" height="40"><path d="M602.512147 511.99738l402.747939-402.747939a63.999673 63.999673 0 0 0-90.509537-90.509537L512.00261 421.487843 109.254671 18.749904a63.999673 63.999673 0 0 0-90.509537 90.509537L421.493073 511.99738 18.755134 914.745319a63.999673 63.999673 0 0 0 90.509537 90.509537L512.00261 602.506917l402.747939 402.747939a63.999673 63.999673 0 0 0 90.509537-90.509537z" p-id="2482" fill="#d81e06"></path></svg>`
 let crossDivIcon = L.divIcon({
@@ -113,20 +114,25 @@ onMounted(()=>{
 })
 const formattedIntensity = computed(()=>props.eqMessage.maxIntensity.replace('強', '+').replace('弱', '-').replace('不明', '?'))
 const setView = ()=>{
-    let bounds = null
-    if(pWave && map.hasLayer(pWave)){
-        bounds = pWave.getBounds()
+    if(isInvalidHypo.value){
+        map.setView([38.2, 138.0], 6)
     }
-    else if(sWave && map.hasLayer(sWave)){
-        bounds = sWave.getBounds()
+    else{
+        let bounds = null
+        if(pWave && map.hasLayer(pWave)){
+            bounds = pWave.getBounds()
+        }
+        else if(sWave && map.hasLayer(sWave)){
+            bounds = sWave.getBounds()
+        }
+        if(bounds){
+            map.fitBounds(bounds, {
+                maxZoom: 8,
+                minZoom: 5,
+            })
+        }
+        else map.setView(hypoLatLng.value, zoomLevel)
     }
-    if(bounds){
-        map.fitBounds(bounds, {
-            maxZoom: 8,
-            minZoom: 5,
-        })
-    }
-    else map.setView(hypoLatLng.value, zoomLevel)
 }
 const handleHome = ()=>{
     isAutoZoom.value = true
@@ -145,8 +151,10 @@ const blinkOnce = ()=>{
 }
 const setMark = ()=>{
     if(crossMarker && map.hasLayer(crossMarker)) map.removeLayer(crossMarker)
-    crossMarker = L.marker(hypoLatLng.value, {icon: crossDivIcon, pane: 'markerPane'})
-    crossMarker.addTo(map)
+    if(!isInvalidHypo.value){
+        crossMarker = L.marker(hypoLatLng.value, {icon: crossDivIcon, pane: 'markerPane'})
+        crossMarker.addTo(map)
+    }
 }
 let pWave, sWave
 const untilPReach = ref(), untilSReach = ref()
@@ -264,7 +272,7 @@ watch(isAutoZoom, (newVal)=>{
     if(newVal){
         autoZoomInterval = setInterval(() => {
             setView()
-        }, 10000);
+        }, 1000);
     }
     else{
         if(autoZoomInterval) clearInterval(autoZoomInterval)
@@ -348,15 +356,15 @@ onBeforeUnmount(()=>{
                     width: 300px;
                     display: flex;
                     flex-direction: column;
-                    justify-content: center;
+                    justify-content: space-around;
                     .location{
-                        font-size: 1.3em;
+                        font-size: 22px;
                         white-space: nowrap;
                         text-overflow: ellipsis;
                         overflow: hidden;
                     }
                     .time{
-                        font-size: 1.1em;
+                        font-size: 18px;
                         white-space: nowrap;
                         text-overflow: ellipsis;
                         overflow: hidden;
@@ -366,13 +374,10 @@ onBeforeUnmount(()=>{
                         align-items: center;
                         gap: 15px;
                         .magnitude{
-                            font-size: 1.2em;
+                            font-size: 18px;
                         }
                         .depth{
-                            font-size: 1.1em;
-                            white-space: nowrap;
-                            text-overflow: ellipsis;
-                            overflow: hidden;
+                            font-size: 18px;
                         }
                     }
                 }
