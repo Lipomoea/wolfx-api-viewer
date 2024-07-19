@@ -239,7 +239,7 @@ const setEqMessage = (data)=>{
                     eqMessage.lat = Number(data.No1.latitude)
                     eqMessage.lng = Number(data.No1.longitude)
                     eqMessage.depth = Number(data.No1.depth.replace('km', ''))
-                    eqMessage.depthText = '深さ: 不明'
+                    eqMessage.depthText = '深さ: ' + (data.No1.depth == '0km'?'ごく浅い':data.No1.depth)
                     eqMessage.magnitude = Number(data.No1.magnitude)
                     eqMessage.magnitudeText = 'マグニチュード: ' + data.No1.magnitude
                     eqMessage.maxIntensity = data.No1.shindo
