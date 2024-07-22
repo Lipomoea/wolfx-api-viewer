@@ -1,3 +1,5 @@
+import { useTimeStore } from "@/stores/time"
+
 const formatNumber = (value, digit)=>{
     if(value){
         if(digit) return value.toFixed(digit)
@@ -30,7 +32,8 @@ const msToTime = (duration)=>{
 }
 const calcPassedTime = (time, timeZone)=>{
     if(!time || !timeZone) return
-    let date1 = Date.now()
+    const timeStore = useTimeStore()
+    let date1 = Date.now() + timeStore.offset
     let isoTime = time.replace(' ', 'T').replace(/\//g, '-') + 'Z'
     let splitIso = isoTime.split('-')
     if(splitIso[1].length == 1) splitIso[1] = '0' + splitIso[1]
@@ -41,7 +44,7 @@ const calcPassedTime = (time, timeZone)=>{
     isoTime = splitIso.join('T')
     let date2 = new Date(isoTime).getTime()
     date2 -= timeZone * 3600 * 1000
-    return Math.abs(date1 - date2)
+    return date1 - date2
 }
 const compareTime = (time, timeZone, interval)=>{
     if(!time || !timeZone || !interval) return

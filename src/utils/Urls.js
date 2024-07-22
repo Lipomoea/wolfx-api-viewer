@@ -39,6 +39,7 @@ const geojsonUrls = {
 }
 const utilUrls = {
     geoIp: 'https://api.wolfx.jp/geoip.php',
+    ntpTime: 'https://worldtimeapi.org/api/timezone/Asia/Hong_Kong',
 }
 
 export { eqUrls, stationUrls, iconUrls, chimeUrls, geojsonUrls, utilUrls }
