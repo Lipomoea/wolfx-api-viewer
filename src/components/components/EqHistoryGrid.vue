@@ -81,16 +81,7 @@ const title = computed(()=>{
         }
     }
 })
-const useJst = computed(()=>{
-    switch(props.source){
-        case 'jmaEqlist':{
-            return true
-        }
-        case 'cencEqlist':{
-            return false
-        }
-    }
-})
+const useJst = props.source.includes('jma')
 const handleClick = (item)=>{
     switch(props.source){
         case 'jmaEqlist':{
@@ -102,13 +93,13 @@ const handleClick = (item)=>{
 }
 onMounted(()=>{
     getEqList()
-    if(request) clearInterval(request)
+    clearInterval(request)
     request = setInterval(() => {
         getEqList()
     }, httpInterval);
 })
 onBeforeUnmount(()=>{
-    if(request) clearInterval(request)
+    clearInterval(request)
 })
 </script>
 

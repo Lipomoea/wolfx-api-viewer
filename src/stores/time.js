@@ -19,8 +19,8 @@ export const useTimeStore = defineStore('timeStore', {
             this.updateInterval = setInterval(this.updateTime, 500)
         },
         stopUpdatingTime() {
-            if(this.updateInterval) clearInterval(this.updateInterval);
-            if(this.calibrateInterval) clearInterval(this.calibrateInterval);
+            clearInterval(this.updateInterval);
+            clearInterval(this.calibrateInterval);
         },
         calibrateOffset() {
             Http.get(utilUrls.ntpTime).then(res=>{

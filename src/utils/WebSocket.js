@@ -14,14 +14,14 @@ class WebSocketObj {
         }
         this.socket.onerror = ()=>{
             // console.log(`${this.url} 连接失败`)
-            if(this.timer) clearTimeout(this.timer)
+            clearTimeout(this.timer)
             this.timer = setTimeout(() => {
                 if(this.shouldConnect) this.reconnect()
             }, this.retryInterval);
         }
         this.socket.onclose = ()=>{
             // console.log(`${this.url} 断开连接`)
-            if(this.timer) clearTimeout(this.timer)
+            clearTimeout(this.timer)
             this.timer = setTimeout(() => {
                 if(this.shouldConnect) this.reconnect()
             }, this.retryInterval);
@@ -40,7 +40,7 @@ class WebSocketObj {
     }
     close(){
         this.shouldConnect = false
-        if(this.timer) clearTimeout(this.timer)
+        clearTimeout(this.timer)
         if(this.socket){
             this.socket.onopen = null
             this.socket.onclose = null

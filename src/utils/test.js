@@ -1,6 +1,6 @@
 import { onMounted } from 'vue'
 
-const generateEewMessage = (eqMessage)=>{
+const generateJmaEewMessage = (eqMessage)=>{
     onMounted(()=>{
         const time = new Date()
         time.setHours(time.getHours() + 1)
@@ -275,39 +275,39 @@ const generateEewMessage = (eqMessage)=>{
             }
             Object.assign(eqMessage, message)
         }, 12000);
-        // setTimeout(() => {
-        //     const message = {
-        //         id: '20110311144640',
-        //         isEew: true,
-        //         reportNum: 9,
-        //         reportNumText: '第9報',
-        //         reportTime: '',
-        //         isWarn: true,
-        //         isFinal: true,
-        //         isCanceled: true,
-        //         title: '緊急地震速報（警報）',
-        //         titleText: '緊急地震速報（警報）（取消）',
-        //         hypocenter: '三陸沖',
-        //         hypocenterText: '震源地: 三陸沖',
-        //         lat: 38.1,
-        //         lng: 142.9,
-        //         depth: 10,
-        //         depthText: '深さ: 10km',
-        //         originTime: timeStr,
-        //         originTimeText: '発震時刻: ' + timeStr,
-        //         magnitude: 8.9,
-        //         magnitudeText: 'マグニチュード: 8.9',
-        //         useShindo: true,
-        //         maxIntensity: '7',
-        //         maxIntensityText: '推定最大震度: 7',
-        //         className: 'gray',
-        //         info: '',
-        //     }
-        //     Object.assign(eqMessage, message)
-        // }, 15000);
+        setTimeout(() => {
+            const message = {
+                id: '20110311144640',
+                isEew: true,
+                reportNum: 9,
+                reportNumText: '第9報',
+                reportTime: '',
+                isWarn: true,
+                isFinal: true,
+                isCanceled: true,
+                title: '緊急地震速報（警報）',
+                titleText: '緊急地震速報（警報）（取消）',
+                hypocenter: '三陸沖',
+                hypocenterText: '震源地: 三陸沖',
+                lat: 38.1,
+                lng: 142.9,
+                depth: 10,
+                depthText: '深さ: 10km',
+                originTime: timeStr,
+                originTimeText: '発震時刻: ' + timeStr,
+                magnitude: 8.9,
+                magnitudeText: 'マグニチュード: 8.9',
+                useShindo: true,
+                maxIntensity: '7',
+                maxIntensityText: '推定最大震度: 7',
+                className: 'gray',
+                info: '',
+            }
+            Object.assign(eqMessage, message)
+        }, 15000);
     })
 }
-const generateEqlistMessage = (eqMessage)=>{
+const generateJmaEqlistMessage = (eqMessage)=>{
     onMounted(()=>{
         const time = new Date()
         time.setHours(time.getHours() + 1)
@@ -435,4 +435,67 @@ const generateEqlistMessage = (eqMessage)=>{
     })
 }
 
-export { generateEewMessage, generateEqlistMessage }
+const generateCwaEewMessage = (eqMessage)=>{
+    onMounted(()=>{
+        const time = new Date()
+        time.setHours(time.getHours())
+        const timeStr = time.toLocaleString()
+        setTimeout(() => {
+            const message = {
+                id: '20240403075800',
+                isEew: true,
+                reportNum: 1,
+                reportNumText: '第1報',
+                reportTime: '',
+                isWarn: true,
+                isFinal: false,
+                isCanceled: false,
+                titleText: '中央氣象署地震速報',
+                hypocenter: '花蓮縣壽豐鄉',
+                hypocenterText: '震央: 花蓮縣壽豐鄉',
+                lat: 23.88,
+                lng: 121.54,
+                depth: 20,
+                depthText: '深度: 20km',
+                originTime: timeStr,
+                originTimeText: '時間: ' + timeStr,
+                magnitude: 6.8,
+                magnitudeText: '規模: 6.8',
+                useShindo: true,
+                maxIntensity: '6弱',
+                maxIntensityText: '預估最大震度: 6弱',
+                className: 'red',
+            }
+            Object.assign(eqMessage, message)
+        }, 6000);
+        setTimeout(() => {
+            const message = {
+                id: '20240403075800',
+                isEew: true,
+                reportNum: 2,
+                reportNumText: '第2報',
+                reportTime: '',
+                isWarn: true,
+                isFinal: false,
+                isCanceled: false,
+                titleText: '中央氣象署地震速報',
+                hypocenter: '花蓮縣壽豐鄉',
+                hypocenterText: '震央: 花蓮縣壽豐鄉',
+                lat: 23.89,
+                lng: 121.56,
+                depth: 20,
+                depthText: '深度: 20km',
+                originTime: timeStr,
+                originTimeText: '時間: ' + timeStr,
+                magnitude: 6.8,
+                magnitudeText: '規模: 6.8',
+                useShindo: true,
+                maxIntensity: '6強',
+                maxIntensityText: '預估最大震度: 6強',
+                className: 'red',
+            }
+            Object.assign(eqMessage, message)
+        }, 7000);
+    })
+}
+export { generateJmaEewMessage, generateJmaEqlistMessage, generateCwaEewMessage }

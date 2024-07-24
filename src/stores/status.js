@@ -2,14 +2,32 @@ import { defineStore } from 'pinia'
 
 export const useStatusStore = defineStore('statusStore', {
     state: ()=>({
-        currentMap: '',
+        eqMessages: {
+            jmaEew: {},
+            cwaEew: {},
+            scEew: {},
+            fjEew: {},
+            jmaEqlist: {},
+            cencEqlist: {},
+        },
+        isActive: {
+            jmaEew: false,
+            cwaEew: false,
+            scEew: false,
+            fjEew: false,
+            jmaEqlist: false,
+            cencEqlist: false,
+        }
     }),
     getters: {
         
     },
     actions: {
-        setCurrentMap(source){
-            this.currentMap = source
+        setEqMessage(source, eqMessage){
+            this.eqMessages[source] = Object.assign({}, eqMessage)
+        },
+        setActive(source, isActive){
+            this.isActive[source] = isActive
         }
     }
 })

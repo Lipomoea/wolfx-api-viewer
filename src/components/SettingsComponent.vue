@@ -17,8 +17,8 @@
                                 <el-switch v-model="settingsStore.mainSettings.onEewWarn.sound" :disabled="settingsStore.mainSettings.onEew.sound"></el-switch>
                             </div>
                             <div class="switch">
-                                <span>打开地图</span>
-                                <el-switch v-model="settingsStore.mainSettings.onEewWarn.showMap" :disabled="settingsStore.mainSettings.onEew.showMap"></el-switch>
+                                <span>切换菜单</span>
+                                <el-switch v-model="settingsStore.mainSettings.onEewWarn.switchMenu" :disabled="settingsStore.mainSettings.onEew.switchMenu"></el-switch>
                             </div>
                             <!-- <div class="switch">
                                 <span>弹出界面</span>
@@ -38,8 +38,8 @@
                                 <el-switch v-model="settingsStore.mainSettings.onEew.sound"></el-switch>
                             </div>
                             <div class="switch">
-                                <span>打开地图</span>
-                                <el-switch v-model="settingsStore.mainSettings.onEew.showMap"></el-switch>
+                                <span>切换菜单</span>
+                                <el-switch v-model="settingsStore.mainSettings.onEew.switchMenu"></el-switch>
                             </div>
                             <!-- <div class="switch">
                                 <span>弹出界面</span>
@@ -59,8 +59,8 @@
                                 <el-switch v-model="settingsStore.mainSettings.onReport.sound"></el-switch>
                             </div>
                             <div class="switch">
-                                <span>打开地图</span>
-                                <el-switch v-model="settingsStore.mainSettings.onReport.showMap"></el-switch>
+                                <span>切换菜单</span>
+                                <el-switch v-model="settingsStore.mainSettings.onReport.switchMenu"></el-switch>
                             </div>
                             <!-- <div class="switch">
                                 <span>弹出界面</span>
@@ -92,8 +92,8 @@
                 <div class="group">
                     <div class="row">
                         <div class="switchGroup">
-                            <div class="switch">
-                                <span>所在地经纬度（均设置时才生效）：</span>
+                            <div class="switch force-wrap">
+                                <span style="width: 100%;">所在地经纬度（均设置时才生效）：</span>
                                 <span>纬度</span>
                                 <el-input
                                 class="latLng"
@@ -117,18 +117,18 @@
                                 <span>显示所在地</span>
                                 <el-switch v-model="settingsStore.mainSettings.displayUser"></el-switch>
                             </div>
-                            <div class="switch">
+                            <!-- <div class="switch">
                                 <span>显示地震波倒计时</span>
                                 <el-switch v-model="settingsStore.mainSettings.displayCountdown"></el-switch>
                             </div>
                             <div class="switch">
                                 <span>地震波倒计时显示小数</span>
                                 <el-switch v-model="settingsStore.mainSettings.decimalCountdown"></el-switch>
-                            </div>
+                            </div> -->
                         </div>
                     </div>
                 </div>
-                <div class="subTitle">关于</div>
+                <!-- <div class="subTitle">关于</div>
                 <div class="group">
                     <div class="row">
                         <div class="switchGroup">
@@ -138,7 +138,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> -->
             </div>
         </div>
     </div>
@@ -213,10 +213,8 @@ const autoLocate = async ()=>{
 .outer{
     width: 100%;
     .container{
-        border: black 1px solid;
-        border-radius: 10px;
-        padding: 15px;
-        margin: 0px 20px 20px;
+        min-width: 430px;
+        padding: 10px;
         display: flex;
         flex-direction: column;
         gap: 10px;
@@ -235,21 +233,23 @@ const autoLocate = async ()=>{
                 display: flex;
                 align-items: center;
                 flex-wrap: wrap;
-                row-gap: 2px;
+                row-gap: 5px;
                 column-gap: 40px;
                 margin-bottom: 5px;
                 .row{
                     display: flex;
+                    flex-wrap: wrap;
                     align-items: center;
-                    gap: 10px;
+                    column-gap: 10px;
                     .switchGroup{
                         display: flex;
+                        flex-wrap: wrap;
                         align-items: center;
-                        gap: 20px;
+                        column-gap: 15px;
                         .switch{
                             display: flex;
                             align-items: center;
-                            gap: 5px;
+                            column-gap: 5px;
                             .latLng{
                                 width: 70px;
                             }
@@ -262,5 +262,9 @@ const autoLocate = async ()=>{
             }
         }
     }
+}
+.force-wrap{
+    flex-wrap: wrap;
+    row-gap: 5px;
 }
 </style>
