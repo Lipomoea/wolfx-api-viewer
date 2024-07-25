@@ -162,6 +162,40 @@
                             </div>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="switchGroup">
+                            <div class="switch force-wrap">
+                                <span style="width: 100%;">显示地震监测网：</span>
+                                <span>強震モニタ（リアルタイム震度）</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.nied"></el-switch>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="subTitle">高级</div>
+                <div class="group" v-if="settingsStore.advancedSettings.displayNiedShindoSwitch">
+                    <div class="row">
+                        <div class="switchGroup">
+                            <div class="switch">
+                                <span>显示強震モニタ震度</span>
+                                <el-switch v-model="settingsStore.advancedSettings.displayNiedShindo"></el-switch>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="group">
+                    <div class="row">
+                        <div class="switchGroup">
+                            <div class="switch">
+                                <span>输入指令</span>
+                                <el-input
+                                v-model="advancedInput"
+                                size="small"
+                                style="width: 300px;"
+                                @change="handleAdvance"></el-input>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <!-- <div class="subTitle">关于</div>
                 <div class="group">
@@ -184,6 +218,7 @@ import { useSettingsStore } from '@/stores/settings';
 import { useStatusStore } from '@/stores/status';
 import { utilUrls } from '@/utils/Urls';
 import Http from '@/utils/Http';
+import { ref } from 'vue'
 
 const settingsStore = useSettingsStore()
 const statusStore = useStatusStore()
@@ -292,6 +327,21 @@ const clearViewLatLng = ()=>{
         message: '清除完成',
         type: 'success',
     })
+}
+const advancedInput = ref('')
+const handleAdvance = (val)=>{
+    switch(val){
+        case 'displayNiedShindo': {
+            settingsStore.advancedSettings.displayNiedShindoSwitch = true
+            break
+        }
+        case 'hideNiedShindo': {
+            settingsStore.advancedSettings.displayNiedShindo = false
+            settingsStore.advancedSettings.displayNiedShindoSwitch = false
+            break
+        }
+    }
+    advancedInput.value = ''
 }
 </script>
 

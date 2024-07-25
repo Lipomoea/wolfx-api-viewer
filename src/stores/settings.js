@@ -29,8 +29,15 @@ export const useSettingsStore = defineStore('settingsStore', {
             defaultZoom: 7,
             displayCountdown: false,
             decimalCountdown: false,
+            displaySeisNet: {
+                nied: true,
+            },
             showAbout: false,
         },
+        advancedSettings: {
+            displayNiedShindoSwitch: false,
+            displayNiedShindo: false,
+        }
     }),
     getters: {
         requestNotification: (state)=>(
@@ -43,6 +50,11 @@ export const useSettingsStore = defineStore('settingsStore', {
         setMainSettings(jsonString){
             if(jsonString){
                 Object.assign(this.mainSettings, JSON.parse(jsonString))
+            }
+        },
+        setAdvancedSettings(jsonString){
+            if(jsonString){
+                Object.assign(this.advancedSettings, JSON.parse(jsonString))
             }
         },
     }

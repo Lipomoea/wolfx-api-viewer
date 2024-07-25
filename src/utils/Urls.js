@@ -11,9 +11,11 @@ const eqUrls = {
     jmaEqlist_http: 'https://api.wolfx.jp/jma_eqlist.json',
     jmaEqlist_ws: 'wss://ws-api.wolfx.jp/jma_eqlist',
 }
-const stationUrls = {
-    STATION_LIST_http: 'https://api.wolfx.jp/seis_list.json',
-    ALL_PUSH_ws: 'wss://seis.wolfx.jp/all_seis',
+const seisNetUrls = {
+    nied: {
+        stationList: 'https://weather-kyoshin.east.edge.storage-yahoo.jp/SiteList/sitelist.json',
+        stationData: 'https://weather-kyoshin.east.edge.storage-yahoo.jp/RealTimeData',
+    },
 }
 const iconUrls = {
     info: '/icon/info.png',
@@ -42,4 +44,4 @@ const utilUrls = {
     ntpTime: 'https://worldtimeapi.org/api/timezone/Asia/Hong_Kong',
 }
 
-export { eqUrls, stationUrls, iconUrls, chimeUrls, geojsonUrls, utilUrls }
+export { eqUrls, seisNetUrls, iconUrls, chimeUrls, geojsonUrls, utilUrls }

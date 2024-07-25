@@ -142,5 +142,30 @@ const extractNumbers = (str)=>{
     }
     return numberString
 }
+const getTimeNumberString = (timeZone, offset)=>{
+    const timeStore = useTimeStore()
+    const now = new Date(Date.now() + timeStore.offset + timeZone * 3600 * 1000 + offset);
+    const year = now.getUTCFullYear();
+    const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(now.getUTCDate()).padStart(2, '0');
+    const hours = String(now.getUTCHours()).padStart(2, '0');
+    const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(now.getUTCSeconds()).padStart(2, '0');
+    return `${year}${month}${day}${hours}${minutes}${seconds}`;
+}
 
-export { formatNumber, formatText, msToTime, calcPassedTime, compareTime, sendNotification, setClassName, playSound, calcWaveDistance, calcReachTime, extractNumbers }
+const getShindoFromChar = (char)=>{
+    if(char >= 'd' && char <= 'k') return '0'
+    if(char >= 'l' && char <= 'm') return '1'
+    if(char >= 'n' && char <= 'o') return '2'
+    if(char >= 'p' && char <= 'q') return '3'
+    if(char >= 'r' && char <= 's') return '4'
+    if(char == 't') return '5-'
+    if(char == 'u') return '5+'
+    if(char == 'v') return '6-'
+    if(char == 'w') return '6+'
+    if(char == 'x') return '7'
+    return '?'
+}
+
+export { formatNumber, formatText, msToTime, calcPassedTime, compareTime, sendNotification, setClassName, playSound, calcWaveDistance, calcReachTime, extractNumbers, getTimeNumberString, getShindoFromChar }

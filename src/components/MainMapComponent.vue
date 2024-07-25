@@ -2,7 +2,7 @@
     <div class="outer">
         <div class="container">
             <div class="mapContainer">
-                <div id="mainMap" @wheel="isAutoZoom = false"></div>
+                <div id="mainMap" @wheel="isAutoZoom = false" @dblclick="isAutoZoom = false"></div>
                 <div class="eewList">
                     <div class="eew" v-for="source of activeEewList" :key="source" v-show="menuId != 'eqlists'">
                         <div class="bar" :class="getBarClass(eewEvents[source].eqMessage)">{{ eewEvents[source].eqMessage.titleText + ' ' + eewEvents[source].eqMessage.reportNumText }}</div>
@@ -36,6 +36,16 @@
                                 <div class="bottom">
                                     <div class="magnitude">{{ eqlistEvents[source].eqMessage.magnitude?'M' + eqlistEvents[source].eqMessage.magnitude.toFixed(1):'規模: 調査中' }}</div>
                                     <div class="depth">{{ eqlistEvents[source].eqMessage.depthText }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="eew" v-if="settingsStore.advancedSettings.displayNiedShindo">
+                        <div class="bar" :class="setClassName(niedMaxShindo)" style="font-weight: 500;">最大震度</div>
+                        <div class="info" :class="setClassName(niedMaxShindo)">
+                            <div class="intensity" style="border: none;">
+                                <div class="intText">
+                                    {{ niedMaxShindo }}
                                 </div>
                             </div>
                         </div>
@@ -80,6 +90,7 @@
             </div>
             <div class="drawer" v-show="menuId != 'main'">
                 <EewComponent v-show="menuId == 'eews'"></EewComponent>
+                <SeisNetComponent></SeisNetComponent>
                 <EqlistComponent v-show="menuId == 'eqlists'"></EqlistComponent>
                 <SettingsComponent v-show="menuId == 'settings'"></SettingsComponent>
             </div>
@@ -97,9 +108,11 @@ import { useDataStore } from '@/stores/data';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import EewComponent from './EewComponent.vue';
+import SeisNetComponent from './SeisNetComponent.vue';
 import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
 import { EewEvent, EqlistEvent } from '@/classes/EewEqlistClasses';
+import { setClassName } from '@/utils/Utils';
 
 const settingsStore = useSettingsStore()
 let map, baseMap
@@ -125,6 +138,8 @@ const handleMenu = (index)=>{
 }
 provide('handleMenu', handleMenu)
 provide('handleHome', handleHome)
+const niedMaxShindo = ref('?')
+provide('niedMaxShindo', niedMaxShindo)
 const isAutoZoom = ref(true)
 const dataStore = useDataStore()
 const statusStore = useStatusStore()
@@ -167,19 +182,23 @@ onMounted(()=>{
     map.removeControl(map.zoomControl)
     map.createPane('basePane')
     map.getPane('basePane').style.zIndex = 0
+    for(let i = -1; i <= 20; i++){
+        map.createPane(`stationPane${i}`)
+        map.getPane(`stationPane${i}`).style.zIndex = i + 10
+    }
     map.createPane('wavePane')
     wavePane = map.getPane('wavePane')
-    wavePane.style.zIndex = 10
+    wavePane.style.zIndex = 100
     map.createPane('userPane')
-    map.getPane('userPane').style.zIndex = 15
+    map.getPane('userPane').style.zIndex = 150
     map.createPane('eewMarkerPane')
     eewMarkerPane = map.getPane('eewMarkerPane')
-    eewMarkerPane.style.zIndex = 20
+    eewMarkerPane.style.zIndex = 200
     map.createPane('eqlistMarkerPane')
     eqlistMarkerPane = map.getPane('eqlistMarkerPane')
-    eqlistMarkerPane.style.zIndex = 20
+    eqlistMarkerPane.style.zIndex = 200
     loadBaseMap(toRaw(dataStore.geojson.global))
-    map.setView(userLatLng.value, zoomLevel.value)
+    map.setView([0, 0], 2)
     map.on('dragstart', ()=>{
         isAutoZoom.value = false
     })
