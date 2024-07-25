@@ -61,6 +61,8 @@ class NiedStation {
     }
     terminate(){
         if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
+        this.map = null
+        this.marker = null
     }
 }
 export { NiedStation }

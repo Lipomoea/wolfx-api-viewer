@@ -74,10 +74,11 @@ onMounted(()=>{
         delay.value -= 20
     }, 10000);
 })
+let unwatchStationList
 watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
-        watch(stationList, newVal=>{
+        unwatchStationList = watch(stationList, newVal=>{
             newVal.forEach(latLng=>{
                 const station = new NiedStation(map, latLng, 'c')
                 stations.push(station)
@@ -90,9 +91,12 @@ onBeforeUnmount(()=>{
     clearInterval(requestInterval)
     clearInterval(delayInterval)
     if(map !== null) map.off('zoom', handleZoom)
-    stations.forEach(station=>{
+    if(unwatchStationList) unwatchStationList()
+    stations.forEach((station, index)=>{
         station.terminate()
+        stations[index] = null
     })
+    stations.length = 0
 })
 </script>
 
