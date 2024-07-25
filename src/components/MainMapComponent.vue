@@ -108,7 +108,9 @@ const isValidUserLatLng = computed(()=>settingsStore.mainSettings.userLatLng.eve
 const isDisplayUser = computed(()=>isValidUserLatLng.value && settingsStore.mainSettings.displayUser)
 const userLatLng = computed(()=>settingsStore.mainSettings.userLatLng.map(val=>Number(val)))
 let userMarker
-let zoomLevel = 7
+const isValidViewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.every(item=>item !== ''))
+const viewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.map(val=>Number(val)))
+const zoomLevel = computed(()=>settingsStore.mainSettings.defaultZoom)
 const menuId = ref('main')
 const handleHome = ()=>{
     isAutoZoom.value = true
@@ -161,6 +163,7 @@ const getBarClass = (eqMessage)=>{
 }
 onMounted(()=>{
     map = L.map('mainMap', {attributionControl: false})
+    statusStore.map = map
     map.removeControl(map.zoomControl)
     map.createPane('basePane')
     map.getPane('basePane').style.zIndex = 0
@@ -176,7 +179,7 @@ onMounted(()=>{
     eqlistMarkerPane = map.getPane('eqlistMarkerPane')
     eqlistMarkerPane.style.zIndex = 20
     loadBaseMap(toRaw(dataStore.geojson.global))
-    map.setView(userLatLng.value, zoomLevel)
+    map.setView(userLatLng.value, zoomLevel.value)
     map.on('dragstart', ()=>{
         isAutoZoom.value = false
     })
@@ -271,7 +274,8 @@ const setView = ()=>{
         })
     }
     if(bounds.isValid()) map.fitBounds(bounds, {maxZoom: 8, minZoom: 4, padding:[50, 50]})
-    else map.setView(userLatLng.value, zoomLevel)
+    else if(isValidViewLatLng.value) map.setView(viewLatLng.value, zoomLevel.value)
+    else map.setView(userLatLng.value, zoomLevel.value)
 }
 const loadBaseMap = (geojson)=>{
     if(Object.keys(geojson).length != 0){

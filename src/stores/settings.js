@@ -25,6 +25,8 @@ export const useSettingsStore = defineStore('settingsStore', {
             soundEffect: 'srev',
             userLatLng: ['', ''],
             displayUser: false,
+            viewLatLng: ['', ''],
+            defaultZoom: 7,
             displayCountdown: false,
             decimalCountdown: false,
             showAbout: false,

@@ -100,14 +100,14 @@
                                 v-model="settingsStore.mainSettings.userLatLng[0]"
                                 size="small"
                                 maxlength="10"
-                                @change="setLat"></el-input>
+                                @change="setLat('userLatLng')"></el-input>
                                 <span style="margin-left: 10px;">经度</span>
                                 <el-input
                                 class="latLng"
                                 v-model="settingsStore.mainSettings.userLatLng[1]"
                                 size="small"
                                 maxlength="10"
-                                @change="setLng"></el-input>
+                                @change="setLng('userLatLng')"></el-input>
                                 <el-button
                                 style="margin-left: 10px;"
                                 size="small"
@@ -125,6 +125,41 @@
                                 <span>地震波倒计时显示小数</span>
                                 <el-switch v-model="settingsStore.mainSettings.decimalCountdown"></el-switch>
                             </div> -->
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="switchGroup">
+                            <div class="switch force-wrap">
+                                <span style="width: 100%;">自定义视野（均设置时才生效）：</span>
+                                <span>纬度</span>
+                                <el-input
+                                class="latLng"
+                                v-model="settingsStore.mainSettings.viewLatLng[0]"
+                                size="small"
+                                maxlength="10"
+                                @change="setLat('viewLatLng')"></el-input>
+                                <span style="margin-left: 10px;">经度</span>
+                                <el-input
+                                class="latLng"
+                                v-model="settingsStore.mainSettings.viewLatLng[1]"
+                                size="small"
+                                maxlength="10"
+                                @change="setLng('viewLatLng')"></el-input>
+                                <span style="margin-left: 10px;">默认缩放</span>
+                                <el-input
+                                v-model="settingsStore.mainSettings.defaultZoom"
+                                type="number"
+                                size="small"
+                                maxlength="5"
+                                style="width: 50px;"
+                                @change="setDefaultZoom"></el-input>
+                                <el-button
+                                size="small"
+                                @click="setCurrentViewAsDefault">设定当前视野</el-button>
+                                <el-button
+                                size="small"
+                                @click="clearViewLatLng">清除经纬度</el-button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -146,32 +181,34 @@
 
 <script setup>
 import { useSettingsStore } from '@/stores/settings';
+import { useStatusStore } from '@/stores/status';
 import { utilUrls } from '@/utils/Urls';
 import Http from '@/utils/Http';
 
 const settingsStore = useSettingsStore()
-const setLat = (val)=>{
+const statusStore = useStatusStore()
+const setLat = (type)=>(val)=>{
     if(val === '') return
     let number = Number(val)
     if(isNaN(number)){
-        settingsStore.mainSettings.userLatLng[0] = ''
+        settingsStore.mainSettings[type][0] = ''
     }
     else{
         if(number > 90) number = 90
         if(number < -90) number = -90
-        settingsStore.mainSettings.userLatLng[0] = number.toString()
+        settingsStore.mainSettings[type][0] = number.toString()
     }
 }
-const setLng = (val)=>{
+const setLng = (type)=>(val)=>{
     if(val === '') return
     let number = Number(val)
     if(isNaN(number)){
-        settingsStore.mainSettings.userLatLng[1] = ''
+        settingsStore.mainSettings[type][1] = ''
     }
     else{
         if(number > 180) number = 180
         if(number < -180) number = -180
-        settingsStore.mainSettings.userLatLng[1] = number.toString()
+        settingsStore.mainSettings[type][1] = number.toString()
     }
 }
 const autoLocate = async ()=>{
@@ -193,8 +230,8 @@ const autoLocate = async ()=>{
                 showClose: false,
             }
         ).then(()=>{
-            setLat(res.latitude)
-            setLng(res.longitude)
+            setLat('userLatLng')(res.latitude)
+            setLng('userLatLng')(res.longitude)
             ElMessage({
                 message: '位置更新成功',
                 type: 'success',
@@ -206,6 +243,55 @@ const autoLocate = async ()=>{
             })
         })
     }
+}
+const setDefaultZoom = (val)=>{
+    if(val > 18) val = 18
+    if(val < 0) val = 0
+    settingsStore.mainSettings.defaultZoom = val
+}
+const setCurrentViewAsDefault = ()=>{
+    const map = statusStore.map
+    if(map == null){
+        ElMessage({
+            message: '地图未加载',
+            type: 'error',
+        })
+    }
+    else{
+        ElMessageBox.confirm(
+            '是否设定当前视野为默认视野？',
+            '设定当前视野',
+            {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'info',
+                showClose: false,
+            }
+        ).then(()=>{
+            const { lat, lng } = map.getCenter()
+            const zoom = map.getZoom()
+            setLat('viewLatLng')(lat)
+            setLng('viewLatLng')(lng)
+            setDefaultZoom(zoom)
+            ElMessage({
+                message: '设定成功',
+                type: 'success',
+            })
+        }).catch(()=>{
+            ElMessage({
+                message: '取消设置',
+                type: 'info',
+            })
+        })
+    }
+}
+const clearViewLatLng = ()=>{
+    settingsStore.mainSettings.viewLatLng[0] = ''
+    settingsStore.mainSettings.viewLatLng[1] = ''
+    ElMessage({
+        message: '清除完成',
+        type: 'success',
+    })
 }
 </script>
 
