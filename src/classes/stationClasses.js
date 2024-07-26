@@ -1,6 +1,8 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getShindoFromChar } from '@/utils/Utils';
+import { useSettingsStore } from '@/stores/settings';
+import { shindoIconUrls } from '@/utils/Urls';
 
 let colorBand = [
     '#0014da', '#0037f0', '#006cdc', '#00aca9', '#0cd87a', 
@@ -10,8 +12,10 @@ let colorBand = [
     '#af0000'
 ]
 
+let settingsStore
 class NiedStation {
     constructor(map, latLng, intensity){
+        settingsStore = useSettingsStore()
         this.map = map
         this.latLng = latLng
         this.intensity = intensity
@@ -40,14 +44,27 @@ class NiedStation {
     render(){
         this.setColorRadius()
         if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
-        this.marker = L.circleMarker(this.latLng, {
-            radius: this.radius,
-            fillOpacity: 1,
-            color: this.color,
-            fillColor: this.color,
-            weight: 0,
-            pane: `stationPane${this.level}`,
-        })
+        if(settingsStore.advancedSettings.displayNiedShindo && this.level >= 6 && this.map.getZoom() >= 4){
+            const shindoIcon = L.icon({
+                iconUrl: shindoIconUrls[this.shindo],
+                iconSize: [this.radius * 2, this.radius * 2],
+                iconAnchor: [this.radius, this.radius],
+            })
+            this.marker = L.marker(this.latLng, {
+                icon: shindoIcon,
+                pane: `stationPane${this.level}`,
+            })
+        }
+        else{
+            this.marker = L.circleMarker(this.latLng, {
+                radius: this.radius,
+                fillOpacity: 1,
+                color: this.color,
+                fillColor: this.color,
+                weight: 0,
+                pane: `stationPane${this.level}`,
+            })
+        }
         this.marker.addTo(this.map)
     }
     setColorRadius(){
@@ -57,7 +74,13 @@ class NiedStation {
         else{
             this.color = colorBand[this.level]
         }
-        this.radius = (2 + this.level * 0.1) * 2 ** (Math.min(Math.max(this.map.getZoom(), 4), 10) / 2 - 3)
+        const zoom = this.map.getZoom()
+        if(settingsStore.advancedSettings.displayNiedShindo && this.level >= 6 && zoom >= 4){
+            this.radius = 8 * 1.5 ** (Math.min(Math.max(zoom, 6), 10) / 2 - 3)
+        }
+        else{
+            this.radius = (2 + this.level * 0.1) * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+        }
     }
     terminate(){
         if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)

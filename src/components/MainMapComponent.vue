@@ -53,7 +53,7 @@
                 </div>
                 <div class="left-bottom">
                     <div class="nied-update-time" v-if="settingsStore.mainSettings.displaySeisNet.nied">
-                        nied: {{ niedUpdateTime }}
+                        強震モニタ: {{ niedUpdateTime }}
                     </div>
                 </div>
                 <!-- <div class="countdown" v-if="isDisplayCountdown">
@@ -184,6 +184,14 @@ const getBarClass = (eqMessage)=>{
 }
 onMounted(()=>{
     map = L.map('mainMap', {attributionControl: false})
+    //傻逼Leaflet
+    L.Marker.prototype._animateZoom = function (opt) {
+        if (!this._map) {
+            return;
+        }
+        const pos = this._map._latLngToNewLayerPoint(this._latlng, opt.zoom, opt.center).round();
+        this._setPos(pos);
+    }
     statusStore.map = map
     map.removeControl(map.zoomControl)
     map.createPane('basePane')

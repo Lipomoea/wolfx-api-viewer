@@ -22,6 +22,18 @@ const iconUrls = {
     caution: '/icon/caution.png',
     warn: '/icon/warn.png',
 }
+const shindoIconUrls = {
+    '0': '/icon/shindo/0.svg',
+    '1': '/icon/shindo/1.svg',
+    '2': '/icon/shindo/2.svg',
+    '3': '/icon/shindo/3.svg',
+    '4': '/icon/shindo/4.svg',
+    '5-': '/icon/shindo/5-.svg',
+    '5+': '/icon/shindo/5+.svg',
+    '6-': '/icon/shindo/6-.svg',
+    '6+': '/icon/shindo/6+.svg',
+    '7': '/icon/shindo/7.svg',
+}
 const chimeUrls = {
     srev: {
         happyou: '/sound/srev/happyou.mp3',
@@ -44,4 +56,4 @@ const utilUrls = {
     ntpTime: 'https://worldtimeapi.org/api/timezone/Asia/Hong_Kong',
 }
 
-export { eqUrls, seisNetUrls, iconUrls, chimeUrls, geojsonUrls, utilUrls }
+export { eqUrls, seisNetUrls, iconUrls, shindoIconUrls, chimeUrls, geojsonUrls, utilUrls }

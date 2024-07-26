@@ -9,7 +9,6 @@ import { ref, onMounted, onBeforeUnmount, watch, inject } from 'vue'
 import Http from '@/utils/Http';
 import axios from 'axios';
 import { useStatusStore } from '@/stores/status';
-import { useTimeStore } from '@/stores/time';
 import { seisNetUrls } from '@/utils/Urls';
 import { getTimeNumberString } from '@/utils/Utils';
 import 'leaflet/dist/leaflet.css';
@@ -17,7 +16,6 @@ import { NiedStation } from '@/classes/stationClasses';
 import { getShindoFromChar } from '@/utils/Utils';
 
 const statusStore = useStatusStore()
-const timeStore = useTimeStore()
 const stationList = ref([])
 const stationData = ref([])
 const stations = []
@@ -47,7 +45,7 @@ const update = ()=>{
         niedMaxShindo.value = getShindoFromChar(maxChar)
     }
 }
-const handleZoom = ()=>{
+const renderAll = ()=>{
     stations.forEach(station=>{
         station.render()
     })
@@ -84,13 +82,13 @@ watch(()=>statusStore.map, newVal=>{
                 stations.push(station)
             })
         }, { immediate: true })
-        map.on('zoom', handleZoom)
+        map.on('zoomend', renderAll)
     }
 }, { immediate: true })
 onBeforeUnmount(()=>{
     clearInterval(requestInterval)
     clearInterval(delayInterval)
-    if(map !== null) map.off('zoom', handleZoom)
+    if(map !== null) map.off('zoomend', renderAll)
     if(unwatchStationList) unwatchStationList()
     stations.forEach((station, index)=>{
         station.terminate()
