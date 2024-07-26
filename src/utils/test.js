@@ -275,36 +275,36 @@ const generateJmaEewMessage = (eqMessage)=>{
             }
             Object.assign(eqMessage, message)
         }, 12000);
-        setTimeout(() => {
-            const message = {
-                id: '20110311144640',
-                isEew: true,
-                reportNum: 9,
-                reportNumText: '第9報',
-                reportTime: '',
-                isWarn: true,
-                isFinal: true,
-                isCanceled: true,
-                title: '緊急地震速報（警報）',
-                titleText: '緊急地震速報（警報）（取消）',
-                hypocenter: '三陸沖',
-                hypocenterText: '震源地: 三陸沖',
-                lat: 38.1,
-                lng: 142.9,
-                depth: 10,
-                depthText: '深さ: 10km',
-                originTime: timeStr,
-                originTimeText: '発震時刻: ' + timeStr,
-                magnitude: 8.9,
-                magnitudeText: 'マグニチュード: 8.9',
-                useShindo: true,
-                maxIntensity: '7',
-                maxIntensityText: '推定最大震度: 7',
-                className: 'gray',
-                info: '',
-            }
-            Object.assign(eqMessage, message)
-        }, 15000);
+        // setTimeout(() => {
+        //     const message = {
+        //         id: '20110311144640',
+        //         isEew: true,
+        //         reportNum: 9,
+        //         reportNumText: '第9報',
+        //         reportTime: '',
+        //         isWarn: true,
+        //         isFinal: true,
+        //         isCanceled: true,
+        //         title: '緊急地震速報（警報）',
+        //         titleText: '緊急地震速報（警報）（取消）',
+        //         hypocenter: '三陸沖',
+        //         hypocenterText: '震源地: 三陸沖',
+        //         lat: 38.1,
+        //         lng: 142.9,
+        //         depth: 10,
+        //         depthText: '深さ: 10km',
+        //         originTime: timeStr,
+        //         originTimeText: '発震時刻: ' + timeStr,
+        //         magnitude: 8.9,
+        //         magnitudeText: 'マグニチュード: 8.9',
+        //         useShindo: true,
+        //         maxIntensity: '7',
+        //         maxIntensityText: '推定最大震度: 7',
+        //         className: 'gray',
+        //         info: '',
+        //     }
+        //     Object.assign(eqMessage, message)
+        // }, 15000);
     })
 }
 const generateJmaEqlistMessage = (eqMessage)=>{

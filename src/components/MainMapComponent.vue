@@ -8,7 +8,7 @@
                         <div class="bar" :class="getBarClass(eewEvents[source].eqMessage)">{{ eewEvents[source].eqMessage.titleText + ' ' + eewEvents[source].eqMessage.reportNumText }}</div>
                         <div class="info gray">
                             <div class="intensity" :class="eewEvents[source].eqMessage.className">
-                                <div class="intText">
+                                <div :class="eewEvents[source].eqMessage.useShindo?'shindo':'csis'">
                                     {{ formatIntensity(eewEvents[source].eqMessage.maxIntensity) }}
                                 </div>
                             </div>
@@ -26,7 +26,7 @@
                         <div class="bar" :class="getBarClass(eqlistEvents[source].eqMessage)">{{ eqlistEvents[source].eqMessage.titleText + ' ' + eqlistEvents[source].eqMessage.reportNumText }}</div>
                         <div class="info gray">
                             <div class="intensity" :class="eqlistEvents[source].eqMessage.className">
-                                <div class="intText">
+                                <div :class="eqlistEvents[source].eqMessage.useShindo?'shindo':'csis'">
                                     {{ formatIntensity(eqlistEvents[source].eqMessage.maxIntensity) }}
                                 </div>
                             </div>
@@ -40,18 +40,22 @@
                             </div>
                         </div>
                     </div>
-                    <div class="eew" v-if="settingsStore.advancedSettings.displayNiedShindo">
-                        <div class="bar" :class="setClassName(niedMaxShindo)" style="font-weight: 500;">最大震度</div>
-                        <div class="info" :class="setClassName(niedMaxShindo)">
-                            <div class="intensity" style="border: none;">
-                                <div class="intText">
+                    <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.nied && settingsStore.advancedSettings.displayNiedShindo">
+                        <div class="shindo-bar gray">最大震度</div>
+                        <div class="info">
+                            <div class="intensity" style="border: none;" :class="setClassName(niedMaxShindo, true)">
+                                <div class="shindo">
                                     {{ niedMaxShindo }}
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+                <div class="left-bottom">
+                    <div class="nied-update-time" v-if="settingsStore.mainSettings.displaySeisNet.nied">
+                        nied: {{ niedUpdateTime }}
+                    </div>
+                </div>
                 <!-- <div class="countdown" v-if="isDisplayCountdown">
                     <div class="arrive" :class="untilPReach <= 10?'urgent':''">距离P波抵达：{{ formatTime(untilPReach) }}</div>
                     <div class="arrive" :class="untilSReach <= 10?'urgent':''">距离S波抵达：{{ formatTime(untilSReach) }}</div>
@@ -116,7 +120,7 @@ import { setClassName } from '@/utils/Utils';
 
 const settingsStore = useSettingsStore()
 let map, baseMap
-let eewMarkerPane, eqlistMarkerPane, wavePane
+let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane
 const isValidUserLatLng = computed(()=>settingsStore.mainSettings.userLatLng.every(item=>item !== ''))
 const isDisplayUser = computed(()=>isValidUserLatLng.value && settingsStore.mainSettings.displayUser)
 const userLatLng = computed(()=>settingsStore.mainSettings.userLatLng.map(val=>Number(val)))
@@ -138,7 +142,9 @@ const handleMenu = (index)=>{
 }
 provide('handleMenu', handleMenu)
 provide('handleHome', handleHome)
+const niedUpdateTime = ref('')
 const niedMaxShindo = ref('?')
+provide('niedUpdateTime', niedUpdateTime)
 provide('niedMaxShindo', niedMaxShindo)
 const isAutoZoom = ref(true)
 const dataStore = useDataStore()
@@ -182,6 +188,9 @@ onMounted(()=>{
     map.removeControl(map.zoomControl)
     map.createPane('basePane')
     map.getPane('basePane').style.zIndex = 0
+    map.createPane('waveFillPane')
+    waveFillPane = map.getPane('waveFillPane')
+    waveFillPane.style.zIndex = 5
     for(let i = -1; i <= 20; i++){
         map.createPane(`stationPane${i}`)
         map.getPane(`stationPane${i}`).style.zIndex = i + 10
@@ -339,10 +348,12 @@ watch(menuId, (newVal)=>{
         resetMainTimer()
         eewMarkerPane.style.display = 'none'
         wavePane.style.display = 'none'
+        waveFillPane.style.display = 'none'
     }
     else{
         eewMarkerPane.style.display = 'block'
         wavePane.style.display = 'block'
+        waveFillPane.style.display = 'block'
     }
     if(newVal == 'settings'){
         time = 60
@@ -374,6 +385,8 @@ watch([isDisplayUser, userLatLng], ()=>{
 })
 onBeforeUnmount(()=>{
     clearInterval(autoZoomInterval)
+    clearTimeout(returnMainTimer)
+    document.removeEventListener('mousemove', resetMainTimer)
 })
 </script>
 
@@ -429,41 +442,61 @@ onBeforeUnmount(()=>{
                         font-weight: 700;
                         padding-left: 5px;
                     }
+                    .shindo-bar{
+                        width: 100px;
+                        height: 30px;
+                        border-bottom: black 1px solid;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        font-size: 18px;
+                        font-weight: 500;
+                    }
                     .info{
                         display: flex;
                         gap: 10px;
                         align-items: center;
                         .intensity{
-                            width: 80px;
-                            height: 80px;
+                            width: 100px;
+                            height: 100px;
                             border-right: black 1px solid;
                             display: flex;
                             justify-content: center;
                             align-items: center;
-                            .intText{
-                                font-size: 50px;
+                            .shindo{
+                                font-size: 60px;
                                 text-align: center;
                                 letter-spacing: -10px;
                                 padding-right: 10px;
                             }
-                            .intText::first-letter{
-                                font-size: 70px;
+                            .shindo::first-letter{
+                                font-size: 80px;
                                 vertical-align: top;
+                            }
+                            .csis{
+                                font-size: 80px;
+                                text-align: center;
+                                letter-spacing: -10px;
+                                padding-right: 10px;
                             }
                         }
                         .right{
-                            width: 300px;
+                            width: 350px;
                             display: flex;
                             flex-direction: column;
                             justify-content: space-around;
                             .location{
-                                font-size: 22px;
+                                display: flex;
+                                align-items: center;
+                                font-size: 28px;
                                 white-space: nowrap;
                                 text-overflow: ellipsis;
                                 overflow: hidden;
                             }
                             .time{
-                                font-size: 18px;
+                                display: flex;
+                                align-items: center;
+                                font-size: 22px;
                                 white-space: nowrap;
                                 text-overflow: ellipsis;
                                 overflow: hidden;
@@ -473,36 +506,52 @@ onBeforeUnmount(()=>{
                                 align-items: center;
                                 gap: 15px;
                                 .magnitude{
-                                    font-size: 18px;
+                                    font-size: 22px;
                                 }
                                 .depth{
-                                    font-size: 18px;
+                                    font-size: 22px;
                                 }
                             }
                         }
                     }
                 }
+                .realtime{
+                    width: 101px;
+                }
             }
-            .countdown{
+            .left-bottom{
+                display: flex;
+                flex-direction: column;
                 position: absolute;
-                width: 220px;
-                height: 80px;
-                background-color: #cfcfcf;
                 bottom: 0;
                 left: 0;
                 z-index: 500;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-evenly;
-                align-items: center;
-                border: black 1px solid;
-                border-bottom: 0px;
-                border-left: 0px;
-                pointer-events: none;
-                user-select: none;
-                font-size: 20px;
-                .urgent{
-                    color: red;
+                .nied-update-time{
+                    color: #ffffff;
+                    font-size: 18px;
+                    background-color: #333;
+                }
+                .countdown{
+                    position: absolute;
+                    width: 220px;
+                    height: 80px;
+                    background-color: #cfcfcf;
+                    bottom: 0;
+                    left: 0;
+                    z-index: 500;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-evenly;
+                    align-items: center;
+                    border: black 1px solid;
+                    border-bottom: 0px;
+                    border-left: 0px;
+                    pointer-events: none;
+                    user-select: none;
+                    font-size: 20px;
+                    .urgent{
+                        color: red;
+                    }
                 }
             }
             .home{

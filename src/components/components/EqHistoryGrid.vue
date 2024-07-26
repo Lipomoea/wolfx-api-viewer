@@ -4,7 +4,7 @@
             <div class="title">{{ title }}</div>
             <div class="item white" v-for="(item, index) of eqList" :key="index" @click="handleClick(item)">
                 <div class="intensity" :class="item.className">
-                    <div class="intText">
+                    <div :class="props.source == 'jmaEqlist'?'shindo':'csis'">
                         {{ item.maxIntensity == '不明'?'?':item.maxIntensity }}
                     </div>
                 </div>
@@ -127,15 +127,21 @@ onBeforeUnmount(()=>{
             display: flex;
             justify-content: center;
             align-items: center;
-            .intText{
+            .shindo{
                 font-size: 50px;
                 text-align: center;
                 letter-spacing: -10px;
                 padding-right: 10px;
             }
-            .intText::first-letter{
+            .shindo::first-letter{
                 font-size: 70px;
                 vertical-align: top;
+            }
+            .csis{
+                font-size: 70px;
+                text-align: center;
+                letter-spacing: -10px;
+                padding-right: 10px;
             }
         }
         .right{

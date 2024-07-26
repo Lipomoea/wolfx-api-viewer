@@ -54,10 +54,12 @@ class EewEvent {
         s_reach = s_info.reach
         s_radius = s_info.radius
         if(this.pWave && this.map.hasLayer(this.pWave)) this.map.removeLayer(this.pWave)
-        if(p_radius > 0 && p_radius < maxRadius){
+        if(p_radius > 0 && p_radius <= maxRadius){
+            const opacityRatio = this.calcOpacityRatio(p_radius, maxRadius)
             this.pWave = L.circle(this.hypoLatLng.value, {
                 color: 'white',
                 weight: 1,
+                opacity: opacityRatio,
                 fillOpacity: 0,
                 radius: p_radius * 1000,
                 pane: 'wavePane',
@@ -65,16 +67,33 @@ class EewEvent {
             this.pWave.addTo(this.map)
         }
         if(this.sWave && this.map.hasLayer(this.sWave)) this.map.removeLayer(this.sWave)
-        if(s_radius > 0 && s_radius < maxRadius){
+        if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) this.map.removeLayer(this.sWaveFill)
+        if(s_radius > 0 && s_radius <= maxRadius){
+            const opacityRatio = this.calcOpacityRatio(s_radius, maxRadius)
             this.sWave = L.circle(this.hypoLatLng.value, {
                 color: this.eqMessage.isWarn?'red':'orange',
                 weight: 1,
-                fillOpacity: 0.3,
+                opacity: opacityRatio,
+                fillOpacity: 0,
                 radius: s_radius * 1000,
                 pane: 'wavePane',
             })
             this.sWave.addTo(this.map)
+            this.sWaveFill = L.circle(this.hypoLatLng.value, {
+                color: this.eqMessage.isWarn?'red':'orange',
+                weight: 0,
+                opacity: 0,
+                fillOpacity: 0.3 * opacityRatio,
+                radius: s_radius * 1000,
+                pane: 'waveFillPane',
+            })
+            this.sWaveFill.addTo(this.map)
         }
+    }
+    calcOpacityRatio(radius, maxRadius){
+        if(radius <= maxRadius * 0.9) return 1
+        else if(radius >= maxRadius) return 0
+        else return 10 * (1 - radius / maxRadius)
     }
     renderStart(){
         this.setMark()
@@ -92,6 +111,7 @@ class EewEvent {
         if(this.crossMarker && this.map.hasLayer(this.crossMarker)) this.map.removeLayer(this.crossMarker)
         if(this.pWave && this.map.hasLayer(this.pWave)) this.map.removeLayer(this.pWave)
         if(this.sWave && this.map.hasLayer(this.sWave)) this.map.removeLayer(this.sWave)
+        if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) this.map.removeLayer(this.sWaveFill)
     }
     update(eqMessage){
         Object.assign(this.eqMessage, eqMessage)
@@ -112,6 +132,7 @@ class EewEvent {
         clearInterval(this.blinkInterval)
         if(this.pWave && this.map.hasLayer(this.pWave)) this.map.removeLayer(this.pWave)
         if(this.sWave && this.map.hasLayer(this.sWave)) this.map.removeLayer(this.sWave)
+        if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) this.map.removeLayer(this.sWaveFill)
         this.setMark()
     }
 }

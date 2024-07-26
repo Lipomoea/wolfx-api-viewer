@@ -21,11 +21,11 @@ const timeStore = useTimeStore()
 const stationList = ref([])
 const stationData = ref([])
 const stations = []
-const updateTime = ref('')
 const siteConfigId = ref('')
 let map
 const delay = ref(1500)
 const niedMaxShindo = inject('niedMaxShindo')
+const niedUpdateTime = inject('niedUpdateTime')
 
 const getData = async (url)=>{
     try {
@@ -64,7 +64,7 @@ onMounted(()=>{
             if(res && res.status == 200){
                 const data = res.data
                 stationData.value = data.realTimeData.intensity.slice('')
-                updateTime.value = data.realTimeData.dataTime
+                niedUpdateTime.value = data.realTimeData.dataTime
                 siteConfigId.value = data.realTimeData.siteConfigId
                 update()
             }
