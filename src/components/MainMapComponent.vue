@@ -40,12 +40,24 @@
                             </div>
                         </div>
                     </div>
-                    <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.nied && settingsStore.advancedSettings.displayNiedShindo">
-                        <div class="shindo-bar gray">最大震度</div>
-                        <div class="info">
-                            <div class="intensity" style="border: none;" :class="setClassName(niedMaxShindo, true)">
-                                <div class="shindo">
-                                    {{ niedMaxShindo }}
+                    <div style="display: flex;">
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.nied && settingsStore.advancedSettings.displayNiedShindo">
+                            <div class="shindo-bar gray">最大震度</div>
+                            <div class="info">
+                                <div class="intensity" :class="setClassName(niedMaxShindo, true)">
+                                    <div class="shindo">
+                                        {{ niedMaxShindo }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.nied && settingsStore.advancedSettings.displayNiedShindo && niedPeriodMaxShindo != '?'">
+                            <div class="shindo-bar gray">区间最大</div>
+                            <div class="info">
+                                <div class="intensity" :class="setClassName(niedPeriodMaxShindo, true)">
+                                    <div class="shindo">
+                                        {{ niedPeriodMaxShindo }}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -144,8 +156,10 @@ provide('handleMenu', handleMenu)
 provide('handleHome', handleHome)
 const niedUpdateTime = ref('')
 const niedMaxShindo = ref('?')
+const niedPeriodMaxShindo = ref('?')
 provide('niedUpdateTime', niedUpdateTime)
 provide('niedMaxShindo', niedMaxShindo)
+provide('niedPeriodMaxShindo', niedPeriodMaxShindo)
 const isAutoZoom = ref(true)
 const dataStore = useDataStore()
 const statusStore = useStatusStore()
@@ -203,6 +217,8 @@ onMounted(()=>{
         map.createPane(`stationPane${i}`)
         map.getPane(`stationPane${i}`).style.zIndex = i + 10
     }
+    map.createPane('gridPane')
+    map.getPane('gridPane').style.zIndex = 50
     map.createPane('wavePane')
     wavePane = map.getPane('wavePane')
     wavePane.style.zIndex = 100
@@ -271,7 +287,7 @@ const setView = ()=>{
     const bounds = L.latLngBounds([])
     map.eachLayer(layer=>{
         if(menuId.value != 'eqlists'){
-            if(layer.options.pane == 'wavePane'){
+            if(layer.options.pane == 'wavePane' || layer.options.pane == 'gridPane'){
                 if(layer.getBounds){
                     bounds.extend(layer.getBounds())
                 }
@@ -313,6 +329,7 @@ const setView = ()=>{
     else if(isValidViewLatLng.value) map.setView(viewLatLng.value, zoomLevel.value)
     else map.setView(userLatLng.value, zoomLevel.value)
 }
+provide('setView', setView)
 const loadBaseMap = (geojson)=>{
     if(Object.keys(geojson).length != 0){
         if(baseMap && map.hasLayer(baseMap)) map.removeLayer(baseMap)
@@ -391,6 +408,16 @@ watch([isDisplayUser, userLatLng], ()=>{
         userMarker.addTo(map)
     }
 })
+watch(()=>(statusStore.isActive.jmaEew || statusStore.isActive.niedNet), newVal=>{
+    if(newVal){
+        if(niedPeriodMaxShindo.value == '?'){
+            niedPeriodMaxShindo.value = '0'
+        }
+    }
+    else{
+        niedPeriodMaxShindo.value = '?'
+    }
+})
 onBeforeUnmount(()=>{
     clearInterval(autoZoomInterval)
     clearTimeout(returnMainTimer)
@@ -453,6 +480,7 @@ onBeforeUnmount(()=>{
                     .shindo-bar{
                         width: 100px;
                         height: 30px;
+                        border-right: black 1px solid;
                         border-bottom: black 1px solid;
                         display: flex;
                         justify-content: center;
@@ -474,8 +502,8 @@ onBeforeUnmount(()=>{
                             .shindo{
                                 font-size: 60px;
                                 text-align: center;
-                                letter-spacing: -10px;
-                                padding-right: 10px;
+                                letter-spacing: -5px;
+                                padding-right: 5px;
                             }
                             .shindo::first-letter{
                                 font-size: 80px;
@@ -484,8 +512,8 @@ onBeforeUnmount(()=>{
                             .csis{
                                 font-size: 80px;
                                 text-align: center;
-                                letter-spacing: -10px;
-                                padding-right: 10px;
+                                letter-spacing: -5px;
+                                padding-right: 5px;
                             }
                         }
                         .right{
@@ -524,7 +552,8 @@ onBeforeUnmount(()=>{
                     }
                 }
                 .realtime{
-                    width: 101px;
+                    width: 100px;
+                    border-right: 0px;
                 }
             }
             .left-bottom{

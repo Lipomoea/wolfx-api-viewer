@@ -45,6 +45,14 @@ const chimeUrls = {
         shindosokuhou: '/sound/srev/shindosokuhou.mp3',
         shingenzyouhou: '/sound/srev/shingenzyouhou.mp3',
         jishinzyouhou: '/sound/srev/jishinzyouhou.mp3',
+        shindo0:'/sound/srev/shindo0.mp3',
+        shindo1:'/sound/srev/shindo1.mp3',
+        shindo2:'/sound/srev/shindo2.mp3',
+        shindo3:'/sound/srev/shindo3.mp3',
+        shindo4:'/sound/srev/shindo4.mp3',
+        shindo5:'/sound/srev/shindo5.mp3',
+        shindo6:'/sound/srev/shindo6.mp3',
+        shindo7:'/sound/srev/shindo6.mp3',
     },
 }
 const geojsonUrls = {

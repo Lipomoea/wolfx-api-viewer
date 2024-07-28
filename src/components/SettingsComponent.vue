@@ -68,6 +68,23 @@
                             </div> -->
                         </div>
                     </div>
+                    <div class="row">
+                        <span>地震监测网检测到摇晃时：</span>
+                        <div class="switchGroup">
+                            <div class="switch">
+                                <span>发送通知</span>
+                                <el-switch v-model="settingsStore.mainSettings.onShake.notification"></el-switch>
+                            </div>
+                            <div class="switch">
+                                <span>播放声音</span>
+                                <el-switch v-model="settingsStore.mainSettings.onShake.sound"></el-switch>
+                            </div>
+                            <!-- <div class="switch">
+                                <span>弹出界面</span>
+                                <el-switch v-model="settingsStore.mainSettings.onShake.focus"></el-switch>
+                            </div> -->
+                        </div>
+                    </div>
                 </div>
                 <div class="subTitle">音效</div>
                 <div class="group">
@@ -166,7 +183,7 @@
                         <div class="switchGroup">
                             <div class="switch force-wrap">
                                 <span style="width: 100%;">显示地震监测网：</span>
-                                <span>強震モニタ（リアルタイム震度）</span>
+                                <span>強震モニタ（即时震度）</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.nied"></el-switch>
                             </div>
                         </div>

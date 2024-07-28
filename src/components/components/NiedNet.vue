@@ -5,28 +5,85 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch, inject } from 'vue'
+import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, inject } from 'vue'
 import Http from '@/utils/Http';
 import axios from 'axios';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
-import { seisNetUrls } from '@/utils/Urls';
-import { getTimeNumberString } from '@/utils/Utils';
+import { seisNetUrls, chimeUrls, iconUrls } from '@/utils/Urls';
+import { getTimeNumberString, getShindoFromChar, playSound, sendNotification } from '@/utils/Utils';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { NiedStation } from '@/classes/stationClasses';
-import { getShindoFromChar } from '@/utils/Utils';
+import { NiedStation } from '@/classes/StationClasses';
+import { UnionFind } from '@/classes/Algorithms';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 const stationList = ref([])
 const stationData = ref([])
-const stations = []
+const stations = reactive([])
 const siteConfigId = ref('')
-let map
+let map, gridPane
 const delay = ref(1500)
 const niedMaxShindo = inject('niedMaxShindo')
 const niedUpdateTime = inject('niedUpdateTime')
-
+const niedPeriodMaxShindo = inject('niedPeriodMaxShindo')
+const periodMaxLevel = ref(-1)
+const periodMaxShindo = computed(()=>{
+    if(periodMaxLevel.value <= 5) return -1
+    else if(periodMaxLevel.value <= 7) return 0
+    else if(periodMaxLevel.value <= 9) return 1
+    else if(periodMaxLevel.value <= 11) return 2
+    else if(periodMaxLevel.value <= 13) return 3
+    else if(periodMaxLevel.value <= 15) return 4
+    else if(periodMaxLevel.value <= 16) return 5
+    else if(periodMaxLevel.value <= 17) return 5.5
+    else if(periodMaxLevel.value <= 18) return 6
+    else if(periodMaxLevel.value <= 19) return 6.5
+    else return 7
+})
+let adjacencyMatrix = []
+const activeStations = computed(()=>{
+    let list = []
+    stations.forEach(station=>{
+        if(station.isActive) list.push(station.id)
+    })
+    return list
+})
+const associatedActiveStations = computed(()=>{
+    let activeAdjMat = []
+    for(let i = 0; i < activeStations.value.length; i++){
+        activeAdjMat[i] = []
+        for(let j = 0; j < activeStations.value.length; j++){
+            activeAdjMat[i][j] = adjacencyMatrix[activeStations.value[i]][activeStations.value[j]]
+        }
+    }
+    const unionFind = new UnionFind(activeStations.value, activeAdjMat)
+    return unionFind.getAssociatedElements()
+})
+const grids = computed(()=>{
+    let grids = []
+    associatedActiveStations.value.forEach(id=>{
+        const latLng = stationList.value[id].map(l=>Math.ceil(l + 0.05) - 0.05)
+        const level = stations[id].level
+        let i
+        for(i = 0; i < grids.length; i++){
+            if(grids[i].latLng[0] == latLng[0] && grids[i].latLng[1] == latLng[1]){
+                if(level > grids[i].level) grids[i].level = level
+                break
+            }
+        }
+        if(i == grids.length ){
+            grids.push({
+                latLng,
+                level
+            })
+        }
+    })
+    return grids
+})
+const soundEffect = computed(()=>settingsStore.mainSettings.soundEffect)
+const setView = inject('setView')
 const getData = async (url)=>{
     try {
         const res = await axios.get(url)
@@ -36,7 +93,6 @@ const getData = async (url)=>{
         if(delay.value <= 2800) delay.value += 200
     }
 }
-
 const update = ()=>{
     if(stationList.value.length > 0){
         let maxChar = ''
@@ -74,25 +130,112 @@ onMounted(()=>{
         delay.value -= 20
     }, 10000);
 })
-let unwatchStationList
+let unwatchStationList, unwatchPeriodShindo
+let gridPaneInterval
 watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
-        unwatchStationList = watch(stationList, newVal=>{
-            newVal.forEach(latLng=>{
-                const station = new NiedStation(map, latLng, 'c')
-                stations.push(station)
-            })
-        }, { immediate: true })
         map.on('zoomend', renderAll)
+        gridPane = map.getPane('gridPane')
+        gridPaneInterval = setInterval(() => {
+            gridPane.style.display == 'none'?gridPane.style.display = 'block':gridPane.style.display = 'none'
+        }, 500);
+        unwatchStationList = watch(stationList, newVal=>{
+            if(newVal.length != 0){
+                newVal.forEach((latLng, index)=>{
+                    const station = reactive(new NiedStation(map, index, latLng, 'c'))
+                    stations.push(station)
+                })
+                let latLngs = []
+                for(let i = 0; i < newVal.length; i++){
+                    latLngs[i] = L.latLng(newVal[i])
+                }
+                for(let i = 0; i < newVal.length; i++){
+                    adjacencyMatrix[i] = []
+                    for(let j = 0; j < newVal.length; j++){
+                        if(i < j){
+                            const distance = latLngs[i].distanceTo(latLngs[j]) / 1000
+                            adjacencyMatrix[i][j] = distance <= 50?true:false
+                        }
+                        else if(i > j){
+                            adjacencyMatrix[i][j] = adjacencyMatrix[j][i]
+                        }
+                        else{
+                            adjacencyMatrix[i][j] = false
+                        }
+                    }
+                }
+            }
+        }, { immediate: true })
+        watch(grids, (newVal, oldVal)=>{
+            map.eachLayer(layer=>{
+                if(layer.options.pane == 'gridPane') map.removeLayer(layer)
+            })
+            newVal.forEach(item=>{
+                const color = item.level <= 7?'green':(item.level <= 13?'yellow':'red')
+                L.rectangle([item.latLng, item.latLng.map(l=>l - 0.99)], {
+                    color,
+                    fill: false,
+                    weight: 1,
+                    pane: 'gridPane'
+                }).addTo(map)
+            })
+            if(newVal.length > 0 && oldVal.length == 0){
+                setView()
+                statusStore.isActive.niedNet = true
+            }
+            else if(newVal.length == 0){
+                statusStore.isActive.niedNet = false
+            }
+            grids.value.forEach(item=>{
+                if(item.level > periodMaxLevel.value) periodMaxLevel.value = item.level
+            })
+            niedPeriodMaxShindo.value = getShindoFromChar(String.fromCharCode(periodMaxLevel.value + 100))
+        })
+        watch(()=>settingsStore.advancedSettings.displayNiedShindo, ()=>{
+            renderAll()
+        })
     }
 }, { immediate: true })
-watch(()=>settingsStore.advancedSettings.displayNiedShindo, ()=>{
-    renderAll()
+watch(()=>(statusStore.isActive.jmaEew || statusStore.isActive.niedNet), newVal=>{
+    if(!newVal){
+        periodMaxLevel.value = -1
+    }
+})
+let shake1Notified = false, shake2Notified = false
+watch(periodMaxShindo, (newVal, oldVal)=>{
+    if(newVal > oldVal){
+        if(settingsStore.mainSettings.onShake.sound){
+            const url = chimeUrls[soundEffect.value][`shindo${Math.floor(newVal)}`]
+            playSound(url)
+        }
+        if(settingsStore.mainSettings.onShake.notification){
+            if(newVal >= 1 && newVal <= 3 && !shake1Notified){
+                sendNotification('揺れを検出', 
+                    '揺れに注意してください。', 
+                    iconUrls.caution, 
+                    settingsStore.mainSettings.muteNotification)
+                shake1Notified = true
+            }
+            else if(newVal >= 4 && !shake2Notified){
+                sendNotification('強い揺れを検出', 
+                    '強い揺れに警戒してください。', 
+                    iconUrls.warn, 
+                    settingsStore.mainSettings.muteNotification)
+                shake1Notified = true
+                shake2Notified = true
+            }
+        }
+    }
+    else{
+        shake1Notified = false
+        shake2Notified = false
+    }
 })
 onBeforeUnmount(()=>{
     clearInterval(requestInterval)
     clearInterval(delayInterval)
+    clearInterval(gridPaneInterval)
     if(map !== null) map.off('zoomend', renderAll)
     if(unwatchStationList) unwatchStationList()
     stations.forEach((station, index)=>{
@@ -100,6 +243,9 @@ onBeforeUnmount(()=>{
         stations[index] = null
     })
     stations.length = 0
+    map.eachLayer(layer=>{
+        if(layer.options.pane == 'gridPane') map.removeLayer(layer)
+    })
 })
 </script>
 

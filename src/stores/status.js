@@ -18,6 +18,7 @@ export const useStatusStore = defineStore('statusStore', {
             fjEew: false,
             jmaEqlist: false,
             cencEqlist: false,
+            niedNet: false,
         }
     }),
     getters: {

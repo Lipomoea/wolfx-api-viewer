@@ -14,13 +14,15 @@ let colorBand = [
 
 let settingsStore
 class NiedStation {
-    constructor(map, latLng, intensity){
+    constructor(map, id, latLng, intensity){
         settingsStore = useSettingsStore()
         this.map = map
+        this.id = id
         this.latLng = latLng
         this.intensity = intensity
-        this.shindo = getShindoFromChar(this.intensity)
-        this.level = this.intensity.charCodeAt(0) - 100
+        this.shindo = getShindoFromChar(intensity)
+        this.level = intensity.charCodeAt(0) - 100
+        this.isActive = false
         this.color = '#cfcfcf'
         this.radius = (2 + this.level * 0.1) * 2 ** (Math.min(Math.max(this.map.getZoom(), 4), 10) / 2 - 3)
         this.marker = L.circleMarker(this.latLng, {
@@ -35,9 +37,17 @@ class NiedStation {
     }
     update(intensity){
         if(intensity != this.intensity){
+            const level = intensity.charCodeAt(0) - 100
+            if(level >= 10 || level >= 6 && this.level != -1 && level - this.level >= 1){
+                this.isActive = true
+                clearTimeout(this.activeTimer)
+                this.activeTimer = setTimeout(() => {
+                    this.isActive = false
+                }, 20000);
+            }
             this.intensity = intensity
-            this.shindo = getShindoFromChar(this.intensity)
-            this.level = this.intensity.charCodeAt(0) - 100
+            this.shindo = getShindoFromChar(intensity)
+            this.level = level
             this.render()
         }
     }

@@ -21,6 +21,11 @@ export const useSettingsStore = defineStore('settingsStore', {
                 focus:false,
                 switchMenu: false,
             },
+            onShake: {
+                notification: false,
+                sound: false,
+                focus:false,
+            },
             muteNotification: false,
             soundEffect: 'srev',
             userLatLng: ['', ''],
@@ -43,7 +48,8 @@ export const useSettingsStore = defineStore('settingsStore', {
         requestNotification: (state)=>(
             state.mainSettings.onEew.notification || 
             state.mainSettings.onEewWarn.notification || 
-            state.mainSettings.onReport.notification
+            state.mainSettings.onReport.notification ||
+            state.mainSettings.onShake.notification
         ),
     },
     actions: {
