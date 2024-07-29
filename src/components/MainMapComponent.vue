@@ -327,7 +327,8 @@ const setView = ()=>{
     }
     if(bounds.isValid()) map.fitBounds(bounds, {maxZoom: 8, minZoom: 4, padding:[50, 50]})
     else if(isValidViewLatLng.value) map.setView(viewLatLng.value, zoomLevel.value)
-    else map.setView(userLatLng.value, zoomLevel.value)
+    else if(isValidUserLatLng.value) map.setView(userLatLng.value, zoomLevel.value)
+    else map.setView([38.1, 104.6], zoomLevel.value)
 }
 provide('setView', setView)
 provide('isAutoZoom', isAutoZoom)

@@ -130,8 +130,8 @@ onBeforeUnmount(()=>{
             .shindo{
                 font-size: 50px;
                 text-align: center;
-                letter-spacing: -10px;
-                padding-right: 10px;
+                letter-spacing: -5px;
+                padding-right: 5px;
             }
             .shindo::first-letter{
                 font-size: 70px;
@@ -140,8 +140,8 @@ onBeforeUnmount(()=>{
             .csis{
                 font-size: 70px;
                 text-align: center;
-                letter-spacing: -10px;
-                padding-right: 10px;
+                letter-spacing: -5px;
+                padding-right: 5px;
             }
         }
         .right{
