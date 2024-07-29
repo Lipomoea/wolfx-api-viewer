@@ -22,6 +22,7 @@ class NiedStation {
         this.intensity = intensity
         this.shindo = getShindoFromChar(intensity)
         this.level = intensity.charCodeAt(0) - 100
+        this.recentLevel = [this.level]
         this.isActive = false
         this.color = '#cfcfcf'
         this.radius = (2 + this.level * 0.1) * 2 ** (Math.min(Math.max(this.map.getZoom(), 4), 10) / 2 - 3)
@@ -36,20 +37,26 @@ class NiedStation {
         this.marker.addTo(this.map)
     }
     update(intensity){
+        const level = intensity.charCodeAt(0) - 100
         if(intensity != this.intensity){
-            const level = intensity.charCodeAt(0) - 100
-            if(level >= 10 || level >= 6 && this.level != -1 && level - this.level >= 1){
-                this.isActive = true
-                clearTimeout(this.activeTimer)
-                this.activeTimer = setTimeout(() => {
-                    this.isActive = false
-                }, 20000);
-            }
             this.intensity = intensity
             this.shindo = getShindoFromChar(intensity)
             this.level = level
             this.render()
         }
+        const recentFilter = this.recentLevel.filter(val=>val != -1)
+        if(recentFilter.length > 0){
+            const minRecent = Math.min(...recentFilter)
+            if(level >= 10 || level >= 9 && level - minRecent >= 1 || level >= 8 && level - minRecent >= 2 || level >= 6 && level - minRecent >= 3){
+                this.isActive = true
+                clearTimeout(this.activeTimer)
+                this.activeTimer = setTimeout(() => {
+                    this.isActive = false
+                }, (10 + level) * 1000)
+            }
+        }
+        this.recentLevel.unshift(level)
+        if(this.recentLevel.length > 3) this.recentLevel.pop()
     }
     render(){
         this.setColorRadius()

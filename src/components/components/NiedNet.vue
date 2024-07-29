@@ -24,7 +24,7 @@ const stationData = ref([])
 const stations = reactive([])
 const siteConfigId = ref('')
 let map, gridPane
-const delay = ref(1500)
+const delay = ref(1200)
 const niedMaxShindo = inject('niedMaxShindo')
 const niedUpdateTime = inject('niedUpdateTime')
 const niedPeriodMaxShindo = inject('niedPeriodMaxShindo')
@@ -84,13 +84,14 @@ const grids = computed(()=>{
 })
 const soundEffect = computed(()=>settingsStore.mainSettings.soundEffect)
 const setView = inject('setView')
+const isAutoZoom = inject('isAutoZoom')
 const getData = async (url)=>{
     try {
         const res = await axios.get(url)
         return res
     }
     catch (err){
-        if(delay.value <= 2800) delay.value += 200
+        if(delay.value <= 2900) delay.value += 100
     }
 }
 const update = ()=>{
@@ -176,12 +177,13 @@ watch(()=>statusStore.map, newVal=>{
                 L.rectangle([item.latLng, item.latLng.map(l=>l - 0.99)], {
                     color,
                     fill: false,
-                    weight: 1,
+                    weight: 2,
                     pane: 'gridPane'
                 }).addTo(map)
             })
             if(newVal.length > 0 && oldVal.length == 0){
                 setView()
+                isAutoZoom.value = true
                 statusStore.isActive.niedNet = true
             }
             else if(newVal.length == 0){

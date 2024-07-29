@@ -64,8 +64,8 @@
                     </div>
                 </div>
                 <div class="left-bottom">
-                    <div class="nied-update-time" v-if="settingsStore.mainSettings.displaySeisNet.nied">
-                        強震モニタ: {{ niedUpdateTime }}
+                    <div class="nied-update-time" :class="compareTime(niedUpdateTime.slice(0, -6), 9, 10000)?'':'delayed'" v-if="settingsStore.mainSettings.displaySeisNet.nied">
+                        強震モニタ: {{ niedUpdateTime.slice(0, -6) }} (UTC+9)
                     </div>
                 </div>
                 <!-- <div class="countdown" v-if="isDisplayCountdown">
@@ -128,7 +128,7 @@ import SeisNetComponent from './SeisNetComponent.vue';
 import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
 import { EewEvent, EqlistEvent } from '@/classes/EewEqlistClasses';
-import { setClassName } from '@/utils/Utils';
+import { compareTime, setClassName } from '@/utils/Utils';
 
 const settingsStore = useSettingsStore()
 let map, baseMap
@@ -330,6 +330,7 @@ const setView = ()=>{
     else map.setView(userLatLng.value, zoomLevel.value)
 }
 provide('setView', setView)
+provide('isAutoZoom', isAutoZoom)
 const loadBaseMap = (geojson)=>{
     if(Object.keys(geojson).length != 0){
         if(baseMap && map.hasLayer(baseMap)) map.removeLayer(baseMap)
@@ -567,6 +568,9 @@ onBeforeUnmount(()=>{
                     color: #ffffff;
                     font-size: 18px;
                     background-color: #333;
+                }
+                .delayed{
+                    color: red;
                 }
                 .countdown{
                     position: absolute;
