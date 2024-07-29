@@ -47,16 +47,16 @@ class NiedStation {
         const recentFilter = this.recentLevel.filter(val=>val != -1)
         if(recentFilter.length > 0){
             const minRecent = Math.min(...recentFilter)
-            if(level >= 10 || level >= 9 && level - minRecent >= 1 || level >= 8 && level - minRecent >= 2 || level >= 6 && level - minRecent >= 3){
+            if(level >= 10 || level >= 9 && level - minRecent >= 1 || level >= 8 && level - minRecent >= 2 || level >= 7 && level - minRecent >= 3 || level - minRecent >= 4){
                 this.isActive = true
                 clearTimeout(this.activeTimer)
                 this.activeTimer = setTimeout(() => {
                     this.isActive = false
-                }, (10 + level) * 1000)
+                }, level * 2000)
             }
         }
         this.recentLevel.unshift(level)
-        if(this.recentLevel.length > 3) this.recentLevel.pop()
+        if(this.recentLevel.length > 5) this.recentLevel.pop()
     }
     render(){
         this.setColorRadius()

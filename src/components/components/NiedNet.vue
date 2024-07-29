@@ -30,7 +30,7 @@ const niedUpdateTime = inject('niedUpdateTime')
 const niedPeriodMaxShindo = inject('niedPeriodMaxShindo')
 const periodMaxLevel = ref(-1)
 const periodMaxShindo = computed(()=>{
-    if(periodMaxLevel.value <= 5) return -1
+    if(periodMaxLevel.value == -1) return -1
     else if(periodMaxLevel.value <= 7) return 0
     else if(periodMaxLevel.value <= 9) return 1
     else if(periodMaxLevel.value <= 11) return 2
@@ -120,7 +120,7 @@ onMounted(()=>{
         getData(`${seisNetUrls.nied.stationData}/${date}/${time}.json`).then(res=>{
             if(res && res.status == 200){
                 const data = res.data
-                stationData.value = data.realTimeData.intensity.slice('')
+                stationData.value = data.realTimeData.intensity.split('')
                 niedUpdateTime.value = data.realTimeData.dataTime
                 siteConfigId.value = data.realTimeData.siteConfigId
                 update()
@@ -131,7 +131,7 @@ onMounted(()=>{
         delay.value -= 20
     }, 10000);
 })
-let unwatchStationList, unwatchPeriodShindo
+let unwatchStationList
 let gridPaneInterval
 watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
@@ -142,7 +142,7 @@ watch(()=>statusStore.map, newVal=>{
             gridPane.style.display == 'none'?gridPane.style.display = 'block':gridPane.style.display = 'none'
         }, 500);
         unwatchStationList = watch(stationList, newVal=>{
-            if(newVal.length != 0){
+            if(newVal.length > 0){
                 newVal.forEach((latLng, index)=>{
                     const station = reactive(new NiedStation(map, index, latLng, 'c'))
                     stations.push(station)
@@ -205,11 +205,28 @@ watch(()=>(statusStore.isActive.jmaEew || statusStore.isActive.niedNet), newVal=
     }
 })
 let shake1Notified = false, shake2Notified = false
+let sound0 = false, sound5 = false, sound6 = false
 watch(periodMaxShindo, (newVal, oldVal)=>{
     if(newVal > oldVal){
         if(settingsStore.mainSettings.onShake.sound){
-            const url = chimeUrls[soundEffect.value][`shindo${Math.floor(newVal)}`]
-            playSound(url)
+            let play = true
+            const shindo = Math.floor(newVal)
+            if(shindo == 0){
+                if(sound0) play = false
+                else sound0 = true
+            }
+            else if(shindo == 5){
+                if(sound5) play = false
+                else sound5 = true
+            }
+            else if(shindo == 6){
+                if(sound6) play = false
+                else sound6 = true
+            }
+            if(play){
+                const url = chimeUrls[soundEffect.value][`shindo${shindo}`]
+                playSound(url)
+            }
         }
         if(settingsStore.mainSettings.onShake.notification){
             if(newVal >= 1 && newVal <= 3 && !shake1Notified){
@@ -232,6 +249,9 @@ watch(periodMaxShindo, (newVal, oldVal)=>{
     else{
         shake1Notified = false
         shake2Notified = false
+        sound0 = false
+        sound5 = false
+        sound6 = false
     }
 })
 onBeforeUnmount(()=>{
