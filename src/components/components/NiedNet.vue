@@ -131,7 +131,7 @@ onMounted(()=>{
         delay.value -= 20
     }, 10000);
 })
-let unwatchStationList
+let unwatchStationList, unwatchGrids, unwatchDisplayShindo
 let gridPaneInterval
 watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
@@ -168,7 +168,7 @@ watch(()=>statusStore.map, newVal=>{
                 }
             }
         }, { immediate: true })
-        watch(grids, (newVal, oldVal)=>{
+        unwatchGrids = watch(grids, (newVal, oldVal)=>{
             map.eachLayer(layer=>{
                 if(layer.options.pane == 'gridPane') map.removeLayer(layer)
             })
@@ -194,7 +194,7 @@ watch(()=>statusStore.map, newVal=>{
             })
             niedPeriodMaxShindo.value = getShindoFromChar(String.fromCharCode(periodMaxLevel.value + 100))
         })
-        watch(()=>settingsStore.advancedSettings.displayNiedShindo, ()=>{
+        unwatchDisplayShindo = watch(()=>settingsStore.advancedSettings.displayNiedShindo, ()=>{
             renderAll()
         })
     }
@@ -260,13 +260,17 @@ onBeforeUnmount(()=>{
     clearInterval(gridPaneInterval)
     if(map !== null) map.off('zoomend', renderAll)
     if(unwatchStationList) unwatchStationList()
+    if(unwatchGrids) unwatchGrids()
+    if(unwatchDisplayShindo) unwatchDisplayShindo()
     stations.forEach((station, index)=>{
         station.terminate()
         stations[index] = null
     })
     stations.length = 0
     map.eachLayer(layer=>{
-        if(layer.options.pane == 'gridPane') map.removeLayer(layer)
+        if(layer.options.pane == 'gridPane' || layer.options.pane.includes('stationPane')){
+            map.removeLayer(layer)
+        }
     })
 })
 </script>
