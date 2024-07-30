@@ -123,6 +123,7 @@ import { HomeFilled, FullScreen, WarnTriangleFilled, InfoFilled, Setting } from 
 import { useDataStore } from '@/stores/data';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
+import { useTimeStore } from '@/stores/time';
 import EewComponent from './EewComponent.vue';
 import SeisNetComponent from './SeisNetComponent.vue';
 import EqlistComponent from './EqlistComponent.vue';
@@ -130,9 +131,12 @@ import SettingsComponent from './SettingsComponent.vue';
 import { EewEvent, EqlistEvent } from '@/classes/EewEqlistClasses';
 import { compareTime, setClassName } from '@/utils/Utils';
 
+const dataStore = useDataStore()
+const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
+const timeStore = useTimeStore()
 let map, baseMap
-let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane
+let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, gridPane
 const isValidUserLatLng = computed(()=>settingsStore.mainSettings.userLatLng.every(item=>item !== ''))
 const isDisplayUser = computed(()=>isValidUserLatLng.value && settingsStore.mainSettings.displayUser)
 const userLatLng = computed(()=>settingsStore.mainSettings.userLatLng.map(val=>Number(val)))
@@ -161,8 +165,6 @@ provide('niedUpdateTime', niedUpdateTime)
 provide('niedMaxShindo', niedMaxShindo)
 provide('niedPeriodMaxShindo', niedPeriodMaxShindo)
 const isAutoZoom = ref(true)
-const dataStore = useDataStore()
-const statusStore = useStatusStore()
 const eewEvents = {
     jmaEew: null,
     cwaEew: null,
@@ -196,6 +198,7 @@ const getBarClass = (eqMessage)=>{
     }
     return 'gray'
 }
+let unwatchEewBlink
 onMounted(()=>{
     map = L.map('mainMap', {attributionControl: false})
     //傻逼Leaflet
@@ -218,7 +221,8 @@ onMounted(()=>{
         map.getPane(`stationPane${i}`).style.zIndex = i + 10
     }
     map.createPane('gridPane')
-    map.getPane('gridPane').style.zIndex = 50
+    gridPane = map.getPane('gridPane')
+    gridPane.style.zIndex = 50
     map.createPane('wavePane')
     wavePane = map.getPane('wavePane')
     wavePane.style.zIndex = 100
@@ -234,6 +238,9 @@ onMounted(()=>{
     map.setView([0, 0], 2)
     map.on('dragstart', ()=>{
         isAutoZoom.value = false
+    })
+    unwatchEewBlink = watch(()=>timeStore.timeStamp, (newVal)=>{
+        newVal % 1000 < 500?eewMarkerPane.style.display = 'block':eewMarkerPane.style.display = 'none'
     })
     if(isDisplayUser.value){
         userMarker = L.circleMarker(userLatLng.value, {
@@ -287,7 +294,7 @@ const setView = ()=>{
     const bounds = L.latLngBounds([])
     map.eachLayer(layer=>{
         if(menuId.value != 'eqlists'){
-            if(layer.options.pane == 'wavePane' || layer.options.pane == 'gridPane'){
+            if(['wavePane', 'gridPane', 'eewMarkerPane'].includes(layer.options.pane)){
                 if(layer.getBounds){
                     bounds.extend(layer.getBounds())
                 }
@@ -296,7 +303,7 @@ const setView = ()=>{
                 }
             }
         }
-        else if(activeEqlistList.value == false){
+        else if(activeEqlistList.value.length == 0){
             if(layer.options.pane == 'eqlistMarkerPane'){
                 if(layer.getBounds){
                     bounds.extend(layer.getBounds())
@@ -307,11 +314,6 @@ const setView = ()=>{
             }
         }
     })
-    if(menuId.value != 'eqlists'){
-        activeEewList.value.forEach(source=>{
-            if(eewEvents[source]) bounds.extend(eewEvents[source].hypoLatLng.value)
-        })
-    }
     if(menuId.value != 'eews'){
         activeEqlistList.value.forEach(source=>{
             if(eqlistEvents[source]){
@@ -356,6 +358,7 @@ const resetMainTimer = ()=>{
 }
 watch(menuId, (newVal)=>{
     document.removeEventListener('mousemove', resetMainTimer)
+    if(unwatchEewBlink) unwatchEewBlink()
     if(newVal == 'main'){
         clearTimeout(returnMainTimer)
     }
@@ -378,7 +381,9 @@ watch(menuId, (newVal)=>{
         waveFillPane.style.display = 'none'
     }
     else{
-        eewMarkerPane.style.display = 'block'
+        unwatchEewBlink = watch(()=>timeStore.timeStamp, (newVal)=>{
+            newVal % 1000 < 500?eewMarkerPane.style.display = 'block':eewMarkerPane.style.display = 'none'
+        })
         wavePane.style.display = 'block'
         waveFillPane.style.display = 'block'
     }
@@ -410,15 +415,8 @@ watch([isDisplayUser, userLatLng], ()=>{
         userMarker.addTo(map)
     }
 })
-watch(()=>(statusStore.isActive.jmaEew || statusStore.isActive.niedNet), newVal=>{
-    if(newVal){
-        if(niedPeriodMaxShindo.value == '?'){
-            niedPeriodMaxShindo.value = '0'
-        }
-    }
-    else{
-        niedPeriodMaxShindo.value = '?'
-    }
+watch(()=>timeStore.timeStamp, (newVal)=>{
+    newVal % 1000 < 500?gridPane.style.display = 'block':gridPane.style.display = 'none'
 })
 onBeforeUnmount(()=>{
     clearInterval(autoZoomInterval)

@@ -44,7 +44,7 @@ class UnionFind {
         return this.find(element);
     }
 
-    getAllSetIds() {
+    getAllSets() {
         let sets = {};
         for (let element in this.parent) {
             let setId = this.find(element);
@@ -54,17 +54,6 @@ class UnionFind {
             sets[setId].push(element);
         }
         return sets;
-    }
-
-    getAssociatedElements(){
-        let elements = []
-        let sets = this.getAllSetIds()
-        for(let setId in sets){
-            if(sets[setId].length > 1){
-                elements = elements.concat(sets[setId])
-            }
-        }
-        return elements
     }
 }
 

@@ -24,14 +24,6 @@ class EewEvent {
         this.crossMarker = L.marker(this.hypoLatLng.value, {icon: crossDivIcon, pane: 'eewMarkerPane'})
         this.crossMarker.addTo(this.map)
     }
-    blinkOnce(){
-        if(!this.map.hasLayer(this.crossMarker)){
-            this.crossMarker.addTo(this.map)
-        }
-        else{
-            this.map.removeLayer(this.crossMarker)
-        }
-    }
     drawWaves(){
         let time, travelTime
         if(this.useJst){
@@ -101,13 +93,9 @@ class EewEvent {
         this.drawWavesInterval = setInterval(() => {
             this.drawWaves()
         }, 100);
-        this.blinkInterval = setInterval(() => {
-            this.blinkOnce()
-        }, 500);
     }
     renderStop(){
         clearInterval(this.drawWavesInterval)
-        clearInterval(this.blinkInterval)
         if(this.crossMarker && this.map.hasLayer(this.crossMarker)) this.map.removeLayer(this.crossMarker)
         if(this.pWave && this.map.hasLayer(this.pWave)) this.map.removeLayer(this.pWave)
         if(this.sWave && this.map.hasLayer(this.sWave)) this.map.removeLayer(this.sWave)
@@ -121,19 +109,10 @@ class EewEvent {
         this.drawWavesInterval = setInterval(() => {
             this.drawWaves()
         }, 100);
-        clearInterval(this.blinkInterval)
-        this.blinkInterval = setInterval(() => {
-            this.blinkOnce()
-        }, 500);
     }
     handleCancel(eqMessage){
         Object.assign(this.eqMessage, eqMessage)
-        clearInterval(this.drawWavesInterval)
-        clearInterval(this.blinkInterval)
-        if(this.pWave && this.map.hasLayer(this.pWave)) this.map.removeLayer(this.pWave)
-        if(this.sWave && this.map.hasLayer(this.sWave)) this.map.removeLayer(this.sWave)
-        if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) this.map.removeLayer(this.sWaveFill)
-        this.setMark()
+        this.renderStop()
     }
 }
 class EqlistEvent {

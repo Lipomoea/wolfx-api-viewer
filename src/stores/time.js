@@ -6,10 +6,12 @@ export const useTimeStore = defineStore('timeStore', {
     state: ()=>({
         currentTime: '',
         offset: 0,
+        timeStamp: 0,
     }),
     actions: {
         updateTime() {
             this.currentTime = (new Date(Date.now() + this.offset)).toISOString();
+            this.timeStamp = Date.now() + this.offset
         },
         startUpdatingTime() {
             this.stopUpdatingTime()

@@ -23,14 +23,14 @@ const stationList = ref([])
 const stationData = ref([])
 const stations = reactive([])
 const siteConfigId = ref('')
-let map, gridPane
+let map
 const delay = ref(1200)
 const niedMaxShindo = inject('niedMaxShindo')
 const niedUpdateTime = inject('niedUpdateTime')
 const niedPeriodMaxShindo = inject('niedPeriodMaxShindo')
 const periodMaxLevel = ref(-1)
 const periodMaxShindo = computed(()=>{
-    if(periodMaxLevel.value == -1) return -1
+    if(periodMaxLevel.value <= 0) return -1
     else if(periodMaxLevel.value <= 7) return 0
     else if(periodMaxLevel.value <= 9) return 1
     else if(periodMaxLevel.value <= 11) return 2
@@ -43,6 +43,35 @@ const periodMaxShindo = computed(()=>{
     else return 7
 })
 let adjacencyMatrix = []
+const activityStations = computed(()=>{
+    let list = []
+    stations.forEach(station=>{
+        if(station.activity > 0) list.push(station.id)
+    })
+    return list
+})
+watch(activityStations, (newVal)=>{
+    let activeAdjMat = []
+    for(let i = 0; i < newVal.length; i++){
+        activeAdjMat[i] = []
+        for(let j = 0; j < newVal.length; j++){
+            activeAdjMat[i][j] = adjacencyMatrix[newVal[i]][newVal[j]]
+        }
+    }
+    const unionFind = new UnionFind(newVal, activeAdjMat)
+    const clusters = unionFind.getAllSets()
+    for(let setId in clusters){
+        let activity = 0
+        clusters[setId].forEach(id=>{
+            activity += stations[id].activity
+        })
+        if(activity >= 12){
+            clusters[setId].forEach(id=>{
+                stations[id].setActive()
+            })
+        }
+    }
+})
 const activeStations = computed(()=>{
     let list = []
     stations.forEach(station=>{
@@ -50,20 +79,9 @@ const activeStations = computed(()=>{
     })
     return list
 })
-const associatedActiveStations = computed(()=>{
-    let activeAdjMat = []
-    for(let i = 0; i < activeStations.value.length; i++){
-        activeAdjMat[i] = []
-        for(let j = 0; j < activeStations.value.length; j++){
-            activeAdjMat[i][j] = adjacencyMatrix[activeStations.value[i]][activeStations.value[j]]
-        }
-    }
-    const unionFind = new UnionFind(activeStations.value, activeAdjMat)
-    return unionFind.getAssociatedElements()
-})
 const grids = computed(()=>{
     let grids = []
-    associatedActiveStations.value.forEach(id=>{
+    activeStations.value.forEach(id=>{
         const latLng = stationList.value[id].map(l=>Math.ceil(l + 0.05) - 0.05)
         const level = stations[id].level
         let i
@@ -132,15 +150,10 @@ onMounted(()=>{
     }, 10000);
 })
 let unwatchStationList, unwatchGrids, unwatchDisplayShindo
-let gridPaneInterval
 watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
         map.on('zoomend', renderAll)
-        gridPane = map.getPane('gridPane')
-        gridPaneInterval = setInterval(() => {
-            gridPane.style.display == 'none'?gridPane.style.display = 'block':gridPane.style.display = 'none'
-        }, 500);
         unwatchStationList = watch(stationList, newVal=>{
             if(newVal.length > 0){
                 newVal.forEach((latLng, index)=>{
@@ -182,8 +195,7 @@ watch(()=>statusStore.map, newVal=>{
                 }).addTo(map)
             })
             if(newVal.length > 0 && oldVal.length == 0){
-                setView()
-                isAutoZoom.value = true
+                if(isAutoZoom.value) setView()
                 statusStore.isActive.niedNet = true
             }
             else if(newVal.length == 0){
@@ -200,8 +212,13 @@ watch(()=>statusStore.map, newVal=>{
     }
 }, { immediate: true })
 watch(()=>(statusStore.isActive.jmaEew || statusStore.isActive.niedNet), newVal=>{
-    if(!newVal){
+    if(newVal){
+        periodMaxLevel.value = 0
+        niedPeriodMaxShindo.value = getShindoFromChar(String.fromCharCode(periodMaxLevel.value + 100))
+    }
+    else{
         periodMaxLevel.value = -1
+        niedPeriodMaxShindo.value = getShindoFromChar(String.fromCharCode(periodMaxLevel.value + 100))
     }
 })
 let shake1Notified = false, shake2Notified = false
@@ -257,7 +274,6 @@ watch(periodMaxShindo, (newVal, oldVal)=>{
 onBeforeUnmount(()=>{
     clearInterval(requestInterval)
     clearInterval(delayInterval)
-    clearInterval(gridPaneInterval)
     if(map !== null) map.off('zoomend', renderAll)
     if(unwatchStationList) unwatchStationList()
     if(unwatchGrids) unwatchGrids()
