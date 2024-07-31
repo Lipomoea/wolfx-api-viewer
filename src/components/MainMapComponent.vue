@@ -223,11 +223,11 @@ onMounted(()=>{
     map.createPane('gridPane')
     gridPane = map.getPane('gridPane')
     gridPane.style.zIndex = 50
+    map.createPane('userPane')
+    map.getPane('userPane').style.zIndex = 100
     map.createPane('wavePane')
     wavePane = map.getPane('wavePane')
-    wavePane.style.zIndex = 100
-    map.createPane('userPane')
-    map.getPane('userPane').style.zIndex = 150
+    wavePane.style.zIndex = 150
     map.createPane('eewMarkerPane')
     eewMarkerPane = map.getPane('eewMarkerPane')
     eewMarkerPane.style.zIndex = 200
@@ -416,7 +416,7 @@ watch([isDisplayUser, userLatLng], ()=>{
     }
 })
 watch(()=>timeStore.timeStamp, (newVal)=>{
-    newVal % 1000 < 500?gridPane.style.display = 'block':gridPane.style.display = 'none'
+    (newVal % 1000 < 500) && !statusStore.isActive.jmaEew?gridPane.style.display = 'block':gridPane.style.display = 'none'
 })
 onBeforeUnmount(()=>{
     clearInterval(autoZoomInterval)
