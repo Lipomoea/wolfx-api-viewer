@@ -5,11 +5,11 @@ import { useSettingsStore } from '@/stores/settings';
 import { shindoIconUrls } from '@/utils/Urls';
 
 let colorBand = [
-    '#0014da', '#0037f0', '#006cdc', '#00aca9', '#0cd87a', 
-    '#2dee4d', '#5bfb2c', '#9dfe17', '#ccff09', '#ebff03', 
-    '#fdfc00', '#ffe500', '#ffce00', '#ffa600', '#ff7e00', 
-    '#ff5900', '#fd3500', '#f91500', '#e90000', '#c20000', 
-    '#af0000'
+    '#0003cf', 
+    '#0014da', '#003cf2', '#006cdc', '#00b3a2', '#12dc72', 
+    '#31f049', '#64fb2a', '#a3fe14', '#ccff09', '#ebff03', 
+    '#fff500', '#ffe500', '#ffce00', '#ffa600', '#ff7e00', 
+    '#ff5900', '#fd3500', '#f81100', '#e90000', '#c20000'
 ]
 
 let settingsStore

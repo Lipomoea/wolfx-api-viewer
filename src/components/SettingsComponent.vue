@@ -214,17 +214,18 @@
                         </div>
                     </div>
                 </div>
-                <!-- <div class="subTitle">关于</div>
+                <div class="subTitle">关于</div>
                 <div class="group">
                     <div class="row">
                         <div class="switchGroup">
                             <div class="switch">
-                                <span>显示关于页面</span>
-                                <el-switch v-model="settingsStore.mainSettings.showAbout"></el-switch>
+                                <el-button
+                                style="margin-top: 5px;"
+                                @click="handleAbout">帮助&关于</el-button>
                             </div>
                         </div>
                     </div>
-                </div> -->
+                </div>
             </div>
         </div>
     </div>
@@ -360,6 +361,60 @@ const handleAdvance = (val)=>{
     }
     advancedInput.value = ''
 }
+const handleAbout = ()=>{
+    ElMessageBox.alert(
+        `<div class="title">最近更新</div>
+        <div class="about">
+            <p>v2.0.0 pre6 新增：帮助&关于；修复：NIED测站配色错误的问题。</p>
+            <p>v2.0.0 pre1-pre5 变更：UI重排，暂时移除地震波倒计时功能；新增：NIED強震モニタ测站显示、震度检出功能，设置默认视野功能</p>
+            <p>v1.0.0-1.1.2 新增：地图功能、自动打开地图功能、JMA地震情报列表查看详细、设置用户所在地、IP定位、地震波抵达倒计时等功能；优化：增加自动对时。</p>
+        </div>
+        <div class="title">已知问题</div>
+        <div class="about">
+            <p>置于后台后一段时间切回可能白屏。</p>
+            <p>置于后台时部分连接可能中断。</p>
+            <p>置于后台时震度检出可能出现异常。</p>
+        </div>
+        <div class="title">使用方法</div>
+        <div class="about">
+            <p>主要功能：接收日本气象厅、台湾省中央气象署、四川省地震局、福建省地震局地震预警信息，日本气象厅、中国地震台网地震信息，NIED強震モニタ测站数据。</p>
+            <p>通知推送：需授予通知权限。Chrome浏览器参考：<a href="https://tieba.baidu.com/p/7526026826" target="_blank">https://tieba.baidu.com/p/7526026826</a></p>
+            <p>播放声音：需开启声音权限。Chrome：点击网页链接左侧按钮-网站设置-声音-允许，重新加载页面。若无法授予权限参照上一条。</p>
+            <p>作为Chrome应用安装：Chrome打开此页面，右上角三点-保存并分享-将网页作为应用安装。安装一次后刷新页面即可加载最新版本网页，无需重新安装。</p>
+        </div>
+        <div class="title">注意事项</div>
+        <div class="about">
+            <p>关于烈度：日本气象厅紧急地震速报（气象厅震度，预估值），台湾中央气象署（CWA震度，预估值），四川地震局（CSIS，预估值），福建地震局（CSIS，预估值），日本气象厅地震情报（气象厅震度，测定值），中国地震台网地震信息（CSIS，预估值）。</p>
+            <p>关于时间：显示为发报机构当地时间。</p>
+            <p>关于延迟：受API限制，部分资料具有延迟是正常现象。</p>
+            <p>关于走时：目前所有地震波位置均采用jma2001走时表计算，对日本以外地区可能有较大误差。未知震源深度视为0km。</p>
+            <p>关于地图：由于服务器带宽限制，进入页面后需要一定时间加载地图。如长时间未加载地图，请刷新页面。</p>
+        </div>
+        <div class="title">关于</div>
+        <div class="about">
+            <p><a href="http://124.70.142.213:8080/">稳定版</a> <a href="http://124.70.142.213:8081/">尝鲜版</a></p>
+            <p>本页面基于Wolfx Open API (<a href="https://api.wolfx.jp" target="_blank">api.wolfx.jp</a>) 开发，不属于Wolfx官方。</p>
+            <p>本页面未针对移动端进行适配，建议使用电脑端浏览器访问本网页。</p>
+            <p>联系我：<a href="https://space.bilibili.com/316757498" target="_blank">リッポミャ</a>（哔哩哔哩）</p>
+            <p>Github: <a href="https://github.com/Lipomoea/wolfx-api-viewer" target="_blank">https://github.com/Lipomoea/wolfx-api-viewer</a></p>
+            <p>特别鸣谢：
+                <p>Wolfx Project：接口支持。</p>
+                <p>Kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
+            </p>
+        </div>`,
+        'wolfx-api-viewer v2.0.0 pre-6',
+        {
+            confirmButtonText: 'OK',
+            showClose: false,
+            dangerouslyUseHTMLString: true,
+            customStyle: {
+                '--el-messagebox-width': '60vw',
+                padding: '20px'
+            },
+            customClass: 'about-box'
+        }
+    )
+}
 </script>
 
 <style lang="scss" scoped>
@@ -419,5 +474,19 @@ const handleAdvance = (val)=>{
 .force-wrap{
     flex-wrap: wrap;
     row-gap: 5px;
+}
+</style>
+<style lang="scss">
+.about-box{
+    .title{
+        font-size: 20px;
+    }
+    .about{
+        font-size: 16px;
+        margin-bottom: 10px;
+    }
+    a,a:visited{
+        color: blue;
+    }
 }
 </style>

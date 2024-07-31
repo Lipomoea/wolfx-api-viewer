@@ -37,7 +37,6 @@ export const useSettingsStore = defineStore('settingsStore', {
             displaySeisNet: {
                 nied: true,
             },
-            showAbout: false,
         },
         advancedSettings: {
             displayNiedShindoSwitch: false,
