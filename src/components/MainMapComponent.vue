@@ -220,11 +220,11 @@ onMounted(()=>{
         map.createPane(`stationPane${i}`)
         map.getPane(`stationPane${i}`).style.zIndex = i + 10
     }
+    map.createPane('userPane')
+    map.getPane('userPane').style.zIndex = 90
     map.createPane('gridPane')
     gridPane = map.getPane('gridPane')
-    gridPane.style.zIndex = 50
-    map.createPane('userPane')
-    map.getPane('userPane').style.zIndex = 100
+    gridPane.style.zIndex = 100
     map.createPane('wavePane')
     wavePane = map.getPane('wavePane')
     wavePane.style.zIndex = 150
