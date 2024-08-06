@@ -19,7 +19,7 @@ onBeforeMount(()=>{
   settingsStore.setMainSettings(localStorage.getItem('mainSettings'))
   settingsStore.setAdvancedSettings(localStorage.getItem('advancedSettings'))
 })
-onMounted(async ()=>{
+onMounted(()=>{
   if (Notification.permission !== 'granted' && settingsStore.requestNotification) {
     Notification.requestPermission()
   }
