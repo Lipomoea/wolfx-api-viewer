@@ -359,9 +359,9 @@ const loadBaseMap = (geojson, baseMap, pane)=>{
             pane,
             style: {
                 color: '#ccc',
-                fillColor: '#5f5f5f',
+                fillColor: '#555',
                 fillOpacity: 1,
-                weight: 2,
+                weight: 1,
             },
             onEachFeature: pane == 'globalBasePane'?onEachFeature('name_zh'):onEachFeature('name'),
         })

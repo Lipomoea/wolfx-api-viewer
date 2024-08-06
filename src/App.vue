@@ -28,12 +28,12 @@ onMounted(async ()=>{
     Notification.requestPermission()
   }
   timeStore.startUpdatingTime()
-  const globalData = await Http.get(geojsonUrls.global_modified)
-  dataStore.saveData('geojson', 'global', globalData)
   const cnData = await Http.get(geojsonUrls.cn)
   dataStore.saveData('geojson', 'cn', cnData)
   const jpEewData = await Http.get(geojsonUrls.jp_eew)
   dataStore.saveData('geojson', 'jp_eew', jpEewData)
+  const globalData = await Http.get(geojsonUrls.global_modified)
+  dataStore.saveData('geojson', 'global', globalData)
 })
 onBeforeUnmount(()=>{
   timeStore.stopUpdatingTime()
