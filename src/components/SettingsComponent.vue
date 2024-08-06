@@ -365,8 +365,8 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
-            <p>v2.0.0 pre6 新增：帮助&关于；修复：NIED测站配色错误的问题。</p>
-            <p>v2.0.0 pre1-pre5 变更：UI重排，暂时移除地震波倒计时功能；新增：NIED強震モニタ测站显示、震度检出功能，设置默认视野功能。</p>
+            <p>v2.0.0 pre7 变更：使用新的中国和日本地图；新增：鼠标悬浮提示区域名称。</p>
+            <p>v2.0.0 pre1-pre6 变更：UI重排，暂时移除地震波倒计时功能；新增：NIED強震モニタ测站显示、震度检出功能，设置默认视野功能。</p>
             <p>v1.0.0-1.1.2 新增：地图功能、自动打开地图功能、JMA地震情报列表查看详细、设置用户所在地、IP定位、地震波抵达倒计时等功能；优化：增加自动对时。</p>
         </div>
         <div class="title">已知问题</div>
@@ -402,7 +402,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        'wolfx-api-viewer v2.0.0 pre-6',
+        'wolfx-api-viewer v2.0.0 pre-7',
         {
             confirmButtonText: 'OK',
             showClose: false,

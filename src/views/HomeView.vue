@@ -8,17 +8,6 @@
 
 <script setup>
 import MainMapComponent from '@/components/MainMapComponent.vue';
-import { useDataStore } from '@/stores/data';
-import Http from '@/utils/Http';
-import { geojsonUrls } from '@/utils/Urls';
-import { onMounted } from 'vue';
-
-const dataStore = useDataStore()
-
-onMounted(async ()=>{
-  const globalData = await Http.get(geojsonUrls.global)
-  dataStore.saveData('geojson', 'global', globalData)
-})
 </script>
 
 <style lang="scss" scoped>

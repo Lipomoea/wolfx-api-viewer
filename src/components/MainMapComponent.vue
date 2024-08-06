@@ -135,7 +135,7 @@ const dataStore = useDataStore()
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 const timeStore = useTimeStore()
-let map, baseMap
+let map, globalBaseMap, cnBaseMap, jpEewBaseMap
 let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, gridPane
 const isValidUserLatLng = computed(()=>settingsStore.mainSettings.userLatLng.every(item=>item !== ''))
 const isDisplayUser = computed(()=>isValidUserLatLng.value && settingsStore.mainSettings.displayUser)
@@ -209,10 +209,28 @@ onMounted(()=>{
         const pos = this._map._latLngToNewLayerPoint(this._latlng, opt.zoom, opt.center).round();
         this._setPos(pos);
     }
+    L.Tooltip.prototype._animateZoom = function (e) {
+        if (!this._map) {
+            return;
+        }
+        const pos = this._map._latLngToNewLayerPoint(this._latlng, e.zoom, e.center).round();
+        this._setPosition(pos);
+    }
+    L.Tooltip.prototype._updatePosition = function () {
+        if (!this._map) {
+            return;
+        }
+        const pos = this._map.latLngToLayerPoint(this._latlng);
+        this._setPosition(pos);
+    }
     statusStore.map = map
     map.removeControl(map.zoomControl)
-    map.createPane('basePane')
-    map.getPane('basePane').style.zIndex = 0
+    map.createPane('globalBasePane')
+    map.getPane('globalBasePane').style.zIndex = 0
+    map.createPane('cnBasePane')
+    map.getPane('cnBasePane').style.zIndex = 2
+    map.createPane('jpEewBasePane')
+    map.getPane('jpEewBasePane').style.zIndex = 1
     map.createPane('waveFillPane')
     waveFillPane = map.getPane('waveFillPane')
     waveFillPane.style.zIndex = 5
@@ -334,20 +352,36 @@ const setView = ()=>{
 }
 provide('setView', setView)
 provide('isAutoZoom', isAutoZoom)
-const loadBaseMap = (geojson)=>{
+const loadBaseMap = (geojson, baseMap, pane)=>{
     if(Object.keys(geojson).length != 0){
         if(baseMap && map.hasLayer(baseMap)) map.removeLayer(baseMap)
         baseMap = L.geoJson(geojson, {
-            pane: 'basePane',
+            pane,
             style: {
                 color: '#ccc',
-            }
+                fillColor: '#5f5f5f',
+                fillOpacity: 1,
+                weight: 2,
+            },
+            onEachFeature: pane == 'globalBasePane'?onEachFeature('name_zh'):onEachFeature('name'),
         })
         baseMap.addTo(map)
     }
 }
+const onEachFeature = (name)=>(feature, layer)=>{
+    layer.bindTooltip(feature.properties[name], {
+        permanent: false,
+        direction: 'auto'
+    })
+}
 watch(()=>dataStore.geojson.global, (newVal)=>{
-    loadBaseMap(toRaw(newVal))
+    loadBaseMap(toRaw(newVal), globalBaseMap, 'globalBasePane')
+})
+watch(()=>dataStore.geojson.cn, (newVal)=>{
+    loadBaseMap(toRaw(newVal), cnBaseMap, 'cnBasePane')
+})
+watch(()=>dataStore.geojson.jp_eew, (newVal)=>{
+    loadBaseMap(toRaw(newVal), jpEewBaseMap, 'jpEewBasePane')
 })
 let returnMainTimer, time
 const resetMainTimer = ()=>{
@@ -440,6 +474,9 @@ onBeforeUnmount(()=>{
             #mainMap{
                 width: 100%;
                 height: 100%;
+                *{
+                    cursor: default;
+                }
             }
             .crossDivIcon{
                 background: none;

@@ -57,7 +57,9 @@ const chimeUrls = {
 }
 const geojsonUrls = {
     global: '/json/medium.global.geo.json',
-    cn: '/json/cn.geo.json',
+    global_modified: '/json/medium.global.modified.geo.json',
+    cn: 'https://geojson.cn/api/data/100000.json',
+    jp_eew: '/json/jp.eew.pref.geo.json'
 }
 const utilUrls = {
     geoIp: 'https://api.wolfx.jp/geoip.php',

@@ -11,7 +11,11 @@ import { RouterLink, RouterView } from 'vue-router'
 import { onBeforeMount, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useTimeStore } from './stores/time';
 import { useSettingsStore } from './stores/settings';
+import { useDataStore } from '@/stores/data';
+import Http from '@/utils/Http';
+import { geojsonUrls } from '@/utils/Urls';
 
+const dataStore = useDataStore()
 const timeStore = useTimeStore()
 const settingsStore = useSettingsStore()
 
@@ -19,11 +23,17 @@ onBeforeMount(()=>{
   settingsStore.setMainSettings(localStorage.getItem('mainSettings'))
   settingsStore.setAdvancedSettings(localStorage.getItem('advancedSettings'))
 })
-onMounted(()=>{
+onMounted(async ()=>{
   if (Notification.permission !== 'granted' && settingsStore.requestNotification) {
     Notification.requestPermission()
   }
   timeStore.startUpdatingTime()
+  const globalData = await Http.get(geojsonUrls.global_modified)
+  dataStore.saveData('geojson', 'global', globalData)
+  const cnData = await Http.get(geojsonUrls.cn)
+  dataStore.saveData('geojson', 'cn', cnData)
+  const jpEewData = await Http.get(geojsonUrls.jp_eew)
+  dataStore.saveData('geojson', 'jp_eew', jpEewData)
 })
 onBeforeUnmount(()=>{
   timeStore.stopUpdatingTime()

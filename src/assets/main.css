@@ -5,5 +5,10 @@
 }
 
 body{
+  background-color: #fff;
   font-family: Arial, Helvetica, sans-serif;
+}
+
+path.leaflet-interactive:focus {
+  outline: none;
 }
