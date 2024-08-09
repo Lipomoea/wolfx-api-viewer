@@ -11,7 +11,7 @@ import axios from 'axios';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { seisNetUrls, chimeUrls, iconUrls } from '@/utils/Urls';
-import { getTimeNumberString, getShindoFromChar, playSound, sendNotification } from '@/utils/Utils';
+import { getTimeNumberString, getShindoFromChar, playSound, sendNotification, calcTimeDiff } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { NiedStation } from '@/classes/StationClasses';
@@ -24,7 +24,8 @@ const stationData = ref([])
 const stations = reactive([])
 const siteConfigId = ref('')
 let map
-const delay = ref(1200)
+const defaultDelay = 1200
+const delay = ref(defaultDelay)
 const niedMaxShindo = inject('niedMaxShindo')
 const niedUpdateTime = inject('niedUpdateTime')
 const niedPeriodMaxShindo = inject('niedPeriodMaxShindo')
@@ -139,7 +140,14 @@ onMounted(()=>{
             if(res && res.status == 200){
                 const data = res.data
                 stationData.value = data.realTimeData.intensity.split('')
-                niedUpdateTime.value = data.realTimeData.dataTime
+                const timeDiff = calcTimeDiff(data.realTimeData.dataTime.slice(0, -6), 9, niedUpdateTime.value, 9)
+                if(timeDiff > 10000 || timeDiff < 0){
+                    stations.forEach(station=>{
+                        station.recentLevel = []
+                        station.isActive = false
+                    })
+                }
+                niedUpdateTime.value = data.realTimeData.dataTime.slice(0, -6)
                 siteConfigId.value = data.realTimeData.siteConfigId
                 update()
             }
@@ -273,15 +281,11 @@ watch(periodMaxShindo, (newVal, oldVal)=>{
 })
 watch(()=>settingsStore.mainSettings.displaySeisNet.niedDelay, newVal=>{
     clearInterval(delayInterval)
-    stations.forEach(station=>{
-        station.recentLevel = []
-        station.isActive = false
-    })
-    if(newVal > 0.02){
+    if(newVal > defaultDelay / 60000){
         delay.value = newVal * 60000
     }
     else{
-        delay.value = 1200
+        delay.value = defaultDelay
         delayInterval = setInterval(() => {
             delay.value -= 20
         }, 10000);

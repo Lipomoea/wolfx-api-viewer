@@ -53,7 +53,7 @@ class NiedStation {
         }
         this.activity = this.calcActivity(level, ascend)
         this.recentLevel.unshift(level)
-        if(this.recentLevel.length > 5) this.recentLevel.pop()
+        if(this.recentLevel.length > 10) this.recentLevel.pop()
     }
     calcActivity(level, ascend){
         let levelActivity, ascendActivity

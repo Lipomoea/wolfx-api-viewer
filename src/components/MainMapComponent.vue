@@ -65,7 +65,7 @@
                 </div>
                 <div class="left-bottom">
                     <div class="nied-update-time" :class="isNiedDelayed?'delayed':''" v-if="settingsStore.mainSettings.displaySeisNet.nied">
-                        強震モニタ: {{ niedUpdateTime.slice(0, -6) }} (UTC+9)
+                        強震モニタ: {{ niedUpdateTime }} (UTC+9)
                     </div>
                 </div>
                 <!-- <div class="countdown" v-if="isDisplayCountdown">
@@ -129,7 +129,7 @@ import SeisNetComponent from './SeisNetComponent.vue';
 import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
 import { EewEvent, EqlistEvent } from '@/classes/EewEqlistClasses';
-import { compareTime, setClassName } from '@/utils/Utils';
+import { verifyUpToDate, setClassName } from '@/utils/Utils';
 
 const dataStore = useDataStore()
 const statusStore = useStatusStore()
@@ -319,7 +319,15 @@ const setView = ()=>{
     const bounds = L.latLngBounds([])
     map.eachLayer(layer=>{
         if(menuId.value != 'eqlists'){
-            if(['wavePane', 'gridPane', 'eewMarkerPane'].includes(layer.options.pane)){
+            if(['wavePane', 'eewMarkerPane'].includes(layer.options.pane)){
+                if(layer.getBounds){
+                    bounds.extend(layer.getBounds())
+                }
+                else if(layer.getLatLng){
+                    bounds.extend(layer.getLatLng())
+                }
+            }
+            if(layer.options.pane == 'gridPane' && !statusStore.isActive.jmaEew){
                 if(layer.getBounds){
                     bounds.extend(layer.getBounds())
                 }
@@ -458,7 +466,7 @@ watch([isDisplayUser, userLatLng], ()=>{
 })
 watch(()=>timeStore.timeStamp, (newVal)=>{
     (newVal % 1000 < 500) && !statusStore.isActive.jmaEew?gridPane.style.display = 'block':gridPane.style.display = 'none'
-    isNiedDelayed.value = !compareTime(niedUpdateTime.value.slice(0, -6), 9, 10000)
+    isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
 })
 onBeforeUnmount(()=>{
     clearInterval(autoZoomInterval)
