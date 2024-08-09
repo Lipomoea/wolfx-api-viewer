@@ -36,6 +36,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             decimalCountdown: false,
             displaySeisNet: {
                 nied: true,
+                niedDelay: 0,
             },
         },
         advancedSettings: {

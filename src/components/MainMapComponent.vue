@@ -2,7 +2,7 @@
     <div class="outer">
         <div class="container">
             <div class="mapContainer">
-                <div id="mainMap" @wheel="isAutoZoom = false" @dblclick="isAutoZoom = false"></div>
+                <div id="mainMap" @wheel="handleManual" @dblclick="handleManual"></div>
                 <div class="eewList">
                     <div class="eew" v-for="source of activeEewList" :key="source" v-show="menuId != 'eqlists'">
                         <div class="bar" :class="getBarClass(eewEvents[source].eqMessage)">{{ eewEvents[source].eqMessage.titleText + ' ' + eewEvents[source].eqMessage.reportNumText }}</div>
@@ -64,7 +64,7 @@
                     </div>
                 </div>
                 <div class="left-bottom">
-                    <div class="nied-update-time" :class="compareTime(niedUpdateTime.slice(0, -6), 9, 10000)?'':'delayed'" v-if="settingsStore.mainSettings.displaySeisNet.nied">
+                    <div class="nied-update-time" :class="isNiedDelayed?'delayed':''" v-if="settingsStore.mainSettings.displaySeisNet.nied">
                         強震モニタ: {{ niedUpdateTime.slice(0, -6) }} (UTC+9)
                     </div>
                 </div>
@@ -145,6 +145,14 @@ const isValidViewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.eve
 const viewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.map(val=>Number(val)))
 const zoomLevel = computed(()=>settingsStore.mainSettings.defaultZoom)
 const menuId = ref('main')
+let autoZoomTimer
+const handleManual = ()=>{
+    isAutoZoom.value = false
+    clearTimeout(autoZoomTimer)
+    autoZoomTimer = setTimeout(() => {
+        handleHome()
+    }, 120 * 1000);
+}
 const handleHome = ()=>{
     isAutoZoom.value = true
     setView()
@@ -164,6 +172,7 @@ const niedPeriodMaxShindo = ref('?')
 provide('niedUpdateTime', niedUpdateTime)
 provide('niedMaxShindo', niedMaxShindo)
 provide('niedPeriodMaxShindo', niedPeriodMaxShindo)
+const isNiedDelayed = ref(true)
 const isAutoZoom = ref(true)
 const eewEvents = {
     jmaEew: null,
@@ -254,9 +263,7 @@ onMounted(()=>{
     eqlistMarkerPane.style.zIndex = 200
     loadBaseMap(toRaw(dataStore.geojson.global))
     map.setView([0, 0], 2)
-    map.on('dragstart', ()=>{
-        isAutoZoom.value = false
-    })
+    map.on('dragstart', handleManual)
     unwatchEewBlink = watch(()=>timeStore.timeStamp, (newVal)=>{
         newVal % 1000 < 500?eewMarkerPane.style.display = 'block':eewMarkerPane.style.display = 'none'
     })
@@ -451,9 +458,11 @@ watch([isDisplayUser, userLatLng], ()=>{
 })
 watch(()=>timeStore.timeStamp, (newVal)=>{
     (newVal % 1000 < 500) && !statusStore.isActive.jmaEew?gridPane.style.display = 'block':gridPane.style.display = 'none'
+    isNiedDelayed.value = !compareTime(niedUpdateTime.value.slice(0, -6), 9, 10000)
 })
 onBeforeUnmount(()=>{
     clearInterval(autoZoomInterval)
+    clearTimeout(autoZoomTimer)
     clearTimeout(returnMainTimer)
     document.removeEventListener('mousemove', resetMainTimer)
 })

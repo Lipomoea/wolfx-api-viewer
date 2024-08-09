@@ -193,7 +193,9 @@ watch(()=>statusStore.map, newVal=>{
                     weight: 2,
                     pane: 'gridPane'
                 }).addTo(map)
+                if(item.level > periodMaxLevel.value) periodMaxLevel.value = item.level
             })
+            niedPeriodMaxShindo.value = getShindoFromChar(String.fromCharCode(periodMaxLevel.value + 100))
             if(newVal.length > 0 && oldVal.length == 0){
                 if(isAutoZoom.value) setView()
                 statusStore.isActive.niedNet = true
@@ -201,10 +203,6 @@ watch(()=>statusStore.map, newVal=>{
             else if(newVal.length == 0){
                 statusStore.isActive.niedNet = false
             }
-            grids.value.forEach(item=>{
-                if(item.level > periodMaxLevel.value) periodMaxLevel.value = item.level
-            })
-            niedPeriodMaxShindo.value = getShindoFromChar(String.fromCharCode(periodMaxLevel.value + 100))
         })
         unwatchDisplayShindo = watch(()=>settingsStore.advancedSettings.displayNiedShindo, ()=>{
             renderAll()
@@ -213,8 +211,10 @@ watch(()=>statusStore.map, newVal=>{
 }, { immediate: true })
 watch(()=>(statusStore.isActive.jmaEew || statusStore.isActive.niedNet), newVal=>{
     if(newVal){
-        periodMaxLevel.value = 0
-        niedPeriodMaxShindo.value = getShindoFromChar(String.fromCharCode(periodMaxLevel.value + 100))
+        if(periodMaxLevel.value == -1){
+            periodMaxLevel.value = 0
+            niedPeriodMaxShindo.value = getShindoFromChar(String.fromCharCode(periodMaxLevel.value + 100))
+        }
     }
     else{
         periodMaxLevel.value = -1
@@ -269,6 +269,22 @@ watch(periodMaxShindo, (newVal, oldVal)=>{
         sound0 = false
         sound5 = false
         sound6 = false
+    }
+})
+watch(()=>settingsStore.mainSettings.displaySeisNet.niedDelay, newVal=>{
+    clearInterval(delayInterval)
+    stations.forEach(station=>{
+        station.recentLevel = []
+        station.isActive = false
+    })
+    if(newVal > 0.02){
+        delay.value = newVal * 60000
+    }
+    else{
+        delay.value = 1200
+        delayInterval = setInterval(() => {
+            delay.value -= 20
+        }, 10000);
     }
 })
 onBeforeUnmount(()=>{

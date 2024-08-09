@@ -18,6 +18,7 @@ const settingsStore = useSettingsStore()
 onBeforeMount(()=>{
   settingsStore.setMainSettings(localStorage.getItem('mainSettings'))
   settingsStore.setAdvancedSettings(localStorage.getItem('advancedSettings'))
+  settingsStore.mainSettings.displaySeisNet.niedDelay = 0
 })
 onMounted(()=>{
   if (Notification.permission !== 'granted' && settingsStore.requestNotification) {
