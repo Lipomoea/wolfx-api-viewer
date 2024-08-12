@@ -1,6 +1,6 @@
 <template>
-    <div>
-        <div class="container" @click="isShowMap = true">
+    <div class="outer">
+        <div class="container">
             <div class="bg" :class="className"></div>
             <div class="intensity">{{ eqMessage.maxIntensity }}</div>
             <div :style='{fontSize: "18px", fontWeight: "700"}'>{{ formatText(eqMessage.titleText) }}</div>
@@ -14,15 +14,11 @@
             <div>经过时间: {{ formatText(msToTime(passedTimeFromOrigin)) }}</div>
             <div>WebSocket状态: {{ statusCode >= 0 && statusCode <= 5?statusList[statusCode]:'N/A' }}</div>
         </div>
-        <div class="map" v-if="isShowMap">
-            <MapComponent :eqMessage :source="props.source" :isActive></MapComponent>
-        </div>
-        <div class="overlay" v-if="isShowMap" @click="isShowMap = false"></div>
     </div>
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref, reactive, computed, watch } from 'vue'
+import { onMounted, onBeforeUnmount, ref, reactive, computed, watch, inject } from 'vue'
 import Http from '@/utils/Http';
 import WebSocketObj from '@/utils/WebSocket';
 import { eqUrls, iconUrls, chimeUrls } from '@/utils/Urls';
@@ -32,7 +28,6 @@ import { useSettingsStore } from '@/stores/settings';
 import { useStatusStore } from '@/stores/status';
 import '@/assets/background.css'
 import '@/assets/opacity.css'
-import MapComponent from './components/MapComponent.vue';
 
 const statusList = ['正在连接', '已连接', '正在断开', '已断开', '未连接', '不使用']
 const eqMessage = reactive({
@@ -65,18 +60,13 @@ const eqMessage = reactive({
 const props = defineProps({
     source: String,
 })
+const handleMenu = inject('handleMenu')
+const handleHome = inject('handleHome')
 const timeStore = useTimeStore()
 const settingsStore = useSettingsStore()
 const statusStore = useStatusStore()
-const isShowMap = computed({
-    get: ()=>statusStore.currentMap == props.source,
-    set: (val)=>{
-        if(val) statusStore.setCurrentMap(props.source)
-        else statusStore.setCurrentMap('')
-    }
-})
 const useWebSocket = computed(()=>!props.source.includes('cwa'))
-const useJst = computed(()=>props.source.includes('jma'))
+const useJst = props.source.includes('jma')
 let request, socketObj;
 let protocol = 'http', httpInterval = 1000
 let isNewEvent = false
@@ -275,7 +265,7 @@ const setEqMessage = (data)=>{
 const connect = (protocol)=>{
     const source = props.source + '_' + protocol
     if(protocol == 'http'){
-        if(request) clearInterval(request)
+        clearInterval(request)
         request = setInterval(() => {
             Http.get(eqUrls[source] + `?t=${Date.now()}`).then(data=>{
                 setEqMessage(data)
@@ -303,7 +293,7 @@ const connect = (protocol)=>{
     }
 }
 const disconnect = ()=>{
-    if(request) clearInterval(request)
+    clearInterval(request)
     if(socketObj) socketObj.close()
 }
 const reconnect = ()=>{
@@ -334,9 +324,9 @@ onMounted(()=>{
 })
 onBeforeUnmount(()=>{
     disconnect()
-    if(blinkController) clearInterval(blinkController)
-    if(blinkTimeout) clearTimeout(blinkTimeout)
-    if(timer) clearTimeout(timer)
+    clearInterval(blinkController)
+    clearTimeout(blinkTimeout)
+    clearTimeout(timer)
 })
 
 const className = ref('white midOpacity')
@@ -346,15 +336,10 @@ let isLoad = true
 const blinkTime = 4000
 const soundEffect = computed(()=>settingsStore.mainSettings.soundEffect)
 const cautionList = ['green', 'yellow', 'orange', 'red', 'purple']
-let firstSound = false, cautionSound = false, warnSound = false
-let openMap = false, noOperation = false
+let firstSound = false, cautionSound = false, warnSound = false, menuSwitched = false
 const isActive = ref(false)
-const handleOperation = ()=>{
-    noOperation = false
-    document.removeEventListener('mousemove', handleOperation)
-}
+
 watch(eqMessage, ()=>{
-    isActive.value = false
     className.value = eqMessage.className + ' midOpacity'
     let passedTime = 0
     if(isLoad){
@@ -390,13 +375,13 @@ watch(eqMessage, ()=>{
     time -= passedTime
     if(time > 0){
         isActive.value = true
+        statusStore.setActive(props.source, isActive.value)
         let icon = ''
         if(isNewEvent){
             firstSound = false
             cautionSound = false
             warnSound = false
-            openMap = false
-            noOperation = false
+            menuSwitched = false
         }
         //是EEW
         if(eqMessage.isEew){
@@ -424,15 +409,18 @@ watch(eqMessage, ()=>{
                         }
                     }
                 }
-                //显示地图
-                if(settingsStore.mainSettings.onEew.showMap || settingsStore.mainSettings.onEewWarn.showMap){
-                    if(!openMap && !isShowMap.value){
-                        isShowMap.value = true
-                        noOperation = true
-                        document.removeEventListener('mousemove', handleOperation)
-                        document.addEventListener('mousemove', handleOperation)
+                //切换菜单
+                if(settingsStore.mainSettings.onEew.switchMenu || settingsStore.mainSettings.onEewWarn.switchMenu){
+                    if(!menuSwitched){
+                        handleMenu('eews')
+                        menuSwitched = true
                     }
-                    openMap = true
+                }
+                else{
+                    if(!menuSwitched){
+                        handleHome()
+                        menuSwitched = true
+                    }
                 }
             }
             //不是Warn
@@ -460,15 +448,18 @@ watch(eqMessage, ()=>{
                         }
                     }
                 }
-                //显示地图
-                if(settingsStore.mainSettings.onEew.showMap){
-                    if(!openMap && !isShowMap.value){
-                        isShowMap.value = true
-                        noOperation = true
-                        document.removeEventListener('mousemove', handleOperation)
-                        document.addEventListener('mousemove', handleOperation)
+                //切换菜单
+                if(settingsStore.mainSettings.onEew.switchMenu){
+                    if(!menuSwitched){
+                        handleMenu('eews')
+                        menuSwitched = true
                     }
-                    openMap = true
+                }
+                else{
+                    if(!menuSwitched){
+                        handleHome()
+                        menuSwitched = true
+                    }
                 }
             }
         }
@@ -509,14 +500,17 @@ watch(eqMessage, ()=>{
                     }
                 }
             }
-            if(settingsStore.mainSettings.onReport.showMap){
-                if(!openMap && !isShowMap.value){
-                    isShowMap.value = true
-                    noOperation = true
-                    document.removeEventListener('mousemove', handleOperation)
-                    document.addEventListener('mousemove', handleOperation)
+            if(settingsStore.mainSettings.onReport.switchMenu){
+                if(!menuSwitched){
+                    handleMenu('eqlists')
+                    menuSwitched = true
                 }
-                openMap = true
+            }
+            else{
+                if(!menuSwitched){
+                    handleHome()
+                    menuSwitched = true
+                }
             }
         }
         if(icon){
@@ -525,7 +519,7 @@ watch(eqMessage, ()=>{
                 icon, 
                 settingsStore.mainSettings.muteNotification)
         }
-        if(blinkController) clearInterval(blinkController)
+        clearInterval(blinkController)
         blinkController = setInterval(() => {
             if(blinkState.value){
                 className.value = eqMessage.className + ' highOpacity'
@@ -535,26 +529,25 @@ watch(eqMessage, ()=>{
             }
             blinkState.value = !blinkState.value
         }, 500);
-        if(blinkTimeout) clearTimeout(blinkTimeout)
+        clearTimeout(blinkTimeout)
         blinkTimeout = setTimeout(() => {
             clearInterval(blinkController)
             blinkState.value = true
             className.value = eqMessage.className + ' highOpacity'
         }, blinkTime);
-        if(timer) clearTimeout(timer)
+        clearTimeout(timer)
         timer = setTimeout(() => {
             className.value = eqMessage.className + ' midOpacity'
             isActive.value = false
-            if(noOperation){
-                isShowMap.value = false
-            }
+            statusStore.setActive(props.source, isActive.value)
         }, Math.max(time, blinkTime));
     }
+    statusStore.setEqMessage(props.source, eqMessage)
 })
 const statusCode = ref()
 const passedTimeFromOrigin = ref()
 watch(()=>timeStore.currentTime, ()=>{
-    if(useJst.value){
+    if(useJst){
         passedTimeFromOrigin.value = calcPassedTime(eqMessage.originTime, 9)
     }
     else{
@@ -564,84 +557,67 @@ watch(()=>timeStore.currentTime, ()=>{
     else if(!useWebSocket.value) statusCode.value = 5
     else statusCode.value = 4
 })
-watch(isShowMap, (newVal)=>{
-    if(!newVal && noOperation){
-        handleOperation()
-    }
-})
 
-// import { generateEewMessage, generateEqlistMessage } from '@/utils/test';
+// import { generateJmaEewMessage, generateJmaEqlistMessage, generateCwaEewMessage } from '@/utils/test';
 // if(props.source == 'jmaEew'){
 //     setTimeout(() => {
 //         disconnect()
 //     }, 3500);
-//     generateEewMessage(eqMessage)
+//     generateJmaEewMessage(eqMessage)
 // }
 // if(props.source == 'jmaEqlist'){
 //     setTimeout(() => {
 //         disconnect()
 //     }, 3500);
-//     generateEqlistMessage(eqMessage)
+//     generateJmaEqlistMessage(eqMessage)
+// }
+// if(props.source == 'cwaEew'){
+//     setTimeout(() => {
+//         disconnect()
+//     }, 3500);
+//     generateCwaEewMessage(eqMessage)
 // }
 
 </script>
 
 <style lang="scss" scoped>
-.container{
-    position: relative;
-    overflow: hidden;
+.outer{
     width: 100%;
-    height: 350px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-evenly;
-    border: black 1px solid;
-    border-radius: 5px;
-    user-select: none;
-    *{
-        z-index: 10;
-        pointer-events: none;
-    }
-    .bg{
-        position: absolute;
+    .container{
+        position: relative;
+        overflow: hidden;
         width: 100%;
-        height: 100%;
-        z-index: 0;
-        pointer-events: auto;
-    }
-    .intensity{
-        position: absolute;
-        z-index: 5;
+        min-width: 410px;
+        height: 300px;
+        margin-bottom: 10px;
         display: flex;
-        justify-content: center;
+        flex-direction: column;
         align-items: center;
-        font-size: 200px;
-        font-weight: 700;
-        color: #0000003f;
+        justify-content: space-evenly;
+        border: black 1px solid;
+        border-radius: 5px;
+        user-select: none;
+        *{
+            z-index: 10;
+            pointer-events: none;
+        }
+        .bg{
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: auto;
+        }
+        .intensity{
+            position: absolute;
+            z-index: 5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 200px;
+            font-weight: 700;
+            color: #0000003f;
+        }
     }
-}
-.map{
-    width: 70vw;
-    height: 70vh;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 20;
-    border: black 1px solid;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 0 10px 0px #7f7f7f;
-}
-.overlay{
-    width: 100vw;
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
-    background-color: #fff;
-    opacity: 0.5;
-    z-index: 15;
 }
 </style>

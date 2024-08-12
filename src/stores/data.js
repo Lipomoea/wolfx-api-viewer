@@ -4,6 +4,8 @@ export const useDataStore = defineStore('dataStore', {
     state: ()=>({
         geojson: {
             global: {},
+            cn: {},
+            jp_eew: {}
         },
     }),
     getters: {

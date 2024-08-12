@@ -30,10 +30,7 @@ const msToTime = (duration)=>{
   
     return days + "d " + hours + ":" + minutes + ":" + seconds;
 }
-const calcPassedTime = (time, timeZone)=>{
-    if(!time || !timeZone) return
-    const timeStore = useTimeStore()
-    let date1 = Date.now() + timeStore.offset
+const timeToStamp = (time, timeZone)=>{
     let isoTime = time.replace(' ', 'T').replace(/\//g, '-') + 'Z'
     let splitIso = isoTime.split('-')
     if(splitIso[1].length == 1) splitIso[1] = '0' + splitIso[1]
@@ -42,13 +39,26 @@ const calcPassedTime = (time, timeZone)=>{
     splitIso = isoTime.split('T')
     if(splitIso[1].split(':')[0].length == 1) splitIso[1] = '0' + splitIso[1]
     isoTime = splitIso.join('T')
-    let date2 = new Date(isoTime).getTime()
-    date2 -= timeZone * 3600 * 1000
-    return date1 - date2
+    let stamp = new Date(isoTime).getTime()
+    stamp -= timeZone * 3600 * 1000
+    return stamp
 }
-const compareTime = (time, timeZone, interval)=>{
+const calcPassedTime = (time, timeZone)=>{
+    if(!time || !timeZone) return
+    const timeStore = useTimeStore()
+    let stamp1 = Date.now() + timeStore.offset
+    let stamp2 = timeToStamp(time, timeZone)
+    return stamp1 - stamp2
+}
+const verifyUpToDate = (time, timeZone, interval)=>{
     if(!time || !timeZone || !interval) return
     return calcPassedTime(time, timeZone) <= interval
+}
+const calcTimeDiff = (time1, timeZone1, time2, timeZone2)=>{
+    if(!time1 || !timeZone1 || !time2 || !timeZone2) return
+    let stamp1 = timeToStamp(time1, timeZone1)
+    let stamp2 = timeToStamp(time2, timeZone2)
+    return stamp1 - stamp2
 }
 const sendNotification = (title, body, icon, silent)=>{
     if(Notification.permission == 'granted'){
@@ -142,5 +152,30 @@ const extractNumbers = (str)=>{
     }
     return numberString
 }
+const getTimeNumberString = (timeZone, offset)=>{
+    const timeStore = useTimeStore()
+    const now = new Date(Date.now() + timeStore.offset + timeZone * 3600 * 1000 + offset);
+    const year = now.getUTCFullYear();
+    const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(now.getUTCDate()).padStart(2, '0');
+    const hours = String(now.getUTCHours()).padStart(2, '0');
+    const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(now.getUTCSeconds()).padStart(2, '0');
+    return `${year}${month}${day}${hours}${minutes}${seconds}`;
+}
 
-export { formatNumber, formatText, msToTime, calcPassedTime, compareTime, sendNotification, setClassName, playSound, calcWaveDistance, calcReachTime, extractNumbers }
+const getShindoFromChar = (char)=>{
+    if(char >= 'd' && char <= 'k') return '0'
+    if(char >= 'l' && char <= 'm') return '1'
+    if(char >= 'n' && char <= 'o') return '2'
+    if(char >= 'p' && char <= 'q') return '3'
+    if(char >= 'r' && char <= 's') return '4'
+    if(char == 't') return '5-'
+    if(char == 'u') return '5+'
+    if(char == 'v') return '6-'
+    if(char == 'w') return '6+'
+    if(char == 'x') return '7'
+    return '?'
+}
+
+export { formatNumber, formatText, msToTime, timeToStamp, calcPassedTime, verifyUpToDate, calcTimeDiff, sendNotification, setClassName, playSound, calcWaveDistance, calcReachTime, extractNumbers, getTimeNumberString, getShindoFromChar }

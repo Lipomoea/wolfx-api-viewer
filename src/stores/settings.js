@@ -7,40 +7,60 @@ export const useSettingsStore = defineStore('settingsStore', {
                 notification: false,
                 sound: false,
                 focus:false,
-                showMap: false,
+                switchMenu: false,
             },
             onEewWarn: {
                 notification: false,
                 sound: false,
                 focus:false,
-                showMap: false,
+                switchMenu: false,
             },
             onReport: {
                 notification: false,
                 sound: false,
                 focus:false,
-                showMap: false,
+                switchMenu: false,
+            },
+            onShake: {
+                notification: false,
+                sound: false,
+                focus:false,
             },
             muteNotification: false,
             soundEffect: 'srev',
             userLatLng: ['', ''],
             displayUser: false,
+            viewLatLng: ['', ''],
+            defaultZoom: 5,
             displayCountdown: false,
             decimalCountdown: false,
-            showAbout: false,
+            displaySeisNet: {
+                nied: true,
+                niedDelay: 0,
+            },
         },
+        advancedSettings: {
+            displayNiedShindoSwitch: false,
+            displayNiedShindo: false,
+        }
     }),
     getters: {
         requestNotification: (state)=>(
             state.mainSettings.onEew.notification || 
             state.mainSettings.onEewWarn.notification || 
-            state.mainSettings.onReport.notification
+            state.mainSettings.onReport.notification ||
+            state.mainSettings.onShake.notification
         ),
     },
     actions: {
         setMainSettings(jsonString){
             if(jsonString){
                 Object.assign(this.mainSettings, JSON.parse(jsonString))
+            }
+        },
+        setAdvancedSettings(jsonString){
+            if(jsonString){
+                Object.assign(this.advancedSettings, JSON.parse(jsonString))
             }
         },
     }

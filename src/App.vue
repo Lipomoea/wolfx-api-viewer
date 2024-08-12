@@ -17,6 +17,8 @@ const settingsStore = useSettingsStore()
 
 onBeforeMount(()=>{
   settingsStore.setMainSettings(localStorage.getItem('mainSettings'))
+  settingsStore.setAdvancedSettings(localStorage.getItem('advancedSettings'))
+  settingsStore.mainSettings.displaySeisNet.niedDelay = 0
 })
 onMounted(()=>{
   if (Notification.permission !== 'granted' && settingsStore.requestNotification) {
@@ -30,6 +32,10 @@ onBeforeUnmount(()=>{
 watch(()=>settingsStore.mainSettings, (newValue)=>{
   localStorage.setItem('mainSettings', JSON.stringify(newValue))
 }, { deep: true })
+watch(()=>settingsStore.advancedSettings, (newValue)=>{
+  localStorage.setItem('advancedSettings', JSON.stringify(newValue))
+}, { deep: true })
+
 </script>
 
 <style lang="scss" scoped>
