@@ -1,3 +1,5 @@
+import { useTimeStore } from "@/stores/time"
+
 const formatNumber = (value, digit)=>{
     if(value){
         if(digit) return value.toFixed(digit)
@@ -30,11 +32,19 @@ const msToTime = (duration)=>{
 }
 const calcPassedTime = (time, timeZone)=>{
     if(!time || !timeZone) return
-    let date1 = Date.now()
+    const timeStore = useTimeStore()
+    let date1 = Date.now() + timeStore.offset
     let isoTime = time.replace(' ', 'T').replace(/\//g, '-') + 'Z'
+    let splitIso = isoTime.split('-')
+    if(splitIso[1].length == 1) splitIso[1] = '0' + splitIso[1]
+    if(splitIso[2].split('T')[0].length == 1) splitIso[2] = '0' + splitIso[2]
+    isoTime = splitIso.join('-')
+    splitIso = isoTime.split('T')
+    if(splitIso[1].split(':')[0].length == 1) splitIso[1] = '0' + splitIso[1]
+    isoTime = splitIso.join('T')
     let date2 = new Date(isoTime).getTime()
     date2 -= timeZone * 3600 * 1000
-    return Math.abs(date1 - date2)
+    return date1 - date2
 }
 const compareTime = (time, timeZone, interval)=>{
     if(!time || !timeZone || !interval) return
@@ -52,28 +62,30 @@ const sendNotification = (title, body, icon, silent)=>{
         }
     }
 }
-const setClassName = (intensity, useShindo)=>{
+const setClassName = (intensity, useShindo, isCanceled = false)=>{
     let className = 'gray'
-    if(useShindo){
-        if(intensity >= '1' && intensity <= '7'){
-            if(intensity >= '1') className = 'gray'
-            if(intensity >= '2') className = 'blue'
-            if(intensity >= '3') className = 'green'
-            if(intensity >= '4') className = 'yellow'
-            if(intensity >= '5') className = 'orange'
-            if(intensity >= '6') className = 'red'
-            if(intensity >= '7') className = 'purple'
+    if(!isCanceled){
+        if(useShindo){
+            if(intensity >= '1' && intensity <= '7'){
+                if(intensity >= '1') className = 'gray'
+                if(intensity >= '2') className = 'blue'
+                if(intensity >= '3') className = 'green'
+                if(intensity >= '4') className = 'yellow'
+                if(intensity >= '5') className = 'orange'
+                if(intensity >= '6') className = 'red'
+                if(intensity >= '7') className = 'purple'
+            }
         }
-    }
-    else{
-        if(Number(intensity) >= 1 && Number(intensity) <= 12){
-            if(Number(intensity) >= 1) className = 'gray'
-            if(Number(intensity) >= 3) className = 'blue'
-            if(Number(intensity) >= 5) className = 'green'
-            if(Number(intensity) >= 6) className = 'yellow'
-            if(Number(intensity) >= 7) className = 'orange'
-            if(Number(intensity) >= 8) className = 'red'
-            if(Number(intensity) >= 9) className = 'purple'
+        else{
+            if(Number(intensity) >= 1 && Number(intensity) <= 12){
+                if(Number(intensity) >= 1) className = 'gray'
+                if(Number(intensity) >= 3) className = 'blue'
+                if(Number(intensity) >= 5) className = 'green'
+                if(Number(intensity) >= 6) className = 'yellow'
+                if(Number(intensity) >= 7) className = 'orange'
+                if(Number(intensity) >= 8) className = 'red'
+                if(Number(intensity) >= 9) className = 'purple'
+            }
         }
     }
     return className
@@ -82,5 +94,53 @@ const playSound = (url)=>{
     const audio = new Audio(url)
     audio.play()
 }
+const calcWaveDistance = (travelTime, isPWave, depth, time)=>{
+    const { depths, distances } = travelTime
+    let data
+    if(isPWave) {
+        data = travelTime.p_times
+    }
+    else {
+        data = travelTime.s_times
+    }
+    let i = 1
+    while(depths[i] < depth && i < depths.length - 1) i++
+    if(depth <= (depths[i - 1] + depths[i]) / 2) i--
+    const times = data[i]
+    if(time <= times[0]) return { reach: times[0] - time, radius: 0 }
+    let j = 1
+    while(times[j] < time && j < times.length - 1) j++
+    const k = (distances[j] - distances[j - 1]) / (times[j] - times[j - 1])
+    const b = distances[j] - k * times[j]
+    const distance = k * time + b
+    return { reach: 0, radius: distance }
+}
+const calcReachTime = (travelTime, isPWave, depth, distance)=>{
+    const { depths, distances } = travelTime
+    let data
+    if(isPWave) {
+        data = travelTime.p_times
+    }
+    else {
+        data = travelTime.s_times
+    }
+    let i = 1
+    while(depths[i] < depth && i < depths.length - 1) i++
+    if(depth <= (depths[i - 1] + depths[i]) / 2) i--
+    const times = data[i]
+    let j = 1
+    while(distances[j] < distance && j < distances.length - 1) j++
+    const k = (times[j] - times[j - 1]) / (distances[j] - distances[j - 1])
+    const b = times[j] - k * distances[j]
+    const time = k * distance + b
+    return time
+}
+const extractNumbers = (str)=>{
+    let numberString = ''
+    for(let i = 0; i < str.length; i++){
+        if(str[i] >= '0' && str[i] <= '9') numberString += str[i]
+    }
+    return numberString
+}
 
-export {formatNumber, formatText, msToTime, calcPassedTime, compareTime, sendNotification, setClassName, playSound}
+export { formatNumber, formatText, msToTime, calcPassedTime, compareTime, sendNotification, setClassName, playSound, calcWaveDistance, calcReachTime, extractNumbers }

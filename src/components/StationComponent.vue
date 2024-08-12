@@ -15,7 +15,7 @@
 
 <script setup>
 import StationGrid from '@/components/components/StationGrid.vue';
-import { stationUrls } from '@/utils/Url';
+import { stationUrls } from '@/utils/Urls';
 import Http from '@/utils/Http';
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 

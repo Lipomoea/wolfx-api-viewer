@@ -2,14 +2,14 @@
     <div>
         <div class="container">
             <div class="title">{{ title }}</div>
-            <div class="item" v-for="(item, index) of eqList" :key="index">
+            <div class="item white" v-for="(item, index) of eqList" :key="index" @click="handleClick(item)">
                 <div class="intensity" :class="item.className">
                     <div class="intText">
-                        {{ item.maxIntensity == '不明'?'0':item.maxIntensity }}
+                        {{ item.maxIntensity == '不明'?'?':item.maxIntensity }}
                     </div>
                 </div>
                 <div class="right">
-                    <div class="location">{{ item.hypoCenter }}</div>
+                    <div class="location">{{ item.hypocenter }}</div>
                     <div class="rightBottom">
                         <div class="timeDepth">
                             <div class="time">{{ item.originTime + (useJst?' (UTC+9)':' (UTC+8)') }}</div>
@@ -26,8 +26,8 @@
 <script setup>
 import { reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import Http from '@/utils/Http';
-import { eqUrls } from '@/utils/Url';
-import { setClassName } from '@/utils/Utils';
+import { eqUrls } from '@/utils/Urls';
+import { setClassName, extractNumbers } from '@/utils/Utils';
 import '@/assets/background.css'
 import '@/assets/opacity.css'
 const props = defineProps({
@@ -47,7 +47,7 @@ const getEqList = ()=>{
                     eqList[i] = {
                         id: data[keys[i]].EventID,
                         originTime: data[keys[i]].time_full,
-                        hypoCenter: data[keys[i]].location,
+                        hypocenter: data[keys[i]].location,
                         depth: data[keys[i]].depth == '0km'?'ごく浅い':data[keys[i]].depth,
                         magnitude: data[keys[i]].magnitude,
                         maxIntensity: data[keys[i]].shindo,
@@ -57,9 +57,9 @@ const getEqList = ()=>{
                 }
                 case 'cencEqlist':{
                     eqList[i] = {
-                        id: i,
+                        id: extractNumbers(data[keys[i]].time),
                         originTime: data[keys[i]].time,
-                        hypoCenter: data[keys[i]].location,
+                        hypocenter: data[keys[i]].location,
                         depth: data[keys[i]].depth + 'km',
                         magnitude: data[keys[i]].magnitude,
                         maxIntensity: data[keys[i]].intensity,
@@ -91,6 +91,15 @@ const useJst = computed(()=>{
         }
     }
 })
+const handleClick = (item)=>{
+    switch(props.source){
+        case 'jmaEqlist':{
+            const url = `https://typhoon.yahoo.co.jp/weather/jp/earthquake/${item.id}.html?t=2`
+            window.open(url, '_blank')
+            break
+        }
+    }
+}
 onMounted(()=>{
     getEqList()
     if(request) clearInterval(request)
@@ -117,6 +126,7 @@ onBeforeUnmount(()=>{
         border: black 1px solid;
         align-items: center;
         padding-right: 10px;
+        cursor: default;
         .intensity{
             width: 80px;
             height: 80px;
