@@ -6,7 +6,7 @@
                 <div class="subTitle">行为</div>
                 <div class="group">
                     <div class="row">
-                        <span>收到地震预警（警报）时：</span>
+                        <span style="width: 100%;">收到地震预警（警报）时：</span>
                         <div class="switchGroup">
                             <div class="switch">
                                 <span>发送通知</span>
@@ -16,10 +16,6 @@
                                 <span>播放声音</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEewWarn.sound" :disabled="settingsStore.mainSettings.onEew.sound"></el-switch>
                             </div>
-                            <div class="switch">
-                                <span>切换菜单</span>
-                                <el-switch v-model="settingsStore.mainSettings.onEewWarn.switchMenu" :disabled="settingsStore.mainSettings.onEew.switchMenu"></el-switch>
-                            </div>
                             <!-- <div class="switch">
                                 <span>弹出界面</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEewWarn.focus" :disabled="settingsStore.mainSettings.onEew.focus"></el-switch>
@@ -27,7 +23,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <span>收到地震预警（全部）时：</span>
+                        <span style="width: 100%;">收到地震预警（全部）时：</span>
                         <div class="switchGroup">
                             <div class="switch">
                                 <span>发送通知</span>
@@ -37,10 +33,6 @@
                                 <span>播放声音</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEew.sound"></el-switch>
                             </div>
-                            <div class="switch">
-                                <span>切换菜单</span>
-                                <el-switch v-model="settingsStore.mainSettings.onEew.switchMenu"></el-switch>
-                            </div>
                             <!-- <div class="switch">
                                 <span>弹出界面</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEew.focus"></el-switch>
@@ -48,7 +40,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <span>收到地震信息时：</span>
+                        <span style="width: 100%;">收到地震信息时：</span>
                         <div class="switchGroup">
                             <div class="switch">
                                 <span>发送通知</span>
@@ -58,10 +50,6 @@
                                 <span>播放声音</span>
                                 <el-switch v-model="settingsStore.mainSettings.onReport.sound"></el-switch>
                             </div>
-                            <div class="switch">
-                                <span>切换菜单</span>
-                                <el-switch v-model="settingsStore.mainSettings.onReport.switchMenu"></el-switch>
-                            </div>
                             <!-- <div class="switch">
                                 <span>弹出界面</span>
                                 <el-switch v-model="settingsStore.mainSettings.onReport.focus"></el-switch>
@@ -69,7 +57,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <span>地震监测网检测到摇晃时：</span>
+                        <span style="width: 100%;">地震监测网检测到摇晃时：</span>
                         <div class="switchGroup">
                             <div class="switch">
                                 <span>发送通知</span>
@@ -379,8 +367,8 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
-            <p>v2.0.0 pre9 修复：震度检出算法与预期不符的问题；修复（待验证）：测站回放异常触发震度检出的问题，网页置于后台时异常触发震度检出的问题。</p>
-            <p>v2.0.0 pre1-pre8 变更：UI重排，使用新的中国和日本地图，暂时移除地震波倒计时功能；新增：NIED強震モニタ测站显示、震度检出功能，设置默认视野功能，鼠标悬浮提示区域名称，NIED测站回放功能。</p>
+            <p>v2.0.0 pre10 变更：代码逻辑重组，移除自动切换菜单功能；新增：支持同一源的多个EEW同时显示，数据源WebSocket状态显示；优化：左上角信息框显示烈度制，默认震源深度修改为10km。</p>
+            <p>v2.0.0 pre1-pre9 变更：UI重排，使用新的中国和日本地图，暂时移除地震波倒计时功能；新增：NIED強震モニタ测站显示、震度检出功能，设置默认视野功能，鼠标悬浮提示区域名称，NIED测站回放功能。</p>
             <p>v1.0.0-1.1.2 新增：地图功能、自动打开地图功能、JMA地震情报列表查看详细、设置用户所在地、IP定位、地震波抵达倒计时等功能；优化：增加自动对时。</p>
         </div>
         <div class="title">已知问题</div>
@@ -401,7 +389,7 @@ const handleAbout = ()=>{
             <p>关于烈度：日本气象厅紧急地震速报（气象厅震度，预估值），台湾中央气象署（CWA震度，预估值），四川地震局（CSIS，预估值），福建地震局（CSIS，预估值），日本气象厅地震情报（气象厅震度，测定值），中国地震台网地震信息（CSIS，预估值）。</p>
             <p>关于时间：显示为发报机构当地时间。</p>
             <p>关于延迟：受API限制，部分资料具有延迟是正常现象。</p>
-            <p>关于走时：目前所有地震波位置均采用jma2001走时表计算，对日本以外地区可能有较大误差。未知震源深度视为0km。</p>
+            <p>关于走时：目前所有地震波位置均采用jma2001走时表计算，对日本以外地区可能有较大误差。未知震源深度视为10km。</p>
             <p>关于地图：由于服务器带宽限制，进入页面后需要一定时间加载地图。如长时间未加载地图，请刷新页面。</p>
         </div>
         <div class="title">关于</div>
@@ -416,7 +404,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        'wolfx-api-viewer v2.0.0 pre-9',
+        'wolfx-api-viewer v2.0.0 pre-10',
         {
             confirmButtonText: 'OK',
             showClose: false,

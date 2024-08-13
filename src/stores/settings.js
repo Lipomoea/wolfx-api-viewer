@@ -7,19 +7,16 @@ export const useSettingsStore = defineStore('settingsStore', {
                 notification: false,
                 sound: false,
                 focus:false,
-                switchMenu: false,
             },
             onEewWarn: {
                 notification: false,
                 sound: false,
                 focus:false,
-                switchMenu: false,
             },
             onReport: {
                 notification: false,
                 sound: false,
                 focus:false,
-                switchMenu: false,
             },
             onShake: {
                 notification: false,

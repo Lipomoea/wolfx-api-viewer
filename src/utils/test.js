@@ -275,36 +275,97 @@ const generateJmaEewMessage = (eqMessage)=>{
             }
             Object.assign(eqMessage, message)
         }, 12000);
-        // setTimeout(() => {
-        //     const message = {
-        //         id: '20110311144640',
-        //         isEew: true,
-        //         reportNum: 9,
-        //         reportNumText: '第9報',
-        //         reportTime: '',
-        //         isWarn: true,
-        //         isFinal: true,
-        //         isCanceled: true,
-        //         title: '緊急地震速報（警報）',
-        //         titleText: '緊急地震速報（警報）（取消）',
-        //         hypocenter: '三陸沖',
-        //         hypocenterText: '震源地: 三陸沖',
-        //         lat: 38.1,
-        //         lng: 142.9,
-        //         depth: 10,
-        //         depthText: '深さ: 10km',
-        //         originTime: timeStr,
-        //         originTimeText: '発震時刻: ' + timeStr,
-        //         magnitude: 8.9,
-        //         magnitudeText: 'マグニチュード: 8.9',
-        //         useShindo: true,
-        //         maxIntensity: '7',
-        //         maxIntensityText: '推定最大震度: 7',
-        //         className: 'gray',
-        //         info: '',
-        //     }
-        //     Object.assign(eqMessage, message)
-        // }, 15000);
+        setTimeout(() => {
+            const message = {
+                id: '20110311144640',
+                isEew: true,
+                reportNum: 9,
+                reportNumText: '第9報',
+                reportTime: '',
+                isWarn: true,
+                isFinal: true,
+                isCanceled: true,
+                title: '緊急地震速報（警報）',
+                titleText: '緊急地震速報（警報）（取消）',
+                hypocenter: '三陸沖',
+                hypocenterText: '震源地: 三陸沖',
+                lat: 38.1,
+                lng: 142.9,
+                depth: 10,
+                depthText: '深さ: 10km',
+                originTime: timeStr,
+                originTimeText: '発震時刻: ' + timeStr,
+                magnitude: 8.9,
+                magnitudeText: 'マグニチュード: 8.9',
+                useShindo: true,
+                maxIntensity: '7',
+                maxIntensityText: '推定最大震度: 7',
+                className: 'gray',
+                info: '',
+            }
+            Object.assign(eqMessage, message)
+        }, 15000);
+
+        setTimeout(() => {
+            const message = {
+                id: '20240808164257',
+                isEew: true,
+                reportNum: 1,
+                reportNumText: '第1報',
+                reportTime: '',
+                isWarn: true,
+                isFinal: false,
+                isCanceled: false,
+                title: '緊急地震速報（警報）',
+                titleText: '緊急地震速報（警報）',
+                hypocenter: '日向灘',
+                hypocenterText: '震源地: 日向灘',
+                lat: 31.8,
+                lng: 131.7,
+                depth: 30,
+                depthText: '深さ: 30km',
+                originTime: timeStr,
+                originTimeText: '発震時刻: ' + timeStr,
+                magnitude: 7.2,
+                magnitudeText: 'マグニチュード: 7.2',
+                useShindo: true,
+                maxIntensity: '6強',
+                maxIntensityText: '推定最大震度: 6強',
+                className: 'red',
+                info: '',
+            }
+            Object.assign(eqMessage, message)
+        }, 5500);
+        setTimeout(() => {
+            const message = {
+                id: '20240808164257',
+                isEew: true,
+                reportNum: 2,
+                reportNumText: '第2報',
+                reportTime: '',
+                isWarn: true,
+                isFinal: false,
+                isCanceled: false,
+                title: '緊急地震速報（警報）',
+                titleText: '緊急地震速報（警報）',
+                hypocenter: '日向灘',
+                hypocenterText: '震源地: 日向灘',
+                lat: 31.8,
+                lng: 131.7,
+                depth: 30,
+                depthText: '深さ: 30km',
+                originTime: timeStr,
+                originTimeText: '発震時刻: ' + timeStr,
+                magnitude: 6.9,
+                magnitudeText: 'マグニチュード: 6.9',
+                useShindo: true,
+                maxIntensity: '6弱',
+                maxIntensityText: '推定最大震度: 6弱',
+                className: 'red',
+                info: '',
+            }
+            Object.assign(eqMessage, message)
+        }, 6500);
     })
 }
 const generateJmaEqlistMessage = (eqMessage)=>{

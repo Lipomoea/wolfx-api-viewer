@@ -177,5 +177,9 @@ const getShindoFromChar = (char)=>{
     if(char == 'x') return '7'
     return '?'
 }
+const judgeSameEvent = (eqMessage1, eqMessage2)=>{
+    if(eqMessage1.source == eqMessage2.source && eqMessage1.id == eqMessage2.id) return true
+    else return false
+}
 
-export { formatNumber, formatText, msToTime, timeToStamp, calcPassedTime, verifyUpToDate, calcTimeDiff, sendNotification, setClassName, playSound, calcWaveDistance, calcReachTime, extractNumbers, getTimeNumberString, getShindoFromChar }
+export { formatNumber, formatText, msToTime, timeToStamp, calcPassedTime, verifyUpToDate, calcTimeDiff, sendNotification, setClassName, playSound, calcWaveDistance, calcReachTime, extractNumbers, getTimeNumberString, getShindoFromChar, judgeSameEvent }

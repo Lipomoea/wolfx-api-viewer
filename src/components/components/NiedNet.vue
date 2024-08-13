@@ -205,12 +205,12 @@ watch(()=>statusStore.map, newVal=>{
             })
             niedPeriodMaxShindo.value = getShindoFromChar(String.fromCharCode(periodMaxLevel.value + 100))
             if(newVal.length > 0 && oldVal.length == 0){
-                if(isAutoZoom.value) setView()
                 statusStore.isActive.niedNet = true
             }
             else if(newVal.length == 0){
                 statusStore.isActive.niedNet = false
             }
+            if(isAutoZoom.value) setView()
         })
         unwatchDisplayShindo = watch(()=>settingsStore.advancedSettings.displayNiedShindo, ()=>{
             renderAll()

@@ -18,19 +18,24 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, ref, reactive, computed, watch, inject } from 'vue'
+import { onMounted, onBeforeUnmount, ref, reactive, computed, watch, inject, toRaw } from 'vue'
 import Http from '@/utils/Http';
 import WebSocketObj from '@/utils/WebSocket';
-import { eqUrls, iconUrls, chimeUrls } from '@/utils/Urls';
-import { formatText, msToTime, calcPassedTime, sendNotification, setClassName, playSound } from '@/utils/Utils';
+import { eqUrls } from '@/utils/Urls';
+import { formatText, msToTime, calcPassedTime, setClassName, judgeSameEvent } from '@/utils/Utils';
+import { EewEvent, EqlistEvent } from '@/classes/EewEqlistClasses';
 import { useTimeStore } from '@/stores/time';
-import { useSettingsStore } from '@/stores/settings';
 import { useStatusStore } from '@/stores/status';
 import '@/assets/background.css'
 import '@/assets/opacity.css'
 
+const props = defineProps({
+    source: String,
+})
+
 const statusList = ['正在连接', '已连接', '正在断开', '已断开', '未连接', '不使用']
 const eqMessage = reactive({
+    source: props.source,
     id: '',
     isEew: false,
     reportNum: 0,
@@ -57,15 +62,13 @@ const eqMessage = reactive({
     className: '',
     info: '',
 })
-const props = defineProps({
-    source: String,
-})
-const handleMenu = inject('handleMenu')
-const handleHome = inject('handleHome')
+const activeEewList = inject('activeEewList')
+const eqlistList = inject('eqlistList')
+const isAutoZoom = inject('isAutoZoom')
+const setView = inject('setView')
 const timeStore = useTimeStore()
-const settingsStore = useSettingsStore()
 const statusStore = useStatusStore()
-const useWebSocket = computed(()=>!props.source.includes('cwa'))
+const useWebSocket = !props.source.includes('cwa')
 const useJst = props.source.includes('jma')
 let request, socketObj;
 let protocol = 'http', httpInterval = 1000
@@ -137,7 +140,7 @@ const setEqMessage = (data)=>{
             eqMessage.hypocenterText = '震源: ' + data.HypoCenter
             eqMessage.lat = data.Latitude
             eqMessage.lng = data.Longitude
-            eqMessage.depth = data.Depth === null?0:data.Depth
+            eqMessage.depth = data.Depth === null?10:data.Depth
             eqMessage.depthText = '深度: ' + (data.Depth === null?'不明':data.Depth + 'km')
             eqMessage.originTime = data.OriginTime
             eqMessage.originTimeText = '发震时间: ' + data.OriginTime
@@ -160,7 +163,7 @@ const setEqMessage = (data)=>{
             eqMessage.hypocenterText = '震源: ' + data.HypoCenter
             eqMessage.lat = data.Latitude
             eqMessage.lng = data.Longitude
-            eqMessage.depth = 0
+            eqMessage.depth = 10
             eqMessage.depthText = '深度: 不明'
             eqMessage.originTime = data.OriginTime
             eqMessage.originTimeText = '发震时间: ' + data.OriginTime
@@ -314,7 +317,7 @@ onMounted(()=>{
     protocol = 'http'
     httpInterval = 1000
     connect('http')
-    if(useWebSocket.value){
+    if(useWebSocket){
         setTimeout(() => {
             protocol = 'ws'
             httpInterval = 30000
@@ -334,10 +337,6 @@ let timer, blinkController, blinkTimeout
 let blinkState = ref(true)
 let isLoad = true
 const blinkTime = 4000
-const soundEffect = computed(()=>settingsStore.mainSettings.soundEffect)
-const cautionList = ['green', 'yellow', 'orange', 'red', 'purple']
-let firstSound = false, cautionSound = false, warnSound = false, menuSwitched = false
-const isActive = ref(false)
 
 watch(eqMessage, ()=>{
     className.value = eqMessage.className + ' midOpacity'
@@ -373,152 +372,43 @@ watch(eqMessage, ()=>{
         }
     }
     time -= passedTime
+    if(!eqMessage.isEew){
+        let i = 0
+        while(i < eqlistList.length){
+            if(eqMessage.source == eqlistList[i].eqMessage.source){
+                eqlistList[i].update(Object.assign({}, eqMessage), time)
+                break
+            }
+            i++
+        }
+        if(i == eqlistList.length){
+            if(statusStore.map){
+                eqlistList.unshift(new EqlistEvent(statusStore.map, Object.assign({}, eqMessage), time))
+            }
+        }
+    }
     if(time > 0){
-        isActive.value = true
-        statusStore.setActive(props.source, isActive.value)
-        let icon = ''
-        if(isNewEvent){
-            firstSound = false
-            cautionSound = false
-            warnSound = false
-            menuSwitched = false
-        }
-        //是EEW
         if(eqMessage.isEew){
-            //是Warn
-            if(eqMessage.isWarn){
-                //通知
-                if(settingsStore.mainSettings.onEew.notification || settingsStore.mainSettings.onEewWarn.notification){
-                    if(eqMessage.isCanceled) icon = iconUrls.info
-                    else icon = iconUrls.warn
-                }
-                //声音
-                if(settingsStore.mainSettings.onEew.sound || settingsStore.mainSettings.onEewWarn.sound){
-                    if(eqMessage.isCanceled) playSound(chimeUrls[soundEffect.value].torikeshi)
+            let i = 0
+            while(i < activeEewList.length){
+                if(judgeSameEvent(eqMessage, activeEewList[i].eqMessage)){
+                    if(eqMessage.isCanceled){
+                        activeEewList[i].handleCancel(Object.assign({}, eqMessage), time)
+                    }
                     else{
-                        if(!firstSound){
-                            playSound(chimeUrls[soundEffect.value].happyou)
-                            firstSound = true
-                        }
-                        else if(eqMessage.isFinal) playSound(chimeUrls[soundEffect.value].saisyuu)
-                        else playSound(chimeUrls[soundEffect.value].koushin)
-                        if(!warnSound){
-                            playSound(chimeUrls[soundEffect.value].keihou)
-                            cautionSound = true
-                            warnSound = true
-                        }
+                        activeEewList[i].update(Object.assign({}, eqMessage), time)
                     }
+                    break
                 }
-                //切换菜单
-                if(settingsStore.mainSettings.onEew.switchMenu || settingsStore.mainSettings.onEewWarn.switchMenu){
-                    if(!menuSwitched){
-                        handleMenu('eews')
-                        menuSwitched = true
-                    }
-                }
-                else{
-                    if(!menuSwitched){
-                        handleHome()
-                        menuSwitched = true
-                    }
-                }
+                i++
             }
-            //不是Warn
-            else{
-                //通知
-                if(settingsStore.mainSettings.onEew.notification){
-                    if(eqMessage.isCanceled) icon = iconUrls.info
-                    else icon = iconUrls.caution
-                }
-                //声音
-                if(settingsStore.mainSettings.onEew.sound){
-                    if(eqMessage.isCanceled) playSound(chimeUrls[soundEffect.value].torikeshi)
-                    else{
-                        if(!firstSound){
-                            playSound(chimeUrls[soundEffect.value].happyou)
-                            firstSound = true
-                        }
-                        else if(eqMessage.isFinal) playSound(chimeUrls[soundEffect.value].saisyuu)
-                        else playSound(chimeUrls[soundEffect.value].koushin)
-                        if(cautionList.includes(eqMessage.className)){
-                            if(!cautionSound){
-                                playSound(chimeUrls[soundEffect.value].yohou)
-                                cautionSound = true
-                            }
-                        }
-                    }
-                }
-                //切换菜单
-                if(settingsStore.mainSettings.onEew.switchMenu){
-                    if(!menuSwitched){
-                        handleMenu('eews')
-                        menuSwitched = true
-                    }
-                }
-                else{
-                    if(!menuSwitched){
-                        handleHome()
-                        menuSwitched = true
-                    }
+            if(i == activeEewList.length){
+                if(statusStore.map){
+                    activeEewList.unshift(new EewEvent(statusStore.map, Object.assign({}, eqMessage), activeEewList, time))
                 }
             }
         }
-        //不是EEW
-        else{
-            if(settingsStore.mainSettings.onReport.notification) icon = iconUrls.info
-            if(settingsStore.mainSettings.onReport.sound){
-                switch(props.source){
-                    case 'jmaEqlist':{
-                        switch(eqMessage.title){
-                            case '震度速報':{
-                                playSound(chimeUrls[soundEffect.value].shindosokuhou)
-                                break
-                            }
-                            case '震源に関する情報':{
-                                playSound(chimeUrls[soundEffect.value].shingenzyouhou)
-                                break
-                            }
-                            case '震源・震度情報':{
-                                playSound(chimeUrls[soundEffect.value].jishinzyouhou)
-                                break
-                            }
-                            case '遠地地震に関する情報':{
-                                playSound(chimeUrls[soundEffect.value].jishinzyouhou)
-                                break
-                            }
-                        }
-                        break
-                    }
-                    case 'cencEqlist':{
-                        if(eqMessage.title != 'reviewed'){
-                            playSound(chimeUrls[soundEffect.value].shingenzyouhou)
-                        }
-                        else{
-                            playSound(chimeUrls[soundEffect.value].jishinzyouhou)
-                        }
-                        break
-                    }
-                }
-            }
-            if(settingsStore.mainSettings.onReport.switchMenu){
-                if(!menuSwitched){
-                    handleMenu('eqlists')
-                    menuSwitched = true
-                }
-            }
-            else{
-                if(!menuSwitched){
-                    handleHome()
-                    menuSwitched = true
-                }
-            }
-        }
-        if(icon){
-            sendNotification(`${eqMessage.titleText}`, 
-                `${eqMessage.hypocenterText}\n${eqMessage.depthText}\n${eqMessage.magnitudeText}\n${eqMessage.maxIntensityText}`, 
-                icon, 
-                settingsStore.mainSettings.muteNotification)
-        }
+        if(isAutoZoom.value) setView()
         clearInterval(blinkController)
         blinkController = setInterval(() => {
             if(blinkState.value){
@@ -538,14 +428,12 @@ watch(eqMessage, ()=>{
         clearTimeout(timer)
         timer = setTimeout(() => {
             className.value = eqMessage.className + ' midOpacity'
-            isActive.value = false
-            statusStore.setActive(props.source, isActive.value)
         }, Math.max(time, blinkTime));
     }
-    statusStore.setEqMessage(props.source, eqMessage)
 })
 const statusCode = ref()
 const passedTimeFromOrigin = ref()
+const wsStatusCode = inject('wsStatusCode')
 watch(()=>timeStore.currentTime, ()=>{
     if(useJst){
         passedTimeFromOrigin.value = calcPassedTime(eqMessage.originTime, 9)
@@ -554,8 +442,9 @@ watch(()=>timeStore.currentTime, ()=>{
         passedTimeFromOrigin.value = calcPassedTime(eqMessage.originTime, 8)
     }
     if(socketObj) statusCode.value = socketObj.socket.readyState
-    else if(!useWebSocket.value) statusCode.value = 5
+    else if(!useWebSocket) statusCode.value = 5
     else statusCode.value = 4
+    wsStatusCode[props.source] = statusCode.value
 })
 
 // import { generateJmaEewMessage, generateJmaEqlistMessage, generateCwaEewMessage } from '@/utils/test';
