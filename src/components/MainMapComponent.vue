@@ -142,8 +142,8 @@ const dataStore = useDataStore()
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 const timeStore = useTimeStore()
-let map, globalBaseMap, cnBaseMap, jpEewBaseMap
-let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, gridPane
+let map, globalBaseMap, cnBaseMap, cnFaultBaseMap, jpEewBaseMap
+let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, gridPane, cnFaultBasePane
 const isValidUserLatLng = computed(()=>settingsStore.mainSettings.userLatLng.every(item=>item !== ''))
 const isDisplayUser = computed(()=>isValidUserLatLng.value && settingsStore.mainSettings.displayUser)
 const userLatLng = computed(()=>settingsStore.mainSettings.userLatLng.map(val=>Number(val)))
@@ -246,6 +246,9 @@ onMounted(()=>{
     map.getPane('globalBasePane').style.zIndex = 0
     map.createPane('cnBasePane')
     map.getPane('cnBasePane').style.zIndex = 2
+    map.createPane('cnFaultBasePane')
+    cnFaultBasePane = map.getPane('cnFaultBasePane')
+    cnFaultBasePane.style.zIndex = 3
     map.createPane('jpEewBasePane')
     map.getPane('jpEewBasePane').style.zIndex = 1
     map.createPane('waveFillPane')
@@ -292,8 +295,24 @@ onMounted(()=>{
     watch(()=>dataStore.geojson.cn, (newVal)=>{
         loadBaseMap(toRaw(newVal), cnBaseMap, 'cnBasePane')
     }, { immediate: true })
+    watch(()=>dataStore.geojson.cn_fault, (newVal)=>{
+        loadBaseMap(toRaw(newVal), cnFaultBaseMap, 'cnFaultBasePane', {
+            color: 'red',
+            opacity: 0.5,
+            fillColor: 'red',
+            fillOpacity: 0,
+            weight: 1,
+        })
+    }, { immediate: true })
     watch(()=>dataStore.geojson.jp_eew, (newVal)=>{
         loadBaseMap(toRaw(newVal), jpEewBaseMap, 'jpEewBasePane')
+    }, { immediate: true })
+    watch(()=>settingsStore.mainSettings.displayCnFault, newVal=>{
+        cnFaultBasePane.style.display = newVal?'block':'none'
+    }, { immediate: true })
+    watch(()=>timeStore.timeStamp, (newVal)=>{
+        gridPane.style.display = (newVal % 1000 < 500) && !statusStore.isActive.jmaEew?'block':'none'
+        isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
     }, { immediate: true })
 })
 const setView = ()=>{
@@ -346,17 +365,17 @@ const setView = ()=>{
 }
 provide('setView', setView)
 provide('isAutoZoom', isAutoZoom)
-const loadBaseMap = (geojson, baseMap, pane)=>{
+const loadBaseMap = (geojson, baseMap, pane, style = {
+        color: '#ccc',
+        fillColor: '#555',
+        fillOpacity: 1,
+        weight: 1,
+    })=>{
     if(Object.keys(geojson).length != 0){
         if(baseMap && map.hasLayer(baseMap)) map.removeLayer(baseMap)
         baseMap = L.geoJson(geojson, {
             pane,
-            style: {
-                color: '#ccc',
-                fillColor: '#555',
-                fillOpacity: 1,
-                weight: 1,
-            },
+            style,
             onEachFeature: pane == 'globalBasePane'?onEachFeature('name_zh'):onEachFeature('name'),
         })
         baseMap.addTo(map)
@@ -422,10 +441,6 @@ watch(isAutoZoom, (newVal)=>{
         clearInterval(autoZoomInterval)
     }
 }, { immediate: true })
-watch(()=>timeStore.timeStamp, (newVal)=>{
-    (newVal % 1000 < 500) && !statusStore.isActive.jmaEew?gridPane.style.display = 'block':gridPane.style.display = 'none'
-    isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
-})
 onBeforeUnmount(()=>{
     clearInterval(autoZoomInterval)
     clearTimeout(autoZoomTimer)

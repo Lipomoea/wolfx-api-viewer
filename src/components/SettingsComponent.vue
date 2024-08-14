@@ -97,6 +97,14 @@
                 <div class="group">
                     <div class="row">
                         <div class="switchGroup">
+                            <div class="switch">
+                                <span>显示中国断层</span>
+                                <el-switch v-model="settingsStore.mainSettings.displayCnFault"></el-switch>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="switchGroup">
                             <div class="switch force-wrap">
                                 <span style="width: 100%;">所在地经纬度（均设置时才生效）：</span>
                                 <span>纬度</span>
@@ -367,8 +375,8 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
-            <p>v2.0.0 pre10 变更：代码逻辑重组，移除自动切换菜单功能；新增：支持同一源的多个EEW同时显示，数据源WebSocket状态显示；优化：左上角信息框显示烈度制，默认震源深度修改为10km。</p>
-            <p>v2.0.0 pre1-pre9 变更：UI重排，使用新的中国和日本地图，暂时移除地震波倒计时功能；新增：NIED強震モニタ测站显示、震度检出功能，设置默认视野功能，鼠标悬浮提示区域名称，NIED测站回放功能。</p>
+            <p>v2.0.0 pre11 变更：使用新的中国地图；新增：中国断层显示；优化：地震波边框宽度加粗；修复：不支持通知api的浏览器部分功能异常的bug。</p>
+            <p>v2.0.0 pre1-pre10 变更：UI重排，使用新的中国和日本地图，暂时移除地震波倒计时功能；新增：同源多个EEW同时展示，NIED強震モニタ测站显示、震度检出功能，设置默认视野功能，鼠标悬浮提示区域名称，NIED测站回放功能。</p>
             <p>v1.0.0-1.1.2 新增：地图功能、自动打开地图功能、JMA地震情报列表查看详细、设置用户所在地、IP定位、地震波抵达倒计时等功能；优化：增加自动对时。</p>
         </div>
         <div class="title">已知问题</div>
@@ -404,7 +412,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        'wolfx-api-viewer v2.0.0 pre-10',
+        'wolfx-api-viewer v2.0.0 pre-11',
         {
             confirmButtonText: 'OK',
             showClose: false,

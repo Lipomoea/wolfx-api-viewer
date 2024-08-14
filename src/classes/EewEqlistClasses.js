@@ -57,7 +57,7 @@ class EewEvent {
             const opacityRatio = this.calcOpacityRatio(p_radius, maxRadius)
             this.pWave = L.circle(this.hypoLatLng, {
                 color: 'white',
-                weight: 1,
+                weight: 2,
                 opacity: opacityRatio,
                 fillOpacity: 0,
                 radius: p_radius * 1000,
@@ -71,7 +71,7 @@ class EewEvent {
             const opacityRatio = this.calcOpacityRatio(s_radius, maxRadius)
             this.sWave = L.circle(this.hypoLatLng, {
                 color: this.eqMessage.isWarn?'red':'orange',
-                weight: 1,
+                weight: 2,
                 opacity: opacityRatio,
                 fillOpacity: 0,
                 radius: s_radius * 1000,

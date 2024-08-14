@@ -25,6 +25,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             },
             muteNotification: false,
             soundEffect: 'srev',
+            displayCnFault: false,
             userLatLng: ['', ''],
             displayUser: false,
             viewLatLng: ['', ''],

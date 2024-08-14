@@ -189,7 +189,7 @@ watch(()=>statusStore.map, newVal=>{
                 }
             }
         }, { immediate: true })
-        unwatchGrids = watch(grids, (newVal, oldVal)=>{
+        unwatchGrids = watch(grids, (newVal)=>{
             map.eachLayer(layer=>{
                 if(layer.options.pane == 'gridPane') map.removeLayer(layer)
             })
@@ -204,13 +204,13 @@ watch(()=>statusStore.map, newVal=>{
                 if(item.level > periodMaxLevel.value) periodMaxLevel.value = item.level
             })
             niedPeriodMaxShindo.value = getShindoFromChar(String.fromCharCode(periodMaxLevel.value + 100))
-            if(newVal.length > 0 && oldVal.length == 0){
+            if(newVal.length > 0){
                 statusStore.isActive.niedNet = true
+                if(isAutoZoom.value) setView()
             }
-            else if(newVal.length == 0){
+            else{
                 statusStore.isActive.niedNet = false
             }
-            if(isAutoZoom.value) setView()
         })
         unwatchDisplayShindo = watch(()=>settingsStore.advancedSettings.displayNiedShindo, ()=>{
             renderAll()
