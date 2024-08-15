@@ -68,7 +68,7 @@ const isAutoZoom = inject('isAutoZoom')
 const setView = inject('setView')
 const timeStore = useTimeStore()
 const statusStore = useStatusStore()
-const useWebSocket = !props.source.includes('cwa')
+const useWebSocket = true
 const useJst = props.source.includes('jma')
 let request, socketObj;
 let protocol = 'http', httpInterval = 1000

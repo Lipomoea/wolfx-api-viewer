@@ -6,6 +6,7 @@ const eqUrls = {
     fjEew_http: 'https://api.wolfx.jp/fj_eew.json',
     fjEew_ws: 'wss://ws-api.wolfx.jp/fj_eew',
     cwaEew_http: 'https://api.wolfx.jp/cwa_eew.json',
+    cwaEew_ws: 'wss://ws-api.wolfx.jp/cwa_eew',
     cencEqlist_http: 'https://api.wolfx.jp/cenc_eqlist.json',
     cencEqlist_ws: 'wss://ws-api.wolfx.jp/cenc_eqlist',
     jmaEqlist_http: 'https://api.wolfx.jp/jma_eqlist.json',
