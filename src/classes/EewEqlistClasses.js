@@ -200,14 +200,13 @@ class EewEvent {
     }
 }
 class EqlistEvent {
-    constructor(map, eqMessage, time){
+    constructor(map, eqMessage){
         this.map = map
         this.eqMessage = eqMessage
         this.isActive = false
         this.useJst = eqMessage.source.includes('jma')
         this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
         this.isValidHypo = !this.hypoLatLng.every(item=>item == 0)
-        this.update(eqMessage, time)
     }
     update(eqMessage, time){
         Object.assign(this.eqMessage, eqMessage)

@@ -383,7 +383,8 @@ watch(eqMessage, ()=>{
         }
         if(i == eqlistList.length){
             if(statusStore.map){
-                eqlistList.unshift(new EqlistEvent(statusStore.map, Object.assign({}, eqMessage), time))
+                eqlistList.unshift(new EqlistEvent(statusStore.map, Object.assign({}, eqMessage)))
+                eqlistList[0].update(Object.assign({}, eqMessage), time)
             }
         }
     }
