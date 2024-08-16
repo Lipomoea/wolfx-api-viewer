@@ -9,6 +9,10 @@ body{
   font-family: Arial, Helvetica, sans-serif;
 }
 
+path.leaflet-interactive{
+  mix-blend-mode: multiply;
+}
+
 path.leaflet-interactive:focus {
   outline: none;
 }
