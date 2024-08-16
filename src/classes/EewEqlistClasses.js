@@ -64,6 +64,7 @@ class EewEvent {
                 pane: 'wavePane',
             })
             this.pWave.addTo(this.map)
+            L.DomUtil.addClass(this.pWave.getElement(), 'wave')
         }
         if(this.sWave && this.map.hasLayer(this.sWave)) this.map.removeLayer(this.sWave)
         if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) this.map.removeLayer(this.sWaveFill)
@@ -87,6 +88,8 @@ class EewEvent {
                 pane: 'waveFillPane',
             })
             this.sWaveFill.addTo(this.map)
+            L.DomUtil.addClass(this.sWave.getElement(), 'wave')
+            L.DomUtil.addClass(this.sWaveFill.getElement(), 'wave')
         }
     }
     calcOpacityRatio(radius, maxRadius){

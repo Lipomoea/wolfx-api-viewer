@@ -557,6 +557,34 @@ const generateCwaEewMessage = (eqMessage)=>{
             }
             Object.assign(eqMessage, message)
         }, 7000);
+        setTimeout(() => {
+            const message = {
+                id: '20240403075600',
+                isEew: true,
+                reportNum: 2,
+                reportNumText: '第2報',
+                reportTime: '',
+                isWarn: false,
+                isFinal: false,
+                isCanceled: false,
+                titleText: '中央氣象署地震速報',
+                hypocenter: '花蓮縣壽豐鄉',
+                hypocenterText: '震央: 花蓮縣壽豐鄉',
+                lat: 23.89,
+                lng: 121.56,
+                depth: 20,
+                depthText: '深度: 20km',
+                originTime: timeStr,
+                originTimeText: '時間: ' + timeStr,
+                magnitude: 5.0,
+                magnitudeText: '規模: 5.0',
+                useShindo: true,
+                maxIntensity: '3',
+                maxIntensityText: '預估最大震度: 3',
+                className: 'green',
+            }
+            Object.assign(eqMessage, message)
+        }, 1550);
     })
 }
 export { generateJmaEewMessage, generateJmaEqlistMessage, generateCwaEewMessage }

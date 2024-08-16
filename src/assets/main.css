@@ -9,7 +9,7 @@ body{
   font-family: Arial, Helvetica, sans-serif;
 }
 
-path.leaflet-interactive{
+path.leaflet-interactive.wave{
   mix-blend-mode: multiply;
 }
 
