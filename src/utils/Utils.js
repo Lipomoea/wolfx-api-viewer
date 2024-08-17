@@ -61,15 +61,19 @@ const calcTimeDiff = (time1, timeZone1, time2, timeZone2)=>{
     return stamp1 - stamp2
 }
 const sendNotification = (title, body, icon, silent)=>{
-    if(Notification.permission == 'granted'){
-        const notification = new Notification(title, {
-            body,
-            icon,
-            silent,
-        })
-        notification.onclick = ()=>{
-            window.focus()
+    try{
+        if(Notification.permission == 'granted'){
+            const notification = new Notification(title, {
+                body,
+                icon,
+                silent,
+            })
+            notification.onclick = ()=>{
+                window.focus()
+            }
         }
+    }catch(err){
+        console.log(err);
     }
 }
 const setClassName = (intensity, useShindo, isCanceled = false)=>{
