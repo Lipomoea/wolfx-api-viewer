@@ -11,6 +11,7 @@ const eqUrls = {
     cencEqlist_ws: 'wss://ws-api.wolfx.jp/cenc_eqlist',
     jmaEqlist_http: 'https://api.wolfx.jp/jma_eqlist.json',
     jmaEqlist_ws: 'wss://ws-api.wolfx.jp/jma_eqlist',
+    allEew_ws: 'wss://ws-api.wolfx.jp/all_eew'
 }
 const seisNetUrls = {
     nied: {

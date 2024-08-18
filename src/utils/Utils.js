@@ -77,7 +77,7 @@ const sendNotification = (title, body, icon, silent)=>{
     }
 }
 const setClassName = (intensity, useShindo, isCanceled = false)=>{
-    let className = 'gray'
+    let className = 'dark-gray'
     if(!isCanceled){
         if(useShindo){
             if(intensity >= '1' && intensity <= '7'){
