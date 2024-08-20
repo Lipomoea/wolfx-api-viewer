@@ -70,7 +70,8 @@
                 <div class="left-bottom">
                     <div class="ws-status">
                         WebSocket状态: 
-                        <div v-for="(status, source) in wsStatusCode" :key="source" class="dot" :class="'s' + status"></div>
+                        <div class="dot" :class="'s' + wsStatusCode"></div>
+                        {{ statusList[wsStatusCode] }}
                     </div>
                     <div class="nied-update-time" :class="isNiedDelayed?'delayed':''" v-if="settingsStore.mainSettings.displaySeisNet.nied">
                         強震モニタ: {{ niedUpdateTime }} (UTC+9)
@@ -173,15 +174,8 @@ const handleMenu = (index)=>{
 }
 provide('handleMenu', handleMenu)
 provide('handleHome', handleHome)
-const wsStatusCode = reactive({
-    jmaEew: 4,
-    cwaEew: 4,
-    scEew: 4,
-    fjEew: 4,
-    jmaEqlist: 4,
-    cencEqlist: 4
-})
-provide('wsStatusCode', wsStatusCode)
+const wsStatusCode = ref(4)
+const statusList = ['正在连接', '已连接', '正在断开', '已断开', '未连接', '不使用']
 const niedUpdateTime = ref('')
 const niedMaxShindo = ref('?')
 const niedPeriodMaxShindo = ref('?')
@@ -313,6 +307,7 @@ onMounted(()=>{
     watch(()=>timeStore.timeStamp, (newVal)=>{
         gridPane.style.display = (newVal % 1000 < 500) && !statusStore.isActive.jmaEew?'block':'none'
         isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
+        wsStatusCode.value = statusStore.allEewSocketObj?statusStore.allEewSocketObj.socket.readyState:4
     }, { immediate: true })
 })
 const setView = ()=>{
@@ -614,7 +609,7 @@ onBeforeUnmount(()=>{
                 .ws-status{
                     display: flex;
                     align-items: center;
-                    gap: 2px;
+                    gap: 5px;
                     .dot{
                         width: 10px;
                         height: 10px;

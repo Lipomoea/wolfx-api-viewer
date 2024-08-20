@@ -8,22 +8,19 @@
 
 <script setup>
 import MainMapComponent from '@/components/MainMapComponent.vue';
-import { onMounted } from 'vue'
+import { onBeforeMount, onBeforeUnmount } from 'vue'
 import { useDataStore } from '@/stores/data';
-import Http from '@/utils/Http';
-import { geojsonUrls } from '@/utils/Urls';
+import { useStatusStore } from '@/stores/status';
 
 const dataStore = useDataStore()
+const statusStore = useStatusStore()
 
-onMounted(async ()=>{
-  const cnData = await Http.get(geojsonUrls.cn)
-  dataStore.saveData('geojson', 'cn', cnData)
-  const jpEewData = await Http.get(geojsonUrls.jp_eew)
-  dataStore.saveData('geojson', 'jp_eew', jpEewData)
-  const globalData = await Http.get(geojsonUrls.global_modified)
-  dataStore.saveData('geojson', 'global', globalData)
-  const cnFaultData = await Http.get(geojsonUrls.cn_fault)
-  dataStore.saveData('geojson', 'cn_fault', cnFaultData)
+onBeforeMount(()=>{
+  statusStore.startUpdatingEqMessage()
+  dataStore.getGeojson()
+})
+onBeforeUnmount(()=>{
+  statusStore.disconnect()
 })
 </script>
 

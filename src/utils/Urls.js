@@ -58,8 +58,7 @@ const chimeUrls = {
     },
 }
 const geojsonUrls = {
-    global: '/json/medium.global.geo.json',
-    global_modified: '/json/medium.global.modified.geo.json',
+    global: '/json/medium.global.modified.geo.json',
     cn: 'https://geojson.cn/api/data/100000.json',
     cn_fault: '/json/cn.fault.modified.geo.json',
     jp_eew: '/json/jp.eew.pref.geo.json'
