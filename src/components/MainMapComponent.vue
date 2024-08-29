@@ -17,8 +17,8 @@
                                 <div class="location">{{ event.eqMessage.hypocenter }}</div>
                                 <div class="time">{{ event.eqMessage.originTime + (event.useJst?' (UTC+9)':' (UTC+8)') }}</div>
                                 <div class="bottom">
-                                    <div class="magnitude">{{ 'M' + event.eqMessage.magnitude.toFixed(1) }}</div>
-                                    <div class="depth">{{ event.eqMessage.depthText }}</div>
+                                    <div class="magnitude">{{ event.eqMessage.isAssumption?'仮定震源要素':'M' + event.eqMessage.magnitude.toFixed(1) }}</div>
+                                    <div class="depth">{{ event.eqMessage.isAssumption?'':event.eqMessage.depthText }}</div>
                                 </div>
                             </div>
                         </div>
@@ -510,7 +510,7 @@ onBeforeUnmount(()=>{
                         justify-content: center;
                         align-items: center;
                         font-size: 18px;
-                        font-weight: 500;
+                        font-weight: 700;
                     }
                     .info{
                         height: 100px;

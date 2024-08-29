@@ -2,12 +2,14 @@
   <div>
     <div class="container">
       <MainMapComponent></MainMapComponent>
+      <!-- <TestComponent></TestComponent> -->
     </div>
   </div>
 </template>
 
 <script setup>
 import MainMapComponent from '@/components/MainMapComponent.vue';
+// import TestComponent from '@/components/TestComponent.vue';
 import { onBeforeMount, onBeforeUnmount } from 'vue'
 import { useDataStore } from '@/stores/data';
 import { useStatusStore } from '@/stores/status';

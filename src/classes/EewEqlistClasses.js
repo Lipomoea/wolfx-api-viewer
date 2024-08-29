@@ -6,10 +6,26 @@ import 'leaflet/dist/leaflet.css';
 import { useSettingsStore } from '@/stores/settings';
 
 // const crossIcon = `<svg t="1719226920212" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2481" width="40" height="40"><path d="M602.512147 511.99738l402.747939-402.747939a63.999673 63.999673 0 0 0-90.509537-90.509537L512.00261 421.487843 109.254671 18.749904a63.999673 63.999673 0 0 0-90.509537 90.509537L421.493073 511.99738 18.755134 914.745319a63.999673 63.999673 0 0 0 90.509537 90.509537L512.00261 602.506917l402.747939 402.747939a63.999673 63.999673 0 0 0 90.509537-90.509537z" p-id="2482" fill="#d81e06"></path></svg>`
-const crossIcon = `<svg t="1724073690966" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1465" width="40" height="40"><path d="M960 170.56L869.44 80 512 437.44 154.56 80 64 170.56 421.44 528 64 885.44l90.56 90.56L512 618.56 869.44 976 960 885.44 602.56 528 960 170.56z" p-id="1466" fill="#e21d1d" stroke="#fff1aa" stroke-width="32"></path></svg>`
+const crossIcon = `
+<svg t="1724073690966" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1465" width="40" height="40">
+<path d="M960 170.56L869.44 80 512 437.44 154.56 80 64 170.56 421.44 528 64 885.44l90.56 90.56L512 618.56 869.44 976 960 885.44 602.56 528 960 170.56z" p-id="1466" fill="#e21d1d" stroke="#fff1aa" stroke-width="32"></path>
+</svg>
+`
 const crossDivIcon = L.divIcon({
     html: crossIcon,
     className: 'crossDivIcon',
+    iconAnchor: [20, 20],
+})
+const circleIcon = `
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="20" cy="20" r="17.5" stroke="#e21d1d" stroke-width="5"/>
+<circle cx="20" cy="20" r="19.5" stroke="#fff1aa" stroke-width="1"/>
+<circle cx="20" cy="20" r="15.5" stroke="#fff1aa" stroke-width="1"/>
+</svg>
+`
+const circleDivIcon = L.divIcon({
+    html: circleIcon,
+    className: 'circleDivIcon',
     iconAnchor: [20, 20],
 })
 
@@ -28,21 +44,29 @@ class EewEvent {
         this.update(eqMessage, time)
     }
     setMark(){
-        if(this.crossMarker && this.map.hasLayer(this.crossMarker)) this.map.removeLayer(this.crossMarker)
-        this.crossMarker = L.marker(this.hypoLatLng, {icon: crossDivIcon, pane: 'eewMarkerPane'})
-        this.crossMarker.addTo(this.map)
+        if(this.hypoMarker && this.map.hasLayer(this.hypoMarker)) this.map.removeLayer(this.hypoMarker)
+        this.hypoMarker = L.marker(this.hypoLatLng, {icon: this.eqMessage.isAssumption?circleDivIcon:crossDivIcon, pane: 'eewMarkerPane'})
+        this.hypoMarker.addTo(this.map)
     }
     drawWaves(){
-        let passedTime, travelTime
-        if(this.useJst){
-            passedTime = calcPassedTime(this.eqMessage.originTime, 9) / 1000
-            travelTime = travelTimes.jma2001
+        if(!this.eqMessage.isAssumption){
+            let passedTime, travelTime
+            if(this.useJst){
+                passedTime = calcPassedTime(this.eqMessage.originTime, 9) / 1000
+                travelTime = travelTimes.jma2001
+            }
+            else{
+                passedTime = calcPassedTime(this.eqMessage.originTime, 8) / 1000
+                travelTime = travelTimes.jma2001
+            }
+            this.switchDrawWaves(passedTime, travelTime)
         }
         else{
-            passedTime = calcPassedTime(this.eqMessage.originTime, 8) / 1000
-            travelTime = travelTimes.jma2001
+            clearInterval(this.drawWavesInterval)
+            if(this.pWave && this.map.hasLayer(this.pWave)) this.map.removeLayer(this.pWave)
+            if(this.sWave && this.map.hasLayer(this.sWave)) this.map.removeLayer(this.sWave)
+            if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) this.map.removeLayer(this.sWaveFill)    
         }
-        this.switchDrawWaves(passedTime, travelTime)
     }
     switchDrawWaves(passedTime, travelTime){
         let p_reach, p_radius, s_reach, s_radius
@@ -100,7 +124,7 @@ class EewEvent {
     }
     renderStop(){
         clearInterval(this.drawWavesInterval)
-        if(this.crossMarker && this.map.hasLayer(this.crossMarker)) this.map.removeLayer(this.crossMarker)
+        if(this.hypoMarker && this.map.hasLayer(this.hypoMarker)) this.map.removeLayer(this.hypoMarker)
         if(this.pWave && this.map.hasLayer(this.pWave)) this.map.removeLayer(this.pWave)
         if(this.sWave && this.map.hasLayer(this.sWave)) this.map.removeLayer(this.sWave)
         if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) this.map.removeLayer(this.sWaveFill)
@@ -229,12 +253,12 @@ class EqlistEvent {
     setMark(){
         this.removeMark()
         if(this.isValidHypo){
-            this.crossMarker = L.marker(this.hypoLatLng, {icon: crossDivIcon, pane: 'eqlistMarkerPane'})
-            this.crossMarker.addTo(this.map)    
+            this.hypoMarker = L.marker(this.hypoLatLng, {icon: crossDivIcon, pane: 'eqlistMarkerPane'})
+            this.hypoMarker.addTo(this.map)    
         }
     }
     removeMark(){
-        if(this.crossMarker && this.map.hasLayer(this.crossMarker)) this.map.removeLayer(this.crossMarker)
+        if(this.hypoMarker && this.map.hasLayer(this.hypoMarker)) this.map.removeLayer(this.hypoMarker)
     }
     handleActions(){
         const settingsStore = useSettingsStore()

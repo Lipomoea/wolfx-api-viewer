@@ -11,6 +11,7 @@ const defaultEqMessage = {
     reportNum: 0,
     reportNumText: '',
     reportTime: '',
+    isAssumption: false,
     isWarn: false,
     isFinal: false,
     isCanceled: false,
@@ -70,6 +71,7 @@ export const useStatusStore = defineStore('statusStore', {
                     eqMessage.reportNum = data.Serial
                     eqMessage.reportNumText = '第' + data.Serial + '報' + (data.isFinal?'（最終）':'')
                     eqMessage.reportTime = data.AnnouncedTime
+                    eqMessage.isAssumption = data.isAssumption
                     eqMessage.isWarn = data.isWarn
                     eqMessage.isFinal = data.isFinal
                     eqMessage.isCanceled = data.isCancel
