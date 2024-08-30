@@ -1,3 +1,14 @@
+:root{
+    --white: #ffffff;
+    --dark-gray: #9f9f9f;
+    --gray: #cfcfcf;
+    --blue: #3fafff;
+    --green: #5fdf8f;
+    --yellow: #ffef5f;
+    --orange: #ff7f00;
+    --red: #df0f0f;
+    --purple: #7f007f;
+}
 .white{
     background-color: #ffffff;
 }

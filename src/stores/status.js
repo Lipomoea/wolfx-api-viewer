@@ -30,6 +30,7 @@ const defaultEqMessage = {
     useShindo: false,
     maxIntensity: '',
     maxIntensityText: '',
+    warnArea: '',
     className: '',
     info: '',
 }
@@ -90,6 +91,14 @@ export const useStatusStore = defineStore('statusStore', {
                     eqMessage.useShindo = true
                     eqMessage.maxIntensity = data.MaxIntensity
                     eqMessage.maxIntensityText = '推定最大震度: ' + data.MaxIntensity
+                    eqMessage.warnArea = JSON.stringify(data.WarnArea.map(item=>{
+                        return {
+                            id: 0,
+                            name: item.Chiiki,
+                            intensity: item.Shindo1,
+                            className: setClassName(item.Shindo1, true)
+                        }
+                    }))
                     break
                 }
                 case 'cwaEew':{

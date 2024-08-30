@@ -8,7 +8,8 @@ export const useDataStore = defineStore('dataStore', {
             global: {},
             cn: {},
             cn_fault: {},
-            jp_eew: {}
+            jp: {},
+            jp_eew: {},
         },
     }),
     getters: {

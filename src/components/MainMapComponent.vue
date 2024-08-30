@@ -143,8 +143,8 @@ const dataStore = useDataStore()
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 const timeStore = useTimeStore()
-let map, globalBaseMap, cnBaseMap, cnFaultBaseMap, jpEewBaseMap
-let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, gridPane, cnFaultBasePane
+let map, jpEewBaseMap
+let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, gridPane, cnFaultBasePane, jpEewBasePane
 const isValidUserLatLng = computed(()=>settingsStore.mainSettings.userLatLng.every(item=>item !== ''))
 const isDisplayUser = computed(()=>isValidUserLatLng.value && settingsStore.mainSettings.displayUser)
 const userLatLng = computed(()=>settingsStore.mainSettings.userLatLng.map(val=>Number(val)))
@@ -240,17 +240,20 @@ onMounted(()=>{
     map.getPane('globalBasePane').style.zIndex = 0
     map.createPane('cnBasePane')
     map.getPane('cnBasePane').style.zIndex = 2
-    map.createPane('cnFaultBasePane')
-    cnFaultBasePane = map.getPane('cnFaultBasePane')
-    cnFaultBasePane.style.zIndex = 3
-    map.createPane('jpEewBasePane')
-    map.getPane('jpEewBasePane').style.zIndex = 1
+    map.createPane('jpBasePane')
+    map.getPane('jpBasePane').style.zIndex = 1
     map.createPane('waveFillPane')
     waveFillPane = map.getPane('waveFillPane')
-    waveFillPane.style.zIndex = 5
+    waveFillPane.style.zIndex = 10
+    map.createPane('jpEewBasePane')
+    jpEewBasePane = map.getPane('jpEewBasePane')
+    jpEewBasePane.style.zIndex = 20
+    map.createPane('cnFaultBasePane')
+    cnFaultBasePane = map.getPane('cnFaultBasePane')
+    cnFaultBasePane.style.zIndex = 30
     for(let i = -1; i <= 20; i++){
         map.createPane(`stationPane${i}`)
-        map.getPane(`stationPane${i}`).style.zIndex = i + 10
+        map.getPane(`stationPane${i}`).style.zIndex = i + 50
     }
     map.createPane('userPane')
     map.getPane('userPane').style.zIndex = 90
@@ -269,7 +272,7 @@ onMounted(()=>{
     map.setView([0, 0], 2)
     map.on('dragstart', handleManual)
     unwatchEewBlink = watch(()=>timeStore.timeStamp, (newVal)=>{
-        newVal % 1000 < 500?eewMarkerPane.style.display = 'block':eewMarkerPane.style.display = 'none'
+        eewMarkerPane.style.display = newVal % 1000 < 500?'block':'none'
     })
     watch([isDisplayUser, userLatLng], ()=>{
         if(userMarker && map.hasLayer(userMarker)) map.removeLayer(userMarker)
@@ -284,13 +287,13 @@ onMounted(()=>{
         }
     }, { immediate: true })
     watch(()=>dataStore.geojson.global, (newVal)=>{
-        loadBaseMap(toRaw(newVal), globalBaseMap, 'globalBasePane')
+        loadBaseMap(toRaw(newVal), 'globalBasePane')
     }, { immediate: true })
     watch(()=>dataStore.geojson.cn, (newVal)=>{
-        loadBaseMap(toRaw(newVal), cnBaseMap, 'cnBasePane')
+        loadBaseMap(toRaw(newVal), 'cnBasePane')
     }, { immediate: true })
     watch(()=>dataStore.geojson.cn_fault, (newVal)=>{
-        loadBaseMap(toRaw(newVal), cnFaultBaseMap, 'cnFaultBasePane', {
+        loadBaseMap(toRaw(newVal), 'cnFaultBasePane', {
             color: 'red',
             opacity: 0.5,
             fillColor: 'red',
@@ -298,8 +301,16 @@ onMounted(()=>{
             weight: 1,
         })
     }, { immediate: true })
+    watch(()=>dataStore.geojson.jp, (newVal)=>{
+        loadBaseMap(toRaw(newVal), 'jpBasePane')
+    }, { immediate: true })
     watch(()=>dataStore.geojson.jp_eew, (newVal)=>{
-        loadBaseMap(toRaw(newVal), jpEewBaseMap, 'jpEewBasePane')
+        jpEewBaseMap = loadBaseMap(toRaw(newVal), 'jpEewBasePane', {
+            opacity: 0,
+            fillColor: '#55555500',
+            fillOpacity: 1,
+            weight: 0,
+        })
     }, { immediate: true })
     watch(()=>settingsStore.mainSettings.displayCnFault, newVal=>{
         cnFaultBasePane.style.display = newVal?'block':'none'
@@ -360,20 +371,20 @@ const setView = ()=>{
 }
 provide('setView', setView)
 provide('isAutoZoom', isAutoZoom)
-const loadBaseMap = (geojson, baseMap, pane, style = {
+const loadBaseMap = (geojson, pane, style = {
         color: '#ccc',
         fillColor: '#555',
         fillOpacity: 1,
         weight: 1,
     })=>{
     if(Object.keys(geojson).length != 0){
-        if(baseMap && map.hasLayer(baseMap)) map.removeLayer(baseMap)
-        baseMap = L.geoJson(geojson, {
+        const baseMap = L.geoJson(geojson, {
             pane,
             style,
             onEachFeature: pane == 'globalBasePane'?onEachFeature('name_zh'):onEachFeature('name'),
         })
         baseMap.addTo(map)
+        return baseMap
     }
 }
 const onEachFeature = (name)=>(feature, layer)=>{
@@ -412,13 +423,15 @@ watch(menuId, (newVal)=>{
         eewMarkerPane.style.display = 'none'
         wavePane.style.display = 'none'
         waveFillPane.style.display = 'none'
+        jpEewBasePane.style.display = 'none'
     }
     else{
         unwatchEewBlink = watch(()=>timeStore.timeStamp, (newVal)=>{
-            newVal % 1000 < 500?eewMarkerPane.style.display = 'block':eewMarkerPane.style.display = 'none'
+            eewMarkerPane.style.display = newVal % 1000 < 500?'block':'none'
         })
         wavePane.style.display = 'block'
         waveFillPane.style.display = 'block'
+        jpEewBasePane.style.display = 'block'
     }
     if(newVal == 'settings'){
         time = 60
@@ -436,6 +449,40 @@ watch(isAutoZoom, (newVal)=>{
         clearInterval(autoZoomInterval)
     }
 }, { immediate: true })
+const jmaWarnArea = computed(()=>{
+    const jmaEewList = activeEewList.filter(event=>event.eqMessage.source == 'jmaEew' && !event.eqMessage.isCanceled)
+    const jmaWarnArea = {}
+    jmaEewList.forEach(event=>{
+        const warnArea = JSON.parse(event.eqMessage.warnArea)
+        warnArea.forEach(item=>{
+            if(jmaWarnArea[item.name]){
+                if(item.intensity > jmaWarnArea[item.name].intensity){
+                    jmaWarnArea[item.name] = item
+                }
+            }
+            else{
+                jmaWarnArea[item.name] = item
+            }
+        })
+    })
+    return jmaWarnArea
+})
+watch(jmaWarnArea, (newVal)=>{
+    const areas = Object.keys(newVal)
+    jpEewBaseMap.eachLayer(layer=>{
+        const layerName = layer.feature.properties.name
+        if(areas.includes(layerName)){
+            layer.setStyle({
+                fillColor: `var(--${newVal[layerName].className})`
+            })
+        }
+        else{
+            layer.setStyle({
+                fillColor: '#55555500'
+            })
+        }
+    })
+}, { deep: true })
 onBeforeUnmount(()=>{
     clearInterval(autoZoomInterval)
     clearTimeout(autoZoomTimer)
