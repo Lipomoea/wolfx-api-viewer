@@ -311,6 +311,24 @@ onMounted(()=>{
             fillOpacity: 1,
             weight: 0,
         })
+        if(jpEewBaseMap){
+            watch(jmaWarnArea, (newVal)=>{
+                const areas = Object.keys(newVal)
+                jpEewBaseMap.eachLayer(layer=>{
+                    const layerName = layer.feature.properties.name
+                    if(areas.includes(layerName)){
+                        layer.setStyle({
+                            fillColor: `var(--${newVal[layerName].className})`
+                        })
+                    }
+                    else{
+                        layer.setStyle({
+                            fillColor: '#55555500'
+                        })
+                    }
+                })
+            }, { deep: true, immediate: true })
+        }
     }, { immediate: true })
     watch(()=>settingsStore.mainSettings.displayCnFault, newVal=>{
         cnFaultBasePane.style.display = newVal?'block':'none'
@@ -467,22 +485,6 @@ const jmaWarnArea = computed(()=>{
     })
     return jmaWarnArea
 })
-watch(jmaWarnArea, (newVal)=>{
-    const areas = Object.keys(newVal)
-    jpEewBaseMap.eachLayer(layer=>{
-        const layerName = layer.feature.properties.name
-        if(areas.includes(layerName)){
-            layer.setStyle({
-                fillColor: `var(--${newVal[layerName].className})`
-            })
-        }
-        else{
-            layer.setStyle({
-                fillColor: '#55555500'
-            })
-        }
-    })
-}, { deep: true })
 onBeforeUnmount(()=>{
     clearInterval(autoZoomInterval)
     clearTimeout(autoZoomTimer)

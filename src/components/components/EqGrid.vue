@@ -1,6 +1,6 @@
 <template>
     <div class="outer">
-        <div class="container">
+        <div class="container" @click="handleClick">
             <div class="bg" :class="className"></div>
             <div class="intensity">{{ eqMessage.maxIntensity }}</div>
             <div :style='{fontSize: "18px", fontWeight: "700"}'>{{ formatText(eqMessage.titleText) }}</div>
@@ -19,6 +19,7 @@
 <script setup>
 import { onBeforeUnmount, ref, computed, watch, inject } from 'vue'
 import { formatText, msToTime, calcPassedTime, judgeSameEvent } from '@/utils/Utils';
+import { eqUrls } from '@/utils/Urls';
 import { EewEvent, EqlistEvent } from '@/classes/EewEqlistClasses';
 import { useTimeStore } from '@/stores/time';
 import { useStatusStore } from '@/stores/status';
@@ -37,6 +38,10 @@ const timeStore = useTimeStore()
 const statusStore = useStatusStore()
 const useJst = props.source.includes('jma')
 const eqMessage = computed(()=>statusStore.eqMessage[props.source])
+
+const handleClick = ()=>{
+    window.open(eqUrls[props.source + '_http'], '_blank')
+}
 
 onBeforeUnmount(()=>{
     clearInterval(blinkController)
