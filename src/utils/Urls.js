@@ -6,10 +6,12 @@ const eqUrls = {
     fjEew_http: 'https://api.wolfx.jp/fj_eew.json',
     fjEew_ws: 'wss://ws-api.wolfx.jp/fj_eew',
     cwaEew_http: 'https://api.wolfx.jp/cwa_eew.json',
+    cwaEew_ws: 'wss://ws-api.wolfx.jp/cwa_eew',
     cencEqlist_http: 'https://api.wolfx.jp/cenc_eqlist.json',
     cencEqlist_ws: 'wss://ws-api.wolfx.jp/cenc_eqlist',
     jmaEqlist_http: 'https://api.wolfx.jp/jma_eqlist.json',
     jmaEqlist_ws: 'wss://ws-api.wolfx.jp/jma_eqlist',
+    allEew_ws: 'wss://ws-api.wolfx.jp/all_eew'
 }
 const seisNetUrls = {
     nied: {
@@ -56,10 +58,11 @@ const chimeUrls = {
     },
 }
 const geojsonUrls = {
-    global: '/json/medium.global.geo.json',
-    global_modified: '/json/medium.global.modified.geo.json',
+    global: '/json/medium.global.modified.geo.json',
     cn: 'https://geojson.cn/api/data/100000.json',
-    jp_eew: '/json/jp.eew.pref.geo.json'
+    cn_fault: '/json/cn.fault.modified.geo.json',
+    jp: '/json/jp.pref.geo.json',
+    jp_eew: '/json/jp.eew.geo.json',
 }
 const utilUrls = {
     geoIp: 'https://api.wolfx.jp/geoip.php',

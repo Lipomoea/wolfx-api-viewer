@@ -1,3 +1,16 @@
+:root{
+    --white: #ffffff;
+    --dark-gray: #9f9f9f;
+    --gray: #cfcfcf;
+    --blue: #3fafff;
+    --green: #5fdf8f;
+    --yellow: #ffef5f;
+    --orange: #ff7f00;
+    --dark-orange: #df5f00;
+    --red: #df0f0f;
+    --dark-red: #af0000;
+    --purple: #7f007f;
+}
 .white{
     background-color: #ffffff;
 }
@@ -6,6 +19,15 @@
 }
 .white:active{
     background-color: #dfdfdf;
+}
+.dark-gray{
+    background-color: #9f9f9f;
+}
+.dark-gray:hover{
+    background-color: #8f8f8f;
+}
+.dark-gray:active{
+    background-color: #7f7f7f;
 }
 .gray{
     background-color: #cfcfcf;
@@ -52,6 +74,15 @@
 .orange:active{
     background-color: #df5f00;
 }
+.dark-orange{
+    background-color: #df5f00;
+}
+.dark-orange:hover{
+    background-color: #cf4f00;
+}
+.dark-orange:active{
+    background-color: #bf3f00;
+}
 .red{
     background-color: #df0f0f;
     color: #ffffff;
@@ -61,6 +92,16 @@
 }
 .red:active{
     background-color: #bf0000;
+}
+.dark-red{
+    background-color: #af0000;
+    color: #ffffff;
+}
+.dark-red:hover{
+    background-color: #9f0000;
+}
+.dark-red:active{
+    background-color: #8f0000;
 }
 .purple{
     background-color: #7f007f;

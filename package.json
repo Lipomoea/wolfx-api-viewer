@@ -1,6 +1,6 @@
 {
   "name": "wolfx-api-viewer",
-  "version": "2.0.0 pre-9",
+  "version": "2.0.0 pre-18",
   "private": true,
   "type": "module",
   "scripts": {
@@ -15,7 +15,7 @@
     "leaflet": "^1.9.4",
     "papaparse": "^5.4.1",
     "pinia": "^2.1.7",
-    "vue": "^3.4.21",
+    "vue": "^3.4.38",
     "vue-router": "^4.3.0"
   },
   "devDependencies": {

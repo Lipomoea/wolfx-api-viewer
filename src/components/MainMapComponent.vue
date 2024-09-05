@@ -4,58 +4,62 @@
             <div class="mapContainer">
                 <div id="mainMap" @wheel="handleManual" @dblclick="handleManual"></div>
                 <div class="eewList">
-                    <div class="eew" v-for="source of activeEewList" :key="source" v-show="menuId != 'eqlists'">
-                        <div class="bar" :class="getBarClass(eewEvents[source].eqMessage)">{{ eewEvents[source].eqMessage.titleText + ' ' + eewEvents[source].eqMessage.reportNumText }}</div>
+                    <div class="eew" v-for="(event, index) of activeEewList" :key="index" v-show="menuId != 'eqlists'">
+                        <div class="bar" :class="getBarClass(event.eqMessage)">{{ event.eqMessage.titleText + ' ' + event.eqMessage.reportNumText }}</div>
                         <div class="info gray">
-                            <div class="intensity" :class="eewEvents[source].eqMessage.className">
-                                <div :class="eewEvents[source].eqMessage.useShindo?'shindo':'csis'">
-                                    {{ formatIntensity(eewEvents[source].eqMessage.maxIntensity) }}
+                            <div class="intensity" :class="event.eqMessage.className">
+                                <div class="intensity-title">{{ event.eqMessage.useShindo?'最大震度':'最大CSIS' }}</div>
+                                <div :class="event.eqMessage.useShindo && formatIntensity(event.eqMessage.maxIntensity) != '?'?'shindo':'csis'">
+                                    {{ formatIntensity(event.eqMessage.maxIntensity) }}
                                 </div>
                             </div>
                             <div class="right">
-                                <div class="location">{{ eewEvents[source].eqMessage.hypocenter }}</div>
-                                <div class="time">{{ eewEvents[source].eqMessage.originTime + (eewEvents[source].useJst?' (UTC+9)':' (UTC+8)') }}</div>
+                                <div class="location">{{ event.eqMessage.hypocenter }}</div>
+                                <div class="time">{{ event.eqMessage.originTime + (event.useJst?' (UTC+9)':' (UTC+8)') }}</div>
                                 <div class="bottom">
-                                    <div class="magnitude">{{ 'M' + eewEvents[source].eqMessage.magnitude.toFixed(1) }}</div>
-                                    <div class="depth">{{ eewEvents[source].eqMessage.depthText }}</div>
+                                    <div class="magnitude">{{ event.eqMessage.isAssumption?'仮定震源要素':'M' + event.eqMessage.magnitude.toFixed(1) }}</div>
+                                    <div class="depth">{{ event.eqMessage.isAssumption?'':event.eqMessage.depthText }}</div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="eew" v-for="source of activeEqlistList" :key="source" v-show="menuId != 'eews'">
-                        <div class="bar" :class="getBarClass(eqlistEvents[source].eqMessage)">{{ eqlistEvents[source].eqMessage.titleText + ' ' + eqlistEvents[source].eqMessage.reportNumText }}</div>
+                    <div class="eew" v-for="(event, index) of activeEqlistList" :key="index" v-show="menuId != 'eews'">
+                        <div class="bar" :class="getBarClass(event.eqMessage)">{{ event.eqMessage.titleText + ' ' + event.eqMessage.reportNumText }}</div>
                         <div class="info gray">
-                            <div class="intensity" :class="eqlistEvents[source].eqMessage.className">
-                                <div :class="eqlistEvents[source].eqMessage.useShindo?'shindo':'csis'">
-                                    {{ formatIntensity(eqlistEvents[source].eqMessage.maxIntensity) }}
+                            <div class="intensity" :class="event.eqMessage.className">
+                                <div class="intensity-title">{{ event.eqMessage.useShindo?'最大震度':'最大CSIS' }}</div>
+                                <div :class="event.eqMessage.useShindo && formatIntensity(event.eqMessage.maxIntensity) != '?'?'shindo':'csis'">
+                                    {{ formatIntensity(event.eqMessage.maxIntensity) }}
                                 </div>
                             </div>
                             <div class="right">
-                                <div class="location">{{ eqlistEvents[source].eqMessage.hypocenter?eqlistEvents[source].eqMessage.hypocenter:'震源: 調査中' }}</div>
-                                <div class="time">{{ eqlistEvents[source].eqMessage.originTime + (eqlistEvents[source].useJst?' (UTC+9)':' (UTC+8)') }}</div>
+                                <div class="location">{{ event.eqMessage.hypocenter?event.eqMessage.hypocenter:'震源: 調査中' }}</div>
+                                <div class="time">{{ event.eqMessage.originTime + (event.useJst?' (UTC+9)':' (UTC+8)') }}</div>
                                 <div class="bottom">
-                                    <div class="magnitude">{{ eqlistEvents[source].eqMessage.magnitude?'M' + eqlistEvents[source].eqMessage.magnitude.toFixed(1):'規模: 調査中' }}</div>
-                                    <div class="depth">{{ eqlistEvents[source].eqMessage.depthText }}</div>
+                                    <div class="magnitude">{{ event.eqMessage.magnitude?'M' + event.eqMessage.magnitude.toFixed(1):'規模: 調査中' }}</div>
+                                    <div class="depth">{{ event.eqMessage.depthText }}</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div style="display: flex;">
                         <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.nied && settingsStore.advancedSettings.displayNiedShindo">
-                            <div class="shindo-bar gray">最大震度</div>
+                            <div class="shindo-bar gray">NIED实时</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(niedMaxShindo, true)">
-                                    <div class="shindo">
+                                    <div class="intensity-title">最大震度</div>
+                                    <div :class="niedMaxShindo != '?'?'shindo':'csis'">
                                         {{ niedMaxShindo }}
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.nied && settingsStore.advancedSettings.displayNiedShindo && niedPeriodMaxShindo != '?'">
-                            <div class="shindo-bar gray">区间最大</div>
+                            <div class="shindo-bar gray">NIED区间</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(niedPeriodMaxShindo, true)">
-                                    <div class="shindo">
+                                    <div class="intensity-title">最大震度</div>
+                                    <div :class="niedPeriodMaxShindo != '?'?'shindo':'csis'">
                                         {{ niedPeriodMaxShindo }}
                                     </div>
                                 </div>
@@ -64,6 +68,11 @@
                     </div>
                 </div>
                 <div class="left-bottom">
+                    <div class="ws-status">
+                        WebSocket状态: 
+                        <div class="dot" :class="'s' + wsStatusCode"></div>
+                        {{ statusList[wsStatusCode] }}
+                    </div>
                     <div class="nied-update-time" :class="isNiedDelayed?'delayed':''" v-if="settingsStore.mainSettings.displaySeisNet.nied">
                         強震モニタ: {{ niedUpdateTime }} (UTC+9)
                     </div>
@@ -128,15 +137,14 @@ import EewComponent from './EewComponent.vue';
 import SeisNetComponent from './SeisNetComponent.vue';
 import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
-import { EewEvent, EqlistEvent } from '@/classes/EewEqlistClasses';
-import { verifyUpToDate, setClassName } from '@/utils/Utils';
+import { verifyUpToDate, setClassName, getClassLevel } from '@/utils/Utils';
 
 const dataStore = useDataStore()
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 const timeStore = useTimeStore()
-let map, globalBaseMap, cnBaseMap, jpEewBaseMap
-let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, gridPane
+let map, jpEewBaseMap
+let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, gridPane, cnFaultBasePane, jpEewBasePane
 const isValidUserLatLng = computed(()=>settingsStore.mainSettings.userLatLng.every(item=>item !== ''))
 const isDisplayUser = computed(()=>isValidUserLatLng.value && settingsStore.mainSettings.displayUser)
 const userLatLng = computed(()=>settingsStore.mainSettings.userLatLng.map(val=>Number(val)))
@@ -166,6 +174,8 @@ const handleMenu = (index)=>{
 }
 provide('handleMenu', handleMenu)
 provide('handleHome', handleHome)
+const wsStatusCode = ref(4)
+const statusList = ['正在连接', '已连接', '正在断开', '已断开', '未连接', '不使用']
 const niedUpdateTime = ref('')
 const niedMaxShindo = ref('?')
 const niedPeriodMaxShindo = ref('?')
@@ -174,29 +184,21 @@ provide('niedMaxShindo', niedMaxShindo)
 provide('niedPeriodMaxShindo', niedPeriodMaxShindo)
 const isNiedDelayed = ref(true)
 const isAutoZoom = ref(true)
-const eewEvents = {
-    jmaEew: null,
-    cwaEew: null,
-    scEew: null,
-    fjEew: null,
-}  //使用reactive()时会导致类中计算属性失效，原因不明
-const eqlistEvents = {
-    jmaEqlist: null,
-    cencEqlist: null,
-}
-const activeEewList = computed(()=>{
-    let list = []
-    for(let source in eewEvents){
-        if(statusStore.isActive[source]) list.push(source)
+const activeEewList = reactive([])
+const eqlistList = reactive([])
+const activeEqlistList = computed(()=>eqlistList.filter(event=>event.isActive))
+provide('activeEewList', activeEewList)
+provide('eqlistList', eqlistList)
+const activeSources = computed(()=>
+    [...new Set(activeEewList.map(event=>event.eqMessage.source)), ...new Set(activeEqlistList.value.map(event=>event.eqMessage.source))]
+)
+watch(activeSources, newVal=>{
+    for(let source in statusStore.isActive){
+        if(source != 'niedNet'){
+            if(newVal.includes(source)) statusStore.isActive[source] = true
+            else statusStore.isActive[source] = false
+        }
     }
-    return list
-})
-const activeEqlistList = computed(()=>{
-    let list = []
-    for(let source in eqlistEvents){
-        if(statusStore.isActive[source]) list.push(source)
-    }
-    return list
 })
 const formatIntensity = (intensity)=>intensity.replace('強', '+').replace('弱', '-').replace('不明', '?')
 const getBarClass = (eqMessage)=>{
@@ -238,14 +240,20 @@ onMounted(()=>{
     map.getPane('globalBasePane').style.zIndex = 0
     map.createPane('cnBasePane')
     map.getPane('cnBasePane').style.zIndex = 2
-    map.createPane('jpEewBasePane')
-    map.getPane('jpEewBasePane').style.zIndex = 1
+    map.createPane('jpBasePane')
+    map.getPane('jpBasePane').style.zIndex = 1
     map.createPane('waveFillPane')
     waveFillPane = map.getPane('waveFillPane')
-    waveFillPane.style.zIndex = 5
+    waveFillPane.style.zIndex = 10
+    map.createPane('jpEewBasePane')
+    jpEewBasePane = map.getPane('jpEewBasePane')
+    jpEewBasePane.style.zIndex = 20
+    map.createPane('cnFaultBasePane')
+    cnFaultBasePane = map.getPane('cnFaultBasePane')
+    cnFaultBasePane.style.zIndex = 30
     for(let i = -1; i <= 20; i++){
         map.createPane(`stationPane${i}`)
-        map.getPane(`stationPane${i}`).style.zIndex = i + 10
+        map.getPane(`stationPane${i}`).style.zIndex = i + 50
     }
     map.createPane('userPane')
     map.getPane('userPane').style.zIndex = 90
@@ -261,65 +269,81 @@ onMounted(()=>{
     map.createPane('eqlistMarkerPane')
     eqlistMarkerPane = map.getPane('eqlistMarkerPane')
     eqlistMarkerPane.style.zIndex = 200
-    loadBaseMap(toRaw(dataStore.geojson.global))
     map.setView([0, 0], 2)
     map.on('dragstart', handleManual)
     unwatchEewBlink = watch(()=>timeStore.timeStamp, (newVal)=>{
-        newVal % 1000 < 500?eewMarkerPane.style.display = 'block':eewMarkerPane.style.display = 'none'
+        eewMarkerPane.style.display = newVal % 1000 < 500?'block':'none'
     })
-    if(isDisplayUser.value){
-        userMarker = L.circleMarker(userLatLng.value, {
-            radius: 8,
-            fillOpacity: 0.5,
-            weight: 2,
-            pane: 'userPane',
+    watch([isDisplayUser, userLatLng], ()=>{
+        if(userMarker && map.hasLayer(userMarker)) map.removeLayer(userMarker)
+        if(isDisplayUser.value){
+            userMarker = L.circleMarker(userLatLng.value, {
+                radius: 8,
+                fillOpacity: 0.5,
+                weight: 2,
+                pane: 'userPane',
+            })
+            userMarker.addTo(map)
+        }
+    }, { immediate: true })
+    watch(()=>dataStore.geojson.global, (newVal)=>{
+        loadBaseMap(toRaw(newVal), 'globalBasePane')
+    }, { immediate: true })
+    watch(()=>dataStore.geojson.cn, (newVal)=>{
+        loadBaseMap(toRaw(newVal), 'cnBasePane')
+    }, { immediate: true })
+    watch(()=>dataStore.geojson.cn_fault, (newVal)=>{
+        loadBaseMap(toRaw(newVal), 'cnFaultBasePane', {
+            color: 'red',
+            opacity: 0.5,
+            fillColor: 'red',
+            fillOpacity: 0,
+            weight: 1,
         })
-        userMarker.addTo(map)
-    }
-    for(let source in eewEvents){
-        watch(()=>statusStore.eqMessages[source], (newVal)=>{
-            if(statusStore.isActive[source]){
-                if(!newVal.isCanceled){
-                    if(!eewEvents[source]){
-                        eewEvents[source] = new EewEvent(source, map, newVal)
-                        eewEvents[source].renderStart()
+    }, { immediate: true })
+    watch(()=>dataStore.geojson.jp, (newVal)=>{
+        loadBaseMap(toRaw(newVal), 'jpBasePane')
+    }, { immediate: true })
+    watch(()=>dataStore.geojson.jp_eew, (newVal)=>{
+        jpEewBaseMap = loadBaseMap(toRaw(newVal), 'jpEewBasePane', {
+            opacity: 0,
+            fillColor: '#55555500',
+            fillOpacity: 1,
+            weight: 0,
+        })
+        if(jpEewBaseMap){
+            watch(jmaWarnArea, (newVal)=>{
+                const areas = Object.keys(newVal)
+                jpEewBaseMap.eachLayer(layer=>{
+                    const layerName = layer.feature.properties.name
+                    if(areas.includes(layerName)){
+                        layer.setStyle({
+                            fillColor: `var(--${newVal[layerName].className})`
+                        })
                     }
                     else{
-                        eewEvents[source].update(newVal)
+                        layer.setStyle({
+                            fillColor: '#55555500'
+                        })
                     }
-                }
-                else{
-                    eewEvents[source].handleCancel(newVal)
-                }
-                if(isAutoZoom.value) setView()
-            }
-        }, { deep: true })
-        watch(()=>statusStore.isActive[source], (newVal)=>{
-            if(!newVal && eewEvents[source]){
-                eewEvents[source].renderStop()
-                eewEvents[source] = null
-            }
-        })
-    }
-    for(let source in eqlistEvents){
-        watch(()=>statusStore.eqMessages[source], (newVal)=>{
-            if(!eqlistEvents[source]){
-                eqlistEvents[source] = new EqlistEvent(source, map, newVal)
-                eqlistEvents[source].setMark()
-            }
-            else{
-                eqlistEvents[source].update(newVal)
-                eqlistEvents[source].setMark()
-            }
-            if(isAutoZoom.value) setView()
-        }, { deep: true })
-    }
+                })
+            }, { deep: true, immediate: true })
+        }
+    }, { immediate: true })
+    watch(()=>settingsStore.mainSettings.displayCnFault, newVal=>{
+        cnFaultBasePane.style.display = newVal?'block':'none'
+    }, { immediate: true })
+    watch(()=>timeStore.timeStamp, (newVal)=>{
+        gridPane.style.display = (newVal % 1000 < 500) && !statusStore.isActive.jmaEew?'block':'none'
+        isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
+        wsStatusCode.value = statusStore.allEewSocketObj?statusStore.allEewSocketObj.socket.readyState:4
+    }, { immediate: true })
 })
 const setView = ()=>{
     const bounds = L.latLngBounds([])
     map.eachLayer(layer=>{
         if(menuId.value != 'eqlists'){
-            if(['wavePane', 'eewMarkerPane'].includes(layer.options.pane)){
+            if(['waveFillPane', 'eewMarkerPane'].includes(layer.options.pane)){
                 if(layer.getBounds){
                     bounds.extend(layer.getBounds())
                 }
@@ -348,15 +372,13 @@ const setView = ()=>{
         }
     })
     if(menuId.value != 'eews'){
-        activeEqlistList.value.forEach(source=>{
-            if(eqlistEvents[source]){
-                if(eqlistEvents[source].isValidHypo.value){
-                    bounds.extend(eqlistEvents[source].hypoLatLng.value)
-                }
-                else{
-                    bounds.extend([46, 148])
-                    bounds.extend([23.5, 122])
-                }
+        activeEqlistList.value.forEach(event=>{
+            if(event.isValidHypo){
+                bounds.extend(event.hypoLatLng)
+            }
+            else{
+                bounds.extend([46, 148])
+                bounds.extend([23.5, 122])
             }
         })
     }
@@ -367,20 +389,20 @@ const setView = ()=>{
 }
 provide('setView', setView)
 provide('isAutoZoom', isAutoZoom)
-const loadBaseMap = (geojson, baseMap, pane)=>{
+const loadBaseMap = (geojson, pane, style = {
+        color: '#ccc',
+        fillColor: '#555',
+        fillOpacity: 1,
+        weight: 1,
+    })=>{
     if(Object.keys(geojson).length != 0){
-        if(baseMap && map.hasLayer(baseMap)) map.removeLayer(baseMap)
-        baseMap = L.geoJson(geojson, {
+        const baseMap = L.geoJson(geojson, {
             pane,
-            style: {
-                color: '#ccc',
-                fillColor: '#555',
-                fillOpacity: 1,
-                weight: 1,
-            },
+            style,
             onEachFeature: pane == 'globalBasePane'?onEachFeature('name_zh'):onEachFeature('name'),
         })
         baseMap.addTo(map)
+        return baseMap
     }
 }
 const onEachFeature = (name)=>(feature, layer)=>{
@@ -389,15 +411,6 @@ const onEachFeature = (name)=>(feature, layer)=>{
         direction: 'auto'
     })
 }
-watch(()=>dataStore.geojson.global, (newVal)=>{
-    loadBaseMap(toRaw(newVal), globalBaseMap, 'globalBasePane')
-})
-watch(()=>dataStore.geojson.cn, (newVal)=>{
-    loadBaseMap(toRaw(newVal), cnBaseMap, 'cnBasePane')
-})
-watch(()=>dataStore.geojson.jp_eew, (newVal)=>{
-    loadBaseMap(toRaw(newVal), jpEewBaseMap, 'jpEewBasePane')
-})
 let returnMainTimer, time
 const resetMainTimer = ()=>{
     clearTimeout(returnMainTimer)
@@ -428,13 +441,15 @@ watch(menuId, (newVal)=>{
         eewMarkerPane.style.display = 'none'
         wavePane.style.display = 'none'
         waveFillPane.style.display = 'none'
+        jpEewBasePane.style.display = 'none'
     }
     else{
         unwatchEewBlink = watch(()=>timeStore.timeStamp, (newVal)=>{
-            newVal % 1000 < 500?eewMarkerPane.style.display = 'block':eewMarkerPane.style.display = 'none'
+            eewMarkerPane.style.display = newVal % 1000 < 500?'block':'none'
         })
         wavePane.style.display = 'block'
         waveFillPane.style.display = 'block'
+        jpEewBasePane.style.display = 'block'
     }
     if(newVal == 'settings'){
         time = 60
@@ -452,27 +467,31 @@ watch(isAutoZoom, (newVal)=>{
         clearInterval(autoZoomInterval)
     }
 }, { immediate: true })
-watch([isDisplayUser, userLatLng], ()=>{
-    if(userMarker && map.hasLayer(userMarker)) map.removeLayer(userMarker)
-    if(isDisplayUser.value){
-        userMarker = L.circleMarker(userLatLng.value, {
-            radius: 8,
-            fillOpacity: 0.5,
-            weight: 2,
-            pane: 'userPane',
+const jmaWarnArea = computed(()=>{
+    const jmaEewList = activeEewList.filter(event=>event.eqMessage.source == 'jmaEew' && !event.eqMessage.isCanceled)
+    const jmaWarnArea = {}
+    jmaEewList.forEach(event=>{
+        const warnArea = JSON.parse(event.eqMessage.warnArea)
+        warnArea.forEach(item=>{
+            if(jmaWarnArea[item.name]){
+                if(getClassLevel(item.className) > getClassLevel(jmaWarnArea[item.name].className)){
+                    jmaWarnArea[item.name] = item
+                }
+            }
+            else{
+                jmaWarnArea[item.name] = item
+            }
         })
-        userMarker.addTo(map)
-    }
-})
-watch(()=>timeStore.timeStamp, (newVal)=>{
-    (newVal % 1000 < 500) && !statusStore.isActive.jmaEew?gridPane.style.display = 'block':gridPane.style.display = 'none'
-    isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
+    })
+    return jmaWarnArea
 })
 onBeforeUnmount(()=>{
     clearInterval(autoZoomInterval)
     clearTimeout(autoZoomTimer)
     clearTimeout(returnMainTimer)
     document.removeEventListener('mousemove', resetMainTimer)
+    activeEewList.length = 0
+    eqlistList.length = 0
 })
 </script>
 
@@ -540,24 +559,42 @@ onBeforeUnmount(()=>{
                         justify-content: center;
                         align-items: center;
                         font-size: 18px;
-                        font-weight: 500;
+                        font-weight: 700;
                     }
                     .info{
+                        height: 100px;
                         display: flex;
                         gap: 10px;
                         align-items: center;
                         .intensity{
                             width: 100px;
-                            height: 100px;
+                            height: 100%;
                             border-right: black 1px solid;
                             display: flex;
+                            flex-direction: column;
                             justify-content: center;
                             align-items: center;
-                            .shindo{
-                                font-size: 60px;
+                            position: relative;
+                            .intensity-title{
+                                height: 20px;
+                                font-size: 16px;
+                                line-height: 1;
+                                position: absolute;
+                                top: 0;
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+                            }
+                            .shindo,.csis{
+                                height: 80px;
                                 text-align: center;
                                 letter-spacing: -5px;
                                 padding-right: 5px;
+                                position: absolute;
+                                bottom: 10px;
+                            }
+                            .shindo{
+                                font-size: 60px;
                             }
                             .shindo::first-letter{
                                 font-size: 80px;
@@ -565,16 +602,14 @@ onBeforeUnmount(()=>{
                             }
                             .csis{
                                 font-size: 80px;
-                                text-align: center;
-                                letter-spacing: -5px;
-                                padding-right: 5px;
                             }
                         }
                         .right{
                             width: 350px;
+                            height: 100%;
                             display: flex;
                             flex-direction: column;
-                            justify-content: space-around;
+                            justify-content: space-evenly;
                             .location{
                                 display: flex;
                                 align-items: center;
@@ -617,10 +652,31 @@ onBeforeUnmount(()=>{
                 bottom: 0;
                 left: 0;
                 z-index: 500;
-                .nied-update-time{
-                    color: #ffffff;
-                    font-size: 18px;
-                    background-color: #333;
+                font-size: 18px;
+                color: #ffffff;
+                // background-color: #3333333f;
+                .ws-status{
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                    .dot{
+                        width: 10px;
+                        height: 10px;
+                        border-radius: 50%;
+                        overflow: hidden;
+                    }
+                    .s0{
+                        background-color: yellow;
+                    }
+                    .s1{
+                        background-color: green;
+                    }
+                    .s2,.s3,.s4{
+                        background-color: red;
+                    }
+                    .s5{
+                        background-color: white;
+                    }
                 }
                 .delayed{
                     color: red;

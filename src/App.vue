@@ -19,12 +19,14 @@ onBeforeMount(()=>{
   settingsStore.setMainSettings(localStorage.getItem('mainSettings'))
   settingsStore.setAdvancedSettings(localStorage.getItem('advancedSettings'))
   settingsStore.mainSettings.displaySeisNet.niedDelay = 0
-})
-onMounted(()=>{
-  if (Notification.permission !== 'granted' && settingsStore.requestNotification) {
-    Notification.requestPermission()
-  }
   timeStore.startUpdatingTime()
+  try{
+    if (Notification.permission !== 'granted' && settingsStore.requestNotification) {
+      Notification.requestPermission()
+    }
+  }catch(err){
+    console.log(err);
+  }
 })
 onBeforeUnmount(()=>{
   timeStore.stopUpdatingTime()

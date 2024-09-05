@@ -7,19 +7,16 @@ export const useSettingsStore = defineStore('settingsStore', {
                 notification: false,
                 sound: false,
                 focus:false,
-                switchMenu: false,
             },
             onEewWarn: {
                 notification: false,
                 sound: false,
                 focus:false,
-                switchMenu: false,
             },
             onReport: {
                 notification: false,
                 sound: false,
                 focus:false,
-                switchMenu: false,
             },
             onShake: {
                 notification: false,
@@ -28,6 +25,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             },
             muteNotification: false,
             soundEffect: 'srev',
+            displayCnFault: false,
             userLatLng: ['', ''],
             displayUser: false,
             viewLatLng: ['', ''],
@@ -35,6 +33,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             displayCountdown: false,
             decimalCountdown: false,
             displaySeisNet: {
+                hideNoData: false,
                 nied: true,
                 niedDelay: 0,
             },
