@@ -33,6 +33,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             displayCountdown: false,
             decimalCountdown: false,
             displaySeisNet: {
+                hideNoData: false,
                 nied: true,
                 niedDelay: 0,
             },

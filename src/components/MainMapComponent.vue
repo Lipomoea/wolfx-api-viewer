@@ -137,7 +137,7 @@ import EewComponent from './EewComponent.vue';
 import SeisNetComponent from './SeisNetComponent.vue';
 import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
-import { verifyUpToDate, setClassName } from '@/utils/Utils';
+import { verifyUpToDate, setClassName, getClassLevel } from '@/utils/Utils';
 
 const dataStore = useDataStore()
 const statusStore = useStatusStore()
@@ -343,7 +343,7 @@ const setView = ()=>{
     const bounds = L.latLngBounds([])
     map.eachLayer(layer=>{
         if(menuId.value != 'eqlists'){
-            if(['wavePane', 'eewMarkerPane'].includes(layer.options.pane)){
+            if(['waveFillPane', 'eewMarkerPane'].includes(layer.options.pane)){
                 if(layer.getBounds){
                     bounds.extend(layer.getBounds())
                 }
@@ -474,7 +474,7 @@ const jmaWarnArea = computed(()=>{
         const warnArea = JSON.parse(event.eqMessage.warnArea)
         warnArea.forEach(item=>{
             if(jmaWarnArea[item.name]){
-                if(item.intensity > jmaWarnArea[item.name].intensity){
+                if(getClassLevel(item.className) > getClassLevel(jmaWarnArea[item.name].className)){
                     jmaWarnArea[item.name] = item
                 }
             }

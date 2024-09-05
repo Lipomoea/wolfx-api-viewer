@@ -78,10 +78,10 @@ watch(eqMessage, (newVal)=>{
     }
     else{
         time = 300 * 1000
-        if(newVal.className == 'orange' || newVal.magnitude >= 6.0){
+        if(newVal.className.includes('orange') || newVal.magnitude >= 6.0){
             time = 600 * 1000
         }
-        if(newVal.className == 'red' || newVal.magnitude >= 7.0){
+        if(newVal.className.includes('red') || newVal.magnitude >= 7.0){
             time = 900 * 1000
         }
         if(newVal.className == 'purple' || newVal.magnitude >= 7.5){

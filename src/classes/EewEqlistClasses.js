@@ -1,4 +1,4 @@
-import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendNotification } from '@/utils/Utils';
+import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendNotification, getClassLevel } from '@/utils/Utils';
 import travelTimes from '@/utils/TravelTimes';
 import { iconUrls, chimeUrls } from '@/utils/Urls';
 import L from 'leaflet';
@@ -166,7 +166,6 @@ class EewEvent {
     handleActions(){
         const settingsStore = useSettingsStore()
         const soundEffect = settingsStore.mainSettings.soundEffect
-        const cautionList = ['green', 'yellow', 'orange', 'red', 'purple']
         const eqMessage = this.eqMessage
         let icon = ''
         //是Warn
@@ -211,7 +210,7 @@ class EewEvent {
                     }
                     else if(eqMessage.isFinal) playSound(chimeUrls[soundEffect].saisyuu)
                     else playSound(chimeUrls[soundEffect].koushin)
-                    if(cautionList.includes(eqMessage.className)){
+                    if(getClassLevel(eqMessage.className) >= getClassLevel('green')){
                         if(!this.flags.cautionSound){
                             playSound(chimeUrls[soundEffect].yohou)
                             this.flags.cautionSound = true

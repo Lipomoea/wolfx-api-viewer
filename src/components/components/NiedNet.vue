@@ -25,6 +25,7 @@ const stations = reactive([])
 const siteConfigId = ref('')
 let map
 const defaultDelay = 1200
+const maxDelay = 3000
 const delay = ref(defaultDelay)
 const niedMaxShindo = inject('niedMaxShindo')
 const niedUpdateTime = inject('niedUpdateTime')
@@ -110,11 +111,11 @@ const getData = async (url)=>{
         return res
     }
     catch (err){
-        if(delay.value <= 2900) delay.value += 100
+        if(delay.value <= maxDelay - 100) delay.value += 100
     }
 }
 const update = ()=>{
-    if(stationList.value.length > 0){
+    if(stationList.value.length == stations.length && stations.length == stationData.value.length){
         let maxChar = ''
         for(let i = 0; i < stationList.value.length; i++){
             stations[i].update(stationData.value[i])
@@ -132,32 +133,48 @@ let requestInterval, delayInterval
 onMounted(()=>{
     Http.get(seisNetUrls.nied.stationList).then(res=>{
         stationList.value = res.items
+        siteConfigId.value = res.siteConfigId
     })
     requestInterval = setInterval(() => {
         const time = getTimeNumberString(9, -delay.value)
         const date = time.slice(0, 8)
         getData(`${seisNetUrls.nied.stationData}/${date}/${time}.json`).then(res=>{
-            if(res && res.status == 200){
+            if(res?.status == 200){
                 const data = res.data
-                stationData.value = data.realTimeData.intensity.split('')
-                const timeDiff = calcTimeDiff(data.realTimeData.dataTime.slice(0, -6), 9, niedUpdateTime.value, 9)
-                if(timeDiff > 10000 || timeDiff < 0){
-                    stations.forEach(station=>{
-                        station.recentLevel = []
-                        station.isActive = false
-                    })
+                if(data.realTimeData.siteConfigId == siteConfigId.value){
+                    stationData.value = data.realTimeData.intensity.split('')
+                    const timeDiff = calcTimeDiff(data.realTimeData.dataTime.slice(0, -6), 9, niedUpdateTime.value, 9)
+                    if(timeDiff > 10000 || timeDiff < 0){
+                        stations.forEach(station=>{
+                            station.recentLevel = []
+                            station.isActive = false
+                        })
+                    }
+                    if(!(delay.value <= maxDelay && timeDiff < 0)){
+                        niedUpdateTime.value = data.realTimeData.dataTime.slice(0, -6)
+                        update()
+                    }
                 }
-                niedUpdateTime.value = data.realTimeData.dataTime.slice(0, -6)
-                siteConfigId.value = data.realTimeData.siteConfigId
-                update()
+                else if(siteConfigId.value){
+                    ElMessage({
+                        message: '站点数据已更新，正在重新加载…',
+                        type: 'warning',
+                    })
+                    settingsStore.mainSettings.displaySeisNet.nied = false
+                    settingsStore.mainSettings.displaySeisNet.niedDelay = 0
+                    setTimeout(() => {
+                        settingsStore.mainSettings.displaySeisNet.nied = true
+                    }, 1000);
+                }
             }
         })
     }, 500);
     delayInterval = setInterval(() => {
-        delay.value -= 20
+        if(delay.value <= maxDelay * 2/3) delay.value -= 20
+        else delay.value -= 100
     }, 10000);
 })
-let unwatchStationList, unwatchGrids, unwatchDisplayShindo
+let unwatchStationList, unwatchGrids, unwatchDisplayShindo, unwatchHideNoData
 watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
@@ -213,6 +230,9 @@ watch(()=>statusStore.map, newVal=>{
             }
         })
         unwatchDisplayShindo = watch(()=>settingsStore.advancedSettings.displayNiedShindo, ()=>{
+            renderAll()
+        })
+        unwatchHideNoData = watch(()=>settingsStore.mainSettings.displaySeisNet.hideNoData, ()=>{
             renderAll()
         })
     }
@@ -281,13 +301,14 @@ watch(periodMaxShindo, (newVal, oldVal)=>{
 })
 watch(()=>settingsStore.mainSettings.displaySeisNet.niedDelay, newVal=>{
     clearInterval(delayInterval)
-    if(newVal > defaultDelay / 60000){
+    if(newVal > maxDelay / 60000){
         delay.value = newVal * 60000
     }
     else{
         delay.value = defaultDelay
         delayInterval = setInterval(() => {
-            delay.value -= 20
+            if(delay.value <= maxDelay * 2/3) delay.value -= 20
+            else delay.value -= 100
         }, 10000);
     }
 })
@@ -298,6 +319,7 @@ onBeforeUnmount(()=>{
     if(unwatchStationList) unwatchStationList()
     if(unwatchGrids) unwatchGrids()
     if(unwatchDisplayShindo) unwatchDisplayShindo()
+    if(unwatchHideNoData) unwatchHideNoData()
     stations.forEach((station, index)=>{
         station.terminate()
         stations[index] = null

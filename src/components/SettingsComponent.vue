@@ -96,14 +96,7 @@
                 <div class="subTitle">地图</div>
                 <div class="group">
                     <div class="row">
-                        <div class="switchGroup">
-                            <div class="switch">
-                                <span>显示中国断层</span>
-                                <el-switch v-model="settingsStore.mainSettings.displayCnFault"></el-switch>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
+                        <span class="groupTitle">所在地设置</span>
                         <div class="switchGroup">
                             <div class="switch force-wrap">
                                 <span style="width: 100%;">所在地经纬度（均设置时才生效）：</span>
@@ -125,6 +118,9 @@
                                 style="margin-left: 10px;"
                                 size="small"
                                 @click="autoLocate">自动定位</el-button>
+                                <el-button
+                                size="small"
+                                @click="clearUserLatLng">清除经纬度</el-button>
                             </div>
                             <div class="switch">
                                 <span>显示所在地</span>
@@ -141,6 +137,7 @@
                         </div>
                     </div>
                     <div class="row">
+                        <span class="groupTitle">默认视野设置</span>
                         <div class="switchGroup">
                             <div class="switch force-wrap">
                                 <span style="width: 100%;">自定义视野（均设置时才生效）：</span>
@@ -158,7 +155,7 @@
                                 size="small"
                                 maxlength="10"
                                 @change="setLng('viewLatLng')"></el-input>
-                                <span style="margin-left: 10px;">默认缩放</span>
+                                <span style="margin-left: 10px;">缩放</span>
                                 <el-input
                                 v-model="settingsStore.mainSettings.defaultZoom"
                                 type="number"
@@ -168,7 +165,7 @@
                                 @change="setDefaultZoom"></el-input>
                                 <el-button
                                 size="small"
-                                @click="setCurrentViewAsDefault">设定当前视野</el-button>
+                                @click="setCurrentViewAsDefault">设为当前视野</el-button>
                                 <el-button
                                 size="small"
                                 @click="clearViewLatLng">清除经纬度</el-button>
@@ -176,7 +173,13 @@
                         </div>
                     </div>
                     <div class="row">
-                        <span style="width: 100%;">显示地震监测网：</span>
+                        <span class="groupTitle">地震监测网设置</span>
+                        <div class="switchGroup">
+                            <div class="switch">
+                                <span>隐藏无数据测站</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.hideNoData"></el-switch>
+                            </div>
+                        </div>
                         <div class="switchGroup">
                             <div class="switch">
                                 <span>強震モニタ（震度）</span>
@@ -190,6 +193,15 @@
                                 type="number"
                                 style="width: 70px;"
                                 @input="setNiedDelay"></el-input>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <span class="groupTitle">其他</span>
+                        <div class="switchGroup">
+                            <div class="switch">
+                                <span>显示中国断层</span>
+                                <el-switch v-model="settingsStore.mainSettings.displayCnFault"></el-switch>
                             </div>
                         </div>
                     </div>
@@ -351,8 +363,16 @@ const clearViewLatLng = ()=>{
         type: 'success',
     })
 }
+const clearUserLatLng = ()=>{
+    settingsStore.mainSettings.userLatLng[0] = ''
+    settingsStore.mainSettings.userLatLng[1] = ''
+    ElMessage({
+        message: '清除完成',
+        type: 'success',
+    })
+}
 const setNiedDelay = (val)=>{
-    if(val > 10080) val = 10080
+    // if(val > 10080) val = 10080
     if(val < 0) val = 0
     settingsStore.mainSettings.displaySeisNet.niedDelay = val
 }
@@ -375,8 +395,8 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
-            <p>v2.0.0 pre17 新增：侧栏信息框支持点击跳转查看原始数据；优化：微调EEW震源图标样式；修复：代码逻辑导致的潜在bug。</p>
-            <p>v2.0.0 pre1-pre16 变更：升级Vue3版本，UI重排，WebSocket使用all_eew接口，使用新的中国和日本地图，暂时移除地震波倒计时功能；新增：同源多个EEW同时展示，适配假定震源，JMA紧急地震速报区域预想震度绘制，中国断层显示，NIED強震モニタ测站显示、震度检出功能，设置默认视野功能，鼠标悬浮提示区域名称，NIED测站回放功能。</p>
+            <p>v2.0.0 pre18 新增：隐藏无数据测站功能，自动更新NIED测站配置功能；优化：自动缩放逻辑，新增烈度配色，调整烈度配色映射；修复：部分情况下NIED测站数据更新异常的问题。</p>
+            <p>v2.0.0 pre1-pre17 变更：升级Vue3版本，UI重排，WebSocket使用all_eew接口，使用新的中国和日本地图，暂时移除地震波倒计时功能；新增：同源多个EEW同时展示，适配假定震源，JMA紧急地震速报区域预想震度绘制，中国断层显示，NIED強震モニタ测站显示、震度检出功能，设置默认视野功能，鼠标悬浮提示区域名称，NIED测站回放功能。</p>
             <p>v1.0.0-1.1.2 新增：地图功能、自动打开地图功能、JMA地震情报列表查看详细、设置用户所在地、IP定位、地震波抵达倒计时等功能；优化：增加自动对时。</p>
         </div>
         <div class="title">已知问题</div>
@@ -388,9 +408,15 @@ const handleAbout = ()=>{
         <div class="title">使用方法</div>
         <div class="about">
             <p>主要功能：接收日本气象厅、台湾省中央气象署、四川省地震局、福建省地震局地震预警信息，日本气象厅、中国地震台网地震信息，NIED強震モニタ测站数据。</p>
-            <p>通知推送：需授予通知权限。Chrome浏览器参考：<a href="https://tieba.baidu.com/p/7526026826" target="_blank">https://tieba.baidu.com/p/7526026826</a></p>
-            <p>播放声音：需开启声音权限。Chrome：点击网页链接左侧按钮-网站设置-声音-允许，重新加载页面。若无法授予权限参照上一条。</p>
-            <p>作为Chrome应用安装：Chrome打开此页面，右上角三点-保存并分享-将网页作为应用安装。安装一次后刷新页面即可加载最新版本网页，无需重新安装。</p>
+            <p>Windows Chrome/Edge推荐设置（以Chrome为例，Edge方法类似）：
+                <ul style="list-style-position: inside;">
+                    <li>保持后台刷新：浏览器访问chrome://flags - Calculate window occlusion on Windows - Disabled - 右下角重新启动</li>
+                    <li>去除网页“不安全”提示（同时解除网页权限设置限制，但浏览器启动时会收到横幅提示）：chrome://flags - Insecure origins treated as secure - 启用 - 输入本网页的链接 - 右下角重新启动</li>
+                    <li>作为网页应用安装：Chrome打开此页面，右上角三点 - 保存并分享 - 将网页作为应用安装。安装一次后刷新页面即可加载最新版本网页，无需重新安装。</li>
+                </ul>
+            </p>
+            <p>通知推送：需授予通知权限。Chrome：点击网页链接左侧按钮-网站设置-通知-允许，刷新页面。</p>
+            <p>播放声音：需开启声音权限。Chrome：点击网页链接左侧按钮-网站设置-声音-允许，刷新页面。</p>
         </div>
         <div class="title">注意事项</div>
         <div class="about">
@@ -412,7 +438,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        'wolfx-api-viewer v2.0.0 pre-17',
+        'wolfx-api-viewer v2.0.0 pre-18',
         {
             confirmButtonText: 'OK',
             showClose: false,
@@ -459,6 +485,10 @@ const handleAbout = ()=>{
                     flex-wrap: wrap;
                     align-items: center;
                     column-gap: 10px;
+                    .groupTitle{
+                        width: 100%;
+                        font-weight: 700;
+                    }
                     .switchGroup{
                         display: flex;
                         flex-wrap: wrap;

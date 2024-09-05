@@ -15,7 +15,7 @@ let colorBand = [
 let settingsStore
 class NiedStation {
     constructor(map, id, latLng, intensity){
-        settingsStore = useSettingsStore()
+        if(!settingsStore) settingsStore = useSettingsStore()
         this.map = map
         this.id = id
         this.latLng = latLng
@@ -94,7 +94,8 @@ class NiedStation {
     }
     setColorRadius(){
         if(this.level < 0 || this.level >= colorBand.length){
-            this.color = '#cfcfcf'
+            if(settingsStore.mainSettings.displaySeisNet.hideNoData) this.color = '#cfcfcf00'
+            else this.color = '#cfcfcf'
         }
         else{
             this.color = colorBand[this.level]

@@ -329,6 +329,126 @@ onMounted(()=>{
             }
             statusStore.setEqMessage(source, data)
         }, 6700);
+        setTimeout(() => {
+            const data = {
+                "Title": "緊急地震速報（警報）",
+                "CodeType": "Ｍ、最大予測震度及び主要動到達予測時刻の緊急地震速報",
+                "Issue": {
+                    "Source": "東京",
+                    "Status": "通常"
+                },
+                "EventID": "20240809195740",
+                "Serial": 15,
+                "AnnouncedTime": timeStr,
+                "OriginTime": timeStr,
+                "Hypocenter": "神奈川県西部",
+                "Latitude": 35.4,
+                "Longitude": 139.2,
+                "Magunitude": 5.2,
+                "Depth": 10,
+                "MaxIntensity": "4",
+                "Accuracy": {
+                    "Epicenter": "IPF 法（5 点以上）",
+                    "Depth": "IPF 法（5 点以上）",
+                    "Magnitude": "全点全相"
+                },
+                "MaxIntChange": {
+                    "String": "ほとんど変化なし",
+                    "Reason": "不明、未設定時、キャンセル時"
+                },
+                "WarnArea": [
+                    {
+                        "Chiiki": "神奈川県西部",
+                        "Shindo1": "4",
+                        "Shindo2": "4",
+                        "Time": "//////",
+                        "Type": "警報",
+                        "Arrive": "既に到達と予測"
+                    },
+                    {
+                        "Chiiki": "神奈川県東部",
+                        "Shindo1": "4",
+                        "Shindo2": "4",
+                        "Time": "//////",
+                        "Type": "警報",
+                        "Arrive": "既に到達と予測"
+                    },
+                    {
+                        "Chiiki": "静岡県東部",
+                        "Shindo1": "4",
+                        "Shindo2": "4",
+                        "Time": "//////",
+                        "Type": "警報",
+                        "Arrive": "既に到達と予測"
+                    },
+                    {
+                        "Chiiki": "山梨県東部・富士五湖",
+                        "Shindo1": "4",
+                        "Shindo2": "3",
+                        "Time": "//////",
+                        "Type": "警報",
+                        "Arrive": "既に到達と予測"
+                    },
+                    {
+                        "Chiiki": "東京都多摩東部",
+                        "Shindo1": "4",
+                        "Shindo2": "3",
+                        "Time": "//////",
+                        "Type": "警報",
+                        "Arrive": "既に到達と予測"
+                    },
+                    {
+                        "Chiiki": "東京都多摩西部",
+                        "Shindo1": "4",
+                        "Shindo2": "4",
+                        "Time": "195747",
+                        "Type": "警報",
+                        "Arrive": "主要動到達時刻の予測なし（PLUM 法による予測）"
+                    },
+                    {
+                        "Chiiki": "静岡県伊豆",
+                        "Shindo1": "4",
+                        "Shindo2": "4",
+                        "Time": "195746",
+                        "Type": "警報",
+                        "Arrive": "主要動到達時刻の予測なし（PLUM 法による予測）"
+                    },
+                    {
+                        "Chiiki": "埼玉県南部",
+                        "Shindo1": "4",
+                        "Shindo2": "4",
+                        "Time": "195750",
+                        "Type": "警報",
+                        "Arrive": "主要動到達時刻の予測なし（PLUM 法による予測）"
+                    },
+                    {
+                        "Chiiki": "東京都２３区",
+                        "Shindo1": "4",
+                        "Shindo2": "4",
+                        "Time": "195750",
+                        "Type": "警報",
+                        "Arrive": "主要動到達時刻の予測なし（PLUM 法による予測）"
+                    },
+                    {
+                        "Chiiki": "山梨県中・西部",
+                        "Shindo1": "4",
+                        "Shindo2": "4",
+                        "Time": "195752",
+                        "Type": "警報",
+                        "Arrive": "主要動到達時刻の予測なし（PLUM 法による予測）"
+                    }
+                ],
+                "isSea": false,
+                "isTraining": false,
+                "isAssumption": false,
+                "isWarn": true,
+                "isFinal": true,
+                "isCancel": false,
+                "OriginalText": "37 03 00 240809195827 C11 240809195738 ND20240809195740 NCN915 JD////////////// JN/// 361 N354 E1392 010 52 04 RK44559 RT01/// RC0//// EBI 361 S0404 ////// 11 360 S0404 ////// 11 441 S0404 ////// 11 412 S0403 ////// 11 351 S0403 ////// 11 352 S0404 195747 19 440 S0404 195746 19 331 S0404 195750 19 350 S0404 195750 19 411 S0404 195752 19 9999=",
+                "Pond": "15"
+            }
+            statusStore.setEqMessage(source, data)
+        }, 5000);
     }
 })
 </script>
