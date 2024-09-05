@@ -169,10 +169,6 @@ onMounted(()=>{
             }
         })
     }, 500);
-    delayInterval = setInterval(() => {
-        if(delay.value <= maxDelay * 2/3) delay.value -= 20
-        else delay.value -= 100
-    }, 10000);
 })
 let unwatchStationList, unwatchGrids, unwatchDisplayShindo, unwatchHideNoData
 watch(()=>statusStore.map, newVal=>{
@@ -311,7 +307,7 @@ watch(()=>settingsStore.mainSettings.displaySeisNet.niedDelay, newVal=>{
             else delay.value -= 100
         }, 10000);
     }
-})
+}, { immediate: true })
 onBeforeUnmount(()=>{
     clearInterval(requestInterval)
     clearInterval(delayInterval)
