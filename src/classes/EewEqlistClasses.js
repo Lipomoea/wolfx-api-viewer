@@ -290,6 +290,10 @@ class EqlistEvent {
                             playSound(chimeUrls[soundEffect].jishinzyouhou)
                             break
                         }
+                        case '顕著な震源要素更新のお知らせ':{
+                            playSound(chimeUrls[soundEffect].shingenzyouhou)
+                            break
+                        }
                         case '遠地地震に関する情報':{
                             playSound(chimeUrls[soundEffect].jishinzyouhou)
                             break

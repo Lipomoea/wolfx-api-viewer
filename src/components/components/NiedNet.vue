@@ -64,10 +64,15 @@ watch(activityStations, (newVal)=>{
     const clusters = unionFind.getAllSets()
     for(let setId in clusters){
         let activity = 0
-        clusters[setId].forEach(id=>{
-            activity += stations[id].activity
-        })
-        if(activity >= 12){
+        if(clusters[setId].length > 1){
+            const activities = clusters[setId].map(id=>stations[id].activity).sort((a, b)=>b - a)
+            activities.forEach(num=>{
+                activity += num
+            })
+            activity += (activities[0] + activities[1])
+            // if(activity >= 15) console.log(activities);
+        }
+        if(activity >= 20){
             clusters[setId].forEach(id=>{
                 stations[id].setActive()
             })

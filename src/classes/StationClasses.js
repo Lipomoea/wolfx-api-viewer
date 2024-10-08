@@ -53,17 +53,20 @@ class NiedStation {
         }
         this.activity = this.calcActivity(level, ascend)
         this.recentLevel.unshift(level)
-        if(this.recentLevel.length > 10) this.recentLevel.pop()
+        if(this.recentLevel.length > 15) this.recentLevel.pop()
     }
     calcActivity(level, ascend){
         let levelActivity, ascendActivity
-        if(level <= 6) levelActivity = 0
-        else if(level <= 10) levelActivity = 2 ** (level - 7)
-        else levelActivity = 4 * (level - 8)
+        if(level <= 7) levelActivity = 0
+        else if(level <= 8) levelActivity = 1
+        else if(level <= 9) levelActivity = 2
+        else if(level <= 10) levelActivity = 4
+        else if(level <= 11) levelActivity = 8
+        else levelActivity = 8 * (level - 10)
         if(ascend <= 1) ascendActivity = 0
         else if(ascend <= 2) ascendActivity = 1
         else if(ascend <= 6) ascendActivity = 2 * (ascend - 2)
-        else ascendActivity = 4 * (ascend - 4)
+        else ascendActivity = 6 * (ascend - 5)
         return Math.max(levelActivity, ascendActivity)
     }
     render(){

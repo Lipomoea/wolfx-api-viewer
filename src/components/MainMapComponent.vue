@@ -129,7 +129,6 @@ import 'leaflet/dist/leaflet.css';
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, toRaw, provide } from 'vue';
 import '@/assets/background.css'
 import { HomeFilled, FullScreen, WarnTriangleFilled, InfoFilled, Setting } from '@element-plus/icons-vue';
-import { useDataStore } from '@/stores/data';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { useTimeStore } from '@/stores/time';
@@ -138,8 +137,8 @@ import SeisNetComponent from './SeisNetComponent.vue';
 import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
 import { verifyUpToDate, setClassName, getClassLevel } from '@/utils/Utils';
+import { geojsonUrls } from '@/utils/Urls';
 
-const dataStore = useDataStore()
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 const timeStore = useTimeStore()
@@ -154,6 +153,9 @@ const viewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.map(val=>N
 const zoomLevel = computed(()=>settingsStore.mainSettings.defaultZoom)
 const menuId = ref('main')
 let autoZoomTimer
+let loadMapInterval, isLoaded = false, firstMsg = false
+let isEewBlink = true
+let blinkStatus = false
 const handleManual = ()=>{
     isAutoZoom.value = false
     clearTimeout(autoZoomTimer)
@@ -271,9 +273,6 @@ onMounted(()=>{
     eqlistMarkerPane.style.zIndex = 200
     map.setView([0, 0], 2)
     map.on('dragstart', handleManual)
-    unwatchEewBlink = watch(()=>timeStore.timeStamp, (newVal)=>{
-        eewMarkerPane.style.display = newVal % 1000 < 500?'block':'none'
-    })
     watch([isDisplayUser, userLatLng], ()=>{
         if(userMarker && map.hasLayer(userMarker)) map.removeLayer(userMarker)
         if(isDisplayUser.value){
@@ -286,59 +285,74 @@ onMounted(()=>{
             userMarker.addTo(map)
         }
     }, { immediate: true })
-    watch(()=>dataStore.geojson.global, (newVal)=>{
-        loadBaseMap(toRaw(newVal), 'globalBasePane')
+    loadMaps()
+    loadMapInterval = setInterval(() => {
+        if(isLoaded) clearInterval(loadMapInterval)
+        else loadMaps()
+    }, 2000);
+    watch(()=>settingsStore.mainSettings.displayCnFault, newVal=>{
+        cnFaultBasePane.style.display = newVal?'block':'none'
     }, { immediate: true })
-    watch(()=>dataStore.geojson.cn, (newVal)=>{
-        loadBaseMap(toRaw(newVal), 'cnBasePane')
-    }, { immediate: true })
-    watch(()=>dataStore.geojson.cn_fault, (newVal)=>{
-        loadBaseMap(toRaw(newVal), 'cnFaultBasePane', {
+    intervalEvents()
+    setInterval(() => {
+        blinkStatus = !blinkStatus
+        intervalEvents()
+    }, 500);
+})
+const loadMaps = async () => {
+    const cache = await caches.open('geojson')
+    const promises = Object.keys(geojsonUrls).map(key=>cache.match(geojsonUrls[key]).then(res=>res?.json()))
+    const resps = await Promise.all(promises)
+    const [global, cn, cn_eew, cn_fault, jp, jp_eew] = resps
+    if(global && cn && cn_eew && cn_fault && jp && jp_eew){
+        isLoaded = true
+        loadBaseMap(global, 'globalBasePane')
+        loadBaseMap(cn, 'cnBasePane')
+        loadBaseMap(cn_fault, 'cnFaultBasePane', {
             color: 'red',
             opacity: 0.5,
             fillColor: 'red',
             fillOpacity: 0,
             weight: 1,
         })
-    }, { immediate: true })
-    watch(()=>dataStore.geojson.jp, (newVal)=>{
-        loadBaseMap(toRaw(newVal), 'jpBasePane')
-    }, { immediate: true })
-    watch(()=>dataStore.geojson.jp_eew, (newVal)=>{
-        jpEewBaseMap = loadBaseMap(toRaw(newVal), 'jpEewBasePane', {
+        loadBaseMap(jp, 'jpBasePane')
+        jpEewBaseMap = loadBaseMap(jp_eew, 'jpEewBasePane', {
             opacity: 0,
             fillColor: '#55555500',
             fillOpacity: 1,
             weight: 0,
         })
-        if(jpEewBaseMap){
-            watch(jmaWarnArea, (newVal)=>{
-                const areas = Object.keys(newVal)
-                jpEewBaseMap.eachLayer(layer=>{
-                    const layerName = layer.feature.properties.name
-                    if(areas.includes(layerName)){
-                        layer.setStyle({
-                            fillColor: `var(--${newVal[layerName].className})`
-                        })
-                    }
-                    else{
-                        layer.setStyle({
-                            fillColor: '#55555500'
-                        })
-                    }
-                })
-            }, { deep: true, immediate: true })
-        }
-    }, { immediate: true })
-    watch(()=>settingsStore.mainSettings.displayCnFault, newVal=>{
-        cnFaultBasePane.style.display = newVal?'block':'none'
-    }, { immediate: true })
-    watch(()=>timeStore.timeStamp, (newVal)=>{
-        gridPane.style.display = (newVal % 1000 < 500) && !statusStore.isActive.jmaEew?'block':'none'
-        isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
-        wsStatusCode.value = statusStore.allEewSocketObj?statusStore.allEewSocketObj.socket.readyState:4
-    }, { immediate: true })
-})
+        watch(jmaWarnArea, (newVal)=>{
+            const areas = Object.keys(newVal)
+            jpEewBaseMap.eachLayer(layer=>{
+                const layerName = layer.feature.properties.name
+                if(areas.includes(layerName)){
+                    layer.setStyle({
+                        fillColor: `var(--${newVal[layerName].className})`
+                    })
+                }
+                else{
+                    layer.setStyle({
+                        fillColor: '#55555500'
+                    })
+                }
+            })
+        }, { deep: true, immediate: true })
+    }
+    else if(!firstMsg){
+        ElMessage({
+            message: '正在加载地图，请稍候…',
+            duration: 5000
+        })
+        firstMsg = true
+    }
+}
+const intervalEvents = ()=>{
+    gridPane.style.display = blinkStatus && !statusStore.isActive.jmaEew?'block':'none'
+    isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
+    wsStatusCode.value = statusStore.allEewSocketObj?statusStore.allEewSocketObj.socket.readyState:4
+    if(isEewBlink) eewMarkerPane.style.display = blinkStatus?'block':'none'
+}
 const setView = ()=>{
     const bounds = L.latLngBounds([])
     map.eachLayer(layer=>{
@@ -420,7 +434,7 @@ const resetMainTimer = ()=>{
 }
 watch(menuId, (newVal)=>{
     document.removeEventListener('mousemove', resetMainTimer)
-    if(unwatchEewBlink) unwatchEewBlink()
+    isEewBlink = false
     if(newVal == 'main'){
         clearTimeout(returnMainTimer)
     }
@@ -444,9 +458,7 @@ watch(menuId, (newVal)=>{
         jpEewBasePane.style.display = 'none'
     }
     else{
-        unwatchEewBlink = watch(()=>timeStore.timeStamp, (newVal)=>{
-            eewMarkerPane.style.display = newVal % 1000 < 500?'block':'none'
-        })
+        isEewBlink = true
         wavePane.style.display = 'block'
         waveFillPane.style.display = 'block'
         jpEewBasePane.style.display = 'block'

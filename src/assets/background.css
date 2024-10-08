@@ -6,7 +6,7 @@
     --green: #5fdf8f;
     --yellow: #ffef5f;
     --orange: #ff7f00;
-    --dark-orange: #df5f00;
+    --dark-orange: #ff4f00;
     --red: #df0f0f;
     --dark-red: #af0000;
     --purple: #7f007f;
@@ -75,13 +75,13 @@
     background-color: #df5f00;
 }
 .dark-orange{
-    background-color: #df5f00;
+    background-color: #ff4f00;
 }
 .dark-orange:hover{
-    background-color: #cf4f00;
+    background-color: #df3f00;
 }
 .dark-orange:active{
-    background-color: #bf3f00;
+    background-color: #bf2f00;
 }
 .red{
     background-color: #df0f0f;

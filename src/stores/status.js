@@ -209,20 +209,7 @@ export const useStatusStore = defineStore('statusStore', {
                             }
                             break
                         }
-                        case '震源・震度情報':{
-                            eqMessage.hypocenter = data.No1.location
-                            eqMessage.hypocenterText = '震源地: ' + data.No1.location
-                            eqMessage.lat = Number(data.No1.latitude)
-                            eqMessage.lng = Number(data.No1.longitude)
-                            eqMessage.depth = Number(data.No1.depth.replace('km', ''))
-                            eqMessage.depthText = '深さ: ' + (data.No1.depth == '0km'?'ごく浅い':data.No1.depth)
-                            eqMessage.magnitude = Number(data.No1.magnitude)
-                            eqMessage.magnitudeText = 'マグニチュード: ' + data.No1.magnitude
-                            eqMessage.maxIntensity = data.No1.shindo
-                            eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
-                            break
-                        }
-                        case '遠地地震に関する情報':{
+                        default:{
                             eqMessage.hypocenter = data.No1.location
                             eqMessage.hypocenterText = '震源地: ' + data.No1.location
                             eqMessage.lat = Number(data.No1.latitude)

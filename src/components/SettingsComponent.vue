@@ -227,6 +227,7 @@
                             <div class="switch">
                                 <span>输入指令</span>
                                 <el-input
+                                type="password"
                                 v-model="advancedInput"
                                 size="small"
                                 style="width: 300px;"
@@ -399,8 +400,8 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
-            <p>v2.0.0 pre18 新增：隐藏无数据测站功能，自动更新NIED测站配置功能；优化：自动缩放逻辑，细化烈度配色，调整烈度配色映射；修复：一些问题。</p>
-            <p>v2.0.0 pre1-pre17 变更：升级Vue3版本，UI重排，WebSocket使用all_eew接口，使用新的中国和日本地图，暂时移除地震波倒计时功能；新增：同源多个EEW同时展示，适配假定震源，JMA紧急地震速报区域预想震度绘制，中国断层显示，NIED強震モニタ测站显示、震度检出功能，设置默认视野功能，鼠标悬浮提示区域名称，NIED测站回放功能。</p>
+            <p>v2.0.0 pre19 变更：使用新的中国地图；新增：地图加载提示；优化：地图进行本地缓存，震度检出优化，震度配色优化。</p>
+            <p>v2.0.0 pre1-pre18 变更：升级Vue3版本，UI重排，WebSocket使用all_eew接口，使用新的中国和日本地图，暂时移除地震波倒计时功能；新增：同源多个EEW同时展示，适配假定震源，JMA紧急地震速报区域预想震度绘制，中国断层显示，NIED強震モニタ测站显示、震度检出功能，设置默认视野功能，鼠标悬浮提示区域名称，NIED测站回放功能。</p>
             <p>v1.0.0-1.1.2 新增：地图功能、自动打开地图功能、JMA地震情报列表查看详细、设置用户所在地、IP定位、地震波抵达倒计时等功能；优化：增加自动对时。</p>
         </div>
         <div class="title">已知问题</div>
@@ -442,7 +443,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        'wolfx-api-viewer v2.0.0 pre-18',
+        'wolfx-api-viewer v2.0.0 pre-19',
         {
             confirmButtonText: 'OK',
             showClose: false,
