@@ -301,7 +301,7 @@ onMounted(()=>{
 })
 const loadMaps = async () => {
     let promises
-    if(caches){
+    if('caches' in window){
         const cache = await caches.open('geojson')
         promises = Object.keys(geojsonUrls).map(key=>cache.match(geojsonUrls[key]).then(res=>res?.json()))
     }
