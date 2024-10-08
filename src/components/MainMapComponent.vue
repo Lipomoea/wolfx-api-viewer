@@ -300,8 +300,14 @@ onMounted(()=>{
     }, 500);
 })
 const loadMaps = async () => {
-    const cache = await caches.open('geojson')
-    const promises = Object.keys(geojsonUrls).map(key=>cache.match(geojsonUrls[key]).then(res=>res?.json()))
+    let promises
+    if(caches){
+        const cache = await caches.open('geojson')
+        promises = Object.keys(geojsonUrls).map(key=>cache.match(geojsonUrls[key]).then(res=>res?.json()))
+    }
+    else{
+        promises = Object.keys(geojsonUrls).map(key=>fetch(geojsonUrls[key]).then(res=>res?.json()))
+    }
     const resps = await Promise.all(promises)
     const [global, cn, cn_eew, cn_fault, jp, jp_eew] = resps
     if(global && cn && cn_eew && cn_fault && jp && jp_eew){

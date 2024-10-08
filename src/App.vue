@@ -20,12 +20,16 @@ const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 
 async function getGeojson(){
-  const promises = Object.keys(geojsonUrls).map(async name => {
-    const data = await Http.get(geojsonUrls[name])
-    const cache = await caches.open('geojson')
-    cache.put(geojsonUrls[name], new Response(JSON.stringify(data)))
-  })
-  await Promise.all(promises)
+  try{
+    const promises = Object.keys(geojsonUrls).map(async name => {
+      const data = await Http.get(geojsonUrls[name])
+      const cache = await caches.open('geojson')
+      cache.put(geojsonUrls[name], new Response(JSON.stringify(data)))
+    })
+    await Promise.all(promises)
+  } catch(err){
+    console.log(err);
+  }
 }
 
 onBeforeMount(() => {
