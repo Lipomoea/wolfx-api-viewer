@@ -153,9 +153,9 @@ const viewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.map(val=>N
 const zoomLevel = computed(()=>settingsStore.mainSettings.defaultZoom)
 const menuId = ref('main')
 let autoZoomTimer
-let loadMapInterval, isLoaded = false, firstMsg = false
+let firstMsg = false
 let isEewBlink = true
-let blinkStatus = false
+let blinkStatus = true
 const handleManual = ()=>{
     isAutoZoom.value = false
     clearTimeout(autoZoomTimer)
@@ -286,10 +286,6 @@ onMounted(()=>{
         }
     }, { immediate: true })
     loadMaps()
-    loadMapInterval = setInterval(() => {
-        if(isLoaded) clearInterval(loadMapInterval)
-        else loadMaps()
-    }, 2000);
     watch(()=>settingsStore.mainSettings.displayCnFault, newVal=>{
         cnFaultBasePane.style.display = newVal?'block':'none'
     }, { immediate: true })
@@ -300,6 +296,16 @@ onMounted(()=>{
     }, 500);
 })
 const loadMaps = async () => {
+    let msgTimer
+    if(!firstMsg){
+        msgTimer = setTimeout(() => {
+            ElMessage({
+                message: '正在加载地图，请稍候…',
+                duration: 5000
+            })
+            firstMsg = true
+        }, 1000);
+    }
     let promises
     if('caches' in window){
         const cache = await caches.open('geojson')
@@ -311,7 +317,7 @@ const loadMaps = async () => {
     const resps = await Promise.all(promises)
     const [global, cn, cn_eew, cn_fault, jp, jp_eew] = resps
     if(global && cn && cn_eew && cn_fault && jp && jp_eew){
-        isLoaded = true
+        clearTimeout(msgTimer)
         loadBaseMap(global, 'globalBasePane')
         loadBaseMap(cn, 'cnBasePane')
         loadBaseMap(cn_fault, 'cnFaultBasePane', {
@@ -345,12 +351,10 @@ const loadMaps = async () => {
             })
         }, { deep: true, immediate: true })
     }
-    else if(!firstMsg){
-        ElMessage({
-            message: '正在加载地图，请稍候…',
-            duration: 5000
-        })
-        firstMsg = true
+    else{
+        setTimeout(() => {
+            loadMaps()
+        }, 2000);
     }
 }
 const intervalEvents = ()=>{
