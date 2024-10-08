@@ -27,7 +27,7 @@ async function getGeojson(){
       cache.put(geojsonUrls[name], new Response(JSON.stringify(data)))
     })
     await Promise.all(promises)
-  } catch(err){
+  }catch(err){
     console.log(err);
   }
 }
