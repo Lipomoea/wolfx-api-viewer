@@ -73,7 +73,11 @@ watch(activityStations, (newVal)=>{
         }
         else{
             const id = clusters[setId][0]
-            if(adjacencyMatrix[id].every(f=>!f)){
+            let adjNum = 0
+            for(let i = 0; i < stations.length; i++){
+                if(adjacencyMatrix[id][i] && stations[i].level > -1) adjNum++
+            }
+            if(adjNum <= 2){
                 activity = 2 * stations[id].activity
             }
             else activity = stations[id].activity
