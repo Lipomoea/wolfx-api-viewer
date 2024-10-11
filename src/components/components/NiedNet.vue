@@ -70,7 +70,13 @@ watch(activityStations, (newVal)=>{
                 activity += num
             })
             activity += (activities[0] + activities[1])
-            // if(activity >= 15) console.log(activities);
+        }
+        else{
+            const id = clusters[setId][0]
+            if(adjacencyMatrix[id].every(f=>!f)){
+                activity = 2 * stations[id].activity
+            }
+            else activity = stations[id].activity
         }
         if(activity >= 20){
             clusters[setId].forEach(id=>{
