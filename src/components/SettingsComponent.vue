@@ -250,6 +250,20 @@
                 </div>
             </div>
         </div>
+        <el-dialog v-model="verifyIcl" width="300px" top="40vh" :show-close="false">
+            <el-form :model="iclForm">
+                <el-form-item label="用户名" label-width="60px">
+                    <el-input v-model="iclForm.username" @keyup.enter="verifyIclValidity"></el-input>
+                </el-form-item>
+                <el-form-item label="密码" label-width="60px">
+                    <el-input type="password" v-model="iclForm.password" @keyup.enter="verifyIclValidity"></el-input>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button type="default" @click="verifyIcl = false">取消</el-button>
+                <el-button type="primary" @click="verifyIclValidity">确定</el-button>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
@@ -258,7 +272,7 @@ import { useSettingsStore } from '@/stores/settings';
 import { useStatusStore } from '@/stores/status';
 import { utilUrls } from '@/utils/Urls';
 import Http from '@/utils/Http';
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 
 const settingsStore = useSettingsStore()
 const statusStore = useStatusStore()
@@ -382,6 +396,11 @@ const setNiedDelay = (val)=>{
     settingsStore.mainSettings.displaySeisNet.niedDelay = val
 }
 const advancedInput = ref('')
+const verifyIcl = ref(false)
+const iclForm = reactive({
+    username: '',
+    password: '',
+})
 const handleAdvance = (val)=>{
     switch(val){
         case 'displayNiedShindo': {
@@ -393,8 +412,44 @@ const handleAdvance = (val)=>{
             settingsStore.advancedSettings.displayNiedShindoSwitch = false
             break
         }
+        case 'enableIclEew': {
+            verifyIcl.value = true
+            break
+        }
+        case 'disableIclEew': {
+            settingsStore.advancedSettings.enableIclEew = false
+            ElMessage({
+                message: '功能已关闭，3秒后自动刷新网页',
+                type: 'success'
+            })
+            setTimeout(() => {
+                window.location.reload()
+            }, 3000);
+            break
+        }
     }
     advancedInput.value = ''
+}
+const verifyIclValidity = async ()=>{
+    const res = await Http.post('http://124.70.142.213:8766/icl_url', iclForm)
+    if(res){
+        settingsStore.advancedSettings.enableIclEew = true
+        localStorage.setItem('iclUrl', JSON.stringify(res.data))
+        verifyIcl.value = false
+        ElMessage({
+            message: '认证成功，3秒后自动刷新网页',
+            type: 'success'
+        })
+        setTimeout(() => {
+            window.location.reload()
+        }, 3000);
+    }
+    else{
+        ElMessage({
+            message: '认证失败',
+            type: 'error'
+        })
+    }
 }
 const handleAbout = ()=>{
     ElMessageBox.alert(
@@ -443,7 +498,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        'wolfx-api-viewer v2.0.0 pre-19',
+        'wolfx-api-viewer v2.0.0 pre-19.1',
         {
             confirmButtonText: 'OK',
             showClose: false,

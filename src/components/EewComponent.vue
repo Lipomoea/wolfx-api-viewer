@@ -14,8 +14,13 @@
 
 <script setup>
 import EqGrid from '@/components/components/EqGrid.vue';
+import { useSettingsStore } from '@/stores/settings';
+import { eqUrls } from '@/utils/Urls';
 
-const eewList = ['jmaEew', 'cwaEew', 'scEew', 'fjEew']
+const settingsStore = useSettingsStore()
+const enableIclEew = settingsStore.advancedSettings.enableIclEew
+if(enableIclEew) Object.assign(eqUrls, JSON.parse(localStorage.getItem('iclUrl')))
+const eewList = enableIclEew?['jmaEew', 'cwaEew', 'iclEew', 'scEew', 'fjEew']:['jmaEew', 'cwaEew', 'scEew', 'fjEew']
 </script>
 
 <style lang="scss" scoped>

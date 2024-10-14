@@ -41,6 +41,7 @@ export const useSettingsStore = defineStore('settingsStore', {
         advancedSettings: {
             displayNiedShindoSwitch: false,
             displayNiedShindo: false,
+            enableIclEew: false,
         }
     }),
     getters: {

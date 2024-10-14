@@ -40,9 +40,11 @@ export const useStatusStore = defineStore('statusStore', {
         map: null,
         httpRequest: null,
         allEewSocketObj: null,
+        iclEewSocketObj: null,
         eqMessage: {
             jmaEew: Object.assign({}, defaultEqMessage),
             cwaEew: Object.assign({}, defaultEqMessage),
+            iclEew: Object.assign({}, defaultEqMessage),
             scEew: Object.assign({}, defaultEqMessage),
             fjEew: Object.assign({}, defaultEqMessage),
             jmaEqlist: Object.assign({}, defaultEqMessage),
@@ -51,6 +53,7 @@ export const useStatusStore = defineStore('statusStore', {
         isActive: {
             jmaEew: false,
             cwaEew: false,
+            iclEew: false,
             scEew: false,
             fjEew: false,
             jmaEqlist: false,
@@ -123,6 +126,28 @@ export const useStatusStore = defineStore('statusStore', {
                     eqMessage.useShindo = true
                     eqMessage.maxIntensity = data.MaxIntensity
                     eqMessage.maxIntensityText = '預估最大震度: ' + data.MaxIntensity
+                    break
+                }
+                case 'iclEew':{
+                    eqMessage.id = data.eventId
+                    eqMessage.isEew = true
+                    eqMessage.reportNum = data.updates
+                    eqMessage.reportNumText = '第' + data.updates + '报'
+                    eqMessage.reportTime = new Date(data.updateAt + 8 * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19)
+                    eqMessage.isWarn = data.epiIntensity >= 6.5
+                    eqMessage.titleText = 'ICL地震预警'
+                    eqMessage.hypocenter = data.epicenter
+                    eqMessage.hypocenterText = '震源: ' + data.epicenter
+                    eqMessage.lat = data.latitude
+                    eqMessage.lng = data.longitude
+                    eqMessage.depth = data.depth
+                    eqMessage.depthText = '深度: ' + data.depth
+                    eqMessage.originTime = new Date(data.startAt + 8 * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19)
+                    eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
+                    eqMessage.magnitude = data.magnitude
+                    eqMessage.magnitudeText = '震级: ' + data.magnitude.toFixed(1)
+                    eqMessage.maxIntensity = data.epiIntensity.toFixed(0)
+                    eqMessage.maxIntensityText = '估计最大烈度: ' + data.epiIntensity.toFixed(0)
                     break
                 }
                 case 'scEew':{
@@ -253,8 +278,10 @@ export const useStatusStore = defineStore('statusStore', {
                 this.httpRequest = setInterval(async () => {
                     if(this.allEewSocketObj?.socket.readyState != 1){
                         const promises = Object.keys(this.eqMessage).map(async source=>{
-                            const data = await Http.get(eqUrls[source + '_http'] + `?t=${Date.now()}`)
-                            this.setEqMessage(source, data)
+                            if((source + '_http') in eqUrls){
+                                const data = await Http.get(eqUrls[source + '_http'] + `?t=${Date.now()}`)
+                                this.setEqMessage(source, data)
+                            }
                         })
                         await Promise.all(promises)
                     }
@@ -277,14 +304,23 @@ export const useStatusStore = defineStore('statusStore', {
                         this.setEqMessage(source, data)
                     }
                 })
+                if('iclEew_ws' in eqUrls){
+                    if(this.iclEewSocketObj) this.iclEewSocketObj.close()
+                    this.iclEewSocketObj = new WebSocketObj(eqUrls.iclEew_ws)
+                    this.iclEewSocketObj.setMessageHandler((e)=>{
+                        let data = JSON.parse(e)
+                        this.setEqMessage('iclEew', data)
+                    })
+                }
             }
             else{
-                throw new Error('Unrecognized protocol type.')
+                console.log('Unrecognized protocol type.')
             }
         },
         disconnect(){
             clearInterval(this.httpRequest)
             if(this.allEewSocketObj) this.allEewSocketObj.close()
+            if(this.iclEewSocketObj) this.iclEewSocketObj.close()
         },
         startUpdatingEqMessage(){
             this.connect('http')

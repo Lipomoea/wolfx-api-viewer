@@ -71,7 +71,8 @@
                     <div class="ws-status">
                         WebSocket状态: 
                         <div class="dot" :class="'s' + wsStatusCode"></div>
-                        {{ statusList[wsStatusCode] }}
+                        <div v-if="settingsStore.advancedSettings.enableIclEew" class="dot" :class="'s' + iclWsStatusCode"></div>
+                        {{ settingsStore.advancedSettings.enableIclEew?'':statusList[wsStatusCode] }}
                     </div>
                     <div class="nied-update-time" :class="isNiedDelayed?'delayed':''" v-if="settingsStore.mainSettings.displaySeisNet.nied">
                         強震モニタ: {{ niedUpdateTime }} (UTC+9)
@@ -131,7 +132,6 @@ import '@/assets/background.css'
 import { HomeFilled, FullScreen, WarnTriangleFilled, InfoFilled, Setting } from '@element-plus/icons-vue';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
-import { useTimeStore } from '@/stores/time';
 import EewComponent from './EewComponent.vue';
 import SeisNetComponent from './SeisNetComponent.vue';
 import EqlistComponent from './EqlistComponent.vue';
@@ -141,7 +141,6 @@ import { geojsonUrls } from '@/utils/Urls';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
-const timeStore = useTimeStore()
 let map, jpEewBaseMap
 let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, gridPane, cnFaultBasePane, jpEewBasePane
 const isValidUserLatLng = computed(()=>settingsStore.mainSettings.userLatLng.every(item=>item !== ''))
@@ -177,6 +176,7 @@ const handleMenu = (index)=>{
 provide('handleMenu', handleMenu)
 provide('handleHome', handleHome)
 const wsStatusCode = ref(4)
+const iclWsStatusCode = ref(4)
 const statusList = ['正在连接', '已连接', '正在断开', '已断开', '未连接', '不使用']
 const niedUpdateTime = ref('')
 const niedMaxShindo = ref('?')
@@ -361,6 +361,7 @@ const intervalEvents = ()=>{
     gridPane.style.display = blinkStatus && !statusStore.isActive.jmaEew?'block':'none'
     isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
     wsStatusCode.value = statusStore.allEewSocketObj?statusStore.allEewSocketObj.socket.readyState:4
+    iclWsStatusCode.value = statusStore.iclEewSocketObj?statusStore.iclEewSocketObj.socket.readyState:4
     if(isEewBlink) eewMarkerPane.style.display = blinkStatus?'block':'none'
 }
 const setView = ()=>{
