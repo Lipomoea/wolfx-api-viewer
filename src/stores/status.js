@@ -276,15 +276,14 @@ export const useStatusStore = defineStore('statusStore', {
             if(protocol == 'http'){
                 clearInterval(this.httpRequest)
                 this.httpRequest = setInterval(async () => {
-                    if(this.allEewSocketObj?.socket.readyState != 1){
-                        const promises = Object.keys(this.eqMessage).map(async source=>{
-                            if((source + '_http') in eqUrls){
-                                const data = await Http.get(eqUrls[source + '_http'] + `?t=${Date.now()}`)
-                                this.setEqMessage(source, data)
-                            }
-                        })
-                        await Promise.all(promises)
-                    }
+                    const promises = Object.keys(this.eqMessage).map(async source=>{
+                        if((source != 'iclEew' && this.allEewSocketObj?.socket.readyState != 1) || 
+                           ('iclEew_http' in eqUrls && source == 'iclEew' && this.iclEewSocketObj?.socket.readyState != 1)){
+                            const data = await Http.get(eqUrls[source + '_http'] + `?t=${Date.now()}`)
+                            this.setEqMessage(source, data)
+                        }
+                    })
+                    await Promise.all(promises)
                 }, 1000);
             }
             else if(protocol == 'ws'){
