@@ -1,4 +1,4 @@
-import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendNotification, getClassLevel } from '@/utils/Utils';
+import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendMyNotification, getClassLevel, focusWindow } from '@/utils/Utils';
 import travelTimes from '@/utils/TravelTimes';
 import { iconUrls, chimeUrls } from '@/utils/Urls';
 import L from 'leaflet';
@@ -49,6 +49,7 @@ class EewEvent {
             firstSound: false,
             cautionSound: false,
             warnSound: false,
+            focused: false,
         }
         this.update(eqMessage, time)
     }
@@ -192,6 +193,11 @@ class EewEvent {
                     }
                 }
             }
+            //弹窗
+            if(settingsStore.mainSettings.onEew.focus || settingsStore.mainSettings.onEewWarn.focus){
+                focusWindow()
+                this.flags.focused = true
+            }
         }
         //不是Warn
         else{
@@ -218,9 +224,14 @@ class EewEvent {
                     }
                 }
             }
+            //弹窗
+            if(settingsStore.mainSettings.onEew.focus){
+                focusWindow()
+                this.flags.focused = true
+            }
         }
         if(icon){
-            sendNotification(`${eqMessage.titleText} #${eqMessage.reportNum}`, 
+            sendMyNotification(`${eqMessage.titleText} #${eqMessage.reportNum}`, 
                 `${eqMessage.hypocenterText}\n${eqMessage.depthText}\n${eqMessage.magnitudeText}\n${eqMessage.maxIntensityText}`, 
                 icon, 
                 settingsStore.mainSettings.muteNotification)
@@ -312,8 +323,9 @@ class EqlistEvent {
                 }
             }
         }
+        if(settingsStore.mainSettings.onReport.focus) focusWindow()
         if(icon){
-            sendNotification(`${eqMessage.titleText}`, 
+            sendMyNotification(`${eqMessage.titleText}`, 
                 `${eqMessage.hypocenterText}\n${eqMessage.depthText}\n${eqMessage.magnitudeText}\n${eqMessage.maxIntensityText}`, 
                 icon, 
                 settingsStore.mainSettings.muteNotification)

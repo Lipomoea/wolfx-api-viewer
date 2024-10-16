@@ -8,7 +8,7 @@
                     <div class="row">
                         <span style="width: 100%;">收到地震预警（警报）时：</span>
                         <div class="switchGroup">
-                            <div class="switch">
+                            <div class="switch" v-if="showNotifButton">
                                 <span>发送通知</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEewWarn.notification" :disabled="settingsStore.mainSettings.onEew.notification"></el-switch>
                             </div>
@@ -16,16 +16,16 @@
                                 <span>播放声音</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEewWarn.sound" :disabled="settingsStore.mainSettings.onEew.sound"></el-switch>
                             </div>
-                            <!-- <div class="switch">
-                                <span>弹出界面</span>
+                            <div class="switch" v-if="showFocusButton">
+                                <span>弹出窗口</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEewWarn.focus" :disabled="settingsStore.mainSettings.onEew.focus"></el-switch>
-                            </div> -->
+                            </div>
                         </div>
                     </div>
                     <div class="row">
                         <span style="width: 100%;">收到地震预警（全部）时：</span>
                         <div class="switchGroup">
-                            <div class="switch">
+                            <div class="switch" v-if="showNotifButton">
                                 <span>发送通知</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEew.notification"></el-switch>
                             </div>
@@ -33,16 +33,16 @@
                                 <span>播放声音</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEew.sound"></el-switch>
                             </div>
-                            <!-- <div class="switch">
-                                <span>弹出界面</span>
+                            <div class="switch" v-if="showFocusButton">
+                                <span>弹出窗口</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEew.focus"></el-switch>
-                            </div> -->
+                            </div>
                         </div>
                     </div>
                     <div class="row">
                         <span style="width: 100%;">收到地震信息时：</span>
                         <div class="switchGroup">
-                            <div class="switch">
+                            <div class="switch" v-if="showNotifButton">
                                 <span>发送通知</span>
                                 <el-switch v-model="settingsStore.mainSettings.onReport.notification"></el-switch>
                             </div>
@@ -50,16 +50,16 @@
                                 <span>播放声音</span>
                                 <el-switch v-model="settingsStore.mainSettings.onReport.sound"></el-switch>
                             </div>
-                            <!-- <div class="switch">
-                                <span>弹出界面</span>
+                            <div class="switch" v-if="showFocusButton">
+                                <span>弹出窗口</span>
                                 <el-switch v-model="settingsStore.mainSettings.onReport.focus"></el-switch>
-                            </div> -->
+                            </div>
                         </div>
                     </div>
                     <div class="row">
                         <span style="width: 100%;">地震监测网检测到摇晃时：</span>
                         <div class="switchGroup">
-                            <div class="switch">
+                            <div class="switch" v-if="showNotifButton">
                                 <span>发送通知</span>
                                 <el-switch v-model="settingsStore.mainSettings.onShake.notification"></el-switch>
                             </div>
@@ -67,10 +67,10 @@
                                 <span>播放声音</span>
                                 <el-switch v-model="settingsStore.mainSettings.onShake.sound"></el-switch>
                             </div>
-                            <!-- <div class="switch">
-                                <span>弹出界面</span>
+                            <div class="switch" v-if="showFocusButton">
+                                <span>弹出窗口</span>
                                 <el-switch v-model="settingsStore.mainSettings.onShake.focus"></el-switch>
-                            </div> -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -274,6 +274,9 @@ import { utilUrls } from '@/utils/Urls';
 import Http from '@/utils/Http';
 import { ref, reactive } from 'vue'
 
+const showNotifButton = 'Notification' in window
+const showFocusButton = !!window.__TAURI_INTERNALS__
+
 const settingsStore = useSettingsStore()
 const statusStore = useStatusStore()
 const setLat = (type)=>(val)=>{
@@ -455,8 +458,8 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
-            <p>v2.0.0 pre19 变更：使用新的中国地图；新增：地图加载提示；优化：地图进行本地缓存（仅部分浏览器支持），震度检出优化，震度配色优化。</p>
-            <p>v2.0.0 pre1-pre18 变更：升级Vue3版本，UI重排，WebSocket使用all_eew接口，使用新的中国和日本地图，暂时移除地震波倒计时功能；新增：同源多个EEW同时展示，适配假定震源，JMA紧急地震速报区域预想震度绘制，中国断层显示，NIED強震モニタ测站显示、震度检出功能，设置默认视野功能，鼠标悬浮提示区域名称，NIED测站回放功能。</p>
+            <p>v2.0.0 pre20 新增：首次推出Windows桌面版应用，新增桌面应用弹窗功能；优化：对于浏览器无法使用的功能进行隐藏。</p>
+            <p>v2.0.0 pre1-pre19 变更：升级Vue3版本，UI重排，WebSocket使用all_eew接口，使用新的中国和日本地图，暂时移除地震波倒计时功能；新增：同源多个EEW同时展示，适配假定震源，JMA紧急地震速报区域预想震度绘制，中国断层显示，NIED強震モニタ测站显示、震度检出功能，设置默认视野功能，鼠标悬浮提示区域名称，NIED测站回放功能。</p>
             <p>v1.0.0-1.1.2 新增：地图功能、自动打开地图功能、JMA地震情报列表查看详细、设置用户所在地、IP定位、地震波抵达倒计时等功能；优化：增加自动对时。</p>
         </div>
         <div class="title">已知问题</div>
@@ -498,7 +501,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        'wolfx-api-viewer v2.0.0 pre-19.1',
+        'wolfx-api-viewer v2.0.0 pre-20',
         {
             confirmButtonText: 'OK',
             showClose: false,

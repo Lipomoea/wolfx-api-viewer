@@ -45,12 +45,7 @@ export const useSettingsStore = defineStore('settingsStore', {
         }
     }),
     getters: {
-        requestNotification: (state)=>(
-            state.mainSettings.onEew.notification || 
-            state.mainSettings.onEewWarn.notification || 
-            state.mainSettings.onReport.notification ||
-            state.mainSettings.onShake.notification
-        ),
+        
     },
     actions: {
         setMainSettings(jsonString){

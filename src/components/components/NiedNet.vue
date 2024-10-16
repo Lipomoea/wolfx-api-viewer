@@ -11,7 +11,7 @@ import axios from 'axios';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { seisNetUrls, chimeUrls, iconUrls } from '@/utils/Urls';
-import { getTimeNumberString, getShindoFromChar, playSound, sendNotification, calcTimeDiff } from '@/utils/Utils';
+import { getTimeNumberString, getShindoFromChar, playSound, sendMyNotification, calcTimeDiff, focusWindow } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { NiedStation } from '@/classes/StationClasses';
@@ -262,6 +262,7 @@ watch(()=>(statusStore.isActive.jmaEew || statusStore.isActive.niedNet), newVal=
 })
 let shake1Notified = false, shake2Notified = false
 let sound0 = false, sound5 = false, sound6 = false
+let focused = false
 watch(periodMaxShindo, (newVal, oldVal)=>{
     if(newVal > oldVal){
         if(settingsStore.mainSettings.onShake.sound){
@@ -286,19 +287,25 @@ watch(periodMaxShindo, (newVal, oldVal)=>{
         }
         if(settingsStore.mainSettings.onShake.notification){
             if(newVal >= 1 && newVal <= 3 && !shake1Notified){
-                sendNotification('揺れを検出', 
+                sendMyNotification('揺れを検出', 
                     '揺れに注意してください。', 
                     iconUrls.caution, 
                     settingsStore.mainSettings.muteNotification)
                 shake1Notified = true
             }
             else if(newVal >= 4 && !shake2Notified){
-                sendNotification('強い揺れを検出', 
+                sendMyNotification('強い揺れを検出', 
                     '強い揺れに警戒してください。', 
                     iconUrls.warn, 
                     settingsStore.mainSettings.muteNotification)
                 shake1Notified = true
                 shake2Notified = true
+            }
+        }
+        if(settingsStore.mainSettings.onShake.focus){
+            if(newVal >= 1){
+                focusWindow()
+                focused = true
             }
         }
     }
@@ -308,6 +315,7 @@ watch(periodMaxShindo, (newVal, oldVal)=>{
         sound0 = false
         sound5 = false
         sound6 = false
+        focused = false
     }
 })
 watch(()=>settingsStore.mainSettings.displaySeisNet.niedDelay, newVal=>{

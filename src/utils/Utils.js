@@ -1,4 +1,5 @@
 import { useTimeStore } from "@/stores/time"
+import { getCurrentWindow } from '@tauri-apps/api/window';
 
 const formatNumber = (value, digit)=>{
     if(value){
@@ -60,8 +61,8 @@ const calcTimeDiff = (time1, timeZone1, time2, timeZone2)=>{
     let stamp2 = timeToStamp(time2, timeZone2)
     return stamp1 - stamp2
 }
-const sendNotification = (title, body, icon, silent)=>{
-    try{
+const sendMyNotification = (title, body, icon, silent)=>{
+    if('Notification' in window){
         if(Notification.permission == 'granted'){
             const notification = new Notification(title, {
                 body,
@@ -72,8 +73,6 @@ const sendNotification = (title, body, icon, silent)=>{
                 window.focus()
             }
         }
-    }catch(err){
-        console.log(err);
     }
 }
 const setClassName = (intensity, useShindo, isCanceled = false)=>{
@@ -193,5 +192,11 @@ const judgeSameEvent = (eqMessage1, eqMessage2)=>{
     if(eqMessage1.source == eqMessage2.source && eqMessage1.id == eqMessage2.id) return true
     else return false
 }
+const focusWindow = async ()=>{
+    if(window.__TAURI_INTERNALS__){
+        await getCurrentWindow().unminimize()
+        await getCurrentWindow().setFocus()
+    }
+}
 
-export { formatNumber, formatText, msToTime, timeToStamp, calcPassedTime, verifyUpToDate, calcTimeDiff, sendNotification, setClassName, getClassLevel, playSound, calcWaveDistance, calcReachTime, extractNumbers, getTimeNumberString, getShindoFromChar, judgeSameEvent }
+export { formatNumber, formatText, msToTime, timeToStamp, calcPassedTime, verifyUpToDate, calcTimeDiff, sendMyNotification, setClassName, getClassLevel, playSound, calcWaveDistance, calcReachTime, extractNumbers, getTimeNumberString, getShindoFromChar, judgeSameEvent, focusWindow }

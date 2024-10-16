@@ -37,12 +37,10 @@ onBeforeMount(() => {
   timeStore.startUpdatingTime()
   statusStore.startUpdatingEqMessage()
   getGeojson()
-  try {
-    if (Notification.permission !== 'granted' && settingsStore.requestNotification) {
+  if('Notification' in window){
+    if (Notification.permission !== 'granted') {
       Notification.requestPermission()
     }
-  } catch (err) {
-    console.log(err);
   }
 })
 onBeforeUnmount(() => {

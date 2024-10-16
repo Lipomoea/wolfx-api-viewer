@@ -307,7 +307,7 @@ export const useStatusStore = defineStore('statusStore', {
                     if(this.iclEewSocketObj) this.iclEewSocketObj.close()
                     this.iclEewSocketObj = new WebSocketObj(eqUrls.iclEew_ws)
                     this.iclEewSocketObj.setMessageHandler((e)=>{
-                        let data = JSON.parse(e)
+                        let data = JSON.parse(e.data)
                         this.setEqMessage('iclEew', data)
                     })
                 }

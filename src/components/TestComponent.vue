@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted } from 'vue';
 import { useStatusStore } from '@/stores/status';
 
 const statusStore = useStatusStore()
