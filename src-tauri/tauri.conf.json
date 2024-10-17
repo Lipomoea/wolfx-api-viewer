@@ -12,9 +12,12 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "wolfx-api-viewer",
         "width": 1280,
         "height": 720,
+        "minWidth": 960,
+        "minHeight": 540,
         "resizable": true,
         "fullscreen": false
       }

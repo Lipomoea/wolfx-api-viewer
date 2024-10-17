@@ -458,8 +458,8 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
-            <p>v2.0.0 pre20 新增：首次推出Windows桌面版应用，新增桌面应用弹窗功能；优化：对于浏览器无法使用的功能进行隐藏。</p>
-            <p>v2.0.0 pre1-pre19 变更：升级Vue3版本，UI重排，WebSocket使用all_eew接口，使用新的中国和日本地图，暂时移除地震波倒计时功能；新增：同源多个EEW同时展示，适配假定震源，JMA紧急地震速报区域预想震度绘制，中国断层显示，NIED強震モニタ测站显示、震度检出功能，设置默认视野功能，鼠标悬浮提示区域名称，NIED测站回放功能。</p>
+            <p>v2.0.0-pre.20 新增：首次推出Windows桌面版应用，新增桌面应用弹窗功能；优化：对于浏览器无法使用的功能进行隐藏。</p>
+            <p>v2.0.0-(pre.1-pre.19) 变更：升级Vue3版本，UI重排，WebSocket使用all_eew接口，使用新的中国和日本地图，暂时移除地震波倒计时功能；新增：同源多个EEW同时展示，适配假定震源，JMA紧急地震速报区域预想震度绘制，中国断层显示，NIED強震モニタ测站显示、震度检出功能，设置默认视野功能，鼠标悬浮提示区域名称，NIED测站回放功能。</p>
             <p>v1.0.0-1.1.2 新增：地图功能、自动打开地图功能、JMA地震情报列表查看详细、设置用户所在地、IP定位、地震波抵达倒计时等功能；优化：增加自动对时。</p>
         </div>
         <div class="title">已知问题</div>
@@ -491,9 +491,9 @@ const handleAbout = ()=>{
         </div>
         <div class="title">关于</div>
         <div class="about">
-            <p><a href="http://124.70.142.213:8080/">稳定版</a> <a href="http://124.70.142.213:8081/">尝鲜版</a></p>
+            <p>Windows 10及以上用户推荐使用应用程序：<a href="https://github.com/Lipomoea/wolfx-api-viewer/releases" target="_blank">Windows应用程序下载</a></p>
             <p>本页面基于Wolfx Open API (<a href="https://api.wolfx.jp" target="_blank">api.wolfx.jp</a>) 开发，不属于Wolfx官方。</p>
-            <p>本页面未针对移动端进行适配，建议使用电脑端浏览器访问本网页。</p>
+            <p>本页面未针对移动端进行适配，建议使用Windows应用程序或电脑浏览器访问本网页。</p>
             <p>联系我：<a href="https://space.bilibili.com/316757498" target="_blank">リッポミャ</a>（哔哩哔哩）</p>
             <p>Github: <a href="https://github.com/Lipomoea/wolfx-api-viewer" target="_blank">https://github.com/Lipomoea/wolfx-api-viewer</a></p>
             <p>特别鸣谢：
@@ -501,7 +501,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        'wolfx-api-viewer v2.0.0 pre-20',
+        'wolfx-api-viewer v2.0.0-pre.20.1',
         {
             confirmButtonText: 'OK',
             showClose: false,

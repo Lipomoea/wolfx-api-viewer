@@ -16,6 +16,9 @@
     "window-state:allow-save-window-state",
     "window-state:allow-restore-state",
     "core:window:allow-set-focus",
-    "core:window:allow-unminimize"
+    "core:window:allow-unminimize",
+    "core:window:allow-show",
+    "core:tray:default",
+    "core:app:allow-default-window-icon"
   ]
 }

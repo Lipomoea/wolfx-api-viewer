@@ -731,7 +731,7 @@ onBeforeUnmount(()=>{
                 position: absolute;
                 right: 1px;
                 bottom: 1px;
-                z-index: 500;
+                z-index: 600;
                 border-radius: 10px;
                 overflow: hidden;
                 width: 20px;
@@ -740,7 +740,7 @@ onBeforeUnmount(()=>{
                 position: absolute;
                 right: 1px;
                 top: 1px;
-                z-index: 500;
+                z-index: 600;
                 border-radius: 10px;
                 overflow: hidden;
             }
@@ -749,6 +749,8 @@ onBeforeUnmount(()=>{
             height: 100%;
             width: 450px;
             overflow: auto;
+            z-index: 600;
+            background-color: #fff;
         }
     }
 }
