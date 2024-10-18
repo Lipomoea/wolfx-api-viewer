@@ -1,7 +1,8 @@
 # wolfx-api-viewer
 wolfx-api-viewer是一个基于[Wolfx Open API](https://wolfx.jp/apidoc)以及其他API制作的地震预警和地震信息可视化Web应用，基于Vite+Vue3+Leaflet开发。  
 现已提供基于Tauri构建的Windows应用程序，推荐Windows 10及以上系统使用。  
-* [Web应用链接](http://124.70.142.213:8081/) * [Windows应用程序下载](https://github.com/Lipomoea/wolfx-api-viewer/releases)
+* [Web应用链接](http://124.70.142.213:8081/) 
+* [Windows应用程序下载](https://github.com/Lipomoea/wolfx-api-viewer/releases)
 ## 主要功能  
 * 接收日本气象厅、台湾省中央气象署、四川省地震局、福建省地震局地震预警信息。
 * 接收日本气象厅、中国地震台网地震信息。
