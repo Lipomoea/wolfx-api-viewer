@@ -303,7 +303,7 @@ watch(periodMaxShindo, (newVal, oldVal)=>{
             }
         }
         if(settingsStore.mainSettings.onShake.focus){
-            if(newVal >= 1){
+            if(newVal >= 1 && !focused){
                 focusWindow()
                 focused = true
             }

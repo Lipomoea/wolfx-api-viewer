@@ -195,8 +195,10 @@ class EewEvent {
             }
             //弹窗
             if(settingsStore.mainSettings.onEew.focus || settingsStore.mainSettings.onEewWarn.focus){
-                focusWindow()
-                this.flags.focused = true
+                if(!this.flags.focused){
+                    focusWindow()
+                    this.flags.focused = true
+                }
             }
         }
         //不是Warn
@@ -226,8 +228,10 @@ class EewEvent {
             }
             //弹窗
             if(settingsStore.mainSettings.onEew.focus){
-                focusWindow()
-                this.flags.focused = true
+                if(!this.flags.focused){
+                    focusWindow()
+                    this.flags.focused = true
+                }
             }
         }
         if(icon){
