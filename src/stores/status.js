@@ -141,13 +141,13 @@ export const useStatusStore = defineStore('statusStore', {
                     eqMessage.lat = data.latitude
                     eqMessage.lng = data.longitude
                     eqMessage.depth = data.depth
-                    eqMessage.depthText = '深度: ' + data.depth + 'km'
+                    eqMessage.depthText = '深度: ' + data.depth.toFixed(1) + 'km'
                     eqMessage.originTime = new Date(data.startAt + 8 * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19)
                     eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
                     eqMessage.magnitude = data.magnitude
                     eqMessage.magnitudeText = '震级: ' + data.magnitude.toFixed(1)
-                    eqMessage.maxIntensity = data.epiIntensity.toFixed(0)
-                    eqMessage.maxIntensityText = '估计最大烈度: ' + data.epiIntensity.toFixed(0)
+                    eqMessage.maxIntensity = data.epiIntensity?data.epiIntensity.toFixed(0):'不明'
+                    eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                     break
                 }
                 case 'scEew':{
