@@ -361,7 +361,7 @@ const intervalEvents = ()=>{
     gridPane.style.display = blinkStatus && !statusStore.isActive.jmaEew?'block':'none'
     isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
     wsStatusCode.value = statusStore.allEewSocketObj?statusStore.allEewSocketObj.socket.readyState:4
-    iclWsStatusCode.value = statusStore.iclEewSocketObj?statusStore.iclEewSocketObj.socket.readyState:4
+    // iclWsStatusCode.value = statusStore.iclEewSocketObj?statusStore.iclEewSocketObj.socket.readyState:4
     if(isEewBlink) eewMarkerPane.style.display = blinkStatus?'block':'none'
 }
 const setView = ()=>{
