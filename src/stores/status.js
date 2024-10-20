@@ -303,14 +303,14 @@ export const useStatusStore = defineStore('statusStore', {
                         this.setEqMessage(source, data)
                     }
                 })
-                if('iclEew_ws' in eqUrls){
-                    if(this.iclEewSocketObj) this.iclEewSocketObj.close()
-                    this.iclEewSocketObj = new WebSocketObj(eqUrls.iclEew_ws)
-                    this.iclEewSocketObj.setMessageHandler((e)=>{
-                        let data = JSON.parse(e.data)
-                        this.setEqMessage('iclEew', data)
-                    })
-                }
+                // if('iclEew_ws' in eqUrls){
+                //     if(this.iclEewSocketObj) this.iclEewSocketObj.close()
+                //     this.iclEewSocketObj = new WebSocketObj(eqUrls.iclEew_ws)
+                //     this.iclEewSocketObj.setMessageHandler((e)=>{
+                //         let data = JSON.parse(e.data)
+                //         this.setEqMessage('iclEew', data)
+                //     })
+                // }
             }
             else{
                 console.log('Unrecognized protocol type.')

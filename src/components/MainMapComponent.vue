@@ -176,7 +176,7 @@ const handleMenu = (index)=>{
 provide('handleMenu', handleMenu)
 provide('handleHome', handleHome)
 const wsStatusCode = ref(4)
-const iclWsStatusCode = ref(4)
+const iclWsStatusCode = ref(5)
 const statusList = ['正在连接', '已连接', '正在断开', '已断开', '未连接', '不使用']
 const niedUpdateTime = ref('')
 const niedMaxShindo = ref('?')
