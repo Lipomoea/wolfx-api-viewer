@@ -41,10 +41,17 @@ const circleDivIcon = L.divIcon({
 class EewEvent {
     constructor(map, eqMessage, activeEewList, time){
         this.map = map
+        this.settingsStore = useSettingsStore()
         this.eqMessage = eqMessage
         this.activeEewList = activeEewList
         this.useJst = eqMessage.source.includes('jma')
+        this.travelTime = travelTimes.jma2001
         this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
+        this.userLatLng = this.settingsStore.mainSettings.userLatLng.map(l=>Number(l))
+        this.isValidUserLatLng = this.settingsStore.mainSettings.userLatLng.every(l=>l !== '')
+        this.userDist = L.latLng(this.hypoLatLng).distanceTo(L.latLng(this.userLatLng)) / 1000
+        this.reachTime = calcReachTime(this.travelTime, false, this.eqMessage.depth, this.userDist)
+        this.countdown = -1
         this.flags = {
             firstSound: false,
             cautionSound: false,
@@ -55,27 +62,26 @@ class EewEvent {
     }
     setMark(){
         if(this.hypoMarker && this.map.hasLayer(this.hypoMarker)) this.map.removeLayer(this.hypoMarker)
-        this.hypoMarker = L.marker(this.hypoLatLng, {icon: this.eqMessage.isAssumption?circleDivIcon:eewCrossDivIcon, pane: 'eewMarkerPane'})
+        this.hypoMarker = L.marker(this.hypoLatLng, {icon: this.eqMessage.isAssumption?circleDivIcon:eewCrossDivIcon, pane: 'eewMarkerPane', interactive: false})
         this.hypoMarker.addTo(this.map)
     }
     drawWaves(){
         if(!this.eqMessage.isAssumption){
-            let passedTime, travelTime
+            let passedTime
             if(this.useJst){
                 passedTime = calcPassedTime(this.eqMessage.originTime, 9) / 1000
-                travelTime = travelTimes.jma2001
             }
             else{
                 passedTime = calcPassedTime(this.eqMessage.originTime, 8) / 1000
-                travelTime = travelTimes.jma2001
             }
-            this.switchDrawWaves(passedTime, travelTime)
+            this.switchDrawWaves(passedTime, this.travelTime)
         }
         else{
             clearInterval(this.drawWavesInterval)
             if(this.pWave && this.map.hasLayer(this.pWave)) this.map.removeLayer(this.pWave)
             if(this.sWave && this.map.hasLayer(this.sWave)) this.map.removeLayer(this.sWave)
-            if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) this.map.removeLayer(this.sWaveFill)    
+            if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) this.map.removeLayer(this.sWaveFill)
+            this.countdown = -1
         }
     }
     switchDrawWaves(passedTime, travelTime){
@@ -97,6 +103,7 @@ class EewEvent {
                 fillOpacity: 0,
                 radius: p_radius * 1000,
                 pane: 'wavePane',
+                interactive: false
             })
             this.pWave.addTo(this.map)
             L.DomUtil.addClass(this.pWave.getElement(), 'wave')
@@ -112,6 +119,7 @@ class EewEvent {
                 fillOpacity: 0,
                 radius: s_radius * 1000,
                 pane: 'wavePane',
+                interactive: false
             })
             this.sWave.addTo(this.map)
             this.sWaveFill = L.circle(this.hypoLatLng, {
@@ -121,10 +129,17 @@ class EewEvent {
                 fillOpacity: 0.3 * opacityRatio,
                 radius: s_radius * 1000,
                 pane: 'waveFillPane',
+                interactive: false
             })
             this.sWaveFill.addTo(this.map)
             L.DomUtil.addClass(this.sWave.getElement(), 'wave')
             L.DomUtil.addClass(this.sWaveFill.getElement(), 'wave')
+        }
+        if((this.settingsStore.mainSettings.forceDisplayCountdown || this.userDist <= maxRadius) && this.isValidUserLatLng){
+            this.countdown = Math.max(this.reachTime - passedTime, 0)
+        }
+        else{
+            this.countdown = -1
         }
     }
     calcOpacityRatio(radius, maxRadius){
@@ -142,6 +157,8 @@ class EewEvent {
     update(eqMessage, time){
         Object.assign(this.eqMessage, eqMessage)
         this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
+        this.userDist = L.latLng(this.hypoLatLng).distanceTo(L.latLng(this.userLatLng)) / 1000
+        this.reachTime = calcReachTime(this.travelTime, false, this.eqMessage.depth, this.userDist)
         this.setMark()
         this.drawWaves()
         clearInterval(this.drawWavesInterval)
@@ -165,7 +182,7 @@ class EewEvent {
         }, time);
     }
     handleActions(){
-        const settingsStore = useSettingsStore()
+        const settingsStore = this.settingsStore
         const soundEffect = settingsStore.mainSettings.soundEffect
         const eqMessage = this.eqMessage
         let icon = ''
@@ -253,6 +270,7 @@ class EewEvent {
 class EqlistEvent {
     constructor(map, eqMessage){
         this.map = map
+        this.settingsStore = useSettingsStore()
         this.eqMessage = eqMessage
         this.isActive = false
         this.useJst = eqMessage.source.includes('jma')
@@ -276,7 +294,7 @@ class EqlistEvent {
     setMark(){
         this.removeMark()
         if(this.isValidHypo){
-            this.hypoMarker = L.marker(this.hypoLatLng, {icon: eqlistCrossDivIcon, pane: 'eqlistMarkerPane'})
+            this.hypoMarker = L.marker(this.hypoLatLng, {icon: eqlistCrossDivIcon, pane: 'eqlistMarkerPane', interactive: false})
             this.hypoMarker.addTo(this.map)    
         }
     }
@@ -284,7 +302,7 @@ class EqlistEvent {
         if(this.hypoMarker && this.map.hasLayer(this.hypoMarker)) this.map.removeLayer(this.hypoMarker)
     }
     handleActions(){
-        const settingsStore = useSettingsStore()
+        const settingsStore = this.settingsStore
         const soundEffect = settingsStore.mainSettings.soundEffect
         const eqMessage = this.eqMessage
         let icon = ''

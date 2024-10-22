@@ -126,14 +126,13 @@
                                 <span>显示所在地</span>
                                 <el-switch v-model="settingsStore.mainSettings.displayUser"></el-switch>
                             </div>
-                            <!-- <div class="switch">
-                                <span>显示地震波倒计时</span>
+                            <div class="switch">
+                                <span>S波倒计时</span>
                                 <el-switch v-model="settingsStore.mainSettings.displayCountdown"></el-switch>
                             </div>
                             <div class="switch">
-                                <span>地震波倒计时显示小数</span>
-                                <el-switch v-model="settingsStore.mainSettings.decimalCountdown"></el-switch>
-                            </div> -->
+                                <el-checkbox v-model="settingsStore.mainSettings.forceDisplayCountdown" :disabled="!settingsStore.mainSettings.displayCountdown">强制计算（低精度）</el-checkbox>
+                            </div>
                         </div>
                     </div>
                     <div class="row">
@@ -250,18 +249,18 @@
                 </div>
             </div>
         </div>
-        <el-dialog v-model="verifyIcl" width="300px" top="40vh" :show-close="false">
-            <el-form :model="iclForm">
+        <el-dialog v-model="verifyDialog" width="300px" top="40vh" :show-close="false">
+            <el-form :model="idForm">
                 <el-form-item label="用户名" label-width="60px">
-                    <el-input v-model="iclForm.username" @keyup.enter="verifyIclValidity"></el-input>
+                    <el-input v-model="idForm.username" @keyup.enter="postVerify"></el-input>
                 </el-form-item>
                 <el-form-item label="密码" label-width="60px">
-                    <el-input type="password" v-model="iclForm.password" @keyup.enter="verifyIclValidity"></el-input>
+                    <el-input type="password" v-model="idForm.password" @keyup.enter="postVerify"></el-input>
                 </el-form-item>
             </el-form>
             <template #footer>
-                <el-button type="default" @click="verifyIcl = false">取消</el-button>
-                <el-button type="primary" @click="verifyIclValidity">确定</el-button>
+                <el-button type="default" @click="verifyDialog = false">取消</el-button>
+                <el-button type="primary" @click="postVerify">确定</el-button>
             </template>
         </el-dialog>
     </div>
@@ -399,8 +398,9 @@ const setNiedDelay = (val)=>{
     settingsStore.mainSettings.displaySeisNet.niedDelay = val
 }
 const advancedInput = ref('')
-const verifyIcl = ref(false)
-const iclForm = reactive({
+const verifyDialog = ref(false)
+let verifyType = ''
+const idForm = reactive({
     username: '',
     password: '',
 })
@@ -416,7 +416,8 @@ const handleAdvance = (val)=>{
             break
         }
         case 'enableIclEew': {
-            verifyIcl.value = true
+            verifyType = 'enableIclEew'
+            verifyDialog.value = true
             break
         }
         case 'disableIclEew': {
@@ -430,28 +431,72 @@ const handleAdvance = (val)=>{
             }, 3000);
             break
         }
+        case 'forceCalcCsis': {
+            verifyType = 'forceCalcCsis'
+            verifyDialog.value = true
+            break
+        }
+        case 'cancelCalcCsis': {
+            settingsStore.advancedSettings.forceCalcCsis = false
+            ElMessage({
+                message: '功能已关闭，3秒后自动刷新网页',
+                type: 'success'
+            })
+            setTimeout(() => {
+                window.location.reload()
+            }, 3000);
+            break
+        }
     }
     advancedInput.value = ''
 }
-const verifyIclValidity = async ()=>{
-    const res = await Http.post('http://124.70.142.213:8766/icl_url', iclForm)
-    if(res){
-        settingsStore.advancedSettings.enableIclEew = true
-        localStorage.setItem('iclUrl', JSON.stringify(res.data))
-        verifyIcl.value = false
-        ElMessage({
-            message: '认证成功，3秒后自动刷新网页',
-            type: 'success'
-        })
-        setTimeout(() => {
-            window.location.reload()
-        }, 3000);
-    }
-    else{
-        ElMessage({
-            message: '认证失败',
-            type: 'error'
-        })
+const postVerify = async ()=>{
+    switch(verifyType){
+        case 'enableIclEew': {
+            const res = await Http.post('http://124.70.142.213:8766/icl_url', idForm)
+            if(res && res.success){
+                settingsStore.advancedSettings.enableIclEew = true
+                localStorage.setItem('iclUrl', JSON.stringify(res.data))
+                verifyDialog.value = false
+                ElMessage({
+                    message: '认证成功，3秒后自动刷新网页',
+                    type: 'success'
+                })
+                setTimeout(() => {
+                    window.location.reload()
+                }, 3000);
+            }
+            else{
+                ElMessage({
+                    message: '认证失败',
+                    type: 'error'
+                })
+            }
+            break
+        }
+        case 'forceCalcCsis':{
+            const res = await Http.post('http://124.70.142.213:8766/calc_csis', idForm)
+            if(res && res.success){
+                console.log(res);
+                settingsStore.advancedSettings.forceCalcCsis = true
+                localStorage.setItem('calcCsis', res.data)
+                verifyDialog.value = false
+                ElMessage({
+                    message: '认证成功，3秒后自动刷新网页',
+                    type: 'success'
+                })
+                setTimeout(() => {
+                    window.location.reload()
+                }, 3000);
+            }
+            else{
+                ElMessage({
+                    message: '认证失败',
+                    type: 'error'
+                })
+            }
+            break
+        }
     }
 }
 const handleAbout = ()=>{
@@ -501,7 +546,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        'wolfx-api-viewer v2.0.0-pre.20.1',
+        'wolfx-api-viewer v2.0.0-pre.20.2',
         {
             confirmButtonText: 'OK',
             showClose: false,

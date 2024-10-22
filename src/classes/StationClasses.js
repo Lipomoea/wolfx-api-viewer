@@ -34,6 +34,7 @@ class NiedStation {
             fillColor: this.color,
             weight: 0,
             pane: `stationPane${this.level}`,
+            interactive: false
         })
         this.marker.addTo(this.map)
     }
@@ -81,6 +82,7 @@ class NiedStation {
             this.marker = L.marker(this.latLng, {
                 icon: shindoIcon,
                 pane: `stationPane${this.level}`,
+                interactive: false
             })
         }
         else{
@@ -91,6 +93,7 @@ class NiedStation {
                 fillColor: this.color,
                 weight: 0,
                 pane: `stationPane${this.level}`,
+                interactive: false
             })
         }
         this.marker.addTo(this.map)

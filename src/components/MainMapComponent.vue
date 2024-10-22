@@ -4,40 +4,55 @@
             <div class="mapContainer">
                 <div id="mainMap" @wheel="handleManual" @dblclick="handleManual"></div>
                 <div class="eewList">
-                    <div class="eew" v-for="(event, index) of activeEewList" :key="index" v-show="menuId != 'eqlists'">
-                        <div class="bar" :class="getBarClass(event.eqMessage)">{{ event.eqMessage.titleText + ' ' + event.eqMessage.reportNumText }}</div>
-                        <div class="info gray">
-                            <div class="intensity" :class="event.eqMessage.className">
-                                <div class="intensity-title">{{ event.eqMessage.useShindo?'最大震度':'最大CSIS' }}</div>
-                                <div :class="event.eqMessage.useShindo && formatIntensity(event.eqMessage.maxIntensity) != '?'?'shindo':'csis'">
-                                    {{ formatIntensity(event.eqMessage.maxIntensity) }}
+                    <div class="event" v-for="(event, index) of activeEewList" :key="index" v-show="menuId != 'eqlists'">
+                        <div class="eew">
+                            <div class="bar" :class="getBarClass(event.eqMessage)">{{ event.eqMessage.titleText + ' ' + event.eqMessage.reportNumText }}</div>
+                            <div class="info gray">
+                                <div class="intensity" :class="event.eqMessage.className">
+                                    <div class="intensity-title">{{ event.eqMessage.useShindo?'最大震度':'最大CSIS' }}</div>
+                                    <div :class="event.eqMessage.useShindo && formatIntensity(event.eqMessage.maxIntensity) != '?'?'shindo':'csis'">
+                                        {{ formatIntensity(event.eqMessage.maxIntensity) }}
+                                    </div>
+                                </div>
+                                <div class="right">
+                                    <div class="location">{{ event.eqMessage.hypocenter }}</div>
+                                    <div class="time">{{ event.eqMessage.originTime + (event.useJst?' (UTC+9)':' (UTC+8)') }}</div>
+                                    <div class="bottom">
+                                        <div class="magnitude">{{ event.eqMessage.isAssumption?'仮定震源要素':'M' + event.eqMessage.magnitude.toFixed(1) }}</div>
+                                        <div class="depth">{{ event.eqMessage.isAssumption?'':event.eqMessage.depthText }}</div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="right">
-                                <div class="location">{{ event.eqMessage.hypocenter }}</div>
-                                <div class="time">{{ event.eqMessage.originTime + (event.useJst?' (UTC+9)':' (UTC+8)') }}</div>
-                                <div class="bottom">
-                                    <div class="magnitude">{{ event.eqMessage.isAssumption?'仮定震源要素':'M' + event.eqMessage.magnitude.toFixed(1) }}</div>
-                                    <div class="depth">{{ event.eqMessage.isAssumption?'':event.eqMessage.depthText }}</div>
+                        </div>
+                        <div class="countdown eew realtime" v-if="settingsStore.mainSettings.displayCountdown">
+                            <div class="shindo-bar" :class="event.countdown <= 0?'gray':event.countdown < 10?'red':event.countdown < 60?'orange':'yellow'">{{ event.countdown == -1?'-':Math.floor(event.countdown) }}秒</div>
+                            <div class="info">
+                                <div class="intensity" :class="setClassName(isValidUserLatLng && statusStore.calcCsisLevel && event.eqMessage.source != 'jmaEew'?statusStore.calcCsisLevel(event.eqMessage.magnitude, event.eqMessage.depth, L.latLng([event.eqMessage.lat, event.eqMessage.lng]).distanceTo(L.latLng(userLatLng)) / 1000):'?', false)">
+                                    <div class="intensity-title">{{ event.eqMessage.source == 'jmaEew'?'本地震度':'本地CSIS' }}</div>
+                                    <div :class="'csis'">
+                                        {{ isValidUserLatLng && statusStore.calcCsisLevel && event.eqMessage.source != 'jmaEew'?statusStore.calcCsisLevel(event.eqMessage.magnitude, event.eqMessage.depth, L.latLng([event.eqMessage.lat, event.eqMessage.lng]).distanceTo(L.latLng(userLatLng)) / 1000):'?' }}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="eew" v-for="(event, index) of activeEqlistList" :key="index" v-show="menuId != 'eews'">
-                        <div class="bar" :class="getBarClass(event.eqMessage)">{{ event.eqMessage.titleText + ' ' + event.eqMessage.reportNumText }}</div>
-                        <div class="info gray">
-                            <div class="intensity" :class="event.eqMessage.className">
-                                <div class="intensity-title">{{ event.eqMessage.useShindo?'最大震度':'最大CSIS' }}</div>
-                                <div :class="event.eqMessage.useShindo && formatIntensity(event.eqMessage.maxIntensity) != '?'?'shindo':'csis'">
-                                    {{ formatIntensity(event.eqMessage.maxIntensity) }}
+                    <div class="event" v-for="(event, index) of activeEqlistList" :key="index" v-show="menuId != 'eews'">
+                        <div class="eew">
+                            <div class="bar" :class="getBarClass(event.eqMessage)">{{ event.eqMessage.titleText + ' ' + event.eqMessage.reportNumText }}</div>
+                            <div class="info gray">
+                                <div class="intensity" :class="event.eqMessage.className">
+                                    <div class="intensity-title">{{ event.eqMessage.useShindo?'最大震度':'最大CSIS' }}</div>
+                                    <div :class="event.eqMessage.useShindo && formatIntensity(event.eqMessage.maxIntensity) != '?'?'shindo':'csis'">
+                                        {{ formatIntensity(event.eqMessage.maxIntensity) }}
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="right">
-                                <div class="location">{{ event.eqMessage.hypocenter?event.eqMessage.hypocenter:'震源: 調査中' }}</div>
-                                <div class="time">{{ event.eqMessage.originTime + (event.useJst?' (UTC+9)':' (UTC+8)') }}</div>
-                                <div class="bottom">
-                                    <div class="magnitude">{{ event.eqMessage.magnitude?'M' + event.eqMessage.magnitude.toFixed(1):'規模: 調査中' }}</div>
-                                    <div class="depth">{{ event.eqMessage.depthText }}</div>
+                                <div class="right">
+                                    <div class="location">{{ event.eqMessage.hypocenter?event.eqMessage.hypocenter:'震源: 調査中' }}</div>
+                                    <div class="time">{{ event.eqMessage.originTime + (event.useJst?' (UTC+9)':' (UTC+8)') }}</div>
+                                    <div class="bottom">
+                                        <div class="magnitude">{{ event.eqMessage.magnitude?'M' + event.eqMessage.magnitude.toFixed(1):'規模: 調査中' }}</div>
+                                        <div class="depth">{{ event.eqMessage.depthText }}</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -78,10 +93,6 @@
                         強震モニタ: {{ niedUpdateTime }} (UTC+9)
                     </div>
                 </div>
-                <!-- <div class="countdown" v-if="isDisplayCountdown">
-                    <div class="arrive" :class="untilPReach <= 10?'urgent':''">距离P波抵达：{{ formatTime(untilPReach) }}</div>
-                    <div class="arrive" :class="untilSReach <= 10?'urgent':''">距离S波抵达：{{ formatTime(untilSReach) }}</div>
-                </div> -->
                 <el-button
                 class="home"
                 :icon="HomeFilled"
@@ -281,6 +292,7 @@ onMounted(()=>{
                 fillOpacity: 0.5,
                 weight: 2,
                 pane: 'userPane',
+                interactive: false
             })
             userMarker.addTo(map)
         }
@@ -396,7 +408,7 @@ const setView = ()=>{
             }
         }
     })
-    if(menuId.value != 'eews'){
+    if(menuId.value != 'eews' && !bounds.isValid()){
         activeEqlistList.value.forEach(event=>{
             if(event.isValidHypo){
                 bounds.extend(event.hypoLatLng)
@@ -554,6 +566,9 @@ onBeforeUnmount(()=>{
                 top: 0;
                 left: 0;
                 z-index: 500;   // >=400才会显示在地图上方？
+                .event{
+                    display: flex;
+                }
                 .eew{
                     display: flex;
                     flex-direction: column;
@@ -703,28 +718,6 @@ onBeforeUnmount(()=>{
                 }
                 .delayed{
                     color: red;
-                }
-                .countdown{
-                    position: absolute;
-                    width: 220px;
-                    height: 80px;
-                    background-color: #cfcfcf;
-                    bottom: 0;
-                    left: 0;
-                    z-index: 500;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: space-evenly;
-                    align-items: center;
-                    border: black 1px solid;
-                    border-bottom: 0px;
-                    border-left: 0px;
-                    pointer-events: none;
-                    user-select: none;
-                    font-size: 20px;
-                    .urgent{
-                        color: red;
-                    }
                 }
             }
             .home{

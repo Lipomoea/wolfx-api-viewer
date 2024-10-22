@@ -35,6 +35,7 @@ onBeforeMount(() => {
   settingsStore.setAdvancedSettings(localStorage.getItem('advancedSettings'))
   settingsStore.mainSettings.displaySeisNet.niedDelay = 0
   timeStore.startUpdatingTime()
+  statusStore.initiate()
   statusStore.startUpdatingEqMessage()
   getGeojson()
   if('Notification' in window){

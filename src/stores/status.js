@@ -3,6 +3,7 @@ import Http from '@/utils/Http'
 import WebSocketObj from '@/utils/WebSocket'
 import { eqUrls } from '@/utils/Urls'
 import { setClassName } from '@/utils/Utils'
+import { useSettingsStore } from './settings'
 
 const defaultEqMessage = {
     source: '',
@@ -65,6 +66,12 @@ export const useStatusStore = defineStore('statusStore', {
         
     },
     actions: {
+        initiate(){
+            const settingsStore = useSettingsStore()
+            const func = settingsStore.advancedSettings.forceCalcCsis?localStorage.getItem('calcCsis'):''
+            this.calcCsis = func?new Function('m', 'dep', 'dis', func):undefined
+            this.calcCsisLevel = this.calcCsis?(m, dep, dis)=>Math.min(Math.max(this.calcCsis(m, dep, dis), 0), 12).toFixed(0):undefined
+        },
         setEqMessage(source, data){
             const eqMessage = this.eqMessage[source]
             eqMessage.source = source
@@ -134,7 +141,6 @@ export const useStatusStore = defineStore('statusStore', {
                     eqMessage.reportNum = data.updates
                     eqMessage.reportNumText = '第' + data.updates + '报'
                     eqMessage.reportTime = new Date(data.updateAt + 8 * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19)
-                    eqMessage.isWarn = data.epiIntensity >= 6.5
                     eqMessage.titleText = 'ICL地震预警'
                     eqMessage.hypocenter = data.epicenter
                     eqMessage.hypocenterText = '震源: ' + data.epicenter
@@ -146,8 +152,9 @@ export const useStatusStore = defineStore('statusStore', {
                     eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
                     eqMessage.magnitude = data.magnitude
                     eqMessage.magnitudeText = '震级: ' + data.magnitude.toFixed(1)
-                    eqMessage.maxIntensity = data.epiIntensity?data.epiIntensity.toFixed(0):'不明'
+                    eqMessage.maxIntensity = data.epiIntensity?data.epiIntensity.toFixed(0):(this.calcCsisLevel?this.calcCsisLevel(data.magnitude, data.depth, 0):'不明')
                     eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
+                    eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 7
                     break
                 }
                 case 'scEew':{
@@ -190,8 +197,8 @@ export const useStatusStore = defineStore('statusStore', {
                     eqMessage.originTimeText = '发震时间: ' + data.OriginTime
                     eqMessage.magnitude = data.Magunitude
                     eqMessage.magnitudeText = '震级: ' + data.Magunitude.toFixed(1)
-                    eqMessage.maxIntensity = '不明'
-                    eqMessage.maxIntensityText = '估计最大烈度: 不明'
+                    eqMessage.maxIntensity = this.calcCsisLevel?this.calcCsisLevel(data.Magunitude, 10, 0):'不明'
+                    eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                     break
                 }
                 case 'jmaEqlist':{

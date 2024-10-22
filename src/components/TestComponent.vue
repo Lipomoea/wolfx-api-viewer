@@ -10,7 +10,9 @@ import { useStatusStore } from '@/stores/status';
 
 const statusStore = useStatusStore()
 
-const testJmaEew = true
+const testJmaEew = false
+const testIclEew = true
+const testJmaEqlist = false
 
 onMounted(()=>{
     const time = new Date()
@@ -449,6 +451,250 @@ onMounted(()=>{
             }
             statusStore.setEqMessage(source, data)
         }, 5000);
+    }
+    if(testIclEew){
+        setTimeout(() => {
+            statusStore.disconnect()
+        }, 2000);
+        const source = 'iclEew'
+        const startAt = Date.now()
+        setTimeout(() => {
+            const data = {
+                "depth": 8,
+                "epiIntensity": 0,
+                "epicenter": "西藏墨竹工卡",
+                "eventId": 84928653,
+                "insideNet": 0,
+                "latitude": 29.730461,
+                "longitude": 92.168785,
+                "magnitude": 3.700001,
+                "sations": 5,
+                "sourceType": "meihuan",
+                startAt,
+                "updateAt": Date.now(),
+                "updates": 4
+            }
+            statusStore.setEqMessage(source, data)
+        }, 3000);
+        setTimeout(() => {
+            const data = {
+                "eventId": 84222641,
+                "updates": 1,
+                "latitude": 32.00443,
+                "longitude": 117.68219,
+                "depth": 8,
+                "epicenter": "安徽肥东",
+                startAt,
+                "updateAt": Date.now(),
+                "magnitude": 3.0,
+                "insideNet": 0,
+                "sations": 7,
+                "sourceType": "meihuan",
+                "epiIntensity": 0
+            }
+            statusStore.setEqMessage(source, data)
+        }, 4000);
+        setTimeout(() => {
+            const data = {
+                "eventId": 84222641,
+                "updates": 2,
+                "latitude": 32.00443,
+                "longitude": 117.68219,
+                "depth": 10,
+                "epicenter": "安徽肥东",
+                startAt,
+                "updateAt": Date.now(),
+                "magnitude": 3.5,
+                "insideNet": 0,
+                "sations": 7,
+                "sourceType": "meihuan",
+                "epiIntensity": 0
+            }
+            statusStore.setEqMessage(source, data)
+        }, 5000);
+        setTimeout(() => {
+            const data = {
+                "eventId": 84222641,
+                "updates": 3,
+                "latitude": 32.00443,
+                "longitude": 117.68219,
+                "depth": 10,
+                "epicenter": "安徽肥东",
+                startAt,
+                "updateAt": Date.now(),
+                "magnitude": 4.0,
+                "insideNet": 0,
+                "sations": 7,
+                "sourceType": "meihuan",
+                "epiIntensity": 0
+            }
+            statusStore.setEqMessage(source, data)
+        }, 6000);
+        setTimeout(() => {
+            const data = {
+                "eventId": 84222641,
+                "updates": 4,
+                "latitude": 32.00443,
+                "longitude": 117.68219,
+                "depth": 10,
+                "epicenter": "安徽肥东",
+                startAt,
+                "updateAt": Date.now(),
+                "magnitude": 4.5,
+                "insideNet": 0,
+                "sations": 7,
+                "sourceType": "meihuan",
+                "epiIntensity": 0
+            }
+            statusStore.setEqMessage(source, data)
+        }, 7000);
+        setTimeout(() => {
+            const data = {
+                "eventId": 84222641,
+                "updates": 5,
+                "latitude": 32.00443,
+                "longitude": 117.68219,
+                "depth": 10,
+                "epicenter": "安徽肥东",
+                startAt,
+                "updateAt": Date.now(),
+                "magnitude": 5.0,
+                "insideNet": 0,
+                "sations": 7,
+                "sourceType": "meihuan",
+                "epiIntensity": 0
+            }
+            statusStore.setEqMessage(source, data)
+        }, 8000);
+        setTimeout(() => {
+            const data = {
+                "eventId": 84222641,
+                "updates": 6,
+                "latitude": 32.00443,
+                "longitude": 117.68219,
+                "depth": 10,
+                "epicenter": "安徽肥东",
+                startAt,
+                "updateAt": Date.now(),
+                "magnitude": 5.5,
+                "insideNet": 0,
+                "sations": 7,
+                "sourceType": "meihuan",
+                "epiIntensity": 0
+            }
+            statusStore.setEqMessage(source, data)
+        }, 9000);
+        setTimeout(() => {
+            const data = {
+                "eventId": 84222641,
+                "updates": 7,
+                "latitude": 32.00443,
+                "longitude": 117.68219,
+                "depth": 10,
+                "epicenter": "安徽肥东",
+                startAt,
+                "updateAt": Date.now(),
+                "magnitude": 6.0,
+                "insideNet": 0,
+                "sations": 7,
+                "sourceType": "meihuan",
+                "epiIntensity": 0
+            }
+            statusStore.setEqMessage(source, data)
+        }, 10000);
+        setTimeout(() => {
+            const data = {
+                "eventId": 84222641,
+                "updates": 8,
+                "latitude": 32.00443,
+                "longitude": 117.68219,
+                "depth": 10,
+                "epicenter": "安徽肥东",
+                startAt,
+                "updateAt": Date.now(),
+                "magnitude": 6.5,
+                "insideNet": 0,
+                "sations": 7,
+                "sourceType": "meihuan",
+                "epiIntensity": 0
+            }
+            statusStore.setEqMessage(source, data)
+        }, 11000);
+        setTimeout(() => {
+            const data = {
+                "eventId": 84222641,
+                "updates": 9,
+                "latitude": 32.00443,
+                "longitude": 117.68219,
+                "depth": 10,
+                "epicenter": "安徽肥东",
+                startAt,
+                "updateAt": Date.now(),
+                "magnitude": 7.0,
+                "insideNet": 0,
+                "sations": 7,
+                "sourceType": "meihuan",
+                "epiIntensity": 0
+            }
+            statusStore.setEqMessage(source, data)
+        }, 12000);
+        setTimeout(() => {
+            const data = {
+                "eventId": 84222641,
+                "updates": 10,
+                "latitude": 32.00443,
+                "longitude": 117.68219,
+                "depth": 10,
+                "epicenter": "安徽肥东",
+                startAt,
+                "updateAt": Date.now(),
+                "magnitude": 7.5,
+                "insideNet": 0,
+                "sations": 7,
+                "sourceType": "meihuan",
+                "epiIntensity": 0
+            }
+            statusStore.setEqMessage(source, data)
+        }, 13000);
+        setTimeout(() => {
+            const data = {
+                "eventId": 84222641,
+                "updates": 11,
+                "latitude": 32.00443,
+                "longitude": 117.68219,
+                "depth": 10,
+                "epicenter": "安徽肥东",
+                startAt,
+                "updateAt": Date.now(),
+                "magnitude": 8.0,
+                "insideNet": 0,
+                "sations": 7,
+                "sourceType": "meihuan",
+                "epiIntensity": 0
+            }
+            statusStore.setEqMessage(source, data)
+        }, 14000);
+    }
+    if(testJmaEqlist){
+        const source = 'jmaEqlist'
+        setTimeout(() => {
+            const data = {
+                "No1": {
+                "Title": "震源・震度情報",
+                "EventID": "20241021231148",
+                "time": "2024/10/21 23:11",
+                "time_full": "2024/10/21 23:11:48",
+                "location": "十勝沖",
+                "magnitude": "4.4",
+                "shindo": "2",
+                "depth": "110km",
+                "latitude": "42.7",
+                "longitude": "143.7",
+                "info": "この地震による津波の心配はありません。"
+                },
+            }
+            statusStore.setEqMessage(source, data)
+        }, 10000);
     }
 })
 </script>

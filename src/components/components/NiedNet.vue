@@ -227,7 +227,8 @@ watch(()=>statusStore.map, newVal=>{
                     color,
                     fill: false,
                     weight: 2,
-                    pane: 'gridPane'
+                    pane: 'gridPane',
+                    interactive: false
                 }).addTo(map)
                 if(item.level > periodMaxLevel.value) periodMaxLevel.value = item.level
             })

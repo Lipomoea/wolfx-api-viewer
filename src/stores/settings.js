@@ -31,7 +31,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             viewLatLng: ['', ''],
             defaultZoom: 5,
             displayCountdown: false,
-            decimalCountdown: false,
+            forceDisplayCountdown: false,
             displaySeisNet: {
                 hideNoData: false,
                 nied: true,
@@ -42,6 +42,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             displayNiedShindoSwitch: false,
             displayNiedShindo: false,
             enableIclEew: false,
+            forceCalcCsis: false
         }
     }),
     getters: {

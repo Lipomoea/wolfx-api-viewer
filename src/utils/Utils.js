@@ -94,8 +94,10 @@ const setClassName = (intensity, useShindo, isCanceled = false)=>{
         else{
             const numIntensity = Math.round(Number(intensity))
             if(numIntensity >= 1 && numIntensity <= 12){
-                if(numIntensity >= 1) className = 'gray'
-                if(numIntensity >= 3) className = 'blue'
+                if(numIntensity == 1) className = 'dark-gray'
+                if(numIntensity == 2) className = 'gray'
+                if(numIntensity == 3) className = 'sky-blue'
+                if(numIntensity == 4) className = 'blue'
                 if(numIntensity == 5) className = 'green'
                 if(numIntensity == 6) className = 'yellow'
                 if(numIntensity == 7) className = 'orange'
@@ -107,7 +109,7 @@ const setClassName = (intensity, useShindo, isCanceled = false)=>{
     }
     return className
 }
-const classNameArray = ['dark-gray', 'gray', 'blue', 'green', 'yellow', 'orange', 'dark-orange', 'red', 'dark-red', 'purple']
+const classNameArray = ['dark-gray', 'gray', 'sky-blue', 'blue', 'green', 'yellow', 'orange', 'dark-orange', 'red', 'dark-red', 'purple']
 const getClassLevel = (className)=>{
     return classNameArray.indexOf(className)
 }
