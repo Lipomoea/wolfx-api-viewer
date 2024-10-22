@@ -10,7 +10,7 @@ import { useStatusStore } from '@/stores/status';
 
 const statusStore = useStatusStore()
 
-const testJmaEew = false
+const testJmaEew = true
 const testIclEew = true
 const testJmaEqlist = false
 

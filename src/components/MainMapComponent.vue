@@ -26,11 +26,19 @@
                         </div>
                         <div class="countdown eew realtime" v-if="settingsStore.mainSettings.displayCountdown">
                             <div class="shindo-bar" :class="event.countdown <= 0?'gray':event.countdown < 10?'red':event.countdown < 60?'orange':'yellow'">{{ event.countdown == -1?'-':Math.floor(event.countdown) }}秒</div>
-                            <div class="info">
-                                <div class="intensity" :class="setClassName(isValidUserLatLng && statusStore.calcCsisLevel && event.eqMessage.source != 'jmaEew'?statusStore.calcCsisLevel(event.eqMessage.magnitude, event.eqMessage.depth, L.latLng([event.eqMessage.lat, event.eqMessage.lng]).distanceTo(L.latLng(userLatLng)) / 1000):'?', false)">
-                                    <div class="intensity-title">{{ event.eqMessage.source == 'jmaEew'?'本地震度':'本地CSIS' }}</div>
-                                    <div :class="'csis'">
-                                        {{ isValidUserLatLng && statusStore.calcCsisLevel && event.eqMessage.source != 'jmaEew'?statusStore.calcCsisLevel(event.eqMessage.magnitude, event.eqMessage.depth, L.latLng([event.eqMessage.lat, event.eqMessage.lng]).distanceTo(L.latLng(userLatLng)) / 1000):'?' }}
+                            <div class="info" v-if="event.eqMessage.source == 'jmaEew'">
+                                <div class="intensity" :class="setClassName(userJmaAreaShindo, true)">
+                                    <div class="intensity-title">本地震度</div>
+                                    <div :class="userJmaAreaShindo != '?'?'shindo':'csis'">
+                                        {{ userJmaAreaShindo }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="info" v-else>
+                                <div class="intensity" :class="setClassName(isValidUserLatLng && statusStore.calcCsisLevel?statusStore.calcCsisLevel(event.eqMessage.magnitude, event.eqMessage.depth, L.latLng([event.eqMessage.lat, event.eqMessage.lng]).distanceTo(L.latLng(userLatLng)) / 1000):'?', false)">
+                                    <div class="intensity-title">本地CSIS</div>
+                                    <div class="csis">
+                                        {{ isValidUserLatLng && statusStore.calcCsisLevel?statusStore.calcCsisLevel(event.eqMessage.magnitude, event.eqMessage.depth, L.latLng([event.eqMessage.lat, event.eqMessage.lng]).distanceTo(L.latLng(userLatLng)) / 1000):'?' }}
                                     </div>
                                 </div>
                             </div>
@@ -83,6 +91,19 @@
                     </div>
                 </div>
                 <div class="left-bottom">
+                    <div class="legend" v-if="settingsStore.mainSettings.displayLegend && activeSources.some(source=>source.includes('Eew'))">
+                        <div class="single-legend" v-for="(className, index) of classNameArray" :key="index">
+                            <div class="align-right">{{ csisArray[index] }}</div>
+                            <div class="color" :class="className"></div>
+                            <div class="align-left">{{ shindoArray[index] }}</div>
+                        </div>
+                        <div class="sub-title single-legend">
+                            <div class="align-right">CSIS</div>
+                            <div class="color"></div>
+                            <div class="align-left">震度</div>
+                        </div>
+                        <div class="legend-title">图例</div>
+                    </div>
                     <div class="ws-status">
                         WebSocket状态: 
                         <div class="dot" :class="'s' + wsStatusCode"></div>
@@ -147,16 +168,32 @@ import EewComponent from './EewComponent.vue';
 import SeisNetComponent from './SeisNetComponent.vue';
 import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
-import { verifyUpToDate, setClassName, getClassLevel } from '@/utils/Utils';
+import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToPolygon, csisArray, shindoArray } from '@/utils/Utils';
 import { geojsonUrls } from '@/utils/Urls';
+import { booleanPointInPolygon, point } from '@turf/turf';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
-let map, jpEewBaseMap
-let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, gridPane, cnFaultBasePane, jpEewBasePane
+let map, jpEewBaseMap, cnEewBaseMap
+let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, gridPane, cnFaultBasePane, jpEewBasePane, cnEewBasePane
 const isValidUserLatLng = computed(()=>settingsStore.mainSettings.userLatLng.every(item=>item !== ''))
 const isDisplayUser = computed(()=>isValidUserLatLng.value && settingsStore.mainSettings.displayUser)
 const userLatLng = computed(()=>settingsStore.mainSettings.userLatLng.map(val=>Number(val)))
+const userJmaAreaName = computed(()=>{
+    let layerName = ''
+    jpEewBaseMap.eachLayer(layer=>{
+        const turfPoint = point([userLatLng.value[1], userLatLng.value[0]])
+        if(booleanPointInPolygon(turfPoint, layer.feature)){
+            layerName = layer.feature.properties.name
+            return
+        }
+    })
+    return layerName
+})
+const userJmaAreaShindo = computed(()=>{
+    if(userJmaAreaName.value in jmaWarnArea.value) return formatIntensity(jmaWarnArea.value[userJmaAreaName.value].intensity)
+    else return '?'
+})
 let userMarker
 const isValidViewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.every(item=>item !== ''))
 const viewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.map(val=>Number(val)))
@@ -222,7 +259,6 @@ const getBarClass = (eqMessage)=>{
     }
     return 'gray'
 }
-let unwatchEewBlink
 onMounted(()=>{
     map = L.map('mainMap', {attributionControl: false})
     //傻逼Leaflet
@@ -261,6 +297,9 @@ onMounted(()=>{
     map.createPane('jpEewBasePane')
     jpEewBasePane = map.getPane('jpEewBasePane')
     jpEewBasePane.style.zIndex = 20
+    map.createPane('cnEewBasePane')
+    cnEewBasePane = map.getPane('cnEewBasePane')
+    cnEewBasePane.style.zIndex = 20
     map.createPane('cnFaultBasePane')
     cnFaultBasePane = map.getPane('cnFaultBasePane')
     cnFaultBasePane.style.zIndex = 30
@@ -332,6 +371,13 @@ const loadMaps = async () => {
         clearTimeout(msgTimer)
         loadBaseMap(global, 'globalBasePane')
         loadBaseMap(cn, 'cnBasePane')
+        cnEewBaseMap = loadBaseMap(cn_eew, 'cnEewBasePane', {
+            color: '#55555500',
+            opacity: 1,
+            fillColor: '#55555500',
+            fillOpacity: 1,
+            weight: 2,
+        })
         loadBaseMap(cn_fault, 'cnFaultBasePane', {
             color: 'red',
             opacity: 0.5,
@@ -341,27 +387,63 @@ const loadMaps = async () => {
         })
         loadBaseMap(jp, 'jpBasePane')
         jpEewBaseMap = loadBaseMap(jp_eew, 'jpEewBasePane', {
-            opacity: 0,
+            color: '#55555500',
+            opacity: 1,
             fillColor: '#55555500',
             fillOpacity: 1,
-            weight: 0,
+            weight: 2,
         })
         watch(jmaWarnArea, (newVal)=>{
             const areas = Object.keys(newVal)
             jpEewBaseMap.eachLayer(layer=>{
                 const layerName = layer.feature.properties.name
                 if(areas.includes(layerName)){
-                    layer.setStyle({
-                        fillColor: `var(--${newVal[layerName].className})`
-                    })
+                    if(layer.options.fillColor != `var(--${newVal[layerName].className})`){
+                        layer.setStyle({
+                            color: `var(--${newVal[layerName].className})`,
+                            fillColor: `var(--${newVal[layerName].className})`
+                        })
+                    }
                 }
                 else{
-                    layer.setStyle({
-                        fillColor: '#55555500'
-                    })
+                    if(layer.options.fillColor != '#55555500'){
+                        layer.setStyle({
+                            color: '#55555500',
+                            fillColor: '#55555500'
+                        })
+                    }
                 }
             })
         }, { deep: true, immediate: true })
+        if(statusStore.calcCsisLevel){
+            watch(cnEewInfoList, newVal=>{
+                cnEewBaseMap.eachLayer(layer=>{
+                    let maxInt = 0
+                    newVal.forEach(info=>{
+                        const dist = pointDistToPolygon([info.lat, info.lng], layer.feature)
+                        const int = statusStore.calcCsisLevel(info.magnitude, info.depth, dist)
+                        if(int > maxInt) maxInt = int
+                    })
+                    if(maxInt > 0){
+                        const className = setClassName(maxInt, false)
+                        if(layer.options.fillColor != `var(--${className})`){
+                            layer.setStyle({
+                                color: `var(--${className})`,
+                                fillColor: `var(--${className})`
+                            })
+                        }
+                    }
+                    else{
+                        if(layer.options.fillColor != '#55555500'){
+                            layer.setStyle({
+                                color: '#55555500',
+                                fillColor: '#55555500'
+                            })
+                        }
+                    }
+                })
+            }, { deep: true, immediate: true })
+        }
     }
     else{
         setTimeout(() => {
@@ -479,12 +561,14 @@ watch(menuId, (newVal)=>{
         wavePane.style.display = 'none'
         waveFillPane.style.display = 'none'
         jpEewBasePane.style.display = 'none'
+        cnEewBasePane.style.display = 'none'
     }
     else{
         isEewBlink = true
         wavePane.style.display = 'block'
         waveFillPane.style.display = 'block'
         jpEewBasePane.style.display = 'block'
+        cnEewBasePane.style.display = 'block'
     }
     if(newVal == 'settings'){
         time = 60
@@ -519,6 +603,14 @@ const jmaWarnArea = computed(()=>{
         })
     })
     return jmaWarnArea
+})
+const cnEewInfoList = computed(()=>{
+    const cnEewList = activeEewList.filter(event=>event.eqMessage.source != 'jmaEew' && !event.eqMessage.isCanceled)
+    const cnEewInfoList = cnEewList.map(event=>{
+        const { magnitude, depth, lat, lng } = event.eqMessage
+        return { magnitude, depth, lat, lng }
+    })
+    return cnEewInfoList
 })
 onBeforeUnmount(()=>{
     clearInterval(autoZoomInterval)
@@ -689,10 +781,48 @@ onBeforeUnmount(()=>{
                 position: absolute;
                 bottom: 0;
                 left: 0;
-                z-index: 500;
+                z-index: 499;
                 font-size: 18px;
                 color: #ffffff;
-                // background-color: #3333333f;
+                .legend{
+                    width: 110px;
+                    color: black;
+                    background-color: #aaa;
+                    display: flex;
+                    flex-direction: column-reverse;
+                    gap: 5px;
+                    justify-content: flex-start;
+                    padding: 10px 0px;
+                    border-radius: 5px;
+                    pointer-events: none;
+                    user-select: none;
+                    .single-legend{
+                        display: grid;
+                        grid-template-columns: 1.2fr 1fr 1.2fr;
+                        justify-content: center;
+                        align-items: center;
+                        .align-right{
+                            text-align: right;
+                            padding-right: 5px;
+                        }
+                        .align-left{
+                            text-align: left;
+                            padding-left: 5px;
+                        }
+                        .color{
+                            height: 20px;
+                        }
+                    }
+                    .sub-title{
+                        grid-template-columns: 2fr 1fr 2fr;
+                    }
+                    .legend-title{
+                        width: 100%;
+                        display: flex;
+                        justify-content: center;
+                        font-size: 24px;
+                    }
+                }
                 .ws-status{
                     display: flex;
                     align-items: center;

@@ -81,7 +81,29 @@ class EewEvent {
             if(this.pWave && this.map.hasLayer(this.pWave)) this.map.removeLayer(this.pWave)
             if(this.sWave && this.map.hasLayer(this.sWave)) this.map.removeLayer(this.sWave)
             if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) this.map.removeLayer(this.sWaveFill)
-            this.countdown = -1
+            if(this.settingsStore.mainSettings.forceDisplayCountdown && this.isValidUserLatLng){
+                let passedTime
+                if(this.useJst){
+                    passedTime = calcPassedTime(this.eqMessage.originTime, 9) / 1000
+                }
+                else{
+                    passedTime = calcPassedTime(this.eqMessage.originTime, 8) / 1000
+                }
+                this.countdown = Math.max(this.reachTime - passedTime, 0)
+                this.drawWavesInterval = setInterval(() => {
+                    let passedTime
+                    if(this.useJst){
+                        passedTime = calcPassedTime(this.eqMessage.originTime, 9) / 1000
+                    }
+                    else{
+                        passedTime = calcPassedTime(this.eqMessage.originTime, 8) / 1000
+                    }
+                    this.countdown = Math.max(this.reachTime - passedTime, 0)
+                }, 100);
+            }
+            else{
+                this.countdown = -1
+            }
         }
     }
     switchDrawWaves(passedTime, travelTime){

@@ -1,7 +1,8 @@
-import { useTimeStore } from "@/stores/time"
-import { getCurrentWindow } from '@tauri-apps/api/window';
+import { useTimeStore } from "@/stores/time";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { booleanPointInPolygon, point, polygonToLine, pointToLineDistance, area, distance, centroid } from "@turf/turf";
 
-const formatNumber = (value, digit)=>{
+export const formatNumber = (value, digit)=>{
     if(value){
         if(digit) return value.toFixed(digit)
         else return value
@@ -10,7 +11,7 @@ const formatNumber = (value, digit)=>{
         return 'N/A'
     }
 }
-const formatText = (text)=>{
+export const formatText = (text)=>{
     if(text){
         return text
     }
@@ -18,7 +19,7 @@ const formatText = (text)=>{
         return 'N/A'
     }
 }
-const msToTime = (duration)=>{
+export const msToTime = (duration)=>{
     if(!duration) return
     let seconds = Math.floor((duration / 1000) % 60)
     let minutes = Math.floor((duration / (1000 * 60)) % 60)
@@ -31,7 +32,7 @@ const msToTime = (duration)=>{
   
     return days + "d " + hours + ":" + minutes + ":" + seconds;
 }
-const timeToStamp = (time, timeZone)=>{
+export const timeToStamp = (time, timeZone)=>{
     let isoTime = time.replace(' ', 'T').replace(/\//g, '-') + 'Z'
     let splitIso = isoTime.split('-')
     if(splitIso[1].length == 1) splitIso[1] = '0' + splitIso[1]
@@ -44,24 +45,24 @@ const timeToStamp = (time, timeZone)=>{
     stamp -= timeZone * 3600 * 1000
     return stamp
 }
-const calcPassedTime = (time, timeZone)=>{
+export const calcPassedTime = (time, timeZone)=>{
     if(!time || !timeZone) return
     const timeStore = useTimeStore()
     let stamp1 = Date.now() + timeStore.offset
     let stamp2 = timeToStamp(time, timeZone)
     return stamp1 - stamp2
 }
-const verifyUpToDate = (time, timeZone, interval)=>{
+export const verifyUpToDate = (time, timeZone, interval)=>{
     if(!time || !timeZone || !interval) return
     return calcPassedTime(time, timeZone) <= interval
 }
-const calcTimeDiff = (time1, timeZone1, time2, timeZone2)=>{
+export const calcTimeDiff = (time1, timeZone1, time2, timeZone2)=>{
     if(!time1 || !timeZone1 || !time2 || !timeZone2) return
     let stamp1 = timeToStamp(time1, timeZone1)
     let stamp2 = timeToStamp(time2, timeZone2)
     return stamp1 - stamp2
 }
-const sendMyNotification = (title, body, icon, silent)=>{
+export const sendMyNotification = (title, body, icon, silent)=>{
     if('Notification' in window){
         if(Notification.permission == 'granted'){
             const notification = new Notification(title, {
@@ -75,7 +76,7 @@ const sendMyNotification = (title, body, icon, silent)=>{
         }
     }
 }
-const setClassName = (intensity, useShindo, isCanceled = false)=>{
+export const setClassName = (intensity, useShindo, isCanceled = false)=>{
     let className = 'dark-gray'
     if(!isCanceled){
         if(useShindo){
@@ -109,15 +110,17 @@ const setClassName = (intensity, useShindo, isCanceled = false)=>{
     }
     return className
 }
-const classNameArray = ['dark-gray', 'gray', 'sky-blue', 'blue', 'green', 'yellow', 'orange', 'dark-orange', 'red', 'dark-red', 'purple']
-const getClassLevel = (className)=>{
+export const classNameArray = ['dark-gray', 'gray', 'sky-blue', 'blue', 'green', 'yellow', 'orange', 'dark-orange', 'red', 'dark-red', 'purple']
+export const csisArray = ['<1', '2', '3', '4', '5', '6', '7', '8', '9', '', '>10']
+export const shindoArray = ['', '1', '', '2', '3', '4', '5-', '5+', '6-', '6+', '7']
+export const getClassLevel = (className)=>{
     return classNameArray.indexOf(className)
 }
-const playSound = (url)=>{
+export const playSound = (url)=>{
     const audio = new Audio(url)
     audio.play()
 }
-const calcWaveDistance = (travelTime, isPWave, depth, time)=>{
+export const calcWaveDistance = (travelTime, isPWave, depth, time)=>{
     const { depths, distances } = travelTime
     let data
     if(isPWave) {
@@ -138,7 +141,7 @@ const calcWaveDistance = (travelTime, isPWave, depth, time)=>{
     const distance = k * time + b
     return { reach: 0, radius: distance }
 }
-const calcReachTime = (travelTime, isPWave, depth, distance)=>{
+export const calcReachTime = (travelTime, isPWave, depth, distance)=>{
     const { depths, distances } = travelTime
     let data
     if(isPWave) {
@@ -158,14 +161,14 @@ const calcReachTime = (travelTime, isPWave, depth, distance)=>{
     const time = k * distance + b
     return time
 }
-const extractNumbers = (str)=>{
+export const extractNumbers = (str)=>{
     let numberString = ''
     for(let i = 0; i < str.length; i++){
         if(str[i] >= '0' && str[i] <= '9') numberString += str[i]
     }
     return numberString
 }
-const getTimeNumberString = (timeZone, offset)=>{
+export const getTimeNumberString = (timeZone, offset)=>{
     const timeStore = useTimeStore()
     const now = new Date(Date.now() + timeStore.offset + timeZone * 3600 * 1000 + offset);
     const year = now.getUTCFullYear();
@@ -176,8 +179,7 @@ const getTimeNumberString = (timeZone, offset)=>{
     const seconds = String(now.getUTCSeconds()).padStart(2, '0');
     return `${year}${month}${day}${hours}${minutes}${seconds}`;
 }
-
-const getShindoFromChar = (char)=>{
+export const getShindoFromChar = (char)=>{
     if(char >= 'd' && char <= 'k') return '0'
     if(char >= 'l' && char <= 'm') return '1'
     if(char >= 'n' && char <= 'o') return '2'
@@ -190,16 +192,34 @@ const getShindoFromChar = (char)=>{
     if(char == 'x') return '7'
     return '?'
 }
-const judgeSameEvent = (eqMessage1, eqMessage2)=>{
+export const judgeSameEvent = (eqMessage1, eqMessage2)=>{
     if(eqMessage1.source == eqMessage2.source && eqMessage1.id == eqMessage2.id) return true
     else return false
 }
-const focusWindow = async ()=>{
+export const focusWindow = async ()=>{
     if(window.__TAURI_INTERNALS__){
         await getCurrentWindow().show()
         await getCurrentWindow().unminimize()
         await getCurrentWindow().setFocus()
     }
 }
-
-export { formatNumber, formatText, msToTime, timeToStamp, calcPassedTime, verifyUpToDate, calcTimeDiff, sendMyNotification, setClassName, getClassLevel, playSound, calcWaveDistance, calcReachTime, extractNumbers, getTimeNumberString, getShindoFromChar, judgeSameEvent, focusWindow }
+export const pointDistToPolygon = (pointLatLng, feature)=>{
+    const turfPoint = point([pointLatLng[1], pointLatLng[0]])
+    if(booleanPointInPolygon(turfPoint, feature)){
+        return 0
+    }
+    else{
+        const features = polygonToLine(feature).features
+        if(!features) {
+            const turfCentroid = centroid(feature)
+            const distToCent = distance(turfPoint, turfCentroid, { units: "kilometers" })
+            const featArea = area(feature) / 10 ** 6
+            const radius = Math.sqrt(featArea / Math.PI)
+            const dist = Math.max(distToCent - radius, 0)
+            return dist
+        }
+        const polygonLine = features[0]
+        const dist = pointToLineDistance(turfPoint, polygonLine, { units: "kilometers" })
+        return dist
+    }
+}

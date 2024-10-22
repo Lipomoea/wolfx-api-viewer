@@ -1,6 +1,6 @@
 {
   "name": "wolfx-api-viewer",
-  "version": "2.0.0-pre.20.2",
+  "version": "2.0.0-pre.21",
   "private": true,
   "type": "module",
   "scripts": {
@@ -13,6 +13,7 @@
     "@tauri-apps/api": "^2.0.2",
     "@tauri-apps/plugin-notification": "~2",
     "@tauri-apps/plugin-window-state": "~2",
+    "@turf/turf": "^7.1.0",
     "axios": "^1.6.8",
     "element-plus": "^2.7.3",
     "leaflet": "^1.9.4",
