@@ -180,6 +180,7 @@ const isValidUserLatLng = computed(()=>settingsStore.mainSettings.userLatLng.eve
 const isDisplayUser = computed(()=>isValidUserLatLng.value && settingsStore.mainSettings.displayUser)
 const userLatLng = computed(()=>settingsStore.mainSettings.userLatLng.map(val=>Number(val)))
 const userJmaAreaName = computed(()=>{
+    if(!isValidUserLatLng.value) return ''
     let layerName = ''
     jpEewBaseMap.eachLayer(layer=>{
         const turfPoint = point([userLatLng.value[1], userLatLng.value[0]])
