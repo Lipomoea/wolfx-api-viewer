@@ -10,15 +10,17 @@ import { useStatusStore } from '@/stores/status';
 
 const statusStore = useStatusStore()
 
-const testJmaEew = true
-const testIclEew = true
+const testJmaEew = false
+const testCwaEew = true
+const testIclEew = false
+const testScEew = true
 const testJmaEqlist = false
 
 onMounted(()=>{
-    const time = new Date()
-    time.setHours(time.getHours() + 1)
-    const timeStr = time.toLocaleString()
     if(testJmaEew){
+        const time = new Date()
+        time.setHours(time.getHours() + 1)
+        const timeStr = time.toLocaleString()
         const source = 'jmaEew'
         setTimeout(() => {
             const data = {
@@ -331,126 +333,147 @@ onMounted(()=>{
             }
             statusStore.setEqMessage(source, data)
         }, 6700);
+        // setTimeout(() => {
+        //     const data = {
+        //         "Title": "緊急地震速報（警報）",
+        //         "CodeType": "Ｍ、最大予測震度及び主要動到達予測時刻の緊急地震速報",
+        //         "Issue": {
+        //             "Source": "東京",
+        //             "Status": "通常"
+        //         },
+        //         "EventID": "20240809195740",
+        //         "Serial": 15,
+        //         "AnnouncedTime": timeStr,
+        //         "OriginTime": timeStr,
+        //         "Hypocenter": "神奈川県西部",
+        //         "Latitude": 35.4,
+        //         "Longitude": 139.2,
+        //         "Magunitude": 5.2,
+        //         "Depth": 10,
+        //         "MaxIntensity": "4",
+        //         "Accuracy": {
+        //             "Epicenter": "IPF 法（5 点以上）",
+        //             "Depth": "IPF 法（5 点以上）",
+        //             "Magnitude": "全点全相"
+        //         },
+        //         "MaxIntChange": {
+        //             "String": "ほとんど変化なし",
+        //             "Reason": "不明、未設定時、キャンセル時"
+        //         },
+        //         "WarnArea": [
+        //             {
+        //                 "Chiiki": "神奈川県西部",
+        //                 "Shindo1": "4",
+        //                 "Shindo2": "4",
+        //                 "Time": "//////",
+        //                 "Type": "警報",
+        //                 "Arrive": "既に到達と予測"
+        //             },
+        //             {
+        //                 "Chiiki": "神奈川県東部",
+        //                 "Shindo1": "4",
+        //                 "Shindo2": "4",
+        //                 "Time": "//////",
+        //                 "Type": "警報",
+        //                 "Arrive": "既に到達と予測"
+        //             },
+        //             {
+        //                 "Chiiki": "静岡県東部",
+        //                 "Shindo1": "4",
+        //                 "Shindo2": "4",
+        //                 "Time": "//////",
+        //                 "Type": "警報",
+        //                 "Arrive": "既に到達と予測"
+        //             },
+        //             {
+        //                 "Chiiki": "山梨県東部・富士五湖",
+        //                 "Shindo1": "4",
+        //                 "Shindo2": "3",
+        //                 "Time": "//////",
+        //                 "Type": "警報",
+        //                 "Arrive": "既に到達と予測"
+        //             },
+        //             {
+        //                 "Chiiki": "東京都多摩東部",
+        //                 "Shindo1": "4",
+        //                 "Shindo2": "3",
+        //                 "Time": "//////",
+        //                 "Type": "警報",
+        //                 "Arrive": "既に到達と予測"
+        //             },
+        //             {
+        //                 "Chiiki": "東京都多摩西部",
+        //                 "Shindo1": "4",
+        //                 "Shindo2": "4",
+        //                 "Time": "195747",
+        //                 "Type": "警報",
+        //                 "Arrive": "主要動到達時刻の予測なし（PLUM 法による予測）"
+        //             },
+        //             {
+        //                 "Chiiki": "静岡県伊豆",
+        //                 "Shindo1": "4",
+        //                 "Shindo2": "4",
+        //                 "Time": "195746",
+        //                 "Type": "警報",
+        //                 "Arrive": "主要動到達時刻の予測なし（PLUM 法による予測）"
+        //             },
+        //             {
+        //                 "Chiiki": "埼玉県南部",
+        //                 "Shindo1": "4",
+        //                 "Shindo2": "4",
+        //                 "Time": "195750",
+        //                 "Type": "警報",
+        //                 "Arrive": "主要動到達時刻の予測なし（PLUM 法による予測）"
+        //             },
+        //             {
+        //                 "Chiiki": "東京都２３区",
+        //                 "Shindo1": "4",
+        //                 "Shindo2": "4",
+        //                 "Time": "195750",
+        //                 "Type": "警報",
+        //                 "Arrive": "主要動到達時刻の予測なし（PLUM 法による予測）"
+        //             },
+        //             {
+        //                 "Chiiki": "山梨県中・西部",
+        //                 "Shindo1": "4",
+        //                 "Shindo2": "4",
+        //                 "Time": "195752",
+        //                 "Type": "警報",
+        //                 "Arrive": "主要動到達時刻の予測なし（PLUM 法による予測）"
+        //             }
+        //         ],
+        //         "isSea": false,
+        //         "isTraining": false,
+        //         "isAssumption": false,
+        //         "isWarn": true,
+        //         "isFinal": true,
+        //         "isCancel": false,
+        //         "OriginalText": "37 03 00 240809195827 C11 240809195738 ND20240809195740 NCN915 JD////////////// JN/// 361 N354 E1392 010 52 04 RK44559 RT01/// RC0//// EBI 361 S0404 ////// 11 360 S0404 ////// 11 441 S0404 ////// 11 412 S0403 ////// 11 351 S0403 ////// 11 352 S0404 195747 19 440 S0404 195746 19 331 S0404 195750 19 350 S0404 195750 19 411 S0404 195752 19 9999=",
+        //         "Pond": "15"
+        //     }
+        //     statusStore.setEqMessage(source, data)
+        // }, 5000);
+    }
+    if(testCwaEew){
+        const source = 'cwaEew'
+        const time = new Date()
+        const timeStr = time.toLocaleString()
         setTimeout(() => {
             const data = {
-                "Title": "緊急地震速報（警報）",
-                "CodeType": "Ｍ、最大予測震度及び主要動到達予測時刻の緊急地震速報",
-                "Issue": {
-                    "Source": "東京",
-                    "Status": "通常"
-                },
-                "EventID": "20240809195740",
-                "Serial": 15,
-                "AnnouncedTime": timeStr,
+                "ID": 1130793,
+                "ReportTime": "2024-04-03 07:58:24",
+                "ReportNum": 1,
                 "OriginTime": timeStr,
-                "Hypocenter": "神奈川県西部",
-                "Latitude": 35.4,
-                "Longitude": 139.2,
-                "Magunitude": 5.2,
-                "Depth": 10,
-                "MaxIntensity": "4",
-                "Accuracy": {
-                    "Epicenter": "IPF 法（5 点以上）",
-                    "Depth": "IPF 法（5 点以上）",
-                    "Magnitude": "全点全相"
-                },
-                "MaxIntChange": {
-                    "String": "ほとんど変化なし",
-                    "Reason": "不明、未設定時、キャンセル時"
-                },
-                "WarnArea": [
-                    {
-                        "Chiiki": "神奈川県西部",
-                        "Shindo1": "4",
-                        "Shindo2": "4",
-                        "Time": "//////",
-                        "Type": "警報",
-                        "Arrive": "既に到達と予測"
-                    },
-                    {
-                        "Chiiki": "神奈川県東部",
-                        "Shindo1": "4",
-                        "Shindo2": "4",
-                        "Time": "//////",
-                        "Type": "警報",
-                        "Arrive": "既に到達と予測"
-                    },
-                    {
-                        "Chiiki": "静岡県東部",
-                        "Shindo1": "4",
-                        "Shindo2": "4",
-                        "Time": "//////",
-                        "Type": "警報",
-                        "Arrive": "既に到達と予測"
-                    },
-                    {
-                        "Chiiki": "山梨県東部・富士五湖",
-                        "Shindo1": "4",
-                        "Shindo2": "3",
-                        "Time": "//////",
-                        "Type": "警報",
-                        "Arrive": "既に到達と予測"
-                    },
-                    {
-                        "Chiiki": "東京都多摩東部",
-                        "Shindo1": "4",
-                        "Shindo2": "3",
-                        "Time": "//////",
-                        "Type": "警報",
-                        "Arrive": "既に到達と予測"
-                    },
-                    {
-                        "Chiiki": "東京都多摩西部",
-                        "Shindo1": "4",
-                        "Shindo2": "4",
-                        "Time": "195747",
-                        "Type": "警報",
-                        "Arrive": "主要動到達時刻の予測なし（PLUM 法による予測）"
-                    },
-                    {
-                        "Chiiki": "静岡県伊豆",
-                        "Shindo1": "4",
-                        "Shindo2": "4",
-                        "Time": "195746",
-                        "Type": "警報",
-                        "Arrive": "主要動到達時刻の予測なし（PLUM 法による予測）"
-                    },
-                    {
-                        "Chiiki": "埼玉県南部",
-                        "Shindo1": "4",
-                        "Shindo2": "4",
-                        "Time": "195750",
-                        "Type": "警報",
-                        "Arrive": "主要動到達時刻の予測なし（PLUM 法による予測）"
-                    },
-                    {
-                        "Chiiki": "東京都２３区",
-                        "Shindo1": "4",
-                        "Shindo2": "4",
-                        "Time": "195750",
-                        "Type": "警報",
-                        "Arrive": "主要動到達時刻の予測なし（PLUM 法による予測）"
-                    },
-                    {
-                        "Chiiki": "山梨県中・西部",
-                        "Shindo1": "4",
-                        "Shindo2": "4",
-                        "Time": "195752",
-                        "Type": "警報",
-                        "Arrive": "主要動到達時刻の予測なし（PLUM 法による予測）"
-                    }
-                ],
-                "isSea": false,
-                "isTraining": false,
-                "isAssumption": false,
-                "isWarn": true,
-                "isFinal": true,
-                "isCancel": false,
-                "OriginalText": "37 03 00 240809195827 C11 240809195738 ND20240809195740 NCN915 JD////////////// JN/// 361 N354 E1392 010 52 04 RK44559 RT01/// RC0//// EBI 361 S0404 ////// 11 360 S0404 ////// 11 441 S0404 ////// 11 412 S0403 ////// 11 351 S0403 ////// 11 352 S0404 195747 19 440 S0404 195746 19 331 S0404 195750 19 350 S0404 195750 19 411 S0404 195752 19 9999=",
-                "Pond": "15"
+                "HypoCenter": "花蓮縣壽豐鄉",
+                "Latitude": 23.89,
+                "Longitude": 121.56,
+                "Magunitude": 6.8,
+                "Depth": 20,
+                "MaxIntensity": "6強",
+                "isCancel": false
             }
             statusStore.setEqMessage(source, data)
-        }, 5000);
+        }, 6000);
     }
     if(testIclEew){
         setTimeout(() => {
@@ -482,7 +505,7 @@ onMounted(()=>{
                 "updates": 1,
                 "latitude": 32.00443,
                 "longitude": 117.68219,
-                "depth": 8,
+                "depth": 5,
                 "epicenter": "安徽肥东",
                 startAt,
                 "updateAt": Date.now(),
@@ -518,7 +541,7 @@ onMounted(()=>{
                 "updates": 3,
                 "latitude": 32.00443,
                 "longitude": 117.68219,
-                "depth": 10,
+                "depth": 20,
                 "epicenter": "安徽肥东",
                 startAt,
                 "updateAt": Date.now(),
@@ -536,7 +559,7 @@ onMounted(()=>{
                 "updates": 4,
                 "latitude": 32.00443,
                 "longitude": 117.68219,
-                "depth": 10,
+                "depth": 30,
                 "epicenter": "安徽肥东",
                 startAt,
                 "updateAt": Date.now(),
@@ -554,7 +577,7 @@ onMounted(()=>{
                 "updates": 5,
                 "latitude": 32.00443,
                 "longitude": 117.68219,
-                "depth": 10,
+                "depth": 40,
                 "epicenter": "安徽肥东",
                 startAt,
                 "updateAt": Date.now(),
@@ -572,7 +595,7 @@ onMounted(()=>{
                 "updates": 6,
                 "latitude": 32.00443,
                 "longitude": 117.68219,
-                "depth": 10,
+                "depth": 50,
                 "epicenter": "安徽肥东",
                 startAt,
                 "updateAt": Date.now(),
@@ -590,7 +613,7 @@ onMounted(()=>{
                 "updates": 7,
                 "latitude": 32.00443,
                 "longitude": 117.68219,
-                "depth": 10,
+                "depth": 60,
                 "epicenter": "安徽肥东",
                 startAt,
                 "updateAt": Date.now(),
@@ -608,7 +631,7 @@ onMounted(()=>{
                 "updates": 8,
                 "latitude": 32.00443,
                 "longitude": 117.68219,
-                "depth": 10,
+                "depth": 70,
                 "epicenter": "安徽肥东",
                 startAt,
                 "updateAt": Date.now(),
@@ -626,7 +649,7 @@ onMounted(()=>{
                 "updates": 9,
                 "latitude": 32.00443,
                 "longitude": 117.68219,
-                "depth": 10,
+                "depth": 80,
                 "epicenter": "安徽肥东",
                 startAt,
                 "updateAt": Date.now(),
@@ -644,7 +667,7 @@ onMounted(()=>{
                 "updates": 10,
                 "latitude": 32.00443,
                 "longitude": 117.68219,
-                "depth": 10,
+                "depth": 90,
                 "epicenter": "安徽肥东",
                 startAt,
                 "updateAt": Date.now(),
@@ -662,7 +685,7 @@ onMounted(()=>{
                 "updates": 11,
                 "latitude": 32.00443,
                 "longitude": 117.68219,
-                "depth": 10,
+                "depth": 100,
                 "epicenter": "安徽肥东",
                 startAt,
                 "updateAt": Date.now(),
@@ -674,6 +697,27 @@ onMounted(()=>{
             }
             statusStore.setEqMessage(source, data)
         }, 14000);
+    }
+    if(testScEew){
+        const source = 'scEew'
+        const time = new Date()
+        const timeStr = time.toLocaleString()
+        setTimeout(() => {
+            const data = {
+                "ID": 7800,
+                "EventID": "20241022232024.0001_1",
+                "ReportTime": "2024-10-22 23:20:40",
+                "ReportNum": 1,
+                "OriginTime": timeStr,
+                "HypoCenter": "四川绵阳市北川县",
+                "Latitude": 31.832,
+                "Longitude": 104.353,
+                "Magunitude": 3,
+                "Depth": null,
+                "MaxIntensity": 4
+            }
+            statusStore.setEqMessage(source, data)
+        }, 4000);
     }
     if(testJmaEqlist){
         const source = 'jmaEqlist'
