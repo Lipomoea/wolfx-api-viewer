@@ -27,18 +27,18 @@
                         <div class="countdown eew realtime" v-if="settingsStore.mainSettings.displayCountdown">
                             <div class="shindo-bar" :class="event.countdown <= 0?'gray':event.countdown < 10?'red':event.countdown < 60?'orange':'yellow'">{{ event.countdown == -1?'-':Math.floor(event.countdown) }}秒</div>
                             <div class="info" v-if="event.eqMessage.source == 'jmaEew'">
-                                <div class="intensity" :class="setClassName(userJmaAreaShindo, true)">
-                                    <div class="intensity-title">本地震度</div>
+                                <div class="intensity" :class="userJmaAreaShindo == '?' && isValidUserLatLng && statusStore.calcCsisLevel?setClassName(calcUserCsis(event), false):setClassName(userJmaAreaShindo, true)">
+                                    <div class="intensity-title">{{ userJmaAreaShindo == '?' && isValidUserLatLng && statusStore.calcCsisLevel?'本地CSIS':'本地震度' }}</div>
                                     <div :class="userJmaAreaShindo != '?'?'shindo':'csis'">
-                                        {{ userJmaAreaShindo }}
+                                        {{ userJmaAreaShindo == '?' && isValidUserLatLng && statusStore.calcCsisLevel?calcUserCsis(event):userJmaAreaShindo }}
                                     </div>
                                 </div>
                             </div>
                             <div class="info" v-else>
-                                <div class="intensity" :class="setClassName(isValidUserLatLng && statusStore.calcCsisLevel?statusStore.calcCsisLevel(event.eqMessage.magnitude, event.eqMessage.depth, L.latLng([event.eqMessage.lat, event.eqMessage.lng]).distanceTo(L.latLng(userLatLng)) / 1000):'?', false)">
+                                <div class="intensity" :class="setClassName(isValidUserLatLng && statusStore.calcCsisLevel?calcUserCsis(event):'?', false)">
                                     <div class="intensity-title">本地CSIS</div>
                                     <div class="csis">
-                                        {{ isValidUserLatLng && statusStore.calcCsisLevel?statusStore.calcCsisLevel(event.eqMessage.magnitude, event.eqMessage.depth, L.latLng([event.eqMessage.lat, event.eqMessage.lng]).distanceTo(L.latLng(userLatLng)) / 1000):'?' }}
+                                        {{ isValidUserLatLng && statusStore.calcCsisLevel?calcUserCsis(event):'?' }}
                                     </div>
                                 </div>
                             </div>
@@ -65,7 +65,7 @@
                             </div>
                         </div>
                     </div>
-                    <div style="display: flex;">
+                    <div class="event">
                         <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.nied && settingsStore.advancedSettings.displayNiedShindo">
                             <div class="shindo-bar gray">NIED实时</div>
                             <div class="info">
@@ -606,13 +606,16 @@ const jmaWarnArea = computed(()=>{
     return jmaWarnArea
 })
 const cnEewInfoList = computed(()=>{
-    const cnEewList = activeEewList.filter(event=>event.eqMessage.source != 'jmaEew' && !event.eqMessage.isCanceled)
+    const cnEewList = activeEewList.filter(event=>!event.eqMessage.isCanceled)
     const cnEewInfoList = cnEewList.map(event=>{
         const { magnitude, depth, lat, lng } = event.eqMessage
         return { magnitude, depth, lat, lng }
     })
     return cnEewInfoList
 })
+const calcUserCsis = (event)=>{
+    return statusStore.calcCsisLevel(event.eqMessage.magnitude, event.eqMessage.depth, L.latLng([event.eqMessage.lat, event.eqMessage.lng]).distanceTo(L.latLng(userLatLng.value)) / 1000)
+}
 onBeforeUnmount(()=>{
     clearInterval(autoZoomInterval)
     clearTimeout(autoZoomTimer)

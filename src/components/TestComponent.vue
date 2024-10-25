@@ -10,10 +10,10 @@ import { useStatusStore } from '@/stores/status';
 
 const statusStore = useStatusStore()
 
-const testJmaEew = false
-const testCwaEew = true
+const testJmaEew = true
+const testCwaEew = false
 const testIclEew = false
-const testScEew = true
+const testScEew = false
 const testJmaEqlist = false
 
 onMounted(()=>{
