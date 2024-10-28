@@ -550,7 +550,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        'wolfx-api-viewer v2.0.0-pre.21.1',
+        'wolfx-api-viewer v2.0.0-pre.21.2',
         {
             confirmButtonText: 'OK',
             showClose: false,

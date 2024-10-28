@@ -24,7 +24,7 @@ pub fn run() {
             let _ = TrayIconBuilder::new()
                 .menu(&menu)
                 .icon(app.default_window_icon().unwrap().clone())
-                .tooltip("wolfx-api-viewer v2.0.0-pre.21.1")
+                .tooltip("wolfx-api-viewer v2.0.0-pre.21.2")
                 .on_menu_event(move |tray, event| match event.id().as_ref() {
                     "quit" => {
                         let app_handle = tray.app_handle();
