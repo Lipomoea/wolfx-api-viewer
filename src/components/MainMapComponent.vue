@@ -562,14 +562,12 @@ watch(menuId, (newVal)=>{
         wavePane.style.display = 'none'
         waveFillPane.style.display = 'none'
         jpEewBasePane.style.display = 'none'
-        cnEewBasePane.style.display = 'none'
     }
     else{
         isEewBlink = true
         wavePane.style.display = 'block'
         waveFillPane.style.display = 'block'
         jpEewBasePane.style.display = 'block'
-        cnEewBasePane.style.display = 'block'
     }
     if(newVal == 'settings'){
         time = 60
@@ -606,7 +604,7 @@ const jmaWarnArea = computed(()=>{
     return jmaWarnArea
 })
 const cnEewInfoList = computed(()=>{
-    const cnEewList = activeEewList.filter(event=>!event.eqMessage.isCanceled)
+    const cnEewList = menuId.value == 'eqlists'?eqlistList:activeEewList.filter(event=>!event.eqMessage.isCanceled)
     const cnEewInfoList = cnEewList.map(event=>{
         const { magnitude, depth, lat, lng } = event.eqMessage
         return { magnitude, depth, lat, lng }
