@@ -91,7 +91,7 @@
                     </div>
                 </div>
                 <div class="left-bottom">
-                    <div class="legend" v-if="settingsStore.mainSettings.displayLegend && activeSources.some(source=>source.includes('Eew'))">
+                    <div class="legend" v-if="settingsStore.mainSettings.displayLegend && (activeSources.some(source=>source.includes('Eew')) || menuId == 'eqlists')">
                         <div class="single-legend" v-for="(className, index) of classNameArray" :key="index">
                             <div class="align-right">{{ csisArray[index] }}</div>
                             <div class="color" :class="className"></div>
@@ -787,42 +787,44 @@ onBeforeUnmount(()=>{
                 font-size: 18px;
                 color: #ffffff;
                 .legend{
-                    width: 110px;
-                    color: black;
-                    background-color: #aaa;
+                    width: 90px;
+                    background-color: #5555553f;
+                    font-size: 16px;
                     display: flex;
                     flex-direction: column-reverse;
-                    gap: 5px;
                     justify-content: flex-start;
-                    padding: 10px 0px;
+                    padding: 5px 0px;
                     border-radius: 5px;
+                    box-shadow: 0px 0px 2px 1px #333;
+                    backdrop-filter: blur(10px);
                     pointer-events: none;
                     user-select: none;
+                    .align-right{
+                        text-align: right;
+                        padding-right: 2px;
+                    }
+                    .align-left{
+                        text-align: left;
+                        padding-left: 2px;
+                    }
+                    .color{
+                        height: 20px;
+                    }
                     .single-legend{
                         display: grid;
-                        grid-template-columns: 1.2fr 1fr 1.2fr;
+                        grid-template-columns: 1fr 0.15fr 1fr;
                         justify-content: center;
                         align-items: center;
-                        .align-right{
-                            text-align: right;
-                            padding-right: 5px;
+                        div{
+                            line-height: 1em;
                         }
-                        .align-left{
-                            text-align: left;
-                            padding-left: 5px;
-                        }
-                        .color{
-                            height: 20px;
-                        }
-                    }
-                    .sub-title{
-                        grid-template-columns: 2fr 1fr 2fr;
                     }
                     .legend-title{
                         width: 100%;
                         display: flex;
                         justify-content: center;
-                        font-size: 24px;
+                        font-size: 20px;
+                        margin-bottom: 5px;
                     }
                 }
                 .ws-status{
