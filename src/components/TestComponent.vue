@@ -333,6 +333,45 @@ onMounted(()=>{
             }
             statusStore.setEqMessage(source, data)
         }, 6700);
+        setTimeout(() => {
+            const data = {
+                "Title": "緊急地震速報（予報）",
+                "CodeType": "",
+                "Issue": {
+                    "Source": "",
+                    "Status": ""
+                },
+                "EventID": "20150530202300",
+                "Serial": 1,
+                "AnnouncedTime": timeStr,
+                "OriginTime": timeStr,
+                "Hypocenter": "小笠原諸島西方沖",
+                "Latitude": 27.86,
+                "Longitude": 140.68,
+                "Magunitude": 8.1,
+                "Depth": 2000,
+                "MaxIntensity": "不明",
+                "Accuracy": {
+                    "Epicenter": "",
+                    "Depth": "",
+                    "Magnitude": ""
+                },
+                "MaxIntChange": {
+                    "String": "",
+                    "Reason": ""
+                },
+                "WarnArea": [],
+                "isSea": true,
+                "isTraining": false,
+                "isAssumption": false,
+                "isWarn": false,
+                "isFinal": true,
+                "isCancel": false,
+                "OriginalText": "",
+                "Pond": ""
+            }
+            statusStore.setEqMessage(source, data)
+        }, 8000);
         // setTimeout(() => {
         //     const data = {
         //         "Title": "緊急地震速報（警報）",
