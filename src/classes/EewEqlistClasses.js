@@ -57,7 +57,9 @@ class EewEvent {
             cautionSound: false,
             warnSound: false,
             focused: false,
+            lastSecondsCount: 11
         }
+        this.maxRadius = 2000
         this.update(eqMessage, time)
     }
     setMark(){
@@ -66,49 +68,27 @@ class EewEvent {
         this.hypoMarker.addTo(this.map)
     }
     drawWaves(){
-        if(!this.eqMessage.isAssumption){
-            let passedTime
-            if(this.useJst){
-                passedTime = calcPassedTime(this.eqMessage.originTime, 9) / 1000
-            }
-            else{
-                passedTime = calcPassedTime(this.eqMessage.originTime, 8) / 1000
-            }
-            this.switchDrawWaves(passedTime, this.travelTime)
+        let passedTime
+        if(this.useJst){
+            passedTime = calcPassedTime(this.eqMessage.originTime, 9) / 1000
         }
         else{
-            clearInterval(this.drawWavesInterval)
+            passedTime = calcPassedTime(this.eqMessage.originTime, 8) / 1000
+        }
+        this.handleCountdown(passedTime)
+        if(!this.eqMessage.isAssumption){
+            this.switchDrawWaves(passedTime)
+        }
+        else{
             if(this.pWave && this.map.hasLayer(this.pWave)) this.map.removeLayer(this.pWave)
             if(this.sWave && this.map.hasLayer(this.sWave)) this.map.removeLayer(this.sWave)
             if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) this.map.removeLayer(this.sWaveFill)
-            if(this.settingsStore.mainSettings.forceDisplayCountdown && this.isValidUserLatLng){
-                let passedTime
-                if(this.useJst){
-                    passedTime = calcPassedTime(this.eqMessage.originTime, 9) / 1000
-                }
-                else{
-                    passedTime = calcPassedTime(this.eqMessage.originTime, 8) / 1000
-                }
-                this.countdown = Math.max(this.reachTime - passedTime, 0)
-                this.drawWavesInterval = setInterval(() => {
-                    let passedTime
-                    if(this.useJst){
-                        passedTime = calcPassedTime(this.eqMessage.originTime, 9) / 1000
-                    }
-                    else{
-                        passedTime = calcPassedTime(this.eqMessage.originTime, 8) / 1000
-                    }
-                    this.countdown = Math.max(this.reachTime - passedTime, 0)
-                }, 100);
-            }
-            else{
-                this.countdown = -1
-            }
         }
     }
-    switchDrawWaves(passedTime, travelTime){
+    switchDrawWaves(passedTime){
         let p_reach, p_radius, s_reach, s_radius
-        const maxRadius = 2000
+        const maxRadius = this.maxRadius
+        const travelTime = this.travelTime
         const p_info = calcWaveDistance(travelTime, true, this.eqMessage.depth, passedTime)
         p_reach = p_info.reach
         p_radius = p_info.radius
@@ -128,7 +108,7 @@ class EewEvent {
                 interactive: false
             })
             this.pWave.addTo(this.map)
-            L.DomUtil.addClass(this.pWave.getElement(), 'wave')
+            // L.DomUtil.addClass(this.pWave.getElement(), 'wave')
         }
         if(this.sWave && this.map.hasLayer(this.sWave)) this.map.removeLayer(this.sWave)
         if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) this.map.removeLayer(this.sWaveFill)
@@ -154,14 +134,8 @@ class EewEvent {
                 interactive: false
             })
             this.sWaveFill.addTo(this.map)
-            L.DomUtil.addClass(this.sWave.getElement(), 'wave')
-            L.DomUtil.addClass(this.sWaveFill.getElement(), 'wave')
-        }
-        if((this.settingsStore.mainSettings.forceDisplayCountdown || this.userDist <= maxRadius) && this.isValidUserLatLng){
-            this.countdown = Math.max(this.reachTime - passedTime, 0)
-        }
-        else{
-            this.countdown = -1
+            // L.DomUtil.addClass(this.sWave.getElement(), 'wave')
+            // L.DomUtil.addClass(this.sWaveFill.getElement(), 'wave')
         }
     }
     calcOpacityRatio(radius, maxRadius){
@@ -278,6 +252,21 @@ class EewEvent {
                 `${eqMessage.hypocenterText}\n${eqMessage.depthText}\n${eqMessage.magnitudeText}\n${eqMessage.maxIntensityText}`, 
                 icon, 
                 settingsStore.mainSettings.muteNotification)
+        }
+    }
+    handleCountdown(passedTime){
+        if(this.settingsStore.mainSettings.displayCountdown && this.isValidUserLatLng && (this.userDist <= this.maxRadius && !this.eqMessage.isAssumption || this.settingsStore.mainSettings.forceDisplayCountdown)){
+            this.countdown = Math.max(this.reachTime - passedTime, 0)
+            if(this.settingsStore.mainSettings.playCountdownSound){
+                const secondsCount = Math.ceil(this.countdown)
+                if(secondsCount < this.flags.lastSecondsCount){
+                    playSound(chimeUrls.general.countdown)
+                    this.flags.lastSecondsCount = secondsCount
+                }
+            }
+        }
+        else{
+            this.countdown = -1
         }
     }
     terminate(){

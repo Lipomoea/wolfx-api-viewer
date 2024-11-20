@@ -31,17 +31,16 @@ const niedMaxShindo = inject('niedMaxShindo')
 const niedUpdateTime = inject('niedUpdateTime')
 const niedPeriodMaxShindo = inject('niedPeriodMaxShindo')
 const periodMaxLevel = ref(-1)
-const periodMaxShindo = computed(()=>{
-    if(periodMaxLevel.value <= 0) return -1
-    else if(periodMaxLevel.value <= 7) return 0
-    else if(periodMaxLevel.value <= 9) return 1
-    else if(periodMaxLevel.value <= 11) return 2
-    else if(periodMaxLevel.value <= 13) return 3
-    else if(periodMaxLevel.value <= 15) return 4
-    else if(periodMaxLevel.value <= 16) return 5
-    else if(periodMaxLevel.value <= 17) return 5.5
-    else if(periodMaxLevel.value <= 18) return 6
-    else if(periodMaxLevel.value <= 19) return 6.5
+const currentMaxShindo = computed(()=>{
+    const currentMaxLevel = Math.max(...grids.value.map(grid=>grid.level), -1)
+    if(currentMaxLevel == -1) return -1
+    else if(currentMaxLevel <= 7) return 0
+    else if(currentMaxLevel <= 9) return 1
+    else if(currentMaxLevel <= 11) return 2
+    else if(currentMaxLevel <= 13) return 3
+    else if(currentMaxLevel <= 15) return 4
+    else if(currentMaxLevel <= 17) return 5
+    else if(currentMaxLevel <= 19) return 6
     else return 7
 })
 let adjacencyMatrix = []
@@ -159,13 +158,24 @@ onMounted(()=>{
                 if(data.realTimeData.siteConfigId == siteConfigId.value){
                     stationData.value = data.realTimeData.intensity.split('')
                     const timeDiff = calcTimeDiff(data.realTimeData.dataTime.slice(0, -6), 9, niedUpdateTime.value, 9)
-                    if(timeDiff > 10000 || timeDiff < 0){
+                    if(timeDiff > 1000){
+                        const popNum = Math.floor(timeDiff / 1000) - 1
+                        stations.forEach(station=>{
+                            station.recentLevel.splice(-popNum, popNum)
+                        })
+                    }
+                    if(timeDiff > 8000){
+                        stations.forEach(station=>{
+                            station.isActive = false
+                        })
+                    }
+                    if(delay.value > maxDelay && timeDiff < 0){
                         stations.forEach(station=>{
                             station.recentLevel = []
                             station.isActive = false
                         })
                     }
-                    if(!(delay.value <= maxDelay && timeDiff < 0)){
+                    if(delay.value > maxDelay && timeDiff < 0 || timeDiff > 0){
                         niedUpdateTime.value = data.realTimeData.dataTime.slice(0, -6)
                         update()
                     }
@@ -262,29 +272,12 @@ watch(()=>(statusStore.isActive.jmaEew || statusStore.isActive.niedNet), newVal=
     }
 })
 let shake1Notified = false, shake2Notified = false
-let sound0 = false, sound5 = false, sound6 = false
 let focused = false
-watch(periodMaxShindo, (newVal, oldVal)=>{
+watch(currentMaxShindo, (newVal, oldVal)=>{
     if(newVal > oldVal){
         if(settingsStore.mainSettings.onShake.sound){
-            let play = true
-            const shindo = Math.floor(newVal)
-            if(shindo == 0){
-                if(sound0) play = false
-                else sound0 = true
-            }
-            else if(shindo == 5){
-                if(sound5) play = false
-                else sound5 = true
-            }
-            else if(shindo == 6){
-                if(sound6) play = false
-                else sound6 = true
-            }
-            if(play){
-                const url = chimeUrls[soundEffect.value][`shindo${shindo}`]
-                playSound(url)
-            }
+            const url = chimeUrls[soundEffect.value][`shindo${newVal}`]
+            playSound(url)
         }
         if(settingsStore.mainSettings.onShake.notification){
             if(newVal >= 1 && newVal <= 3 && !shake1Notified){
@@ -313,9 +306,6 @@ watch(periodMaxShindo, (newVal, oldVal)=>{
     else{
         shake1Notified = false
         shake2Notified = false
-        sound0 = false
-        sound5 = false
-        sound6 = false
         focused = false
     }
 })

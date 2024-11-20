@@ -137,6 +137,10 @@
                             <div class="switch">
                                 <el-checkbox v-model="settingsStore.mainSettings.forceDisplayCountdown" :disabled="!settingsStore.mainSettings.displayCountdown">强制计算倒计时（低精度）</el-checkbox>
                             </div>
+                            <div class="switch">
+                                <span>播放倒计时音效</span>
+                                <el-switch v-model="settingsStore.mainSettings.playCountdownSound" :disabled="!settingsStore.mainSettings.displayCountdown"></el-switch>
+                            </div>
                         </div>
                     </div>
                     <div class="row">
@@ -506,16 +510,11 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
+            <p>v2.0.0-pre.22 新增：地震波倒计时提示音；优化：多重地震震度检出；优化：降低震度误检出概率；优化：调整部分UI质感；优化：代码逻辑；修复：异色地震波叠加闪烁的问题。</p>
             <p>v2.0.0-pre.21 新增：EEW显示地震波倒计时；新增：紧急地震速报本地预想震度功能；新增：EEW地图图例；优化：新增烈度配色。</p>
             <p>v2.0.0-pre.20 新增：首次推出Windows桌面版应用，新增桌面应用弹窗功能。</p>
             <p>v2.0.0-(pre.1-pre.19) 变更：升级Vue3版本，UI重排，WebSocket使用all_eew接口，使用新的中国和日本地图，暂时移除地震波倒计时功能；新增：同源多个EEW同时展示，适配假定震源，JMA紧急地震速报区域预想震度绘制，中国断层显示，NIED強震モニタ测站显示、震度检出功能，设置默认视野功能，鼠标悬浮提示区域名称，NIED测站回放功能。</p>
             <p>v1.0.0-1.1.2 新增：地图功能、自动打开地图功能、JMA地震情报列表查看详细、设置用户所在地、IP定位、地震波抵达倒计时等功能；优化：增加自动对时。</p>
-        </div>
-        <div class="title">已知问题</div>
-        <div class="about">
-            <p>置于后台后一段时间切回可能白屏。</p>
-            <p>置于后台时部分连接可能中断。</p>
-            <p>置于后台时震度检出可能出现异常。</p>
         </div>
         <div class="title">使用方法</div>
         <div class="about">
@@ -550,7 +549,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        'wolfx-api-viewer v2.0.0-pre.21.2',
+        'wolfx-api-viewer v2.0.0-pre.22',
         {
             confirmButtonText: 'OK',
             showClose: false,

@@ -7,7 +7,7 @@
                     <div class="event" v-for="(event, index) of activeEewList" :key="index" v-show="menuId != 'eqlists'">
                         <div class="eew">
                             <div class="bar" :class="getBarClass(event.eqMessage)">{{ event.eqMessage.titleText + ' ' + event.eqMessage.reportNumText }}</div>
-                            <div class="info gray">
+                            <div class="info">
                                 <div class="intensity" :class="event.eqMessage.className">
                                     <div class="intensity-title">{{ event.eqMessage.useShindo?'最大震度':'最大CSIS' }}</div>
                                     <div :class="event.eqMessage.useShindo && formatIntensity(event.eqMessage.maxIntensity) != '?'?'shindo':'csis'">
@@ -25,7 +25,7 @@
                             </div>
                         </div>
                         <div class="countdown eew realtime" v-if="settingsStore.mainSettings.displayCountdown">
-                            <div class="shindo-bar" :class="event.countdown <= 0?'gray':event.countdown < 10?'red':event.countdown < 60?'orange':'yellow'">{{ event.countdown == -1?'-':Math.floor(event.countdown) }}秒</div>
+                            <div class="shindo-bar" :class="event.countdown <= 0?'gray':event.countdown <= 10?'red':event.countdown <= 60?'orange':'yellow'">{{ event.countdown == -1?'-':Math.floor(event.countdown) }}秒</div>
                             <div class="info" v-if="event.eqMessage.source == 'jmaEew'">
                                 <div class="intensity" :class="userJmaAreaShindo == '?' && isValidUserLatLng && statusStore.calcCsisLevel?setClassName(calcUserCsis(event), false):setClassName(userJmaAreaShindo, true)">
                                     <div class="intensity-title">{{ userJmaAreaShindo == '?' && isValidUserLatLng && statusStore.calcCsisLevel?'本地CSIS':'本地震度' }}</div>
@@ -47,7 +47,7 @@
                     <div class="event" v-for="(event, index) of activeEqlistList" :key="index" v-show="menuId != 'eews'">
                         <div class="eew">
                             <div class="bar" :class="getBarClass(event.eqMessage)">{{ event.eqMessage.titleText + ' ' + event.eqMessage.reportNumText }}</div>
-                            <div class="info gray">
+                            <div class="info">
                                 <div class="intensity" :class="event.eqMessage.className">
                                     <div class="intensity-title">{{ event.eqMessage.useShindo?'最大震度':'最大CSIS' }}</div>
                                     <div :class="event.eqMessage.useShindo && formatIntensity(event.eqMessage.maxIntensity) != '?'?'shindo':'csis'">
@@ -227,7 +227,7 @@ provide('handleHome', handleHome)
 const wsStatusCode = ref(4)
 const iclWsStatusCode = ref(5)
 const statusList = ['正在连接', '已连接', '正在断开', '已断开', '未连接', '不使用']
-const niedUpdateTime = ref('')
+const niedUpdateTime = ref('1970-01-01T09:00:00')
 const niedMaxShindo = ref('?')
 const niedPeriodMaxShindo = ref('?')
 provide('niedUpdateTime', niedUpdateTime)
@@ -531,33 +531,30 @@ const onEachFeature = (name)=>(feature, layer)=>{
         direction: 'auto'
     })
 }
-let returnMainTimer, time
+let returnMainTimer
 const resetMainTimer = ()=>{
     clearTimeout(returnMainTimer)
     returnMainTimer = setTimeout(() => {
         handleMenu('main')
-    }, time * 1000);
+    }, 60 * 1000);
 }
 watch(menuId, (newVal)=>{
     document.removeEventListener('mousemove', resetMainTimer)
-    isEewBlink = false
     if(newVal == 'main'){
         clearTimeout(returnMainTimer)
     }
     else{
+        resetMainTimer()
         document.addEventListener('mousemove', resetMainTimer)
     }
     if(newVal == 'eews'){
-        time = 60
-        resetMainTimer()
         eqlistMarkerPane.style.display = 'none'
     }
     else{
         eqlistMarkerPane.style.display = 'block'
     }
     if(newVal == 'eqlists'){
-        time = 30
-        resetMainTimer()
+        isEewBlink = false
         eewMarkerPane.style.display = 'none'
         wavePane.style.display = 'none'
         waveFillPane.style.display = 'none'
@@ -568,10 +565,6 @@ watch(menuId, (newVal)=>{
         wavePane.style.display = 'block'
         waveFillPane.style.display = 'block'
         jpEewBasePane.style.display = 'block'
-    }
-    if(newVal == 'settings'){
-        time = 60
-        resetMainTimer()
     }
 })
 let autoZoomInterval
@@ -604,7 +597,7 @@ const jmaWarnArea = computed(()=>{
     return jmaWarnArea
 })
 const cnEewInfoList = computed(()=>{
-    const cnEewList = menuId.value == 'eqlists'?eqlistList:activeEewList.filter(event=>!event.eqMessage.isCanceled)
+    const cnEewList = menuId.value == 'eqlists'?eqlistList.filter(event=>!(isNaN(event.eqMessage.magnitude) || isNaN(event.eqMessage.depth))):activeEewList.filter(event=>!(event.eqMessage.isCanceled || event.eqMessage.isAssumption))
     const cnEewInfoList = cnEewList.map(event=>{
         const { magnitude, depth, lat, lng } = event.eqMessage
         return { magnitude, depth, lat, lng }
@@ -698,6 +691,8 @@ onBeforeUnmount(()=>{
                         display: flex;
                         gap: 10px;
                         align-items: center;
+                        background-color: #cfcfcf9f;
+                        backdrop-filter: blur(10px);
                         .intensity{
                             width: 100px;
                             height: 100%;
@@ -763,7 +758,7 @@ onBeforeUnmount(()=>{
                                 align-items: center;
                                 gap: 15px;
                                 .magnitude{
-                                    font-size: 22px;
+                                    font-size: 24px;
                                 }
                                 .depth{
                                     font-size: 22px;
@@ -870,6 +865,8 @@ onBeforeUnmount(()=>{
                 z-index: 600;
                 border-radius: 10px;
                 overflow: hidden;
+                background-color: #ffffffbf;
+                backdrop-filter: blur(10px);
             }
         }
         .drawer{

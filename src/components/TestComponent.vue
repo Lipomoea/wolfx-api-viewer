@@ -12,7 +12,7 @@ const statusStore = useStatusStore()
 
 const testJmaEew = true
 const testCwaEew = false
-const testIclEew = false
+const testIclEew = true
 const testScEew = false
 const testJmaEqlist = false
 
@@ -348,8 +348,8 @@ onMounted(()=>{
                 "Hypocenter": "小笠原諸島西方沖",
                 "Latitude": 27.86,
                 "Longitude": 140.68,
-                "Magunitude": 8.1,
-                "Depth": 2000,
+                "Magunitude": 9.1,
+                "Depth": 590,
                 "MaxIntensity": "不明",
                 "Accuracy": {
                     "Epicenter": "",
