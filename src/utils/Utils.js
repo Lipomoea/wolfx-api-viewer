@@ -30,10 +30,7 @@ const msToTime = (duration)=>{
   
     return days + "d " + hours + ":" + minutes + ":" + seconds;
 }
-const calcPassedTime = (time, timeZone)=>{
-    if(!time || !timeZone) return
-    const timeStore = useTimeStore()
-    let date1 = Date.now() + timeStore.offset
+const timeToStamp = (time, timeZone)=>{
     let isoTime = time.replace(' ', 'T').replace(/\//g, '-') + 'Z'
     let splitIso = isoTime.split('-')
     if(splitIso[1].length == 1) splitIso[1] = '0' + splitIso[1]
@@ -42,53 +39,78 @@ const calcPassedTime = (time, timeZone)=>{
     splitIso = isoTime.split('T')
     if(splitIso[1].split(':')[0].length == 1) splitIso[1] = '0' + splitIso[1]
     isoTime = splitIso.join('T')
-    let date2 = new Date(isoTime).getTime()
-    date2 -= timeZone * 3600 * 1000
-    return date1 - date2
+    let stamp = new Date(isoTime).getTime()
+    stamp -= timeZone * 3600 * 1000
+    return stamp
 }
-const compareTime = (time, timeZone, interval)=>{
+const calcPassedTime = (time, timeZone)=>{
+    if(!time || !timeZone) return
+    const timeStore = useTimeStore()
+    let stamp1 = Date.now() + timeStore.offset
+    let stamp2 = timeToStamp(time, timeZone)
+    return stamp1 - stamp2
+}
+const verifyUpToDate = (time, timeZone, interval)=>{
     if(!time || !timeZone || !interval) return
     return calcPassedTime(time, timeZone) <= interval
 }
+const calcTimeDiff = (time1, timeZone1, time2, timeZone2)=>{
+    if(!time1 || !timeZone1 || !time2 || !timeZone2) return
+    let stamp1 = timeToStamp(time1, timeZone1)
+    let stamp2 = timeToStamp(time2, timeZone2)
+    return stamp1 - stamp2
+}
 const sendNotification = (title, body, icon, silent)=>{
-    if(Notification.permission == 'granted'){
-        const notification = new Notification(title, {
-            body,
-            icon,
-            silent,
-        })
-        notification.onclick = ()=>{
-            window.focus()
+    try{
+        if(Notification.permission == 'granted'){
+            const notification = new Notification(title, {
+                body,
+                icon,
+                silent,
+            })
+            notification.onclick = ()=>{
+                window.focus()
+            }
         }
+    }catch(err){
+        console.log(err);
     }
 }
 const setClassName = (intensity, useShindo, isCanceled = false)=>{
-    let className = 'gray'
+    let className = 'dark-gray'
     if(!isCanceled){
         if(useShindo){
             if(intensity >= '1' && intensity <= '7'){
-                if(intensity >= '1') className = 'gray'
-                if(intensity >= '2') className = 'blue'
-                if(intensity >= '3') className = 'green'
-                if(intensity >= '4') className = 'yellow'
-                if(intensity >= '5') className = 'orange'
-                if(intensity >= '6') className = 'red'
-                if(intensity >= '7') className = 'purple'
+                if(intensity == '1') className = 'gray'
+                if(intensity == '2') className = 'blue'
+                if(intensity == '3') className = 'green'
+                if(intensity == '4') className = 'yellow'
+                if(intensity == '5-' || intensity == '5弱') className = 'orange'
+                if(intensity == '5+' || intensity == '5強') className = 'dark-orange'
+                if(intensity == '6-' || intensity == '6弱') className = 'red'
+                if(intensity == '6+' || intensity == '6強') className = 'dark-red'
+                if(intensity == '7') className = 'purple'
             }
         }
         else{
-            if(Number(intensity) >= 1 && Number(intensity) <= 12){
-                if(Number(intensity) >= 1) className = 'gray'
-                if(Number(intensity) >= 3) className = 'blue'
-                if(Number(intensity) >= 5) className = 'green'
-                if(Number(intensity) >= 6) className = 'yellow'
-                if(Number(intensity) >= 7) className = 'orange'
-                if(Number(intensity) >= 8) className = 'red'
-                if(Number(intensity) >= 9) className = 'purple'
+            const numIntensity = Math.round(Number(intensity))
+            if(numIntensity >= 1 && numIntensity <= 12){
+                if(numIntensity >= 1) className = 'gray'
+                if(numIntensity >= 3) className = 'blue'
+                if(numIntensity == 5) className = 'green'
+                if(numIntensity == 6) className = 'yellow'
+                if(numIntensity == 7) className = 'orange'
+                if(numIntensity == 8) className = 'dark-orange'
+                if(numIntensity == 9) className = 'red'
+                if(numIntensity >= 10) className = 'purple'
             }
         }
     }
     return className
+}
+const classNameArray = ['dark-gray', 'gray', 'blue', 'green', 'yellow', 'orange', 'dark-orange', 'red', 'dark-red', 'purple']
+const getClassLevel = (className)=>{
+    return classNameArray.indexOf(className)
 }
 const playSound = (url)=>{
     const audio = new Audio(url)
@@ -142,5 +164,34 @@ const extractNumbers = (str)=>{
     }
     return numberString
 }
+const getTimeNumberString = (timeZone, offset)=>{
+    const timeStore = useTimeStore()
+    const now = new Date(Date.now() + timeStore.offset + timeZone * 3600 * 1000 + offset);
+    const year = now.getUTCFullYear();
+    const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(now.getUTCDate()).padStart(2, '0');
+    const hours = String(now.getUTCHours()).padStart(2, '0');
+    const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(now.getUTCSeconds()).padStart(2, '0');
+    return `${year}${month}${day}${hours}${minutes}${seconds}`;
+}
 
-export { formatNumber, formatText, msToTime, calcPassedTime, compareTime, sendNotification, setClassName, playSound, calcWaveDistance, calcReachTime, extractNumbers }
+const getShindoFromChar = (char)=>{
+    if(char >= 'd' && char <= 'k') return '0'
+    if(char >= 'l' && char <= 'm') return '1'
+    if(char >= 'n' && char <= 'o') return '2'
+    if(char >= 'p' && char <= 'q') return '3'
+    if(char >= 'r' && char <= 's') return '4'
+    if(char == 't') return '5-'
+    if(char == 'u') return '5+'
+    if(char == 'v') return '6-'
+    if(char == 'w') return '6+'
+    if(char == 'x') return '7'
+    return '?'
+}
+const judgeSameEvent = (eqMessage1, eqMessage2)=>{
+    if(eqMessage1.source == eqMessage2.source && eqMessage1.id == eqMessage2.id) return true
+    else return false
+}
+
+export { formatNumber, formatText, msToTime, timeToStamp, calcPassedTime, verifyUpToDate, calcTimeDiff, sendNotification, setClassName, getClassLevel, playSound, calcWaveDistance, calcReachTime, extractNumbers, getTimeNumberString, getShindoFromChar, judgeSameEvent }

@@ -6,19 +6,35 @@ const eqUrls = {
     fjEew_http: 'https://api.wolfx.jp/fj_eew.json',
     fjEew_ws: 'wss://ws-api.wolfx.jp/fj_eew',
     cwaEew_http: 'https://api.wolfx.jp/cwa_eew.json',
+    cwaEew_ws: 'wss://ws-api.wolfx.jp/cwa_eew',
     cencEqlist_http: 'https://api.wolfx.jp/cenc_eqlist.json',
     cencEqlist_ws: 'wss://ws-api.wolfx.jp/cenc_eqlist',
     jmaEqlist_http: 'https://api.wolfx.jp/jma_eqlist.json',
     jmaEqlist_ws: 'wss://ws-api.wolfx.jp/jma_eqlist',
+    allEew_ws: 'wss://ws-api.wolfx.jp/all_eew'
 }
-const stationUrls = {
-    STATION_LIST_http: 'https://api.wolfx.jp/seis_list.json',
-    ALL_PUSH_ws: 'wss://seis.wolfx.jp/all_seis',
+const seisNetUrls = {
+    nied: {
+        stationList: 'https://weather-kyoshin.east.edge.storage-yahoo.jp/SiteList/sitelist.json',
+        stationData: 'https://weather-kyoshin.east.edge.storage-yahoo.jp/RealTimeData',
+    },
 }
 const iconUrls = {
     info: '/icon/info.png',
     caution: '/icon/caution.png',
     warn: '/icon/warn.png',
+}
+const shindoIconUrls = {
+    '0': '/icon/shindo/0.svg',
+    '1': '/icon/shindo/1.svg',
+    '2': '/icon/shindo/2.svg',
+    '3': '/icon/shindo/3.svg',
+    '4': '/icon/shindo/4.svg',
+    '5-': '/icon/shindo/5-.svg',
+    '5+': '/icon/shindo/5+.svg',
+    '6-': '/icon/shindo/6-.svg',
+    '6+': '/icon/shindo/6+.svg',
+    '7': '/icon/shindo/7.svg',
 }
 const chimeUrls = {
     srev: {
@@ -31,15 +47,27 @@ const chimeUrls = {
         shindosokuhou: '/sound/srev/shindosokuhou.mp3',
         shingenzyouhou: '/sound/srev/shingenzyouhou.mp3',
         jishinzyouhou: '/sound/srev/jishinzyouhou.mp3',
+        shindo0:'/sound/srev/shindo0.mp3',
+        shindo1:'/sound/srev/shindo1.mp3',
+        shindo2:'/sound/srev/shindo2.mp3',
+        shindo3:'/sound/srev/shindo3.mp3',
+        shindo4:'/sound/srev/shindo4.mp3',
+        shindo5:'/sound/srev/shindo5.mp3',
+        shindo6:'/sound/srev/shindo6.mp3',
+        shindo7:'/sound/srev/shindo6.mp3',
     },
 }
 const geojsonUrls = {
-    global: '/json/medium.global.geo.json',
-    cn: '/json/cn.geo.json',
+    global: '/json/medium.global.modified.geo.json',
+    cn: '/json/cn.province.geo.json',
+    cn_eew: '/json/cn.eew.geo.json',
+    cn_fault: '/json/cn.fault.modified.geo.json',
+    jp: '/json/jp.pref.geo.json',
+    jp_eew: '/json/jp.eew.geo.json',
 }
 const utilUrls = {
     geoIp: 'https://api.wolfx.jp/geoip.php',
     ntpTime: 'https://worldtimeapi.org/api/timezone/Asia/Hong_Kong',
 }
 
-export { eqUrls, stationUrls, iconUrls, chimeUrls, geojsonUrls, utilUrls }
+export { eqUrls, seisNetUrls, iconUrls, shindoIconUrls, chimeUrls, geojsonUrls, utilUrls }

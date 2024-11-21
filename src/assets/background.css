@@ -1,3 +1,16 @@
+:root{
+    --white: #ffffff;
+    --dark-gray: #9f9f9f;
+    --gray: #cfcfcf;
+    --blue: #3fafff;
+    --green: #5fdf8f;
+    --yellow: #ffef5f;
+    --orange: #ff7f00;
+    --dark-orange: #ff4f00;
+    --red: #df0f0f;
+    --dark-red: #af0000;
+    --purple: #7f007f;
+}
 .white{
     background-color: #ffffff;
 }
@@ -6,6 +19,15 @@
 }
 .white:active{
     background-color: #dfdfdf;
+}
+.dark-gray{
+    background-color: #9f9f9f;
+}
+.dark-gray:hover{
+    background-color: #8f8f8f;
+}
+.dark-gray:active{
+    background-color: #7f7f7f;
 }
 .gray{
     background-color: #cfcfcf;
@@ -26,22 +48,22 @@
     background-color: #1f8fdf;
 }
 .green{
-    background-color: #7fff1f;
+    background-color: #5fdf8f;
 }
 .green:hover{
-    background-color: #6fef0f;
+    background-color: #4fcf7f;
 }
 .green:active{
-    background-color: #5fdf00;
+    background-color: #3fbf6f;
 }
 .yellow{
-    background-color: #ffff00;
+    background-color: #ffef5f;
 }
 .yellow:hover{
-    background-color: #efef00;
+    background-color: #efdf4f;
 }
 .yellow:active{
-    background-color: #dfdf00;
+    background-color: #dfcf3f;
 }
 .orange{
     background-color: #ff7f00;
@@ -52,21 +74,42 @@
 .orange:active{
     background-color: #df5f00;
 }
+.dark-orange{
+    background-color: #ff4f00;
+}
+.dark-orange:hover{
+    background-color: #df3f00;
+}
+.dark-orange:active{
+    background-color: #bf2f00;
+}
 .red{
-    background-color: #ef1f1f;
+    background-color: #df0f0f;
+    color: #ffffff;
 }
 .red:hover{
-    background-color: #df0f0f;
-}
-.red:active{
     background-color: #cf0000;
 }
+.red:active{
+    background-color: #bf0000;
+}
+.dark-red{
+    background-color: #af0000;
+    color: #ffffff;
+}
+.dark-red:hover{
+    background-color: #9f0000;
+}
+.dark-red:active{
+    background-color: #8f0000;
+}
 .purple{
-    background-color: #cf1faf;
+    background-color: #7f007f;
+    color: #ffffff;
 }
 .purple:hover{
-    background-color: #bf0f9f;
+    background-color: #6f006f;
 }
 .purple:active{
-    background-color: #af008f;
+    background-color: #5f005f;
 }
