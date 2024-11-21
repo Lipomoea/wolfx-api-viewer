@@ -8,7 +8,7 @@
                     <div class="row">
                         <span style="width: 100%;">收到地震预警（警报）时：</span>
                         <div class="switchGroup">
-                            <div class="switch">
+                            <div class="switch" v-if="showNotifButton">
                                 <span>发送通知</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEewWarn.notification" :disabled="settingsStore.mainSettings.onEew.notification"></el-switch>
                             </div>
@@ -16,16 +16,16 @@
                                 <span>播放声音</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEewWarn.sound" :disabled="settingsStore.mainSettings.onEew.sound"></el-switch>
                             </div>
-                            <!-- <div class="switch">
-                                <span>弹出界面</span>
+                            <div class="switch" v-if="showFocusButton">
+                                <span>弹出窗口</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEewWarn.focus" :disabled="settingsStore.mainSettings.onEew.focus"></el-switch>
-                            </div> -->
+                            </div>
                         </div>
                     </div>
                     <div class="row">
                         <span style="width: 100%;">收到地震预警（全部）时：</span>
                         <div class="switchGroup">
-                            <div class="switch">
+                            <div class="switch" v-if="showNotifButton">
                                 <span>发送通知</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEew.notification"></el-switch>
                             </div>
@@ -33,16 +33,16 @@
                                 <span>播放声音</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEew.sound"></el-switch>
                             </div>
-                            <!-- <div class="switch">
-                                <span>弹出界面</span>
+                            <div class="switch" v-if="showFocusButton">
+                                <span>弹出窗口</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEew.focus"></el-switch>
-                            </div> -->
+                            </div>
                         </div>
                     </div>
                     <div class="row">
                         <span style="width: 100%;">收到地震信息时：</span>
                         <div class="switchGroup">
-                            <div class="switch">
+                            <div class="switch" v-if="showNotifButton">
                                 <span>发送通知</span>
                                 <el-switch v-model="settingsStore.mainSettings.onReport.notification"></el-switch>
                             </div>
@@ -50,16 +50,16 @@
                                 <span>播放声音</span>
                                 <el-switch v-model="settingsStore.mainSettings.onReport.sound"></el-switch>
                             </div>
-                            <!-- <div class="switch">
-                                <span>弹出界面</span>
+                            <div class="switch" v-if="showFocusButton">
+                                <span>弹出窗口</span>
                                 <el-switch v-model="settingsStore.mainSettings.onReport.focus"></el-switch>
-                            </div> -->
+                            </div>
                         </div>
                     </div>
                     <div class="row">
                         <span style="width: 100%;">地震监测网检测到摇晃时：</span>
                         <div class="switchGroup">
-                            <div class="switch">
+                            <div class="switch" v-if="showNotifButton">
                                 <span>发送通知</span>
                                 <el-switch v-model="settingsStore.mainSettings.onShake.notification"></el-switch>
                             </div>
@@ -67,10 +67,10 @@
                                 <span>播放声音</span>
                                 <el-switch v-model="settingsStore.mainSettings.onShake.sound"></el-switch>
                             </div>
-                            <!-- <div class="switch">
-                                <span>弹出界面</span>
+                            <div class="switch" v-if="showFocusButton">
+                                <span>弹出窗口</span>
                                 <el-switch v-model="settingsStore.mainSettings.onShake.focus"></el-switch>
-                            </div> -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -126,14 +126,21 @@
                                 <span>显示所在地</span>
                                 <el-switch v-model="settingsStore.mainSettings.displayUser"></el-switch>
                             </div>
-                            <!-- <div class="switch">
-                                <span>显示地震波倒计时</span>
+                            <div class="switch">
+                                <span>显示地图烈度图例</span>
+                                <el-switch v-model="settingsStore.mainSettings.displayLegend"></el-switch>
+                            </div>
+                            <div class="switch">
+                                <span>显示本地烈度和倒计时</span>
                                 <el-switch v-model="settingsStore.mainSettings.displayCountdown"></el-switch>
                             </div>
                             <div class="switch">
-                                <span>地震波倒计时显示小数</span>
-                                <el-switch v-model="settingsStore.mainSettings.decimalCountdown"></el-switch>
-                            </div> -->
+                                <el-checkbox v-model="settingsStore.mainSettings.forceDisplayCountdown" :disabled="!settingsStore.mainSettings.displayCountdown">强制计算倒计时（低精度）</el-checkbox>
+                            </div>
+                            <div class="switch">
+                                <span>播放倒计时音效</span>
+                                <el-switch v-model="settingsStore.mainSettings.playCountdownSound" :disabled="!settingsStore.mainSettings.displayCountdown"></el-switch>
+                            </div>
                         </div>
                     </div>
                     <div class="row">
@@ -250,6 +257,20 @@
                 </div>
             </div>
         </div>
+        <el-dialog v-model="verifyDialog" width="300px" top="40vh" :show-close="false">
+            <el-form :model="idForm">
+                <el-form-item label="用户名" label-width="60px">
+                    <el-input v-model="idForm.username" @keyup.enter="postVerify"></el-input>
+                </el-form-item>
+                <el-form-item label="密码" label-width="60px">
+                    <el-input type="password" v-model="idForm.password" @keyup.enter="postVerify"></el-input>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button type="default" @click="verifyDialog = false">取消</el-button>
+                <el-button type="primary" @click="postVerify">确定</el-button>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
@@ -258,7 +279,10 @@ import { useSettingsStore } from '@/stores/settings';
 import { useStatusStore } from '@/stores/status';
 import { utilUrls } from '@/utils/Urls';
 import Http from '@/utils/Http';
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
+
+const showNotifButton = 'Notification' in window
+const showFocusButton = !!window.__TAURI_INTERNALS__
 
 const settingsStore = useSettingsStore()
 const statusStore = useStatusStore()
@@ -382,6 +406,12 @@ const setNiedDelay = (val)=>{
     settingsStore.mainSettings.displaySeisNet.niedDelay = val
 }
 const advancedInput = ref('')
+const verifyDialog = ref(false)
+let verifyType = ''
+const idForm = reactive({
+    username: '',
+    password: '',
+})
 const handleAdvance = (val)=>{
     switch(val){
         case 'displayNiedShindo': {
@@ -393,22 +423,98 @@ const handleAdvance = (val)=>{
             settingsStore.advancedSettings.displayNiedShindoSwitch = false
             break
         }
+        case 'enableIclEew': {
+            verifyType = 'enableIclEew'
+            verifyDialog.value = true
+            break
+        }
+        case 'disableIclEew': {
+            settingsStore.advancedSettings.enableIclEew = false
+            ElMessage({
+                message: '功能已关闭，3秒后自动刷新网页',
+                type: 'success'
+            })
+            setTimeout(() => {
+                window.location.reload()
+            }, 3000);
+            break
+        }
+        case 'forceCalcCsis': {
+            verifyType = 'forceCalcCsis'
+            verifyDialog.value = true
+            break
+        }
+        case 'cancelCalcCsis': {
+            settingsStore.advancedSettings.forceCalcCsis = false
+            ElMessage({
+                message: '功能已关闭，3秒后自动刷新网页',
+                type: 'success'
+            })
+            setTimeout(() => {
+                window.location.reload()
+            }, 3000);
+            break
+        }
     }
     advancedInput.value = ''
+}
+const postVerify = async ()=>{
+    switch(verifyType){
+        case 'enableIclEew': {
+            const res = await Http.post('http://124.70.142.213:8766/icl_url', idForm)
+            if(res && res.success){
+                settingsStore.advancedSettings.enableIclEew = true
+                localStorage.setItem('iclUrl', JSON.stringify(res.data))
+                verifyDialog.value = false
+                ElMessage({
+                    message: '认证成功，3秒后自动刷新网页',
+                    type: 'success'
+                })
+                setTimeout(() => {
+                    window.location.reload()
+                }, 3000);
+            }
+            else{
+                ElMessage({
+                    message: '认证失败',
+                    type: 'error'
+                })
+            }
+            break
+        }
+        case 'forceCalcCsis':{
+            const res = await Http.post('http://124.70.142.213:8766/calc_csis', idForm)
+            if(res && res.success){
+                settingsStore.advancedSettings.forceCalcCsis = true
+                localStorage.setItem('calcCsis', res.data)
+                verifyDialog.value = false
+                ElMessage({
+                    message: '认证成功，3秒后自动刷新网页',
+                    type: 'success'
+                })
+                setTimeout(() => {
+                    window.location.reload()
+                }, 3000);
+            }
+            else{
+                ElMessage({
+                    message: '认证失败',
+                    type: 'error'
+                })
+            }
+            break
+        }
+    }
 }
 const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
-            <p>v2.0.0 pre19 变更：使用新的中国地图；新增：地图加载提示；优化：地图进行本地缓存（仅部分浏览器支持），震度检出优化，震度配色优化。</p>
-            <p>v2.0.0 pre1-pre18 变更：升级Vue3版本，UI重排，WebSocket使用all_eew接口，使用新的中国和日本地图，暂时移除地震波倒计时功能；新增：同源多个EEW同时展示，适配假定震源，JMA紧急地震速报区域预想震度绘制，中国断层显示，NIED強震モニタ测站显示、震度检出功能，设置默认视野功能，鼠标悬浮提示区域名称，NIED测站回放功能。</p>
+            <p>v2.0.0-pre.22 新增：地震波倒计时提示音；优化：多重地震震度检出；优化：降低震度误检出概率；优化：调整部分UI质感；优化：代码逻辑；修复：异色地震波叠加闪烁的问题。</p>
+            <p>v2.0.0-pre.21 新增：EEW显示地震波倒计时；新增：紧急地震速报本地预想震度功能；新增：EEW地图图例；优化：新增烈度配色。</p>
+            <p>v2.0.0-pre.20 新增：首次推出Windows桌面版应用，新增桌面应用弹窗功能。</p>
+            <p>v2.0.0-(pre.1-pre.19) 变更：升级Vue3版本，UI重排，WebSocket使用all_eew接口，使用新的中国和日本地图，暂时移除地震波倒计时功能；新增：同源多个EEW同时展示，适配假定震源，JMA紧急地震速报区域预想震度绘制，中国断层显示，NIED強震モニタ测站显示、震度检出功能，设置默认视野功能，鼠标悬浮提示区域名称，NIED测站回放功能。</p>
             <p>v1.0.0-1.1.2 新增：地图功能、自动打开地图功能、JMA地震情报列表查看详细、设置用户所在地、IP定位、地震波抵达倒计时等功能；优化：增加自动对时。</p>
-        </div>
-        <div class="title">已知问题</div>
-        <div class="about">
-            <p>置于后台后一段时间切回可能白屏。</p>
-            <p>置于后台时部分连接可能中断。</p>
-            <p>置于后台时震度检出可能出现异常。</p>
         </div>
         <div class="title">使用方法</div>
         <div class="about">
@@ -433,9 +539,9 @@ const handleAbout = ()=>{
         </div>
         <div class="title">关于</div>
         <div class="about">
-            <p><a href="http://124.70.142.213:8080/">稳定版</a> <a href="http://124.70.142.213:8081/">尝鲜版</a></p>
+            <p>Windows 10及以上用户推荐使用应用程序：<a href="https://github.com/Lipomoea/wolfx-api-viewer/releases" target="_blank">Windows应用程序下载</a></p>
             <p>本页面基于Wolfx Open API (<a href="https://api.wolfx.jp" target="_blank">api.wolfx.jp</a>) 开发，不属于Wolfx官方。</p>
-            <p>本页面未针对移动端进行适配，建议使用电脑端浏览器访问本网页。</p>
+            <p>本页面未针对移动端进行适配，建议使用Windows应用程序或电脑浏览器访问本网页。</p>
             <p>联系我：<a href="https://space.bilibili.com/316757498" target="_blank">リッポミャ</a>（哔哩哔哩）</p>
             <p>Github: <a href="https://github.com/Lipomoea/wolfx-api-viewer" target="_blank">https://github.com/Lipomoea/wolfx-api-viewer</a></p>
             <p>特别鸣谢：
@@ -443,7 +549,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        'wolfx-api-viewer v2.0.0 pre-19',
+        'wolfx-api-viewer v2.0.0-pre.22',
         {
             confirmButtonText: 'OK',
             showClose: false,

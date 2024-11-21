@@ -20,15 +20,13 @@ const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 
 async function getGeojson(){
-  try{
+  if('caches' in window){
     const promises = Object.keys(geojsonUrls).map(async name => {
       const data = await Http.get(geojsonUrls[name])
       const cache = await caches.open('geojson')
       cache.put(geojsonUrls[name], new Response(JSON.stringify(data)))
     })
     await Promise.all(promises)
-  }catch(err){
-    console.log(err);
   }
 }
 
@@ -37,14 +35,13 @@ onBeforeMount(() => {
   settingsStore.setAdvancedSettings(localStorage.getItem('advancedSettings'))
   settingsStore.mainSettings.displaySeisNet.niedDelay = 0
   timeStore.startUpdatingTime()
+  statusStore.initiate()
   statusStore.startUpdatingEqMessage()
   getGeojson()
-  try {
-    if (Notification.permission !== 'granted' && settingsStore.requestNotification) {
+  if('Notification' in window){
+    if (Notification.permission !== 'granted') {
       Notification.requestPermission()
     }
-  } catch (err) {
-    console.log(err);
   }
 })
 onBeforeUnmount(() => {
