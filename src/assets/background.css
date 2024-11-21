@@ -2,6 +2,7 @@
     --white: #ffffff;
     --dark-gray: #9f9f9f;
     --gray: #cfcfcf;
+    --sky-blue: #5fcfff;
     --blue: #3fafff;
     --green: #5fdf8f;
     --yellow: #ffef5f;
@@ -37,6 +38,15 @@
 }
 .gray:active{
     background-color: #afafaf;
+}
+.sky-blue{
+    background-color: #5fcfff;
+}
+.sky-blue:hover{
+    background-color: #4fbfef;
+}
+.sky-blue:active{
+    background-color: #3fafdf;
 }
 .blue{
     background-color: #3fafff;

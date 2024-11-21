@@ -7,7 +7,16 @@ class Http {
             return res.data
         }
         catch (err){
-            throw new Error(err)
+            console.log(err);
+        }
+    }
+    static async post(url, data) {
+        try {
+            const res = await axios.post(url, data)
+            return res.data
+        }
+        catch (err){
+            console.log(err);
         }
     }
 }

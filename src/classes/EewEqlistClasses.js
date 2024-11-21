@@ -1,4 +1,4 @@
-import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendNotification, getClassLevel } from '@/utils/Utils';
+import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendMyNotification, getClassLevel, focusWindow } from '@/utils/Utils';
 import travelTimes from '@/utils/TravelTimes';
 import { iconUrls, chimeUrls } from '@/utils/Urls';
 import L from 'leaflet';
@@ -41,45 +41,54 @@ const circleDivIcon = L.divIcon({
 class EewEvent {
     constructor(map, eqMessage, activeEewList, time){
         this.map = map
+        this.settingsStore = useSettingsStore()
         this.eqMessage = eqMessage
         this.activeEewList = activeEewList
         this.useJst = eqMessage.source.includes('jma')
+        this.travelTime = travelTimes.jma2001
         this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
+        this.userLatLng = this.settingsStore.mainSettings.userLatLng.map(l=>Number(l))
+        this.isValidUserLatLng = this.settingsStore.mainSettings.userLatLng.every(l=>l !== '')
+        this.userDist = L.latLng(this.hypoLatLng).distanceTo(L.latLng(this.userLatLng)) / 1000
+        this.reachTime = calcReachTime(this.travelTime, false, this.eqMessage.depth, this.userDist)
+        this.countdown = -1
         this.flags = {
             firstSound: false,
             cautionSound: false,
             warnSound: false,
+            focused: false,
+            lastSecondsCount: 11
         }
+        this.maxRadius = 2000
         this.update(eqMessage, time)
     }
     setMark(){
         if(this.hypoMarker && this.map.hasLayer(this.hypoMarker)) this.map.removeLayer(this.hypoMarker)
-        this.hypoMarker = L.marker(this.hypoLatLng, {icon: this.eqMessage.isAssumption?circleDivIcon:eewCrossDivIcon, pane: 'eewMarkerPane'})
+        this.hypoMarker = L.marker(this.hypoLatLng, {icon: this.eqMessage.isAssumption?circleDivIcon:eewCrossDivIcon, pane: 'eewMarkerPane', interactive: false})
         this.hypoMarker.addTo(this.map)
     }
     drawWaves(){
-        if(!this.eqMessage.isAssumption){
-            let passedTime, travelTime
-            if(this.useJst){
-                passedTime = calcPassedTime(this.eqMessage.originTime, 9) / 1000
-                travelTime = travelTimes.jma2001
-            }
-            else{
-                passedTime = calcPassedTime(this.eqMessage.originTime, 8) / 1000
-                travelTime = travelTimes.jma2001
-            }
-            this.switchDrawWaves(passedTime, travelTime)
+        let passedTime
+        if(this.useJst){
+            passedTime = calcPassedTime(this.eqMessage.originTime, 9) / 1000
         }
         else{
-            clearInterval(this.drawWavesInterval)
+            passedTime = calcPassedTime(this.eqMessage.originTime, 8) / 1000
+        }
+        this.handleCountdown(passedTime)
+        if(!this.eqMessage.isAssumption){
+            this.switchDrawWaves(passedTime)
+        }
+        else{
             if(this.pWave && this.map.hasLayer(this.pWave)) this.map.removeLayer(this.pWave)
             if(this.sWave && this.map.hasLayer(this.sWave)) this.map.removeLayer(this.sWave)
-            if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) this.map.removeLayer(this.sWaveFill)    
+            if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) this.map.removeLayer(this.sWaveFill)
         }
     }
-    switchDrawWaves(passedTime, travelTime){
+    switchDrawWaves(passedTime){
         let p_reach, p_radius, s_reach, s_radius
-        const maxRadius = 2000
+        const maxRadius = this.maxRadius
+        const travelTime = this.travelTime
         const p_info = calcWaveDistance(travelTime, true, this.eqMessage.depth, passedTime)
         p_reach = p_info.reach
         p_radius = p_info.radius
@@ -96,9 +105,10 @@ class EewEvent {
                 fillOpacity: 0,
                 radius: p_radius * 1000,
                 pane: 'wavePane',
+                interactive: false
             })
             this.pWave.addTo(this.map)
-            L.DomUtil.addClass(this.pWave.getElement(), 'wave')
+            // L.DomUtil.addClass(this.pWave.getElement(), 'wave')
         }
         if(this.sWave && this.map.hasLayer(this.sWave)) this.map.removeLayer(this.sWave)
         if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) this.map.removeLayer(this.sWaveFill)
@@ -111,6 +121,7 @@ class EewEvent {
                 fillOpacity: 0,
                 radius: s_radius * 1000,
                 pane: 'wavePane',
+                interactive: false
             })
             this.sWave.addTo(this.map)
             this.sWaveFill = L.circle(this.hypoLatLng, {
@@ -120,10 +131,11 @@ class EewEvent {
                 fillOpacity: 0.3 * opacityRatio,
                 radius: s_radius * 1000,
                 pane: 'waveFillPane',
+                interactive: false
             })
             this.sWaveFill.addTo(this.map)
-            L.DomUtil.addClass(this.sWave.getElement(), 'wave')
-            L.DomUtil.addClass(this.sWaveFill.getElement(), 'wave')
+            // L.DomUtil.addClass(this.sWave.getElement(), 'wave')
+            // L.DomUtil.addClass(this.sWaveFill.getElement(), 'wave')
         }
     }
     calcOpacityRatio(radius, maxRadius){
@@ -141,6 +153,8 @@ class EewEvent {
     update(eqMessage, time){
         Object.assign(this.eqMessage, eqMessage)
         this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
+        this.userDist = L.latLng(this.hypoLatLng).distanceTo(L.latLng(this.userLatLng)) / 1000
+        this.reachTime = calcReachTime(this.travelTime, false, this.eqMessage.depth, this.userDist)
         this.setMark()
         this.drawWaves()
         clearInterval(this.drawWavesInterval)
@@ -164,7 +178,7 @@ class EewEvent {
         }, time);
     }
     handleActions(){
-        const settingsStore = useSettingsStore()
+        const settingsStore = this.settingsStore
         const soundEffect = settingsStore.mainSettings.soundEffect
         const eqMessage = this.eqMessage
         let icon = ''
@@ -190,6 +204,13 @@ class EewEvent {
                         this.flags.cautionSound = true
                         this.flags.warnSound = true
                     }
+                }
+            }
+            //弹窗
+            if(settingsStore.mainSettings.onEew.focus || settingsStore.mainSettings.onEewWarn.focus){
+                if(!this.flags.focused){
+                    focusWindow()
+                    this.flags.focused = true
                 }
             }
         }
@@ -218,12 +239,34 @@ class EewEvent {
                     }
                 }
             }
+            //弹窗
+            if(settingsStore.mainSettings.onEew.focus){
+                if(!this.flags.focused){
+                    focusWindow()
+                    this.flags.focused = true
+                }
+            }
         }
         if(icon){
-            sendNotification(`${eqMessage.titleText} #${eqMessage.reportNum}`, 
+            sendMyNotification(`${eqMessage.titleText} #${eqMessage.reportNum}`, 
                 `${eqMessage.hypocenterText}\n${eqMessage.depthText}\n${eqMessage.magnitudeText}\n${eqMessage.maxIntensityText}`, 
                 icon, 
                 settingsStore.mainSettings.muteNotification)
+        }
+    }
+    handleCountdown(passedTime){
+        if(this.settingsStore.mainSettings.displayCountdown && this.isValidUserLatLng && (this.userDist <= this.maxRadius && !this.eqMessage.isAssumption || this.settingsStore.mainSettings.forceDisplayCountdown)){
+            this.countdown = Math.max(this.reachTime - passedTime, 0)
+            if(this.settingsStore.mainSettings.playCountdownSound){
+                const secondsCount = Math.ceil(this.countdown)
+                if(secondsCount < this.flags.lastSecondsCount){
+                    playSound(chimeUrls.general.countdown)
+                    this.flags.lastSecondsCount = secondsCount
+                }
+            }
+        }
+        else{
+            this.countdown = -1
         }
     }
     terminate(){
@@ -238,6 +281,7 @@ class EewEvent {
 class EqlistEvent {
     constructor(map, eqMessage){
         this.map = map
+        this.settingsStore = useSettingsStore()
         this.eqMessage = eqMessage
         this.isActive = false
         this.useJst = eqMessage.source.includes('jma')
@@ -261,7 +305,7 @@ class EqlistEvent {
     setMark(){
         this.removeMark()
         if(this.isValidHypo){
-            this.hypoMarker = L.marker(this.hypoLatLng, {icon: eqlistCrossDivIcon, pane: 'eqlistMarkerPane'})
+            this.hypoMarker = L.marker(this.hypoLatLng, {icon: eqlistCrossDivIcon, pane: 'eqlistMarkerPane', interactive: false})
             this.hypoMarker.addTo(this.map)    
         }
     }
@@ -269,7 +313,7 @@ class EqlistEvent {
         if(this.hypoMarker && this.map.hasLayer(this.hypoMarker)) this.map.removeLayer(this.hypoMarker)
     }
     handleActions(){
-        const settingsStore = useSettingsStore()
+        const settingsStore = this.settingsStore
         const soundEffect = settingsStore.mainSettings.soundEffect
         const eqMessage = this.eqMessage
         let icon = ''
@@ -312,8 +356,9 @@ class EqlistEvent {
                 }
             }
         }
+        if(settingsStore.mainSettings.onReport.focus) focusWindow()
         if(icon){
-            sendNotification(`${eqMessage.titleText}`, 
+            sendMyNotification(`${eqMessage.titleText}`, 
                 `${eqMessage.hypocenterText}\n${eqMessage.depthText}\n${eqMessage.magnitudeText}\n${eqMessage.maxIntensityText}`, 
                 icon, 
                 settingsStore.mainSettings.muteNotification)

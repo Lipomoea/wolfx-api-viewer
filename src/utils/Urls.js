@@ -37,6 +37,9 @@ const shindoIconUrls = {
     '7': '/icon/shindo/7.svg',
 }
 const chimeUrls = {
+    general: {
+        countdown: '/sound/general/countdown.wav'
+    },
     srev: {
         happyou: '/sound/srev/happyou.mp3',
         yohou: '/sound/srev/yohou.mp3',

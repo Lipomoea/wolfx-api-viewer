@@ -17,7 +17,7 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, ref, computed, watch, inject } from 'vue'
+import { onBeforeUnmount, ref, reactive, computed, watch, inject } from 'vue'
 import { formatText, msToTime, calcPassedTime, judgeSameEvent } from '@/utils/Utils';
 import { eqUrls } from '@/utils/Urls';
 import { EewEvent, EqlistEvent } from '@/classes/EewEqlistClasses';
@@ -100,7 +100,7 @@ watch(eqMessage, (newVal)=>{
         }
         if(i == eqlistList.length){
             if(statusStore.map){
-                eqlistList.unshift(new EqlistEvent(statusStore.map, Object.assign({}, newVal)))
+                eqlistList.unshift(reactive(new EqlistEvent(statusStore.map, Object.assign({}, newVal))))
                 eqlistList[0].update(Object.assign({}, newVal), time)
             }
         }
@@ -122,7 +122,7 @@ watch(eqMessage, (newVal)=>{
             }
             if(i == activeEewList.length){
                 if(statusStore.map){
-                    activeEewList.unshift(new EewEvent(statusStore.map, Object.assign({}, newVal), activeEewList, time))
+                    activeEewList.unshift(reactive(new EewEvent(statusStore.map, Object.assign({}, newVal), activeEewList, time)))
                 }
             }
         }

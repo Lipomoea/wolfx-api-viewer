@@ -23,15 +23,17 @@ export const useSettingsStore = defineStore('settingsStore', {
                 sound: false,
                 focus:false,
             },
-            muteNotification: false,
+            muteNotification: true,
             soundEffect: 'srev',
             displayCnFault: false,
             userLatLng: ['', ''],
             displayUser: false,
+            displayLegend: true,
+            displayCountdown: false,
+            forceDisplayCountdown: false,
+            playCountdownSound: false,
             viewLatLng: ['', ''],
             defaultZoom: 5,
-            displayCountdown: false,
-            decimalCountdown: false,
             displaySeisNet: {
                 hideNoData: false,
                 nied: true,
@@ -41,15 +43,12 @@ export const useSettingsStore = defineStore('settingsStore', {
         advancedSettings: {
             displayNiedShindoSwitch: false,
             displayNiedShindo: false,
+            enableIclEew: false,
+            forceCalcCsis: false
         }
     }),
     getters: {
-        requestNotification: (state)=>(
-            state.mainSettings.onEew.notification || 
-            state.mainSettings.onEewWarn.notification || 
-            state.mainSettings.onReport.notification ||
-            state.mainSettings.onShake.notification
-        ),
+        
     },
     actions: {
         setMainSettings(jsonString){
