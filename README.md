@@ -1,8 +1,8 @@
 # wolfx-api-viewer
-> [!WARNING]
-> 此分支不是最新分支，请切换至最新分支（通常是test结尾的分支或dev分支，分支进度*-test>dev>main）
-
-wolfx-api-viewer是一个基于[Wolfx Open API](https://wolfx.jp/apidoc)以及其他API制作的地震预警和地震信息可视化Web应用，基于Vite+Vue3+Leaflet开发。  
+> [!TIP]
+> 此分支是稳定而非最新的分支。如需同步最新进度，请切换至其他分支（通常是dev或test分支）
+## 简介
+wolfx-api-viewer(WAV)是一个基于[Wolfx Open API](https://wolfx.jp/apidoc)以及其他API制作的地震预警和地震信息可视化Web应用，基于Vite+Vue3+Leaflet开发。  
 现已提供基于Tauri构建的Windows应用程序，推荐Windows 10及以上系统使用。  
 * [Web应用链接](http://124.70.142.213:8081/) 
 * [Windows应用程序下载](https://github.com/Lipomoea/wolfx-api-viewer/releases)
@@ -27,5 +27,5 @@ wolfx-api-viewer是一个基于[Wolfx Open API](https://wolfx.jp/apidoc)以及�
 * [scratch-realtime-earthquake-viewer-page](https://github.com/kotoho7/scratch-realtime-earthquake-viewer-page)
 * [TREM-Lite](https://github.com/ExpTechTW/TREM-Lite)
 ## 特别鸣谢
-* Wolfx Project
+* [Wolfx Project](https://wolfx.jp/)
 * 各位提供帮助的EEW爱好者
