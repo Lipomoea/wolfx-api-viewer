@@ -15,7 +15,6 @@ import { getTimeNumberString, getShindoFromChar, playSound, sendMyNotification, 
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { NiedStation } from '@/classes/StationClasses';
-import { UnionFind } from '@/classes/Algorithms';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
@@ -43,51 +42,51 @@ const currentMaxShindo = computed(()=>{
     else if(currentMaxLevel <= 19) return 6
     else return 7
 })
-let adjacencyMatrix = []
-const activityStations = computed(()=>{
-    let list = []
-    stations.forEach(station=>{
-        if(station.activity > 0) list.push(station.id)
-    })
-    return list
-})
-watch(activityStations, (newVal)=>{
-    let activeAdjMat = []
-    for(let i = 0; i < newVal.length; i++){
-        activeAdjMat[i] = []
-        for(let j = 0; j < newVal.length; j++){
-            activeAdjMat[i][j] = adjacencyMatrix[newVal[i]][newVal[j]]
-        }
-    }
-    const unionFind = new UnionFind(newVal, activeAdjMat)
-    const clusters = unionFind.getAllSets()
-    for(let setId in clusters){
-        let activity = 0
-        if(clusters[setId].length > 1){
-            const activities = clusters[setId].map(id=>stations[id].activity).sort((a, b)=>b - a)
-            activities.forEach(num=>{
-                activity += num
-            })
-            activity += (activities[0] + activities[1])
-        }
-        else{
-            const id = clusters[setId][0]
-            let adjNum = 0
-            for(let i = 0; i < stations.length; i++){
-                if(adjacencyMatrix[id][i] && stations[i].level > -1) adjNum++
-            }
-            if(adjNum <= 2){
-                activity = 2 * stations[id].activity
-            }
-            else activity = stations[id].activity
-        }
-        if(activity >= 20){
-            clusters[setId].forEach(id=>{
-                stations[id].setActive()
-            })
-        }
-    }
-})
+let adjStationIds = {}
+// const activityStations = computed(()=>{
+//     let list = []
+//     stations.forEach(station=>{
+//         if(station.activity > 0) list.push(station.id)
+//     })
+//     return list
+// })
+// watch(activityStations, (newVal)=>{
+//     let activeAdjMat = []
+//     for(let i = 0; i < newVal.length; i++){
+//         activeAdjMat[i] = []
+//         for(let j = 0; j < newVal.length; j++){
+//             activeAdjMat[i][j] = adjacencyMatrix[newVal[i]][newVal[j]]
+//         }
+//     }
+//     const unionFind = new UnionFind(newVal, activeAdjMat)
+//     const clusters = unionFind.getAllSets()
+//     for(let setId in clusters){
+//         let activity = 0
+//         if(clusters[setId].length > 1){
+//             const activities = clusters[setId].map(id=>stations[id].activity).sort((a, b)=>b - a)
+//             activities.forEach(num=>{
+//                 activity += num
+//             })
+//             activity += (activities[0] + activities[1])
+//         }
+//         else{
+//             const id = clusters[setId][0]
+//             let adjNum = 0
+//             for(let i = 0; i < stations.length; i++){
+//                 if(adjacencyMatrix[id][i] && stations[i].level > -1) adjNum++
+//             }
+//             if(adjNum <= 2){
+//                 activity = 2 * stations[id].activity
+//             }
+//             else activity = stations[id].activity
+//         }
+//         if(activity >= 20){
+//             clusters[setId].forEach(id=>{
+//                 stations[id].setActive()
+//             })
+//         }
+//     }
+// })
 const activeStations = computed(()=>{
     let list = []
     stations.forEach(station=>{
@@ -136,6 +135,31 @@ const update = ()=>{
             if(stationData.value[i] > maxChar) maxChar = stationData.value[i]
         }
         niedMaxShindo.value = getShindoFromChar(maxChar)
+        const possibleStations = stations.filter(station=>station.activity > 0)
+        const activeStations = new Set()
+        possibleStations.forEach(station=>{
+            if(!activeStations.has(station)){
+                const nearbyStations = adjStationIds[station.id].map(id=>stations[id]).filter(station=>station.level > -1)
+                const possibleNearbyStations = nearbyStations.filter(station=>station.activity > 0)
+                const numThres = nearbyStations.length <= 3 ? 1 : nearbyStations.length <= 10 ? 2 : 3
+                const activityThres = 7.5 + 0.5 * nearbyStations.length
+                const nearbyActivity = possibleNearbyStations.reduce((sum, station)=>sum + station.activity, 0)
+                if(possibleNearbyStations.length >= numThres && nearbyActivity >= activityThres){
+                    chainActivate(station, activeStations)
+                }
+            }
+        })
+        activeStations.forEach(station=>{
+            station.setActive()
+        })
+    }
+}
+const chainActivate = (station, activeStations)=>{
+    if(!activeStations.has(station) && station.activity > 0){
+        activeStations.add(station)
+        adjStationIds[station.id].forEach(id=>{
+            chainActivate(stations[id], activeStations)
+        })
     }
 }
 const renderAll = ()=>{
@@ -211,18 +235,10 @@ watch(()=>statusStore.map, newVal=>{
                     latLngs[i] = L.latLng(newVal[i])
                 }
                 for(let i = 0; i < newVal.length; i++){
-                    adjacencyMatrix[i] = []
+                    adjStationIds[i] = []
                     for(let j = 0; j < newVal.length; j++){
-                        if(i < j){
-                            const distance = latLngs[i].distanceTo(latLngs[j]) / 1000
-                            adjacencyMatrix[i][j] = distance <= 50?true:false
-                        }
-                        else if(i > j){
-                            adjacencyMatrix[i][j] = adjacencyMatrix[j][i]
-                        }
-                        else{
-                            adjacencyMatrix[i][j] = false
-                        }
+                        const distance = latLngs[i].distanceTo(latLngs[j]) / 1000
+                        if(distance <= 30) adjStationIds[i].push(j)
                     }
                 }
             }
