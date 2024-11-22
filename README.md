@@ -31,6 +31,6 @@ wolfx-api-viewer(WAV)是一个基于[Wolfx Open API](https://wolfx.jp/apidoc)以
 * [Wolfx Project](https://wolfx.jp/)
 * [TBS](https://space.bilibili.com/652050915/)
 * [FAN](https://www.fanstudio.tech/)
-* Dxr
+* Dxr (QQ: 2194362576)
 * HomoOS
 * 各位提供帮助的EEW爱好者
