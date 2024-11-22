@@ -43,50 +43,6 @@ const currentMaxShindo = computed(()=>{
     else return 7
 })
 let adjStationIds = {}
-// const activityStations = computed(()=>{
-//     let list = []
-//     stations.forEach(station=>{
-//         if(station.activity > 0) list.push(station.id)
-//     })
-//     return list
-// })
-// watch(activityStations, (newVal)=>{
-//     let activeAdjMat = []
-//     for(let i = 0; i < newVal.length; i++){
-//         activeAdjMat[i] = []
-//         for(let j = 0; j < newVal.length; j++){
-//             activeAdjMat[i][j] = adjacencyMatrix[newVal[i]][newVal[j]]
-//         }
-//     }
-//     const unionFind = new UnionFind(newVal, activeAdjMat)
-//     const clusters = unionFind.getAllSets()
-//     for(let setId in clusters){
-//         let activity = 0
-//         if(clusters[setId].length > 1){
-//             const activities = clusters[setId].map(id=>stations[id].activity).sort((a, b)=>b - a)
-//             activities.forEach(num=>{
-//                 activity += num
-//             })
-//             activity += (activities[0] + activities[1])
-//         }
-//         else{
-//             const id = clusters[setId][0]
-//             let adjNum = 0
-//             for(let i = 0; i < stations.length; i++){
-//                 if(adjacencyMatrix[id][i] && stations[i].level > -1) adjNum++
-//             }
-//             if(adjNum <= 2){
-//                 activity = 2 * stations[id].activity
-//             }
-//             else activity = stations[id].activity
-//         }
-//         if(activity >= 20){
-//             clusters[setId].forEach(id=>{
-//                 stations[id].setActive()
-//             })
-//         }
-//     }
-// })
 const activeStations = computed(()=>{
     let list = []
     stations.forEach(station=>{
