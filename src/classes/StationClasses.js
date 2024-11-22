@@ -58,7 +58,8 @@ class NiedStation {
     }
     calcActivity(level, ascend){
         let levelActivity, ascendActivity
-        if(level <= 8) levelActivity = 0
+        if(level <= 7) levelActivity = 0
+        else if(level <= 8) levelActivity = 1
         else if(level <= 9) levelActivity = 2
         else if(level <= 10) levelActivity = 4
         else if(level <= 11) levelActivity = 8

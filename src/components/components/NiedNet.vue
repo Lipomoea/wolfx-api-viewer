@@ -93,15 +93,16 @@ const update = ()=>{
         niedMaxShindo.value = getShindoFromChar(maxChar)
         const possibleStations = stations.filter(station=>station.activity > 0)
         const activeStations = new Set()
+        const checkedStations = new Set()
         possibleStations.forEach(station=>{
-            if(!activeStations.has(station)){
+            if(!checkedStations.has(station)){
                 const nearbyStations = adjStationIds[station.id].map(id=>stations[id]).filter(station=>station.level > -1)
                 const possibleNearbyStations = nearbyStations.filter(station=>station.activity > 0)
                 const numThres = nearbyStations.length <= 3 ? 1 : nearbyStations.length <= 10 ? 2 : 3
                 const activityThres = 7.5 + 0.5 * nearbyStations.length
                 const nearbyActivity = possibleNearbyStations.reduce((sum, station)=>sum + station.activity, 0)
                 if(possibleNearbyStations.length >= numThres && nearbyActivity >= activityThres){
-                    chainActivate(station, activeStations)
+                    chainActivate(station, activeStations, checkedStations)
                 }
             }
         })
@@ -110,12 +111,19 @@ const update = ()=>{
         })
     }
 }
-const chainActivate = (station, activeStations)=>{
-    if(!activeStations.has(station) && station.activity > 0){
-        activeStations.add(station)
-        adjStationIds[station.id].forEach(id=>{
-            chainActivate(stations[id], activeStations)
-        })
+const chainActivate = (station, activeStations, checkedStations)=>{
+    const pendingStations = new Set([station])
+    while(pendingStations.size > 0){
+        const currentStation = pendingStations.values().next().value
+        pendingStations.delete(currentStation)
+        checkedStations.add(currentStation)
+        if(currentStation.activity > 0){
+            activeStations.add(currentStation)
+            adjStationIds[currentStation.id].forEach(id=>{
+                const neighbor = stations[id]
+                if(!checkedStations.has(neighbor)) pendingStations.add(neighbor)
+            })
+        }
     }
 }
 const renderAll = ()=>{
