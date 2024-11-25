@@ -176,6 +176,7 @@ const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 let map, jpEewBaseMap, cnEewBaseMap
 let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, gridPane, cnFaultBasePane, jpEewBasePane, cnEewBasePane
+const defaultLatLng = [38.1, 104.6]
 const isValidUserLatLng = computed(()=>settingsStore.mainSettings.userLatLng.every(item=>item !== ''))
 const isDisplayUser = computed(()=>isValidUserLatLng.value && settingsStore.mainSettings.displayUser)
 const userLatLng = computed(()=>settingsStore.mainSettings.userLatLng.map(val=>Number(val)))
@@ -261,7 +262,13 @@ const getBarClass = (eqMessage)=>{
     return 'gray'
 }
 onMounted(()=>{
-    map = L.map('mainMap', {attributionControl: false})
+    map = L.map('mainMap', {
+        attributionControl: false,
+        center: defaultLatLng,
+        zoom: 4,
+        minZoom: 3,
+        maxZoom: 12
+    })
     //傻逼Leaflet
     L.Marker.prototype._animateZoom = function (opt) {
         if (!this._map) {
@@ -300,7 +307,7 @@ onMounted(()=>{
     jpEewBasePane.style.zIndex = 20
     map.createPane('cnEewBasePane')
     cnEewBasePane = map.getPane('cnEewBasePane')
-    cnEewBasePane.style.zIndex = 20
+    cnEewBasePane.style.zIndex = 21
     map.createPane('cnFaultBasePane')
     cnFaultBasePane = map.getPane('cnFaultBasePane')
     cnFaultBasePane.style.zIndex = 30
@@ -318,11 +325,10 @@ onMounted(()=>{
     wavePane.style.zIndex = 150
     map.createPane('eewMarkerPane')
     eewMarkerPane = map.getPane('eewMarkerPane')
-    eewMarkerPane.style.zIndex = 200
+    eewMarkerPane.style.zIndex = 201
     map.createPane('eqlistMarkerPane')
     eqlistMarkerPane = map.getPane('eqlistMarkerPane')
     eqlistMarkerPane.style.zIndex = 200
-    map.setView([0, 0], 2)
     map.on('dragstart', handleManual)
     watch([isDisplayUser, userLatLng], ()=>{
         if(userMarker && map.hasLayer(userMarker)) map.removeLayer(userMarker)
@@ -502,10 +508,24 @@ const setView = ()=>{
             }
         })
     }
-    if(bounds.isValid()) map.fitBounds(bounds, {maxZoom: 8, minZoom: 4, padding:[50, 50]})
-    else if(isValidViewLatLng.value) map.setView(viewLatLng.value, zoomLevel.value)
-    else if(isValidUserLatLng.value) map.setView(userLatLng.value, zoomLevel.value)
-    else map.setView([38.1, 104.6], zoomLevel.value)
+    let targetCenter, targetZoomLevel
+    if(bounds.isValid()){
+        targetCenter = bounds.getCenter()
+        targetZoomLevel = Math.min(Math.max(map.getBoundsZoom(bounds, false, [50, 50]), 4), 8)
+    }
+    else if(isValidViewLatLng.value){
+        targetCenter = viewLatLng.value
+        targetZoomLevel = zoomLevel.value
+    }
+    else if(isValidUserLatLng.value){
+        targetCenter = userLatLng.value
+        targetZoomLevel = zoomLevel.value
+    }
+    else{
+        targetCenter = defaultLatLng
+        targetZoomLevel = zoomLevel.value
+    }
+    map.setView(targetCenter, targetZoomLevel, { animate: true })
 }
 provide('setView', setView)
 provide('isAutoZoom', isAutoZoom)

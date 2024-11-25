@@ -167,7 +167,9 @@
                                 v-model="settingsStore.mainSettings.defaultZoom"
                                 type="number"
                                 size="small"
-                                maxlength="5"
+                                maxlength="2"
+                                min="3"
+                                max="12"
                                 style="width: 50px;"
                                 @change="setDefaultZoom"></el-input>
                                 <el-button
@@ -344,9 +346,7 @@ const autoLocate = async ()=>{
     }
 }
 const setDefaultZoom = (val)=>{
-    if(val > 18) val = 18
-    if(val < 0) val = 0
-    settingsStore.mainSettings.defaultZoom = val
+    settingsStore.mainSettings.defaultZoom = Math.min(Math.max(val, 3), 12)
 }
 const setCurrentViewAsDefault = ()=>{
     const map = statusStore.map
