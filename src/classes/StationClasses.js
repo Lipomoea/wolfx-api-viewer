@@ -6,10 +6,10 @@ import { shindoIconUrls } from '@/utils/Urls';
 
 let colorBand = [
     '#0003cf', 
-    '#0014da', '#003cf2', '#006cdc', '#00b3a2', '#12dc72', 
-    '#31f049', '#64fb2a', '#a3fe14', '#ccff09', '#ebff03', 
-    '#fff500', '#ffe500', '#ffce00', '#ffa600', '#ff7e00', 
-    '#ff5900', '#fd3500', '#f81100', '#e90000', '#c20000'
+    '#0014da', '#0037f0', '#006cdc', '#00b3a2', '#12dc72', 
+    '#31f049', '#64fb2a', '#9dfe17', '#ccff09', '#ebff03', 
+    '#fff500', '#ffe500', '#ffca00', '#ffa600', '#ff7e00', 
+    '#ff5900', '#fd3500', '#f81100', '#e50000', '#bd0000'
 ]
 
 let settingsStore
