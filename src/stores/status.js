@@ -73,36 +73,61 @@ export const useStatusStore = defineStore('statusStore', {
                 case 'jmaEew':{
                     eqMessage.id = data.EventID
                     eqMessage.isEew = true
-                    eqMessage.reportNum = data.Serial
-                    eqMessage.reportNumText = '第' + data.Serial + '報' + (data.isFinal?'（最終）':'')
-                    eqMessage.reportTime = data.AnnouncedTime
-                    eqMessage.isAssumption = data.isAssumption
-                    eqMessage.isWarn = data.isWarn
-                    eqMessage.isFinal = data.isFinal
                     eqMessage.isCanceled = data.isCancel
-                    eqMessage.title = data.Title
-                    eqMessage.titleText = data.Title + (data.isCancel?'（取消）':'')
-                    eqMessage.hypocenter = data.Hypocenter
-                    eqMessage.hypocenterText = '震源地: ' + data.Hypocenter
-                    eqMessage.lat = data.Latitude
-                    eqMessage.lng = data.Longitude
-                    eqMessage.depth = data.Depth
-                    eqMessage.depthText = '深さ: ' + data.Depth + 'km'
-                    eqMessage.originTime = data.OriginTime
-                    eqMessage.originTimeText = '発震時刻: ' + data.OriginTime + ' (JST)'
-                    eqMessage.magnitude = data.Magunitude
-                    eqMessage.magnitudeText = 'マグニチュード: ' + data.Magunitude.toFixed(1)
                     eqMessage.useShindo = true
-                    eqMessage.maxIntensity = data.MaxIntensity
-                    eqMessage.maxIntensityText = '推定最大震度: ' + data.MaxIntensity
-                    eqMessage.warnArea = JSON.stringify(data.WarnArea.map(item=>{
-                        return {
-                            id: 0,
-                            name: item.Chiiki,
-                            intensity: item.Shindo1,
-                            className: setClassName(item.Shindo1, true)
-                        }
-                    }))
+                    if(data.isCancel){
+                        eqMessage.reportNum = data.Serial
+                        eqMessage.reportNumText = 'キャンセル報'
+                        eqMessage.reportTime = data.AnnouncedTime
+                        eqMessage.isAssumption = data.isAssumption
+                        eqMessage.isWarn = data.isWarn
+                        eqMessage.isFinal = data.isFinal
+                        eqMessage.title = data.Title
+                        eqMessage.titleText = '緊急地震速報（取消）'
+                        eqMessage.hypocenter = '取り消されました'
+                        eqMessage.hypocenterText = '震源地: 取り消されました'
+                        eqMessage.lat = data.Latitude
+                        eqMessage.lng = data.Longitude
+                        eqMessage.depth = data.Depth
+                        eqMessage.depthText = '深さ: ' + data.Depth + 'km'
+                        eqMessage.originTime = data.OriginTime
+                        eqMessage.originTimeText = '発震時刻: ' + data.OriginTime + ' (JST)'
+                        eqMessage.magnitude = data.Magunitude
+                        eqMessage.magnitudeText = 'マグニチュード: ' + data.Magunitude.toFixed(1)
+                        eqMessage.maxIntensity = data.MaxIntensity
+                        eqMessage.maxIntensityText = '推定最大震度: なし'
+                        eqMessage.warnArea = ''
+                    }
+                    else{
+                        eqMessage.reportNum = data.Serial
+                        eqMessage.reportNumText = '第' + data.Serial + '報' + (data.isFinal?'（最終）':'')
+                        eqMessage.reportTime = data.AnnouncedTime
+                        eqMessage.isAssumption = data.isAssumption
+                        eqMessage.isWarn = data.isWarn
+                        eqMessage.isFinal = data.isFinal
+                        eqMessage.title = data.Title
+                        eqMessage.titleText = data.Title
+                        eqMessage.hypocenter = data.Hypocenter
+                        eqMessage.hypocenterText = '震源地: ' + data.Hypocenter
+                        eqMessage.lat = data.Latitude
+                        eqMessage.lng = data.Longitude
+                        eqMessage.depth = data.Depth
+                        eqMessage.depthText = '深さ: ' + data.Depth + 'km'
+                        eqMessage.originTime = data.OriginTime
+                        eqMessage.originTimeText = '発震時刻: ' + data.OriginTime + ' (JST)'
+                        eqMessage.magnitude = data.Magunitude
+                        eqMessage.magnitudeText = 'マグニチュード: ' + data.Magunitude.toFixed(1)
+                        eqMessage.maxIntensity = data.MaxIntensity
+                        eqMessage.maxIntensityText = '推定最大震度: ' + data.MaxIntensity
+                        eqMessage.warnArea = JSON.stringify(data.WarnArea.map(item=>{
+                            return {
+                                id: 0,
+                                name: item.Chiiki,
+                                intensity: item.Shindo1,
+                                className: setClassName(item.Shindo1, true)
+                            }
+                        }))
+                    }
                     break
                 }
                 case 'cwaEew':{
