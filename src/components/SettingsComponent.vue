@@ -226,8 +226,8 @@
                             <div class="switch">
                                 <span>强制估算中国地震烈度（实验性）</span>
                                 <el-popover
-                                    placement="top-start"
-                                    :width="400"
+                                    placement="top"
+                                    :width="300"
                                     trigger="hover"
                                 >
                                     <template #reference>
