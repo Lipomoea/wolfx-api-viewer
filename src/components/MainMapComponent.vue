@@ -508,24 +508,26 @@ const setView = ()=>{
             }
         })
     }
-    let targetCenter, targetZoomLevel
     if(bounds.isValid()){
-        targetCenter = bounds.getCenter()
-        targetZoomLevel = Math.min(Math.max(map.getBoundsZoom(bounds, false, [50, 50]), 4), 8)
-    }
-    else if(isValidViewLatLng.value){
-        targetCenter = viewLatLng.value
-        targetZoomLevel = zoomLevel.value
-    }
-    else if(isValidUserLatLng.value){
-        targetCenter = userLatLng.value
-        targetZoomLevel = zoomLevel.value
+        map.fitBounds(bounds, {
+            padding: [50, 50],
+            maxZoom: 8,
+            animate: true
+        })
     }
     else{
-        targetCenter = defaultLatLng
-        targetZoomLevel = zoomLevel.value
+        let targetCenter
+        if(isValidViewLatLng.value){
+            targetCenter = viewLatLng.value
+        }
+        else if(isValidUserLatLng.value){
+            targetCenter = userLatLng.value
+        }
+        else{
+            targetCenter = defaultLatLng
+        }
+        map.setView(targetCenter, zoomLevel.value, { animate: true })
     }
-    map.setView(targetCenter, targetZoomLevel, { animate: true })
 }
 provide('setView', setView)
 provide('isAutoZoom', isAutoZoom)
