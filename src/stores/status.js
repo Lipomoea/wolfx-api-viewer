@@ -2,8 +2,7 @@ import { defineStore } from 'pinia'
 import Http from '@/utils/Http'
 import WebSocketObj from '@/utils/WebSocket'
 import { eqUrls } from '@/utils/Urls'
-import { setClassName } from '@/utils/Utils'
-import { useSettingsStore } from './settings'
+import { setClassName, calcCsisLevel } from '@/utils/Utils'
 
 const defaultEqMessage = {
     source: '',
@@ -60,18 +59,13 @@ export const useStatusStore = defineStore('statusStore', {
             jmaEqlist: false,
             cencEqlist: false,
             niedNet: false,
-        }
+        },
+        forceCalcCsis: false
     }),
     getters: {
         
     },
     actions: {
-        initiate(){
-            const settingsStore = useSettingsStore()
-            const func = settingsStore.advancedSettings.forceCalcCsis?localStorage.getItem('calcCsis'):''
-            this.calcCsis = func?new Function('m', 'dep', 'dis', func):undefined
-            this.calcCsisLevel = this.calcCsis?(m, dep, dis)=>Math.min(Math.max(this.calcCsis(m, dep, dis), 0), 12).toFixed(0):undefined
-        },
         setEqMessage(source, data){
             const eqMessage = this.eqMessage[source]
             eqMessage.source = source
@@ -152,7 +146,7 @@ export const useStatusStore = defineStore('statusStore', {
                     eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
                     eqMessage.magnitude = data.magnitude
                     eqMessage.magnitudeText = '震级: ' + data.magnitude.toFixed(1)
-                    eqMessage.maxIntensity = data.epiIntensity?data.epiIntensity.toFixed(0):(this.calcCsisLevel?this.calcCsisLevel(data.magnitude, data.depth, 0):'不明')
+                    eqMessage.maxIntensity = data.epiIntensity?data.epiIntensity.toFixed(0):(this.forceCalcCsis?calcCsisLevel(data.magnitude, data.depth, 0):'不明')
                     eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                     eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 7
                     break
@@ -197,7 +191,7 @@ export const useStatusStore = defineStore('statusStore', {
                     eqMessage.originTimeText = '发震时间: ' + data.OriginTime
                     eqMessage.magnitude = data.Magunitude
                     eqMessage.magnitudeText = '震级: ' + data.Magunitude.toFixed(1)
-                    eqMessage.maxIntensity = this.calcCsisLevel?this.calcCsisLevel(data.Magunitude, 10, 0):'不明'
+                    eqMessage.maxIntensity = this.forceCalcCsis?calcCsisLevel(data.Magunitude, 10, 0):'不明'
                     eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                     break
                 }

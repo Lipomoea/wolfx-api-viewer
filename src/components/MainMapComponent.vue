@@ -27,18 +27,18 @@
                         <div class="countdown eew realtime" v-if="settingsStore.mainSettings.displayCountdown">
                             <div class="shindo-bar" :class="event.countdown <= 0?'gray':event.countdown <= 10?'red':event.countdown <= 60?'orange':'yellow'">{{ event.countdown == -1?'-':Math.floor(event.countdown) }}秒</div>
                             <div class="info" v-if="event.eqMessage.source == 'jmaEew'">
-                                <div class="intensity" :class="userJmaAreaShindo == '?' && isValidUserLatLng && statusStore.calcCsisLevel?setClassName(calcUserCsis(event), false):setClassName(userJmaAreaShindo, true)">
-                                    <div class="intensity-title">{{ userJmaAreaShindo == '?' && isValidUserLatLng && statusStore.calcCsisLevel?'本地CSIS':'本地震度' }}</div>
+                                <div class="intensity" :class="userJmaAreaShindo == '?' && isValidUserLatLng && settingsStore.advancedSettings.forceCalcCsis?setClassName(calcUserCsis(event), false):setClassName(userJmaAreaShindo, true)">
+                                    <div class="intensity-title">{{ userJmaAreaShindo == '?' && isValidUserLatLng && settingsStore.advancedSettings.forceCalcCsis?'本地CSIS':'本地震度' }}</div>
                                     <div :class="userJmaAreaShindo != '?'?'shindo':'csis'">
-                                        {{ userJmaAreaShindo == '?' && isValidUserLatLng && statusStore.calcCsisLevel?calcUserCsis(event):userJmaAreaShindo }}
+                                        {{ userJmaAreaShindo == '?' && isValidUserLatLng && settingsStore.advancedSettings.forceCalcCsis?calcUserCsis(event):userJmaAreaShindo }}
                                     </div>
                                 </div>
                             </div>
                             <div class="info" v-else>
-                                <div class="intensity" :class="setClassName(isValidUserLatLng && statusStore.calcCsisLevel?calcUserCsis(event):'?', false)">
+                                <div class="intensity" :class="setClassName(isValidUserLatLng && settingsStore.advancedSettings.forceCalcCsis?calcUserCsis(event):'?', false)">
                                     <div class="intensity-title">本地CSIS</div>
                                     <div class="csis">
-                                        {{ isValidUserLatLng && statusStore.calcCsisLevel?calcUserCsis(event):'?' }}
+                                        {{ isValidUserLatLng && settingsStore.advancedSettings.forceCalcCsis?calcUserCsis(event):'?' }}
                                     </div>
                                 </div>
                             </div>
@@ -168,7 +168,7 @@ import EewComponent from './EewComponent.vue';
 import SeisNetComponent from './SeisNetComponent.vue';
 import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
-import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToPolygon, csisArray, shindoArray } from '@/utils/Utils';
+import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToPolygon, csisArray, shindoArray, calcCsisLevel } from '@/utils/Utils';
 import { geojsonUrls } from '@/utils/Urls';
 import { booleanPointInPolygon, point } from '@turf/turf';
 
@@ -422,13 +422,13 @@ const loadMaps = async () => {
                 }
             })
         }, { deep: true, immediate: true })
-        if(statusStore.calcCsisLevel){
+        if(settingsStore.advancedSettings.forceCalcCsis){
             watch(cnEewInfoList, newVal=>{
                 cnEewBaseMap.eachLayer(layer=>{
                     let maxInt = 0
                     newVal.forEach(info=>{
                         const dist = pointDistToPolygon([info.lat, info.lng], layer.feature)
-                        const int = statusStore.calcCsisLevel(info.magnitude, info.depth, dist)
+                        const int = calcCsisLevel(info.magnitude, info.depth, dist)
                         if(int > maxInt) maxInt = int
                     })
                     if(maxInt > 0){
@@ -625,7 +625,7 @@ const cnEewInfoList = computed(()=>{
     return cnEewInfoList
 })
 const calcUserCsis = (event)=>{
-    return statusStore.calcCsisLevel(event.eqMessage.magnitude, event.eqMessage.depth, L.latLng([event.eqMessage.lat, event.eqMessage.lng]).distanceTo(L.latLng(userLatLng.value)) / 1000)
+    return calcCsisLevel(event.eqMessage.magnitude, event.eqMessage.depth, L.latLng([event.eqMessage.lat, event.eqMessage.lng]).distanceTo(L.latLng(userLatLng.value)) / 1000)
 }
 onBeforeUnmount(()=>{
     clearInterval(autoZoomInterval)

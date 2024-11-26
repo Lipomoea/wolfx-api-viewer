@@ -223,3 +223,14 @@ export const pointDistToPolygon = (pointLatLng, feature)=>{
         return dist
     }
 }
+export const calcCsis = (m, dep, dis) => {
+    if (isNaN(m) || isNaN(dep) || isNaN(dis)) return 0;
+    dep = dep >= 10 ? dep : (dep + 10) / 2;
+    const r = 6371;
+    const theta = dis / r;
+    const a = r - dep;
+    const lineDis = Math.sqrt(a * a + r * r - 2 * a * r * Math.cos(theta));
+    const hypoDis = lineDis - 0.3 * dep;
+    return (m * 1.363 + 2.941 - Math.log(hypoDis) * 1.494);
+}
+export const calcCsisLevel = (m, dep, dis) => Math.min(Math.max(calcCsis(m, dep, dis), 0), 12).toFixed(0)

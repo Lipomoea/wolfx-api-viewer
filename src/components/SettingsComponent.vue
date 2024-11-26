@@ -220,6 +220,39 @@
                     </div>
                 </div>
                 <div class="subTitle">高级</div>
+                <div class="group">
+                    <div class="row">
+                        <div class="switchGroup">
+                            <div class="switch">
+                                <span>强制估算中国地震烈度（实验性）</span>
+                                <el-popover
+                                    placement="top-start"
+                                    :width="400"
+                                    trigger="hover"
+                                >
+                                    <template #reference>
+                                        <question-filled width="1em" height="1em"></question-filled>
+                                    </template>
+                                    <p>本地烈度：日本地区优先使用气象厅提供的预想震度，否则估算中国地震烈度。</p>
+                                    <p>区域烈度：计算中国地区各行政区的最大预估烈度。可能与数据源烈度不一致。</p>
+                                    <p>行政区划分：台湾省为省级，直辖市、特别行政区为县级，其余为地级。</p>
+                                    <strong>
+                                        <p>该功能为实验性功能，精度较低。</p>
+                                        <p>此功能会消耗较多计算机资源。</p>
+                                        <p>部分功能需重新加载后生效。</p>
+                                    </strong>
+                                </el-popover>
+                                <el-switch 
+                                v-model="settingsStore.advancedSettings.forceCalcCsis"
+                                @change="forceCalcCsisChanged = true"></el-switch>
+                                <el-button 
+                                size="small"
+                                v-if="forceCalcCsisChanged"
+                                @click="handleReload">重新加载</el-button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="group" v-if="settingsStore.advancedSettings.displayNiedShindoSwitch">
                     <div class="row">
                         <div class="switchGroup">
@@ -282,6 +315,7 @@ import { useStatusStore } from '@/stores/status';
 import { utilUrls } from '@/utils/Urls';
 import Http from '@/utils/Http';
 import { ref, reactive } from 'vue'
+import { QuestionFilled } from '@element-plus/icons-vue';
 
 const showNotifButton = 'Notification' in window
 const showFocusButton = !!window.__TAURI_INTERNALS__
@@ -405,6 +439,10 @@ const setNiedDelay = (val)=>{
     if(val < 0) val = 0
     settingsStore.mainSettings.displaySeisNet.niedDelay = val
 }
+const forceCalcCsisChanged = ref(false)
+const handleReload = () => {
+    window.location.reload()
+}
 const advancedInput = ref('')
 const verifyDialog = ref(false)
 let verifyType = ''
@@ -430,22 +468,6 @@ const handleAdvance = (val)=>{
         }
         case 'disableIclEew': {
             settingsStore.advancedSettings.enableIclEew = false
-            ElMessage({
-                message: '功能已关闭，3秒后自动刷新网页',
-                type: 'success'
-            })
-            setTimeout(() => {
-                window.location.reload()
-            }, 3000);
-            break
-        }
-        case 'forceCalcCsis': {
-            verifyType = 'forceCalcCsis'
-            verifyDialog.value = true
-            break
-        }
-        case 'cancelCalcCsis': {
-            settingsStore.advancedSettings.forceCalcCsis = false
             ElMessage({
                 message: '功能已关闭，3秒后自动刷新网页',
                 type: 'success'
@@ -482,36 +504,15 @@ const postVerify = async ()=>{
             }
             break
         }
-        case 'forceCalcCsis':{
-            const res = await Http.post('http://124.70.142.213:8766/calc_csis', idForm)
-            if(res && res.success){
-                settingsStore.advancedSettings.forceCalcCsis = true
-                localStorage.setItem('calcCsis', res.data)
-                verifyDialog.value = false
-                ElMessage({
-                    message: '认证成功，3秒后自动刷新网页',
-                    type: 'success'
-                })
-                setTimeout(() => {
-                    window.location.reload()
-                }, 3000);
-            }
-            else{
-                ElMessage({
-                    message: '认证失败',
-                    type: 'error'
-                })
-            }
-            break
-        }
     }
 }
 const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
+            <p>v2.0.0-pre.24 新增：强制估算中国地震烈度功能。请仔细阅读该功能的注意事项；优化：初始地图视野；优化：限制了地图缩放等级范围；修复：测站部分震度配色偏差问题。</p>
             <p>v2.0.0-pre.23 优化：重写震度检出算法，极大幅度降低了误检知的概率。</p>
-            <p>v2.0.0-pre.23 新增：地震波倒计时提示音；优化：多重地震震度检出；优化：降低震度误检出概率；优化：调整部分UI质感；优化：代码逻辑；修复：异色地震波叠加闪烁的问题。</p>
+            <p>v2.0.0-pre.22 新增：地震波倒计时提示音；优化：多重地震震度检出；优化：降低震度误检出概率；优化：调整部分UI质感；优化：代码逻辑；修复：异色地震波叠加闪烁的问题。</p>
             <p>v2.0.0-pre.21 新增：EEW显示地震波倒计时；新增：紧急地震速报本地预想震度功能；新增：EEW地图图例；优化：新增烈度配色。</p>
             <p>v2.0.0-pre.20 新增：首次推出Windows桌面版应用，新增桌面应用弹窗功能。</p>
             <p>v2.0.0-(pre.1-pre.19) 变更：升级Vue3版本，UI重排，WebSocket使用all_eew接口，使用新的中国和日本地图，暂时移除地震波倒计时功能；新增：同源多个EEW同时展示，适配假定震源，JMA紧急地震速报区域预想震度绘制，中国断层显示，NIED強震モニタ测站显示、震度检出功能，设置默认视野功能，鼠标悬浮提示区域名称，NIED测站回放功能。</p>
@@ -550,7 +551,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        'wolfx-api-viewer v2.0.0-pre.23',
+        'wolfx-api-viewer v2.0.0-pre.24',
         {
             confirmButtonText: 'OK',
             showClose: false,
