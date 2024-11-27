@@ -25,12 +25,12 @@
                             </div>
                         </div>
                         <div class="countdown eew realtime" v-if="settingsStore.mainSettings.displayCountdown">
-                            <div class="shindo-bar" :class="event.countdown <= 0?'gray':event.countdown <= 10?'red':event.countdown <= 60?'orange':'yellow'">{{ event.countdown == -1?'-':Math.floor(event.countdown) }}秒</div>
+                            <div class="shindo-bar" :class="event.countdown <= 0 || event.eqMessage.isCanceled?'gray':event.countdown <= 10?'red':event.countdown <= 60?'orange':'yellow'">{{ event.countdown == -1?'-':Math.floor(event.countdown) }}秒</div>
                             <div class="info" v-if="event.eqMessage.source == 'jmaEew'">
-                                <div class="intensity" :class="userJmaAreaShindo == '?' && isValidUserLatLng && settingsStore.advancedSettings.forceCalcCsis?setClassName(calcUserCsis(event), false):setClassName(userJmaAreaShindo, true)">
-                                    <div class="intensity-title">{{ userJmaAreaShindo == '?' && isValidUserLatLng && settingsStore.advancedSettings.forceCalcCsis?'本地CSIS':'本地震度' }}</div>
+                                <div class="intensity" :class="shouldCalcCsis(event)?setClassName(calcUserCsis(event), false):setClassName(userJmaAreaShindo, true)">
+                                    <div class="intensity-title">{{ shouldCalcCsis(event)?'本地CSIS':'本地震度' }}</div>
                                     <div :class="userJmaAreaShindo != '?'?'shindo':'csis'">
-                                        {{ userJmaAreaShindo == '?' && isValidUserLatLng && settingsStore.advancedSettings.forceCalcCsis?calcUserCsis(event):userJmaAreaShindo }}
+                                        {{ shouldCalcCsis(event)?calcUserCsis(event):userJmaAreaShindo }}
                                     </div>
                                 </div>
                             </div>
@@ -196,6 +196,7 @@ const userJmaAreaShindo = computed(()=>{
     if(userJmaAreaName.value in jmaWarnArea.value) return formatIntensity(jmaWarnArea.value[userJmaAreaName.value].intensity)
     else return '?'
 })
+const shouldCalcCsis = (event) => userJmaAreaShindo.value == '?' && isValidUserLatLng.value && settingsStore.advancedSettings.forceCalcCsis && !event.eqMessage.isAssumption
 let userMarker
 const isValidViewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.every(item=>item !== ''))
 const viewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.map(val=>Number(val)))

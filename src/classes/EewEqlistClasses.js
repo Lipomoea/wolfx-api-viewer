@@ -15,6 +15,16 @@ const eewCrossDivIcon = L.divIcon({
     iconAnchor: [20, 20],
     className: '',
 })
+const eewCancelCrossIcon = `
+<svg t="1724073690966" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1465" width="40" height="40" opacity="0.5">
+<path d="M960 170.56L869.44 80 512 437.44 154.56 80 64 170.56 421.44 528 64 885.44l90.56 90.56L512 618.56 869.44 976 960 885.44 602.56 528 960 170.56z" p-id="1466" fill="#e21d1d" stroke="#ffffff" stroke-width="32"></path>
+</svg>
+`
+const eewCancelCrossDivIcon = L.divIcon({
+    html: eewCancelCrossIcon,
+    iconAnchor: [20, 20],
+    className: '',
+})
 const eqlistCrossIcon = `
 <svg t="1724073690966" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1465" width="40" height="40">
 <path d="M960 170.56L869.44 80 512 437.44 154.56 80 64 170.56 421.44 528 64 885.44l90.56 90.56L512 618.56 869.44 976 960 885.44 602.56 528 960 170.56z" p-id="1466" fill="#e21d1d" stroke="#fff1aa" stroke-width="32"></path>
@@ -25,15 +35,27 @@ const eqlistCrossDivIcon = L.divIcon({
     iconAnchor: [20, 20],
     className: '',
 })
-const circleIcon = `
+const eewCircleIcon = `
 <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
 <circle cx="20" cy="20" r="17.5" stroke="#e21d1d" stroke-width="3"/>
 <circle cx="20" cy="20" r="19.5" stroke="#ffffff" stroke-width="1"/>
 <circle cx="20" cy="20" r="15.5" stroke="#ffffff" stroke-width="1"/>
 </svg>
 `
-const circleDivIcon = L.divIcon({
-    html: circleIcon,
+const eewCircleDivIcon = L.divIcon({
+    html: eewCircleIcon,
+    iconAnchor: [20, 20],
+    className: '',
+})
+const eewCancelCircleIcon = `
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" opacity="0.5">
+<circle cx="20" cy="20" r="17.5" stroke="#e21d1d" stroke-width="3"/>
+<circle cx="20" cy="20" r="19.5" stroke="#ffffff" stroke-width="1"/>
+<circle cx="20" cy="20" r="15.5" stroke="#ffffff" stroke-width="1"/>
+</svg>
+`
+const eewCancelCircleDivIcon = L.divIcon({
+    html: eewCancelCircleIcon,
     iconAnchor: [20, 20],
     className: '',
 })
@@ -64,7 +86,12 @@ class EewEvent {
     }
     setMark(){
         if(this.hypoMarker && this.map.hasLayer(this.hypoMarker)) this.map.removeLayer(this.hypoMarker)
-        this.hypoMarker = L.marker(this.hypoLatLng, {icon: this.eqMessage.isAssumption?circleDivIcon:eewCrossDivIcon, pane: 'eewMarkerPane', interactive: false})
+        if(this.eqMessage.isCanceled){
+            this.hypoMarker = L.marker(this.hypoLatLng, {icon: this.eqMessage.isAssumption?eewCancelCircleDivIcon:eewCancelCrossDivIcon, pane: 'eewMarkerPane', interactive: false})
+        }
+        else{
+            this.hypoMarker = L.marker(this.hypoLatLng, {icon: this.eqMessage.isAssumption?eewCircleDivIcon:eewCrossDivIcon, pane: 'eewMarkerPane', interactive: false})
+        }
         this.hypoMarker.addTo(this.map)
     }
     drawWaves(){
@@ -168,9 +195,10 @@ class EewEvent {
         }, time);
     }
     handleCancel(eqMessage, time){
-        Object.assign(this.eqMessage, eqMessage)
-        this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
+        const { isCanceled, title, titleText, reportNum, reportNumText } = eqMessage
+        Object.assign(this.eqMessage, { isCanceled, title, titleText, reportNum, reportNumText })
         this.renderStop()
+        this.setMark()
         this.handleActions()
         clearTimeout(this.terminateTimer)
         this.terminateTimer = setTimeout(() => {
@@ -334,7 +362,7 @@ class EqlistEvent {
                             playSound(chimeUrls[soundEffect].jishinzyouhou)
                             break
                         }
-                        case '顕著な震源要素更新のお知らせ':{
+                        case '顕著な地震の震源要素更新のお知らせ':{
                             playSound(chimeUrls[soundEffect].shingenzyouhou)
                             break
                         }

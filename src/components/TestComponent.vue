@@ -12,7 +12,7 @@ const statusStore = useStatusStore()
 
 const testJmaEew = true
 const testCwaEew = false
-const testIclEew = true
+const testIclEew = false
 const testScEew = false
 const testJmaEqlist = false
 
@@ -60,7 +60,46 @@ onMounted(()=>{
                 "Pond": ""
             }
             statusStore.setEqMessage(source, data)
-        }, 4100);
+        }, 3500);
+        setTimeout(() => {
+            const data = {
+                "Title": "キャンセル時、未設定時",
+                "CodeType": "",
+                "Issue": {
+                    "Source": "",
+                    "Status": ""
+                },
+                "EventID": "20240808164303",
+                "Serial": 0,
+                "AnnouncedTime": timeStr,
+                "OriginTime": timeStr,
+                "Hypocenter": '',
+                "Latitude": 0,
+                "Longitude": 0,
+                "Magunitude": 0,
+                "Depth": 0,
+                "MaxIntensity": "",
+                "Accuracy": {
+                    "Epicenter": "",
+                    "Depth": "",
+                    "Magnitude": ""
+                },
+                "MaxIntChange": {
+                    "String": "",
+                    "Reason": ""
+                },
+                "WarnArea": [],
+                "isSea": false,
+                "isTraining": false,
+                "isAssumption": true,
+                "isWarn": false,
+                "isFinal": false,
+                "isCancel": true,
+                "OriginalText": "",
+                "Pond": ""
+            }
+            statusStore.setEqMessage(source, data)
+        }, 5500);
         setTimeout(() => {
             const data = {
                 "Title": "緊急地震速報（警報）",
@@ -332,7 +371,46 @@ onMounted(()=>{
                 "Pond": ""
             }
             statusStore.setEqMessage(source, data)
-        }, 6700);
+        }, 8000);
+        setTimeout(() => {
+            const data = {
+                "Title": "キャンセル時、未設定時",
+                "CodeType": "",
+                "Issue": {
+                    "Source": "",
+                    "Status": ""
+                },
+                "EventID": "20240808164303",
+                "Serial": 0,
+                "AnnouncedTime": timeStr,
+                "OriginTime": timeStr,
+                "Hypocenter": "",
+                "Latitude": 0,
+                "Longitude": 0,
+                "Magunitude": 0,
+                "Depth": 0,
+                "MaxIntensity": "",
+                "Accuracy": {
+                    "Epicenter": "",
+                    "Depth": "",
+                    "Magnitude": ""
+                },
+                "MaxIntChange": {
+                    "String": "",
+                    "Reason": ""
+                },
+                "WarnArea": [],
+                "isSea": false,
+                "isTraining": false,
+                "isAssumption": false,
+                "isWarn": true,
+                "isFinal": false,
+                "isCancel": true,
+                "OriginalText": "",
+                "Pond": ""
+            }
+            statusStore.setEqMessage(source, data)
+        }, 10000);
         setTimeout(() => {
             const data = {
                 "Title": "緊急地震速報（予報）",

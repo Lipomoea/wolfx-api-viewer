@@ -44,16 +44,12 @@ const handleClick = ()=>{
 }
 
 onBeforeUnmount(()=>{
-    clearInterval(blinkController)
-    clearTimeout(blinkTimeout)
     clearTimeout(timer)
 })
 
 const className = ref('white midOpacity')
-let timer, blinkController, blinkTimeout
-let blinkState = ref(true)
+let timer
 let isLoad = true
-const blinkTime = 4000
 
 watch(eqMessage, (newVal)=>{
     className.value = newVal.className + ' midOpacity'
@@ -127,26 +123,11 @@ watch(eqMessage, (newVal)=>{
             }
         }
         if(isAutoZoom.value) setView()
-        clearInterval(blinkController)
-        blinkController = setInterval(() => {
-            if(blinkState.value){
-                className.value = newVal.className + ' highOpacity'
-            }
-            else{
-                className.value = newVal.className + ' zeroOpacity'
-            }
-            blinkState.value = !blinkState.value
-        }, 500);
-        clearTimeout(blinkTimeout)
-        blinkTimeout = setTimeout(() => {
-            clearInterval(blinkController)
-            blinkState.value = true
-            className.value = newVal.className + ' highOpacity'
-        }, blinkTime);
+        className.value = newVal.className + ' highOpacity'
         clearTimeout(timer)
         timer = setTimeout(() => {
             className.value = newVal.className + ' midOpacity'
-        }, Math.max(time, blinkTime));
+        }, time);
     }
 }, { deep: true })
 const passedTimeFromOrigin = ref()
