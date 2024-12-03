@@ -239,16 +239,12 @@
                                     <strong>
                                         <p>该功能为实验性功能，精度较低。</p>
                                         <p>此功能会消耗较多计算机资源。</p>
-                                        <p>部分功能需重新加载后生效。</p>
+                                        <p>部分功能需重新加载页面后生效。</p>
                                     </strong>
                                 </el-popover>
                                 <el-switch 
                                 v-model="settingsStore.advancedSettings.forceCalcCsis"
-                                @change="forceCalcCsisChanged = true"></el-switch>
-                                <el-button 
-                                size="small"
-                                v-if="forceCalcCsisChanged"
-                                @click="handleReload">重新加载</el-button>
+                                @change="needReload = true"></el-switch>
                             </div>
                         </div>
                     </div>
@@ -267,6 +263,30 @@
                     <div class="row">
                         <div class="switchGroup">
                             <div class="switch">
+                                <span>防闪烁模式</span>
+                                <el-popover
+                                    placement="top"
+                                    :width="300"
+                                    trigger="hover"
+                                >
+                                    <template #reference>
+                                        <question-filled width="1em" height="1em"></question-filled>
+                                    </template>
+                                    <p><strong>如无异常，无需开启。</strong></p>
+                                    <p>解决部分因未知原因导致的频繁闪烁问题。启用此功能后会在地图缩放时将地图宽度增减1像素以触发重新渲染。此时地图右侧可能出现白边，缩放完成后恢复正常。</p>
+                                    <p><strong>此功能需重新加载页面后生效。</strong></p>
+                                </el-popover>
+                                <el-switch 
+                                v-model="settingsStore.advancedSettings.preventFlickerMode"
+                                @change="needReload = true"></el-switch>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="group">
+                    <div class="row">
+                        <div class="switchGroup">
+                            <div class="switch">
                                 <span>输入指令</span>
                                 <el-input
                                 type="password"
@@ -277,6 +297,12 @@
                             </div>
                         </div>
                     </div>
+                </div>
+                <div class="group">
+                    <el-button 
+                    type="primary"
+                    v-if="needReload"
+                    @click="handleReload">重载以应用变更</el-button>
                 </div>
                 <div class="subTitle">关于</div>
                 <div class="group">
@@ -439,7 +465,7 @@ const setNiedDelay = (val)=>{
     if(val < 0) val = 0
     settingsStore.mainSettings.displaySeisNet.niedDelay = val
 }
-const forceCalcCsisChanged = ref(false)
+const needReload = ref(false)
 const handleReload = () => {
     window.location.reload()
 }
@@ -510,7 +536,7 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
-            <p>v2.0.0-pre.24 新增：强制估算中国地震烈度功能。请仔细阅读该功能的注意事项；优化：初始地图视野；优化：限制了地图缩放等级范围；修复：测站部分震度配色偏差问题；修复：适配紧急地震速报取消报。</p>
+            <p>v2.0.0-pre.24 新增：强制估算中国地震烈度功能；新增：防闪烁模式；优化：初始地图视野；优化：限制了地图缩放等级范围；修复：测站部分震度配色偏差问题；修复：适配紧急地震速报取消报。</p>
             <p>v2.0.0-pre.23 优化：重写震度检出算法，极大幅度降低了误检知的概率。</p>
             <p>v2.0.0-pre.22 新增：地震波倒计时提示音；优化：多重地震震度检出；优化：降低震度误检出概率；优化：调整部分UI质感；优化：代码逻辑；修复：异色地震波叠加闪烁的问题。</p>
             <p>v2.0.0-pre.21 新增：EEW显示地震波倒计时；新增：紧急地震速报本地预想震度功能；新增：EEW地图图例；优化：新增烈度配色。</p>
@@ -551,7 +577,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        'wolfx-api-viewer v2.0.0-pre.24',
+        'wolfx-api-viewer v2.0.0-pre.24.1',
         {
             confirmButtonText: 'OK',
             showClose: false,

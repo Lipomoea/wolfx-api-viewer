@@ -44,7 +44,8 @@ export const useSettingsStore = defineStore('settingsStore', {
             displayNiedShindoSwitch: false,
             displayNiedShindo: false,
             enableIclEew: false,
-            forceCalcCsis: false
+            forceCalcCsis: false,
+            preventFlickerMode: false
         }
     }),
     getters: {

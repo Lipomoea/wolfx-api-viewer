@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2.0.0-rc",
   "productName": "wolfx-api-viewer",
-  "version": "2.0.0-240",
+  "version": "2.0.0-241",
   "identifier": "com.viewer.wolfx",
   "build": {
     "frontendDist": "../dist",

@@ -331,6 +331,10 @@ onMounted(()=>{
     eqlistMarkerPane = map.getPane('eqlistMarkerPane')
     eqlistMarkerPane.style.zIndex = 200
     map.on('dragstart', handleManual)
+    if(settingsStore.advancedSettings.preventFlickerMode){
+        map.on('zoomstart', ()=>{setMapWidth('calc(100% - 1px)');})
+        map.on('zoomend', ()=>{setMapWidth('100%');})
+    }
     watch([isDisplayUser, userLatLng], ()=>{
         if(userMarker && map.hasLayer(userMarker)) map.removeLayer(userMarker)
         if(isDisplayUser.value){
@@ -465,6 +469,13 @@ const intervalEvents = ()=>{
     wsStatusCode.value = statusStore.allEewSocketObj?statusStore.allEewSocketObj.socket.readyState:4
     // iclWsStatusCode.value = statusStore.iclEewSocketObj?statusStore.iclEewSocketObj.socket.readyState:4
     if(isEewBlink) eewMarkerPane.style.display = blinkStatus?'block':'none'
+}
+const setMapWidth = (width) => {
+    const mapElement = map.getContainer()
+    mapElement.style.width = width
+    setTimeout(() => {
+        map.invalidateSize()
+    }, 0);
 }
 const setView = ()=>{
     const bounds = L.latLngBounds([])
