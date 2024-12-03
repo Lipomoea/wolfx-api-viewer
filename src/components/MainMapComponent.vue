@@ -332,8 +332,8 @@ onMounted(()=>{
     eqlistMarkerPane.style.zIndex = 200
     map.on('dragstart', handleManual)
     if(settingsStore.advancedSettings.preventFlickerMode){
-        map.on('zoomstart', ()=>{setMapWidth('calc(100% - 1px)');})
-        map.on('zoomend', ()=>{setMapWidth('100%');})
+        map.on('zoomstart', ()=>{setMapHeight('calc(100% - 1px)');})
+        map.on('zoomend', ()=>{setMapHeight('100%');})
     }
     watch([isDisplayUser, userLatLng], ()=>{
         if(userMarker && map.hasLayer(userMarker)) map.removeLayer(userMarker)
@@ -470,9 +470,9 @@ const intervalEvents = ()=>{
     // iclWsStatusCode.value = statusStore.iclEewSocketObj?statusStore.iclEewSocketObj.socket.readyState:4
     if(isEewBlink) eewMarkerPane.style.display = blinkStatus?'block':'none'
 }
-const setMapWidth = (width) => {
+const setMapHeight = (height) => {
     const mapElement = map.getContainer()
-    mapElement.style.width = width
+    mapElement.style.height = height
     setTimeout(() => {
         map.invalidateSize()
     }, 0);
@@ -663,6 +663,7 @@ onBeforeUnmount(()=>{
         .mapContainer{
             height: 100%;
             position: relative;
+            background-color: #333;
             #mainMap{
                 width: 100%;
                 height: 100%;
@@ -677,7 +678,7 @@ onBeforeUnmount(()=>{
             .leaflet-container{
                 background-color: #333;
             }
-            .leaflet-grab {
+            .leaflet-grab{
                 cursor: default;
             }
             .eewList{

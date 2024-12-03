@@ -273,7 +273,7 @@
                                         <question-filled width="1em" height="1em"></question-filled>
                                     </template>
                                     <p><strong>如无异常，无需开启。</strong></p>
-                                    <p>解决部分因未知原因导致的频繁闪烁问题。启用此功能后会在地图缩放时将地图宽度增减1像素以触发重新渲染。此时地图右侧可能出现白边，缩放完成后恢复正常。</p>
+                                    <p>解决一部分因未知原因导致的频繁闪烁问题。</p>
                                     <p><strong>此功能需重新加载页面后生效。</strong></p>
                                 </el-popover>
                                 <el-switch 
