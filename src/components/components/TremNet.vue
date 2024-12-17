@@ -23,7 +23,7 @@ const stationList = reactive({})
 let stationData
 const stations = reactive({})
 let map
-const delay = ref(0)
+const delay = computed(()=>settingsStore.advancedSettings.displaySeisNet.tremDelay * 60000)
 const tremMaxShindo = inject('tremMaxShindo')
 const tremUpdateTime = inject('tremUpdateTime')
 const tremPeriodMaxShindo = inject('tremPeriodMaxShindo')
@@ -50,7 +50,7 @@ const activeStations = computed(()=>{
 const grids = computed(()=>{
     let grids = []
     Object.keys(activeStations.value).forEach(id=>{
-        const latLng = stations[id].map(l=>Math.ceil(l + 0.05) - 0.05)
+        const latLng = stations[id].latLng.map(l=>Math.ceil(l + 0.05) - 0.05)
         const level = stations[id].level
         let i
         for(i = 0; i < grids.length; i++){
@@ -83,8 +83,8 @@ const update = ()=>{
     tremMaxShindo.value = getShindoFromInstShindo(maxInst)
 }
 const renderAll = ()=>{
-    Object.keys(stations).forEach(station=>{
-        station.render()
+    Object.keys(stations).forEach(id=>{
+        stations[id].render()
     })
 }
 let requestInterval
@@ -112,9 +112,8 @@ watch(()=>statusStore.map, newVal=>{
         map.on('zoomend', renderAll)
         unwatchStationList = watch(stationList, newVal=>{
             if(Object.keys(newVal).length > 0){
-                console.log(newVal);
                 Object.keys(newVal).forEach(id=>{
-                    const info = newVal[id].info.pop()
+                    const info = newVal[id].info.slice(-1)[0]
                     const latLng = [info.lat, info.lon]
                     const station = reactive(new TremStation(map, id, latLng, -3.1, false))
                     stations[id] = station
@@ -200,9 +199,6 @@ watch(currentMaxShindo, (newVal, oldVal)=>{
         focused = false
     }
 })
-watch(()=>settingsStore.advancedSettings.displaySeisNet.tremDelay, newVal=>{
-    delay.value = newVal
-}, { immediate: true })
 onBeforeUnmount(()=>{
     clearInterval(requestInterval)
     if(map !== null) map.off('zoomend', renderAll)

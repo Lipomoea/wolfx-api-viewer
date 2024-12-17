@@ -276,8 +276,8 @@
                                 @input="setTremDelay"></el-input>
                                 <el-button
                                 size="small"
-                                @click="settingsStore.mainSettings.displaySeisNet.tremDelay = 0"
-                                :disabled="settingsStore.mainSettings.displaySeisNet.tremDelay == 0">还原</el-button>
+                                @click="settingsStore.advancedSettings.displaySeisNet.tremDelay = 0"
+                                :disabled="settingsStore.advancedSettings.displaySeisNet.tremDelay == 0">还原</el-button>
                             </div>
                         </div>
                     </div>

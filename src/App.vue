@@ -34,6 +34,7 @@ onBeforeMount(() => {
   settingsStore.setMainSettings(localStorage.getItem('mainSettings'))
   settingsStore.setAdvancedSettings(localStorage.getItem('advancedSettings'))
   settingsStore.mainSettings.displaySeisNet.niedDelay = 0
+  settingsStore.advancedSettings.displaySeisNet.tremDelay = 0
   timeStore.startUpdatingTime()
   statusStore.forceCalcCsis = settingsStore.advancedSettings.forceCalcCsis
   statusStore.startUpdatingEqMessage()
