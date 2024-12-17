@@ -95,12 +95,14 @@ onMounted(()=>{
     requestInterval = setInterval(() => {
         const time = Date.now() + timeStore.offset - delay.value
         Http.get(seisNetUrls.trem.stationData + (delay.value > 0 ? `/${time}` : `?t=${time}`)).then(res=>{
-            stationData = res.station
-            const timeString = new Date(res.time + 8 * 3600 * 1000).toISOString().slice(0, -5)
-            const timeDiff = calcTimeDiff(timeString, 8, tremUpdateTime.value, 8)
-            if(delay.value > 0 && timeDiff < 0 || timeDiff > 0){
-                tremUpdateTime.value = timeString
-                update()
+            if(res){
+                stationData = res.station
+                const timeString = new Date(res.time + 8 * 3600 * 1000).toISOString().slice(0, -5)
+                const timeDiff = calcTimeDiff(timeString, 8, tremUpdateTime.value, 8)
+                if(delay.value > 0 && timeDiff < 0 || timeDiff > 0){
+                    tremUpdateTime.value = timeString
+                    update()
+                }
             }
         })
     }, 1000);
