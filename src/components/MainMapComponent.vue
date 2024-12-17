@@ -136,7 +136,7 @@
                         強震モニタ: {{ niedUpdateTime }} (UTC+9)
                     </div>
                     <div class="trem-update-time" :class="isTremDelayed?'delayed':''" v-if="settingsStore.advancedSettings.displaySeisNet.trem">
-                        TREM-Net: {{ tremUpdateTime }} (UTC+8)
+                        TREM-Net : {{ tremUpdateTime }} (UTC+8)
                     </div>
                 </div>
                 <el-button
