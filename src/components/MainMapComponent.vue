@@ -88,6 +88,28 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="eew realtime" v-if="settingsStore.advancedSettings.displaySeisNet.trem">
+                            <div class="shindo-bar gray">TREM实时</div>
+                            <div class="info">
+                                <div class="intensity" :class="setClassName(tremMaxShindo, true)">
+                                    <div class="intensity-title">最大震度</div>
+                                    <div :class="tremMaxShindo != '?'?'shindo':'csis'">
+                                        {{ tremMaxShindo }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="eew realtime" v-if="settingsStore.advancedSettings.displaySeisNet.trem && tremPeriodMaxShindo != '?'">
+                            <div class="shindo-bar gray">TREM区间</div>
+                            <div class="info">
+                                <div class="intensity" :class="setClassName(tremPeriodMaxShindo, true)">
+                                    <div class="intensity-title">最大震度</div>
+                                    <div :class="tremPeriodMaxShindo != '?'?'shindo':'csis'">
+                                        {{ tremPeriodMaxShindo }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="left-bottom">
@@ -112,6 +134,9 @@
                     </div>
                     <div class="nied-update-time" :class="isNiedDelayed?'delayed':''" v-if="settingsStore.mainSettings.displaySeisNet.nied">
                         強震モニタ: {{ niedUpdateTime }} (UTC+9)
+                    </div>
+                    <div class="trem-update-time" :class="isTremDelayed?'delayed':''" v-if="settingsStore.advancedSettings.displaySeisNet.trem">
+                        TREM-Net: {{ tremUpdateTime }} (UTC+8)
                     </div>
                 </div>
                 <el-button
@@ -175,7 +200,7 @@ import { booleanPointInPolygon, point } from '@turf/turf';
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 let map, jpEewBaseMap, cnEewBaseMap
-let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, gridPane, cnFaultBasePane, jpEewBasePane, cnEewBasePane
+let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, cnFaultBasePane, jpEewBasePane, cnEewBasePane
 const defaultLatLng = [38.1, 104.6]
 const isValidUserLatLng = computed(()=>settingsStore.mainSettings.userLatLng.every(item=>item !== ''))
 const isDisplayUser = computed(()=>isValidUserLatLng.value && settingsStore.mainSettings.displayUser)
@@ -236,6 +261,13 @@ provide('niedUpdateTime', niedUpdateTime)
 provide('niedMaxShindo', niedMaxShindo)
 provide('niedPeriodMaxShindo', niedPeriodMaxShindo)
 const isNiedDelayed = ref(true)
+const tremUpdateTime = ref('1970-01-01T08:00:00')
+const tremMaxShindo = ref('?')
+const tremPeriodMaxShindo = ref('?')
+provide('tremUpdateTime', tremUpdateTime)
+provide('tremMaxShindo', tremMaxShindo)
+provide('tremPeriodMaxShindo', tremPeriodMaxShindo)
+const isTremDelayed = ref(true)
 const isAutoZoom = ref(true)
 const activeEewList = reactive([])
 const eqlistList = reactive([])
@@ -247,7 +279,7 @@ const activeSources = computed(()=>
 )
 watch(activeSources, newVal=>{
     for(let source in statusStore.isActive){
-        if(source != 'niedNet'){
+        if(!source.includes('Net')){
             if(newVal.includes(source)) statusStore.isActive[source] = true
             else statusStore.isActive[source] = false
         }
@@ -313,14 +345,19 @@ onMounted(()=>{
     cnFaultBasePane = map.getPane('cnFaultBasePane')
     cnFaultBasePane.style.zIndex = 30
     for(let i = -1; i <= 20; i++){
-        map.createPane(`stationPane${i}`)
-        map.getPane(`stationPane${i}`).style.zIndex = i + 50
+        map.createPane(`niedStationPane${i}`)
+        map.getPane(`niedStationPane${i}`).style.zIndex = i + 50
+        map.createPane(`tremStationPane${i}`)
+        map.getPane(`tremStationPane${i}`).style.zIndex = i + 50
     }
     map.createPane('userPane')
     map.getPane('userPane').style.zIndex = 90
-    map.createPane('gridPane')
-    gridPane = map.getPane('gridPane')
-    gridPane.style.zIndex = 100
+    map.createPane('niedGridPane')
+    niedGridPane = map.getPane('niedGridPane')
+    niedGridPane.style.zIndex = 100
+    map.createPane('tremGridPane')
+    tremGridPane = map.getPane('tremGridPane')
+    tremGridPane.style.zIndex = 100
     map.createPane('wavePane')
     wavePane = map.getPane('wavePane')
     wavePane.style.zIndex = 150
@@ -464,8 +501,10 @@ const loadMaps = async () => {
     }
 }
 const intervalEvents = ()=>{
-    gridPane.style.display = blinkStatus && !statusStore.isActive.jmaEew?'block':'none'
+    niedGridPane.style.display = blinkStatus && !statusStore.isActive.jmaEew?'block':'none'
+    tremGridPane.style.display = blinkStatus && !statusStore.isActive.cwaEew?'block':'none'
     isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
+    isTremDelayed.value = !verifyUpToDate(tremUpdateTime.value, 8, 10000)
     wsStatusCode.value = statusStore.allEewSocketObj?statusStore.allEewSocketObj.socket.readyState:4
     // iclWsStatusCode.value = statusStore.iclEewSocketObj?statusStore.iclEewSocketObj.socket.readyState:4
     if(isEewBlink) eewMarkerPane.style.display = blinkStatus?'block':'none'
@@ -489,7 +528,15 @@ const setView = ()=>{
                     bounds.extend(layer.getLatLng())
                 }
             }
-            if(layer.options.pane == 'gridPane' && !statusStore.isActive.jmaEew){
+            if(layer.options.pane == 'niedGridPane' && !statusStore.isActive.jmaEew){
+                if(layer.getBounds){
+                    bounds.extend(layer.getBounds())
+                }
+                else if(layer.getLatLng){
+                    bounds.extend(layer.getLatLng())
+                }
+            }
+            if(layer.options.pane == 'tremGridPane' && !statusStore.isActive.cwaEew){
                 if(layer.getBounds){
                     bounds.extend(layer.getBounds())
                 }

@@ -209,7 +209,7 @@ watch(()=>statusStore.map, newVal=>{
         }, { immediate: true })
         unwatchGrids = watch(grids, (newVal)=>{
             map.eachLayer(layer=>{
-                if(layer.options.pane == 'gridPane') map.removeLayer(layer)
+                if(layer.options.pane == 'niedGridPane') map.removeLayer(layer)
             })
             newVal.forEach(item=>{
                 const color = item.level <= 7?'green':(item.level <= 13?'yellow':'red')
@@ -217,7 +217,7 @@ watch(()=>statusStore.map, newVal=>{
                     color,
                     fill: false,
                     weight: 2,
-                    pane: 'gridPane',
+                    pane: 'niedGridPane',
                     interactive: false
                 }).addTo(map)
                 if(item.level > periodMaxLevel.value) periodMaxLevel.value = item.level
@@ -316,7 +316,7 @@ onBeforeUnmount(()=>{
     })
     stations.length = 0
     map.eachLayer(layer=>{
-        if(layer.options.pane == 'gridPane' || layer.options.pane.includes('stationPane')){
+        if(layer.options.pane == 'niedGridPane' || layer.options.pane.includes('niedStationPane')){
             map.removeLayer(layer)
         }
     })

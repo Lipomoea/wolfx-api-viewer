@@ -263,6 +263,29 @@
                     <div class="row">
                         <div class="switchGroup">
                             <div class="switch">
+                                <span>显示TREM-Net（震度）</span>
+                                <el-switch v-model="settingsStore.advancedSettings.displaySeisNet.trem"></el-switch>
+                            </div>
+                            <div class="switch">
+                                <span>回放(min)</span>
+                                <el-input
+                                v-model="settingsStore.advancedSettings.displaySeisNet.tremDelay"
+                                size="small"
+                                type="number"
+                                style="width: 70px;"
+                                @input="setTremDelay"></el-input>
+                                <el-button
+                                size="small"
+                                @click="settingsStore.mainSettings.displaySeisNet.tremDelay = 0"
+                                :disabled="settingsStore.mainSettings.displaySeisNet.tremDelay == 0">还原</el-button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="group">
+                    <div class="row">
+                        <div class="switchGroup">
+                            <div class="switch">
                                 <span>防闪烁模式</span>
                                 <el-popover
                                     placement="top"
@@ -461,9 +484,12 @@ const clearUserLatLng = ()=>{
     })
 }
 const setNiedDelay = (val)=>{
-    // if(val > 10080) val = 10080
     if(val < 0) val = 0
     settingsStore.mainSettings.displaySeisNet.niedDelay = val
+}
+const setTremDelay = (val)=>{
+    if(val < 0) val = 0
+    settingsStore.advancedSettings.displaySeisNet.tremDelay = val
 }
 const needReload = ref(false)
 const handleReload = () => {

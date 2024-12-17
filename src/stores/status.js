@@ -59,6 +59,7 @@ export const useStatusStore = defineStore('statusStore', {
             jmaEqlist: false,
             cencEqlist: false,
             niedNet: false,
+            tremNet: false
         },
         forceCalcCsis: false
     }),

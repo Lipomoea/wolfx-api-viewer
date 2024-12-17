@@ -192,6 +192,25 @@ export const getShindoFromChar = (char)=>{
     if(char == 'x') return '7'
     return '?'
 }
+export const getShindoFromInstShindo = (instShindo) => {
+    if(instShindo < -3.0) return '?'
+    else if(instShindo < 0.5) return '0'
+    else if(instShindo < 1.5) return '1'
+    else if(instShindo < 2.5) return '2'
+    else if(instShindo < 3.5) return '3'
+    else if(instShindo < 4.5) return '4'
+    else if(instShindo < 5.0) return '5-'
+    else if(instShindo < 5.5) return '5+'
+    else if(instShindo < 6.0) return '6-'
+    else if(instShindo < 6.5) return '6+'
+    else return '7'
+}
+export const getLevelFromInstShindo = (instShindo) => {
+    if(instShindo < -3.0) return -1
+    else if(instShindo == -3.0) return 0
+    else if(instShindo >= 6.5) return 20
+    else return Math.floor(instShindo * 2 + 7)
+}
 export const judgeSameEvent = (eqMessage1, eqMessage2)=>{
     if(eqMessage1.source == eqMessage2.source && eqMessage1.id == eqMessage2.id) return true
     else return false

@@ -18,6 +18,10 @@ const seisNetUrls = {
         stationList: 'https://weather-kyoshin.east.edge.storage-yahoo.jp/SiteList/sitelist.json',
         stationData: 'https://weather-kyoshin.east.edge.storage-yahoo.jp/RealTimeData',
     },
+    trem: {
+        stationList: 'https://api-2.exptech.dev/api/v1/trem/station',
+        stationData: 'https://api-2.exptech.dev/api/v1/trem/rts'
+    }
 }
 const iconUrls = {
     info: '/icon/info.png',

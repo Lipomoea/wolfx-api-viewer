@@ -43,6 +43,10 @@ export const useSettingsStore = defineStore('settingsStore', {
         advancedSettings: {
             displayNiedShindoSwitch: false,
             displayNiedShindo: false,
+            displaySeisNet: {
+                trem: false,
+                tremDelay: 0,
+            },
             enableIclEew: false,
             forceCalcCsis: false,
             preventFlickerMode: false
