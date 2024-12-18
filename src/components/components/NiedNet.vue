@@ -6,7 +6,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, inject } from 'vue'
-import Http from '@/utils/Http';
+import Http from '@/classes/Http';
 import axios from 'axios';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
@@ -174,7 +174,7 @@ onMounted(()=>{
                         type: 'warning',
                     })
                     settingsStore.mainSettings.displaySeisNet.nied = false
-                    settingsStore.mainSettings.displaySeisNet.niedDelay = 0
+                    settingsStore.mainSettings.displaySeisNet.delay = 0
                     setTimeout(() => {
                         settingsStore.mainSettings.displaySeisNet.nied = true
                     }, 1000);
@@ -289,7 +289,7 @@ watch(currentMaxShindo, (newVal, oldVal)=>{
         focused = false
     }
 })
-watch(()=>settingsStore.mainSettings.displaySeisNet.niedDelay, newVal=>{
+watch(()=>settingsStore.mainSettings.displaySeisNet.delay, newVal=>{
     clearInterval(delayInterval)
     if(newVal > maxDelay / 60000){
         delay.value = newVal * 60000

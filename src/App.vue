@@ -13,7 +13,7 @@ import { useTimeStore } from './stores/time';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from './stores/settings';
 import { geojsonUrls } from './utils/Urls';
-import Http from './utils/Http';
+import Http from './classes/Http';
 
 const timeStore = useTimeStore()
 const statusStore = useStatusStore()
@@ -33,9 +33,9 @@ async function getGeojson(){
 onBeforeMount(() => {
   settingsStore.setMainSettings(localStorage.getItem('mainSettings'))
   settingsStore.setAdvancedSettings(localStorage.getItem('advancedSettings'))
-  settingsStore.mainSettings.displaySeisNet.niedDelay = 0
-  settingsStore.advancedSettings.displaySeisNet.tremDelay = 0
+  settingsStore.mainSettings.displaySeisNet.delay = 0
   timeStore.startUpdatingTime()
+  statusStore.enabledSource = Object.keys(settingsStore.mainSettings.source).filter(source => settingsStore.mainSettings.source[source])
   statusStore.forceCalcCsis = settingsStore.advancedSettings.forceCalcCsis
   statusStore.startUpdatingEqMessage()
   getGeojson()

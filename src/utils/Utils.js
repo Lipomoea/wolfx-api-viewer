@@ -45,6 +45,9 @@ export const timeToStamp = (time, timeZone)=>{
     stamp -= timeZone * 3600 * 1000
     return stamp
 }
+export const stampToTime = (timeStamp, timeZone) => {
+    return new Date(timeStamp + timeZone * 3600 * 1000).toISOString().replace('T', ' ').slice(0, -5)
+}
 export const calcPassedTime = (time, timeZone)=>{
     if(!time || !timeZone) return
     const timeStore = useTimeStore()

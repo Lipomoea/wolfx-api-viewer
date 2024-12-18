@@ -4,7 +4,7 @@
             <div class="title">{{ title }}</div>
             <div class="item white" v-for="(item, index) of eqList" :key="index" @click="handleClick(item)">
                 <div class="intensity" :class="item.className">
-                    <div :class="props.source == 'jmaEqlist' && item.maxIntensity != '不明'?'shindo':'csis'">
+                    <div :class="props.source != 'cencEqlist' && item.maxIntensity != '不明'?'shindo':'csis'">
                         {{ item.maxIntensity == '不明'?'?':item.maxIntensity }}
                     </div>
                 </div>
@@ -25,47 +25,64 @@
 
 <script setup>
 import { reactive, computed, onMounted, onBeforeUnmount } from 'vue'
-import Http from '@/utils/Http';
+import Http from '@/classes/Http';
 import { eqUrls } from '@/utils/Urls';
-import { setClassName, extractNumbers } from '@/utils/Utils';
+import { setClassName, stampToTime } from '@/utils/Utils';
 import '@/assets/background.css'
 import '@/assets/opacity.css'
 const props = defineProps({
     source: String,
 })
-const eqList = reactive({})
+const eqList = reactive([])
 const httpInterval = 10000
 const maxHistoryNumber = 50
 let request
 const source = props.source + '_http'
+const shindoScale = ['0', '1', '2', '3', '4', '5-', '5+', '6-', '6+', '7']
+
 const getEqList = ()=>{
     Http.get(eqUrls[source] + `?t=${Date.now()}`).then(data=>{
-        let keys = Object.keys(data)
-        for(let i = 0; i < maxHistoryNumber; i++){
-            switch(props.source){
-                case 'jmaEqlist':{
-                    eqList[i] = {
-                        id: data[keys[i]].EventID,
-                        originTime: data[keys[i]].time_full,
-                        hypocenter: data[keys[i]].location,
-                        depth: data[keys[i]].depth == '0km'?'ごく浅い':data[keys[i]].depth,
-                        magnitude: data[keys[i]].magnitude,
-                        maxIntensity: data[keys[i]].shindo,
-                        className: setClassName(data[keys[i]].shindo, true)
+        if(props.source != 'cwaEqlist') {
+            let keys = Object.keys(data)
+            for(let i = 0; i < maxHistoryNumber; i++){
+                switch(props.source){
+                    case 'jmaEqlist':{
+                        eqList[i] = {
+                            id: data[keys[i]].EventID,
+                            originTime: data[keys[i]].time_full,
+                            hypocenter: data[keys[i]].location,
+                            depth: data[keys[i]].depth == '0km'?'ごく浅い':data[keys[i]].depth,
+                            magnitude: data[keys[i]].magnitude,
+                            maxIntensity: data[keys[i]].shindo,
+                            className: setClassName(data[keys[i]].shindo, true)
+                        }
+                        break
                     }
-                    break
+                    case 'cencEqlist':{
+                        eqList[i] = {
+                            id: data[keys[i]].EventID,
+                            originTime: data[keys[i]].time,
+                            hypocenter: data[keys[i]].location,
+                            depth: data[keys[i]].depth + 'km',
+                            magnitude: data[keys[i]].magnitude,
+                            maxIntensity: data[keys[i]].intensity,
+                            className: setClassName(data[keys[i]].intensity, false)
+                        }
+                        break
+                    }
                 }
-                case 'cencEqlist':{
-                    eqList[i] = {
-                        id: extractNumbers(data[keys[i]].time),
-                        originTime: data[keys[i]].time,
-                        hypocenter: data[keys[i]].location,
-                        depth: data[keys[i]].depth + 'km',
-                        magnitude: data[keys[i]].magnitude,
-                        maxIntensity: data[keys[i]].intensity,
-                        className: setClassName(data[keys[i]].intensity, false)
-                    }
-                    break
+            }
+        }
+        else {
+            for(let i = 0; i < maxHistoryNumber; i++){
+                eqList[i] = {
+                    id: data[i].id,
+                    originTime: stampToTime(data[i].time, 8),
+                    hypocenter: data[i].loc.split(' ').slice(-1)[0].slice(3, -1),
+                    depth: data[i].depth + 'km',
+                    magnitude: data[i].mag.toFixed(1),
+                    maxIntensity: shindoScale[data[i].int],
+                    className: setClassName(shindoScale[data[i].int], true)
                 }
             }
         }
@@ -75,6 +92,9 @@ const title = computed(()=>{
     switch(props.source){
         case 'jmaEqlist':{
             return '日本気象庁地震情報'
+        }
+        case 'cwaEqlist':{
+            return '中央氣象署地震報告'
         }
         case 'cencEqlist':{
             return '中国地震台网地震信息'

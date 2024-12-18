@@ -17,8 +17,11 @@
 import EqGrid from '@/components/components/EqGrid.vue';
 import { More } from '@element-plus/icons-vue';
 import router from '@/router';
+import { useSettingsStore } from '@/stores/settings';
 
-const eqlistList = ['jmaEqlist', 'cencEqlist']
+const settingsStore = useSettingsStore()
+
+const eqlistList = Object.keys(settingsStore.mainSettings.source).filter(source => source.includes('Eqlist') && settingsStore.mainSettings.source[source])
 
 const handleMore = ()=>{
   router.push('/eq-history')

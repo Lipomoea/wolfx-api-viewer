@@ -88,7 +88,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="eew realtime" v-if="settingsStore.advancedSettings.displaySeisNet.trem">
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.trem">
                             <div class="shindo-bar gray">TREM实时</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(tremMaxShindo, true)">
@@ -99,7 +99,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="eew realtime" v-if="settingsStore.advancedSettings.displaySeisNet.trem && tremPeriodMaxShindo != '?'">
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.trem && tremPeriodMaxShindo != '?'">
                             <div class="shindo-bar gray">TREM区间</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(tremPeriodMaxShindo, true)">
@@ -129,13 +129,12 @@
                     <div class="ws-status">
                         WebSocket状态: 
                         <div class="dot" :class="'s' + wsStatusCode"></div>
-                        <div v-if="settingsStore.advancedSettings.enableIclEew" class="dot" :class="'s' + iclWsStatusCode"></div>
-                        {{ settingsStore.advancedSettings.enableIclEew?'':statusList[wsStatusCode] }}
+                        {{ statusList[wsStatusCode] }}
                     </div>
                     <div class="nied-update-time" :class="isNiedDelayed?'delayed':''" v-if="settingsStore.mainSettings.displaySeisNet.nied">
                         強震モニタ: {{ niedUpdateTime }} (UTC+9)
                     </div>
-                    <div class="trem-update-time" :class="isTremDelayed?'delayed':''" v-if="settingsStore.advancedSettings.displaySeisNet.trem">
+                    <div class="trem-update-time" :class="isTremDelayed?'delayed':''" v-if="settingsStore.mainSettings.displaySeisNet.trem">
                         TREM-Net : {{ tremUpdateTime }} (UTC+8)
                     </div>
                 </div>
@@ -252,7 +251,6 @@ const handleMenu = (index)=>{
 provide('handleMenu', handleMenu)
 provide('handleHome', handleHome)
 const wsStatusCode = ref(4)
-const iclWsStatusCode = ref(5)
 const statusList = ['正在连接', '已连接', '正在断开', '已断开', '未连接', '不使用']
 const niedUpdateTime = ref('1970-01-01T09:00:00')
 const niedMaxShindo = ref('?')
@@ -506,7 +504,6 @@ const intervalEvents = ()=>{
     isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
     isTremDelayed.value = !verifyUpToDate(tremUpdateTime.value, 8, 10000)
     wsStatusCode.value = statusStore.allEewSocketObj?statusStore.allEewSocketObj.socket.readyState:4
-    // iclWsStatusCode.value = statusStore.iclEewSocketObj?statusStore.iclEewSocketObj.socket.readyState:4
     if(isEewBlink) eewMarkerPane.style.display = blinkStatus?'block':'none'
 }
 const setMapHeight = (height) => {

@@ -3,6 +3,16 @@ import { defineStore } from 'pinia'
 export const useSettingsStore = defineStore('settingsStore', {
     state: ()=>({
         mainSettings: {
+            source: {
+                jmaEew: true,
+                cwaEew: true,
+                iclEew: false,
+                scEew: true,
+                fjEew: true,
+                jmaEqlist: true,
+                cwaEqlist: false,
+                cencEqlist: true
+            },
             onEew: {
                 notification: false,
                 sound: false,
@@ -36,18 +46,16 @@ export const useSettingsStore = defineStore('settingsStore', {
             defaultZoom: 5,
             displaySeisNet: {
                 hideNoData: false,
+                delay: 0,
                 nied: true,
-                niedDelay: 0,
+                trem: false,
             },
         },
         advancedSettings: {
             displayNiedShindoSwitch: false,
             displayNiedShindo: false,
-            displaySeisNet: {
-                trem: false,
-                tremDelay: 0,
-            },
             enableIclEew: false,
+            enableTremFunctions: false,
             forceCalcCsis: false,
             preventFlickerMode: false
         }

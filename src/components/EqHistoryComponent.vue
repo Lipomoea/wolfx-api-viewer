@@ -24,7 +24,10 @@ import router from '@/router';
 import EqHistoryGrid from './components/EqHistoryGrid.vue';
 import '@/assets/background.css'
 import { Back } from '@element-plus/icons-vue'
+import { useSettingsStore } from '@/stores/settings';
+const settingsStore = useSettingsStore()
 const eqHistoryList = ['jmaEqlist', 'cencEqlist']
+if(settingsStore.advancedSettings.enableTremFunctions) eqHistoryList.splice(1, 0, 'cwaEqlist')
 const back = ()=>{
     router.back()
 }

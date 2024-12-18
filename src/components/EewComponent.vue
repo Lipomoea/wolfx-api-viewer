@@ -20,7 +20,7 @@ import { eqUrls } from '@/utils/Urls';
 const settingsStore = useSettingsStore()
 const enableIclEew = settingsStore.advancedSettings.enableIclEew
 if(enableIclEew) Object.assign(eqUrls, JSON.parse(localStorage.getItem('iclUrl')))
-const eewList = enableIclEew?['jmaEew', 'cwaEew', 'iclEew', 'scEew', 'fjEew']:['jmaEew', 'cwaEew', 'scEew', 'fjEew']
+const eewList = Object.keys(settingsStore.mainSettings.source).filter(source => source.includes('Eew') && settingsStore.mainSettings.source[source])
 </script>
 
 <style lang="scss" scoped>

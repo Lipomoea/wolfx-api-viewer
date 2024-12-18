@@ -3,6 +3,39 @@
         <div class="container">
             <div class="title">设置</div>
             <div class="settings">
+                <div class="subTitle">
+                    数据源&nbsp;
+                    <el-popover
+                        placement="top"
+                        :width="300"
+                        trigger="hover"
+                    >
+                        <template #reference>
+                            <question-filled width="1em" height="1em"></question-filled>
+                        </template>
+                        <strong>
+                            <p>需重新加载页面后生效。</p>
+                        </strong>
+                    </el-popover>
+                </div>
+                <div class="grid-group" style="grid-template-columns: 3fr 1fr 3fr 1fr;">
+                    <div style="width: 100%;">緊急地震速報</div>
+                    <el-switch v-model="settingsStore.mainSettings.source.jmaEew"></el-switch>
+                    <div style="width: 100%;">中央氣象署地震速報</div>
+                    <el-switch v-model="settingsStore.mainSettings.source.cwaEew"></el-switch>
+                    <div v-if="settingsStore.advancedSettings.enableIclEew" style="width: 100%;">大陆地震预警</div>
+                    <el-switch v-if="settingsStore.advancedSettings.enableIclEew" v-model="settingsStore.mainSettings.source.iclEew"></el-switch>
+                    <div style="width: 100%;">四川地震局地震预警</div>
+                    <el-switch v-model="settingsStore.mainSettings.source.scEew"></el-switch>
+                    <div style="width: 100%;">福建地震局地震预警</div>
+                    <el-switch v-model="settingsStore.mainSettings.source.fjEew"></el-switch>
+                    <div style="width: 100%;">日本気象庁地震情報</div>
+                    <el-switch v-model="settingsStore.mainSettings.source.jmaEqlist"></el-switch>
+                    <div v-if="settingsStore.advancedSettings.enableTremFunctions" style="width: 100%;">中央氣象署地震報告</div>
+                    <el-switch v-if="settingsStore.advancedSettings.enableTremFunctions" v-model="settingsStore.mainSettings.source.cwaEqlist"></el-switch>
+                    <div style="width: 100%;">中国地震台网测定</div>
+                    <el-switch v-model="settingsStore.mainSettings.source.cencEqlist"></el-switch>
+                </div>
                 <div class="subTitle">行为</div>
                 <div class="group">
                     <div class="row">
@@ -188,24 +221,28 @@
                                 <span>隐藏无数据测站</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.hideNoData"></el-switch>
                             </div>
-                        </div>
-                        <div class="switchGroup">
-                            <div class="switch">
-                                <span>強震モニタ（震度）</span>
-                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.nied"></el-switch>
-                            </div>
                             <div class="switch">
                                 <span>回放(min)</span>
                                 <el-input
-                                v-model="settingsStore.mainSettings.displaySeisNet.niedDelay"
+                                v-model="settingsStore.mainSettings.displaySeisNet.delay"
                                 size="small"
                                 type="number"
                                 style="width: 70px;"
-                                @input="setNiedDelay"></el-input>
+                                @input="setDelay"></el-input>
                                 <el-button
                                 size="small"
-                                @click="settingsStore.mainSettings.displaySeisNet.niedDelay = 0"
-                                :disabled="settingsStore.mainSettings.displaySeisNet.niedDelay == 0">还原</el-button>
+                                @click="settingsStore.mainSettings.displaySeisNet.delay = 0"
+                                :disabled="settingsStore.mainSettings.displaySeisNet.delay == 0">还原</el-button>
+                            </div>
+                        </div>
+                        <div class="switchGroup">
+                            <div class="switch" style="width: 100%;">
+                                <span>強震モニタ（震度）</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.nied"></el-switch>
+                            </div>
+                            <div class="switch" style="width: 100%;" v-if="settingsStore.advancedSettings.enableTremFunctions">
+                                <span>TREM-Net（震度）</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.trem"></el-switch>
                             </div>
                         </div>
                     </div>
@@ -263,29 +300,6 @@
                     <div class="row">
                         <div class="switchGroup">
                             <div class="switch">
-                                <span>显示TREM-Net（震度）</span>
-                                <el-switch v-model="settingsStore.advancedSettings.displaySeisNet.trem"></el-switch>
-                            </div>
-                            <div class="switch">
-                                <span>回放(min)</span>
-                                <el-input
-                                v-model="settingsStore.advancedSettings.displaySeisNet.tremDelay"
-                                size="small"
-                                type="number"
-                                style="width: 70px;"
-                                @input="setTremDelay"></el-input>
-                                <el-button
-                                size="small"
-                                @click="settingsStore.advancedSettings.displaySeisNet.tremDelay = 0"
-                                :disabled="settingsStore.advancedSettings.displaySeisNet.tremDelay == 0">还原</el-button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="group">
-                    <div class="row">
-                        <div class="switchGroup">
-                            <div class="switch">
                                 <span>防闪烁模式</span>
                                 <el-popover
                                     placement="top"
@@ -321,12 +335,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="group">
-                    <el-button 
-                    type="primary"
-                    v-if="needReload"
-                    @click="handleReload">重载以应用变更</el-button>
-                </div>
                 <div class="subTitle">关于</div>
                 <div class="group">
                     <div class="row">
@@ -338,6 +346,13 @@
                             </div>
                         </div>
                     </div>
+                </div>
+                <div class="subTitle" v-if="needReload">需要重载</div>
+                <div class="group">
+                    <el-button 
+                    type="primary"
+                    v-if="needReload"
+                    @click="handleReload">重载以应用变更</el-button>
                 </div>
             </div>
         </div>
@@ -362,8 +377,8 @@
 import { useSettingsStore } from '@/stores/settings';
 import { useStatusStore } from '@/stores/status';
 import { utilUrls } from '@/utils/Urls';
-import Http from '@/utils/Http';
-import { ref, reactive } from 'vue'
+import Http from '@/classes/Http';
+import { ref, reactive, watch } from 'vue'
 import { QuestionFilled } from '@element-plus/icons-vue';
 
 const showNotifButton = 'Notification' in window
@@ -483,13 +498,9 @@ const clearUserLatLng = ()=>{
         type: 'success',
     })
 }
-const setNiedDelay = (val)=>{
+const setDelay = (val)=>{
     if(val < 0) val = 0
-    settingsStore.mainSettings.displaySeisNet.niedDelay = val
-}
-const setTremDelay = (val)=>{
-    if(val < 0) val = 0
-    settingsStore.advancedSettings.displaySeisNet.tremDelay = val
+    settingsStore.mainSettings.displaySeisNet.delay = val
 }
 const needReload = ref(false)
 const handleReload = () => {
@@ -520,13 +531,26 @@ const handleAdvance = (val)=>{
         }
         case 'disableIclEew': {
             settingsStore.advancedSettings.enableIclEew = false
+            settingsStore.mainSettings.source.iclEew = false
             ElMessage({
-                message: '功能已关闭，3秒后自动刷新网页',
+                message: '功能已关闭',
                 type: 'success'
             })
-            setTimeout(() => {
-                window.location.reload()
-            }, 3000);
+            break
+        }
+        case 'enableTremFunctions': {
+            verifyType = 'enableTremFunctions'
+            verifyDialog.value = true
+            break
+        }
+        case 'disableTremFunctions': {
+            settingsStore.advancedSettings.enableTremFunctions = false
+            settingsStore.mainSettings.source.cwaEqlist = false
+            settingsStore.mainSettings.displaySeisNet.trem = false
+            ElMessage({
+                message: '功能已关闭',
+                type: 'success'
+            })
             break
         }
     }
@@ -541,12 +565,27 @@ const postVerify = async ()=>{
                 localStorage.setItem('iclUrl', JSON.stringify(res.data))
                 verifyDialog.value = false
                 ElMessage({
-                    message: '认证成功，3秒后自动刷新网页',
+                    message: '认证成功',
                     type: 'success'
                 })
-                setTimeout(() => {
-                    window.location.reload()
-                }, 3000);
+            }
+            else{
+                ElMessage({
+                    message: '认证失败',
+                    type: 'error'
+                })
+            }
+            break
+        }
+        case 'enableTremFunctions': {
+            const res = await Http.post('http://124.70.142.213:8766/verify_admin', idForm)
+            if(res && res.success){
+                settingsStore.advancedSettings.enableTremFunctions = true
+                verifyDialog.value = false
+                ElMessage({
+                    message: '认证成功',
+                    type: 'success'
+                })
             }
             else{
                 ElMessage({
@@ -558,6 +597,9 @@ const postVerify = async ()=>{
         }
     }
 }
+watch(()=>settingsStore.mainSettings.source, ()=>{
+    needReload.value = true
+}, { deep: true })
 const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
@@ -637,6 +679,8 @@ const handleAbout = ()=>{
             .subTitle{
                 font-size: 18px;
                 font-weight: 700;
+                display: flex;
+                align-items: center;
             }
             .group{
                 display: flex;
@@ -645,33 +689,40 @@ const handleAbout = ()=>{
                 row-gap: 5px;
                 column-gap: 40px;
                 margin-bottom: 5px;
-                .row{
-                    display: flex;
-                    flex-wrap: wrap;
-                    align-items: center;
-                    column-gap: 10px;
-                    .groupTitle{
-                        width: 100%;
-                        font-weight: 700;
-                    }
-                    .switchGroup{
-                        display: flex;
-                        flex-wrap: wrap;
-                        align-items: center;
-                        column-gap: 15px;
-                        .switch{
-                            display: flex;
-                            align-items: center;
-                            column-gap: 5px;
-                            .latLng{
-                                width: 70px;
-                            }
-                        }
-                    }
-                }
+            }
+            .grid-group{
+                display: grid;
+                align-items: center;
+                row-gap: 5px;
+                margin-bottom: 5px;
+            }
+            .row{
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                column-gap: 10px;
+            }
+            .groupTitle{
+                width: 100%;
+                font-weight: 700;
+            }
+            .switchGroup{
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                column-gap: 15px;
+            }
+            .switch{
+                display: flex;
+                align-items: center;
+                column-gap: 5px;
+                
             }
             .el-switch{
                 height: 24px;
+            }
+            .latLng{
+                width: 70px;
             }
         }
     }

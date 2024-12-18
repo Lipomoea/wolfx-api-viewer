@@ -62,6 +62,9 @@ watch(eqMessage, (newVal)=>{
         else if(props.source == 'jmaEqlist'){
             passedTime = Math.max(calcPassedTime(newVal.originTime, 9) - 300 * 1000, 0)
         }
+        else if(props.source == 'cwaEqlist'){
+            passedTime = Math.max(calcPassedTime(newVal.originTime, 8) - 300 * 1000, 0)
+        }
         else{
             passedTime = calcPassedTime(newVal.reportTime, 8)
         }

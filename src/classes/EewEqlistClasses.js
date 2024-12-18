@@ -373,6 +373,10 @@ class EqlistEvent {
                     }
                     break
                 }
+                case 'cwaEqlist':{
+                    playSound(chimeUrls[soundEffect].jishinzyouhou)
+                    break
+                }
                 case 'cencEqlist':{
                     if(eqMessage.title != 'reviewed'){
                         playSound(chimeUrls[soundEffect].shingenzyouhou)

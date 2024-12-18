@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { utilUrls } from '@/utils/Urls';
-import Http from '@/utils/Http';
+import Http from '@/classes/Http';
 
 export const useTimeStore = defineStore('timeStore', {
     state: ()=>({

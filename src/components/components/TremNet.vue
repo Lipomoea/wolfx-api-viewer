@@ -6,11 +6,11 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, inject } from 'vue'
-import Http from '@/utils/Http';
+import Http from '@/classes/Http';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { seisNetUrls, chimeUrls, iconUrls } from '@/utils/Urls';
-import { getShindoFromChar, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromInstShindo } from '@/utils/Utils';
+import { getShindoFromChar, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromInstShindo, stampToTime } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { TremStation } from '@/classes/StationClasses';
@@ -23,7 +23,7 @@ const stationList = reactive({})
 let stationData
 const stations = reactive({})
 let map
-const delay = computed(()=>settingsStore.advancedSettings.displaySeisNet.tremDelay * 60000)
+const delay = computed(()=>settingsStore.mainSettings.displaySeisNet.delay * 60000)
 const tremMaxShindo = inject('tremMaxShindo')
 const tremUpdateTime = inject('tremUpdateTime')
 const tremPeriodMaxShindo = inject('tremPeriodMaxShindo')
