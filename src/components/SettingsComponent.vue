@@ -235,12 +235,17 @@
                                 :disabled="settingsStore.mainSettings.displaySeisNet.delay == 0">还原</el-button>
                             </div>
                         </div>
-                        <div class="switchGroup">
-                            <div class="switch" style="width: 100%;">
+                        <div class="switchGroup" style="width: 100%;">
+                            <div class="switch">
                                 <span>強震モニタ（震度）</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.nied"></el-switch>
                             </div>
-                            <div class="switch" style="width: 100%;" v-if="settingsStore.advancedSettings.enableTremFunctions">
+                            <div class="switch" v-if="settingsStore.advancedSettings.displayNiedShindoSwitch">
+                                <el-checkbox v-model="settingsStore.advancedSettings.displayNiedShindo">解析震度阶</el-checkbox>
+                            </div>
+                        </div>
+                        <div class="switchGroup" style="width: 100%;" v-if="settingsStore.advancedSettings.enableTremFunctions">
+                            <div class="switch">
                                 <span>TREM-Net（震度）</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.trem"></el-switch>
                             </div>
@@ -282,16 +287,6 @@
                                 <el-switch 
                                 v-model="settingsStore.advancedSettings.forceCalcCsis"
                                 @change="needReload = true"></el-switch>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="group" v-if="settingsStore.advancedSettings.displayNiedShindoSwitch">
-                    <div class="row">
-                        <div class="switchGroup">
-                            <div class="switch">
-                                <span>显示強震モニタ震度</span>
-                                <el-switch v-model="settingsStore.advancedSettings.displayNiedShindo"></el-switch>
                             </div>
                         </div>
                     </div>

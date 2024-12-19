@@ -75,8 +75,10 @@ const update = ()=>{
     let maxInst = -3.1
     Object.keys(stations).forEach(id=>{
         if(id in stationData){
-            stations[id].update(stationData[id].I, !!(stationData[id].alert))
-            if(stationData[id].I > maxInst) maxInst = stationData[id].I
+            const alert = !!stationData[id].alert
+            const intensity = alert ? stationData[id].I : stationData[id].i
+            stations[id].update(intensity, alert)
+            if(intensity > maxInst) maxInst = intensity
         }
         else stations[id].update(-3.1, false)
     })
