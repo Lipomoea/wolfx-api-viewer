@@ -34,3 +34,10 @@ wolfx-api-viewer(WAV)是一个基于[Wolfx Open API](https://wolfx.jp/apidoc)以
 * Dxr (QQ: 2194362576)
 * HomoOS
 * 各位提供帮助的EEW爱好者
+## 版权声明
+本项目参考了以下项目的源代码。
+* [TREM-Lite](https://github.com/ExpTechTW/TREM-Lite)
+* [TREM-tauri](https://github.com/ExpTechTW/TREM-tauri)
+* [EarthQuakeWarning](https://github.com/kengwang/EarthQuakeWarning)
+## 开放源代码许可
+本项目基于[AGPL-3.0](https://github.com/Lipomoea/wolfx-api-viewer/blob/main/LICENSE)协议授权。
