@@ -33,7 +33,7 @@
                     <el-switch v-model="settingsStore.mainSettings.source.jmaEqlist"></el-switch>
                     <div v-if="settingsStore.advancedSettings.enableTremFunctions" style="width: 100%;">中央氣象署地震報告</div>
                     <el-switch v-if="settingsStore.advancedSettings.enableTremFunctions" v-model="settingsStore.mainSettings.source.cwaEqlist"></el-switch>
-                    <div style="width: 100%;">中国地震台网地震信息</div>
+                    <div style="width: 100%;">中国地震台网测定</div>
                     <el-switch v-model="settingsStore.mainSettings.source.cencEqlist"></el-switch>
                 </div>
                 <div class="subTitle">行为</div>
