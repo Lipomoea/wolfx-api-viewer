@@ -241,7 +241,7 @@
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.nied"></el-switch>
                             </div>
                             <div class="switch" v-if="settingsStore.advancedSettings.displayNiedShindoSwitch">
-                                <el-checkbox v-model="settingsStore.advancedSettings.displayNiedShindo">解析震度阶</el-checkbox>
+                                <el-checkbox v-model="settingsStore.advancedSettings.displayNiedShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.nied">解析震度阶</el-checkbox>
                             </div>
                         </div>
                         <div class="switchGroup" style="width: 100%;" v-if="settingsStore.advancedSettings.enableTremFunctions">
