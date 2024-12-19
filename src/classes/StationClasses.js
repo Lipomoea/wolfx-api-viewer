@@ -25,18 +25,7 @@ class NiedStation {
         this.recentLevel = [this.level]
         this.activity = 0
         this.isActive = false
-        this.color = '#cfcfcf'
-        this.radius = (2 + this.level * 0.1) * 2 ** (Math.min(Math.max(this.map.getZoom(), 4), 10) / 2 - 3)
-        this.marker = L.circleMarker(this.latLng, {
-            radius: this.radius,
-            fillOpacity: 1,
-            color: this.color,
-            fillColor: this.color,
-            weight: 0,
-            pane: `niedStationPane${this.level}`,
-            interactive: false
-        })
-        this.marker.addTo(this.map)
+        this.render()
     }
     update(intensity){
         const level = intensity.charCodeAt(0) - 100
@@ -138,18 +127,7 @@ class TremStation {
         this.shindo = getShindoFromInstShindo(intensity)
         this.level = getLevelFromInstShindo(intensity)
         this.isActive = isActive
-        this.color = '#cfcfcf'
-        this.radius = (2 + this.level * 0.1) * 2 ** (Math.min(Math.max(this.map.getZoom(), 4), 10) / 2 - 3)
-        this.marker = L.circleMarker(this.latLng, {
-            radius: this.radius,
-            fillOpacity: 1,
-            color: this.color,
-            fillColor: this.color,
-            weight: 0,
-            pane: `tremStationPane${this.level}`,
-            interactive: false
-        })
-        this.marker.addTo(this.map)
+        this.render()
     }
     update(intensity, isActive){
         this.intensity = intensity
