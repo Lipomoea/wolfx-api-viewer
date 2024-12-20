@@ -89,15 +89,27 @@ const renderAll = ()=>{
         stations[id].render()
     })
 }
-let requestInterval
-onMounted(()=>{
+const clearReactiveObject = (obj) => {
+    if(obj) for(let key in obj) delete obj[key]
+}
+const fetchStationList = () => {
     Http.get(seisNetUrls.trem.stationList).then(res=>{
-        Object.assign(stationList, res)
+        if(res && Object.keys(res).length > 0){
+            clearReactiveObject(stationList)
+            Object.assign(stationList, res)
+        }
     })
+}
+let listInterval, requestInterval
+onMounted(()=>{
+    fetchStationList()
+    listInterval = setInterval(() => {
+        fetchStationList()
+    }, 600 * 1000);
     requestInterval = setInterval(() => {
         const time = Date.now() + timeStore.offset - delay.value
         Http.get(seisNetUrls.trem.stationData + (delay.value > 0 ? `/${time}` : `?t=${time}`)).then(res=>{
-            if(res){
+            if(res && Object.keys(res).length > 0){
                 stationData = res.station
                 const timeString = new Date(res.time + 8 * 3600 * 1000).toISOString().slice(0, -5)
                 const timeDiff = calcTimeDiff(timeString, 8, tremUpdateTime.value, 8)
@@ -116,6 +128,7 @@ watch(()=>statusStore.map, newVal=>{
         map.on('zoomend', renderAll)
         unwatchStationList = watch(stationList, newVal=>{
             if(Object.keys(newVal).length > 0){
+                clearReactiveObject(stations)
                 Object.keys(newVal).forEach(id=>{
                     const info = newVal[id].info.slice(-1)[0]
                     const latLng = [info.lat, info.lon]
@@ -204,6 +217,7 @@ watch(currentMaxShindo, (newVal, oldVal)=>{
     }
 })
 onBeforeUnmount(()=>{
+    clearInterval(listInterval)
     clearInterval(requestInterval)
     if(map !== null) map.off('zoomend', renderAll)
     if(unwatchStationList) unwatchStationList()
