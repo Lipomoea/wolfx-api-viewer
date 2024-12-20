@@ -94,7 +94,7 @@ const clearReactiveObject = (obj) => {
 }
 const fetchStationList = () => {
     Http.get(seisNetUrls.trem.stationList).then(res=>{
-        if(res && Object.keys(res).length > 0){
+        if(res && JSON.stringify(res) != JSON.stringify(stationList)){
             clearReactiveObject(stationList)
             Object.assign(stationList, res)
         }
