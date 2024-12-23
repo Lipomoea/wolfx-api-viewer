@@ -19,27 +19,27 @@
                     </el-popover>
                 </div>
                 <div class="grid-group" style="grid-template-columns: 3fr 1fr 3fr 1fr;">
-                    <div style="width: 100%;">緊急地震速報</div>
+                    <div class="full-width">緊急地震速報</div>
                     <el-switch v-model="settingsStore.mainSettings.source.jmaEew"></el-switch>
-                    <div style="width: 100%;">中央氣象署地震速報</div>
+                    <div class="full-width">中央氣象署地震速報</div>
                     <el-switch v-model="settingsStore.mainSettings.source.cwaEew"></el-switch>
-                    <div v-if="settingsStore.advancedSettings.enableIclEew" style="width: 100%;">大陆地震预警</div>
+                    <div class="full-width" v-if="settingsStore.advancedSettings.enableIclEew">大陆地震预警</div>
                     <el-switch v-if="settingsStore.advancedSettings.enableIclEew" v-model="settingsStore.mainSettings.source.iclEew"></el-switch>
-                    <div style="width: 100%;">四川地震局地震预警</div>
+                    <div class="full-width">四川地震局地震预警</div>
                     <el-switch v-model="settingsStore.mainSettings.source.scEew"></el-switch>
-                    <div style="width: 100%;">福建地震局地震预警</div>
+                    <div class="full-width">福建地震局地震预警</div>
                     <el-switch v-model="settingsStore.mainSettings.source.fjEew"></el-switch>
-                    <div style="width: 100%;">日本気象庁地震情報</div>
+                    <div class="full-width">日本気象庁地震情報</div>
                     <el-switch v-model="settingsStore.mainSettings.source.jmaEqlist"></el-switch>
-                    <div v-if="settingsStore.advancedSettings.enableTremFunctions" style="width: 100%;">中央氣象署地震報告</div>
+                    <div class="full-width" v-if="settingsStore.advancedSettings.enableTremFunctions">中央氣象署地震報告</div>
                     <el-switch v-if="settingsStore.advancedSettings.enableTremFunctions" v-model="settingsStore.mainSettings.source.cwaEqlist"></el-switch>
-                    <div style="width: 100%;">中国地震台网测定</div>
+                    <div class="full-width">中国地震台网测定</div>
                     <el-switch v-model="settingsStore.mainSettings.source.cencEqlist"></el-switch>
                 </div>
                 <div class="subTitle">行为</div>
                 <div class="group">
                     <div class="row">
-                        <span style="width: 100%;">收到地震预警（警报）时：</span>
+                        <span class="full-width">收到地震预警（警报）时：</span>
                         <div class="switchGroup">
                             <div class="switch" v-if="showNotifButton">
                                 <span>发送通知</span>
@@ -56,7 +56,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <span style="width: 100%;">收到地震预警（全部）时：</span>
+                        <span class="full-width">收到地震预警（全部）时：</span>
                         <div class="switchGroup">
                             <div class="switch" v-if="showNotifButton">
                                 <span>发送通知</span>
@@ -73,7 +73,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <span style="width: 100%;">收到地震信息时：</span>
+                        <span class="full-width">收到地震信息时：</span>
                         <div class="switchGroup">
                             <div class="switch" v-if="showNotifButton">
                                 <span>发送通知</span>
@@ -90,7 +90,7 @@
                         </div>
                     </div>
                     <div class="row">
-                        <span style="width: 100%;">地震监测网检测到摇晃时：</span>
+                        <span class="full-width">地震监测网检测到摇晃时：</span>
                         <div class="switchGroup">
                             <div class="switch" v-if="showNotifButton">
                                 <span>发送通知</span>
@@ -132,7 +132,7 @@
                         <span class="groupTitle">所在地设置</span>
                         <div class="switchGroup">
                             <div class="switch force-wrap">
-                                <span style="width: 100%;">所在地经纬度（均设置时才生效）：</span>
+                                <span class="full-width">所在地经纬度（均设置时才生效）：</span>
                                 <span>纬度</span>
                                 <el-input
                                 class="latLng"
@@ -140,7 +140,7 @@
                                 size="small"
                                 maxlength="10"
                                 @change="setLat('userLatLng')"></el-input>
-                                <span style="margin-left: 10px;">经度</span>
+                                <span style="margin-left: 8px;">经度</span>
                                 <el-input
                                 class="latLng"
                                 v-model="settingsStore.mainSettings.userLatLng[1]"
@@ -148,7 +148,7 @@
                                 maxlength="10"
                                 @change="setLng('userLatLng')"></el-input>
                                 <el-button
-                                style="margin-left: 10px;"
+                                style="margin-left: 8px;"
                                 size="small"
                                 @click="autoLocate">自动定位</el-button>
                                 <el-button
@@ -163,7 +163,7 @@
                                 <span>显示地图烈度图例</span>
                                 <el-switch v-model="settingsStore.mainSettings.displayLegend"></el-switch>
                             </div>
-                            <div class="switch">
+                            <div class="switch full-width">
                                 <span>显示本地烈度和倒计时</span>
                                 <el-switch v-model="settingsStore.mainSettings.displayCountdown"></el-switch>
                             </div>
@@ -171,8 +171,7 @@
                                 <el-checkbox v-model="settingsStore.mainSettings.forceDisplayCountdown" :disabled="!settingsStore.mainSettings.displayCountdown">强制计算倒计时（低精度）</el-checkbox>
                             </div>
                             <div class="switch">
-                                <span>播放倒计时音效</span>
-                                <el-switch v-model="settingsStore.mainSettings.playCountdownSound" :disabled="!settingsStore.mainSettings.displayCountdown"></el-switch>
+                                <el-checkbox v-model="settingsStore.mainSettings.playCountdownSound" :disabled="!settingsStore.mainSettings.displayCountdown">播放倒计时音效</el-checkbox>
                             </div>
                         </div>
                     </div>
@@ -180,7 +179,7 @@
                         <span class="groupTitle">默认视野设置</span>
                         <div class="switchGroup">
                             <div class="switch force-wrap">
-                                <span style="width: 100%;">自定义视野（均设置时才生效）：</span>
+                                <span class="full-width">自定义视野（均设置时才生效）：</span>
                                 <span>纬度</span>
                                 <el-input
                                 class="latLng"
@@ -188,14 +187,14 @@
                                 size="small"
                                 maxlength="10"
                                 @change="setLat('viewLatLng')"></el-input>
-                                <span style="margin-left: 10px;">经度</span>
+                                <span style="margin-left: 8px;">经度</span>
                                 <el-input
                                 class="latLng"
                                 v-model="settingsStore.mainSettings.viewLatLng[1]"
                                 size="small"
                                 maxlength="10"
                                 @change="setLng('viewLatLng')"></el-input>
-                                <span style="margin-left: 10px;">缩放</span>
+                                <span style="margin-left: 8px;">缩放</span>
                                 <el-input
                                 v-model="settingsStore.mainSettings.defaultZoom"
                                 type="number"
@@ -235,7 +234,7 @@
                                 :disabled="settingsStore.mainSettings.displaySeisNet.delay == 0">还原</el-button>
                             </div>
                         </div>
-                        <div class="switchGroup" style="width: 100%;">
+                        <div class="switchGroup full-width">
                             <div class="switch">
                                 <span>強震モニタ（震度）</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.nied"></el-switch>
@@ -244,9 +243,9 @@
                                 <el-checkbox v-model="settingsStore.advancedSettings.displayNiedShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.nied">解析震度阶</el-checkbox>
                             </div>
                         </div>
-                        <div class="switchGroup" style="width: 100%;" v-if="settingsStore.advancedSettings.enableTremFunctions">
+                        <div class="switchGroup full-width" v-if="settingsStore.advancedSettings.enableTremFunctions">
                             <div class="switch">
-                                <span>TREM-Net（震度）</span>
+                                <span>TREM-Net （震度）</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.trem"></el-switch>
                             </div>
                         </div>
@@ -712,7 +711,6 @@ const handleAbout = ()=>{
                 display: flex;
                 align-items: center;
                 column-gap: 5px;
-                
             }
             .el-switch{
                 height: 24px;
@@ -726,6 +724,15 @@ const handleAbout = ()=>{
 .force-wrap{
     flex-wrap: wrap;
     row-gap: 5px;
+}
+.full-width{
+    width: 100%;
+}
+.el-button+.el-button{
+    margin-left: 8px;
+}
+.el-checkbox{
+    height: 24px;
 }
 </style>
 <style lang="scss">
