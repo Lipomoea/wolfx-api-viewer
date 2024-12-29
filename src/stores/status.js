@@ -333,7 +333,7 @@ export const useStatusStore = defineStore('statusStore', {
                         if((source != 'iclEew' && source != 'cwaEqlist' && this.allEewSocketObj?.socket.readyState != 1) || 
                            (source == 'iclEew' && 'iclEew_http' in eqUrls) || 
                            (source == 'cwaEqlist')){
-                            const data = await Http.get(eqUrls[source + '_http'] + `?t=${Date.now()}`)
+                            const data = await Http.get(eqUrls[source + '_http'] + `?time=${Date.now()}`)
                             this.setEqMessage(source, data)
                         }
                     })

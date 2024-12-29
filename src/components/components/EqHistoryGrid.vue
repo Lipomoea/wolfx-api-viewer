@@ -41,8 +41,8 @@ const source = props.source + '_http'
 const shindoScale = ['0', '1', '2', '3', '4', '5-', '5+', '6-', '6+', '7']
 
 const getEqList = ()=>{
-    Http.get(eqUrls[source] + `?t=${Date.now()}`).then(data=>{
-        if(props.source != 'cwaEqlist') {
+    if(props.source != 'cwaEqlist') {
+        Http.get(eqUrls[source] + `?time=${Date.now()}`).then(data=>{
             let keys = Object.keys(data)
             for(let i = 0; i < maxHistoryNumber; i++){
                 switch(props.source){
@@ -72,8 +72,10 @@ const getEqList = ()=>{
                     }
                 }
             }
-        }
-        else {
+        })
+    }
+    else {
+        Http.get(eqUrls[source] + `?limit=50&time=${Date.now()}`).then(data=>{
             for(let i = 0; i < maxHistoryNumber; i++){
                 eqList[i] = {
                     id: data[i].id,
@@ -85,8 +87,8 @@ const getEqList = ()=>{
                     className: setClassName(shindoScale[data[i].int], true)
                 }
             }
-        }
-    })
+        })
+    }
 }
 const title = computed(()=>{
     switch(props.source){
