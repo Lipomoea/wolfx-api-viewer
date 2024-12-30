@@ -598,6 +598,7 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
+            <p>v2.0.0-rc.2 优化：震度检出算法。</p>
             <p>v2.0.0-rc.1 新增：单独开关各数据源的功能；修复：部分情况下“隐藏无数据测站”无效的bug。</p>
             <p>v2.0.0-pre.24 新增：强制估算中国地震烈度功能；新增：防闪烁模式；优化：初始地图视野；优化：限制了地图缩放等级范围；修复：测站部分震度配色偏差问题；修复：适配紧急地震速报取消报。</p>
             <p>v2.0.0-pre.23 优化：重写震度检出算法，极大幅度降低了误检知的概率。</p>
@@ -640,7 +641,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        'wolfx-api-viewer v2.0.0-rc.1',
+        'wolfx-api-viewer v2.0.0-rc.2',
         {
             confirmButtonText: 'OK',
             showClose: false,

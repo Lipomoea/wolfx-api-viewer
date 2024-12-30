@@ -43,7 +43,7 @@ class NiedStation {
         }
         this.activity = this.calcActivity(level, ascend)
         this.recentLevel.unshift(level)
-        if(this.recentLevel.length > 8) this.recentLevel.pop()
+        if(this.recentLevel.length > 10) this.recentLevel.pop()
     }
     calcActivity(level, ascend){
         let levelActivity, ascendActivity
@@ -57,7 +57,7 @@ class NiedStation {
         else if(ascend <= 2) ascendActivity = 1
         else if(ascend <= 6) ascendActivity = 2 * (ascend - 2)
         else ascendActivity = 6 * (ascend - 5)
-        return Math.max(levelActivity, ascendActivity)
+        return levelActivity + ascendActivity
     }
     render(){
         this.setColorRadius()

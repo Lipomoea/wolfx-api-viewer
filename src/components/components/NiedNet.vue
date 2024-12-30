@@ -98,11 +98,14 @@ const update = ()=>{
             if(!checkedStations.has(station)){
                 const nearbyStations = adjStationIds[station.id].map(id=>stations[id]).filter(station=>station.level > -1)
                 const possibleNearbyStations = nearbyStations.filter(station=>station.activity > 0)
+                const nearbyActiveNum = possibleNearbyStations.length
                 const numThres = nearbyStations.length <= 3 ? 1 : nearbyStations.length <= 10 ? 2 : 3
-                const activityThres = 7.5 + 0.5 * nearbyStations.length
-                const nearbyActivity = possibleNearbyStations.reduce((sum, station)=>sum + station.activity, 0)
-                if(possibleNearbyStations.length >= numThres && nearbyActivity >= activityThres){
-                    chainActivate(station, activeStations, checkedStations)
+                if(nearbyActiveNum >= numThres) {
+                    const activityThres = 10 + 0.5 * nearbyStations.length
+                    const nearbyActivity = possibleNearbyStations.reduce((sum, station)=>sum + station.activity, 0) + nearbyActiveNum
+                    if(nearbyActivity >= activityThres){
+                        chainActivate(station, activeStations, checkedStations)
+                    }
                 }
             }
         })
