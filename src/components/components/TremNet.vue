@@ -108,7 +108,7 @@ onMounted(()=>{
     }, 300 * 1000);
     requestInterval = setInterval(() => {
         const time = Date.now() + timeStore.offset - delay.value
-        Http.get(seisNetUrls.trem.stationData + (delay.value > 0 ? `/${time}` : `?time=${time}`)).then(res=>{
+        Http.get(seisNetUrls.trem.stationData + (delay.value > 0 ? `/${Math.round(time / 1000)}` : `?time=${time}`)).then(res=>{
             if(res && Object.keys(res).length > 0){
                 stationData = res.station
                 const timeString = new Date(res.time + 8 * 3600 * 1000).toISOString().slice(0, -5)

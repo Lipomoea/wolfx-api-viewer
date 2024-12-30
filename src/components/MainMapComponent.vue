@@ -131,10 +131,10 @@
                         <div class="dot" :class="'s' + wsStatusCode"></div>
                         {{ statusList[wsStatusCode] }}
                     </div>
-                    <div class="nied-update-time" :class="isNiedDelayed?'delayed':''" v-if="settingsStore.mainSettings.displaySeisNet.nied">
+                    <div class="nied-update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isNiedDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.nied">
                         強震モニタ: {{ niedUpdateTime }} (UTC+9)
                     </div>
-                    <div class="trem-update-time" :class="isTremDelayed?'delayed':''" v-if="settingsStore.mainSettings.displaySeisNet.trem">
+                    <div class="trem-update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isTremDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.trem">
                         TREM-Net : {{ tremUpdateTime }} (UTC+8)
                     </div>
                 </div>
@@ -926,6 +926,9 @@ onBeforeUnmount(()=>{
                 }
                 .delayed{
                     color: red;
+                }
+                .replay{
+                    color: yellow;
                 }
             }
             .home{
