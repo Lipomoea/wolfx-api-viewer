@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import merge from 'lodash/merge'
 
 export const useSettingsStore = defineStore('settingsStore', {
     state: ()=>({
@@ -68,12 +69,12 @@ export const useSettingsStore = defineStore('settingsStore', {
     actions: {
         setMainSettings(jsonString){
             if(jsonString){
-                Object.assign(this.mainSettings, JSON.parse(jsonString))
+                merge(this.mainSettings, JSON.parse(jsonString))
             }
         },
         setAdvancedSettings(jsonString){
             if(jsonString){
-                Object.assign(this.advancedSettings, JSON.parse(jsonString))
+                merge(this.advancedSettings, JSON.parse(jsonString))
             }
         },
     }

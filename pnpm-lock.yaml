@@ -32,6 +32,9 @@ importers:
       leaflet:
         specifier: ^1.9.4
         version: 1.9.4
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       papaparse:
         specifier: ^5.4.1
         version: 5.4.1

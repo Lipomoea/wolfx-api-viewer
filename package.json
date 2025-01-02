@@ -17,6 +17,7 @@
     "axios": "^1.6.8",
     "element-plus": "^2.7.3",
     "leaflet": "^1.9.4",
+    "lodash": "^4.17.21",
     "papaparse": "^5.4.1",
     "pinia": "^2.1.7",
     "vue": "^3.4.38",
