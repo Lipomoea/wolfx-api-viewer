@@ -23,7 +23,9 @@
                     <el-switch v-model="settingsStore.mainSettings.source.jmaEew"></el-switch>
                     <div class="full-width">中央氣象署地震速報</div>
                     <el-switch v-model="settingsStore.mainSettings.source.cwaEew"></el-switch>
-                    <div class="full-width" v-if="settingsStore.advancedSettings.enableIclEew">大陆地震预警</div>
+                    <div class="full-width" v-if="settingsStore.advancedSettings.enableCeaEew">中国地震局地震预警</div>
+                    <el-switch v-if="settingsStore.advancedSettings.enableCeaEew" v-model="settingsStore.mainSettings.source.ceaEew"></el-switch>
+                    <div class="full-width" v-if="settingsStore.advancedSettings.enableIclEew">成都高新所地震预警</div>
                     <el-switch v-if="settingsStore.advancedSettings.enableIclEew" v-model="settingsStore.mainSettings.source.iclEew"></el-switch>
                     <div class="full-width">四川地震局地震预警</div>
                     <el-switch v-model="settingsStore.mainSettings.source.scEew"></el-switch>
@@ -518,6 +520,20 @@ const handleAdvance = (val)=>{
             settingsStore.advancedSettings.displayNiedShindoSwitch = false
             break
         }
+        case 'enableCeaEew': {
+            verifyType = 'enableCeaEew'
+            verifyDialog.value = true
+            break
+        }
+        case 'disableCeaEew': {
+            settingsStore.advancedSettings.enableCeaEew = false
+            settingsStore.mainSettings.source.ceaEew = false
+            ElMessage({
+                message: '功能已关闭',
+                type: 'success'
+            })
+            break
+        }
         case 'enableIclEew': {
             verifyType = 'enableIclEew'
             verifyDialog.value = true
@@ -552,6 +568,25 @@ const handleAdvance = (val)=>{
 }
 const postVerify = async ()=>{
     switch(verifyType){
+        case 'enableCeaEew': {
+            const res = await Http.post('http://124.70.142.213:8766/cea_url', idForm)
+            if(res && res.success){
+                settingsStore.advancedSettings.enableCeaEew = true
+                localStorage.setItem('ceaUrl', JSON.stringify(res.data))
+                verifyDialog.value = false
+                ElMessage({
+                    message: '认证成功',
+                    type: 'success'
+                })
+            }
+            else{
+                ElMessage({
+                    message: '认证失败',
+                    type: 'error'
+                })
+            }
+            break
+        }
         case 'enableIclEew': {
             const res = await Http.post('http://124.70.142.213:8766/icl_url', idForm)
             if(res && res.success){

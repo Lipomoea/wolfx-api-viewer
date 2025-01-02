@@ -6,6 +6,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             source: {
                 jmaEew: true,
                 cwaEew: true,
+                ceaEew: false,
                 iclEew: false,
                 scEew: true,
                 fjEew: true,
@@ -54,6 +55,7 @@ export const useSettingsStore = defineStore('settingsStore', {
         advancedSettings: {
             displayNiedShindoSwitch: false,
             displayNiedShindo: false,
+            enableCeaEew: false,
             enableIclEew: false,
             enableTremFunctions: false,
             forceCalcCsis: false,

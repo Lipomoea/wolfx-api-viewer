@@ -18,8 +18,8 @@ import { useSettingsStore } from '@/stores/settings';
 import { eqUrls } from '@/utils/Urls';
 
 const settingsStore = useSettingsStore()
-const enableIclEew = settingsStore.advancedSettings.enableIclEew
-if(enableIclEew) Object.assign(eqUrls, JSON.parse(localStorage.getItem('iclUrl')))
+if(settingsStore.advancedSettings.enableCeaEew) Object.assign(eqUrls, JSON.parse(localStorage.getItem('ceaUrl')))
+if(settingsStore.advancedSettings.enableIclEew) Object.assign(eqUrls, JSON.parse(localStorage.getItem('iclUrl')))
 const eewList = Object.keys(settingsStore.mainSettings.source).filter(source => source.includes('Eew') && settingsStore.mainSettings.source[source])
 </script>
 

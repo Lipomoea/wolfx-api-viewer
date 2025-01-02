@@ -46,6 +46,7 @@ export const useStatusStore = defineStore('statusStore', {
         eqMessage: {
             jmaEew: Object.assign({}, defaultEqMessage),
             cwaEew: Object.assign({}, defaultEqMessage),
+            ceaEew: Object.assign({}, defaultEqMessage),
             iclEew: Object.assign({}, defaultEqMessage),
             scEew: Object.assign({}, defaultEqMessage),
             fjEew: Object.assign({}, defaultEqMessage),
@@ -56,6 +57,7 @@ export const useStatusStore = defineStore('statusStore', {
         isActive: {
             jmaEew: false,
             cwaEew: false,
+            ceaEew: false,
             iclEew: false,
             scEew: false,
             fjEew: false,
@@ -160,13 +162,35 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.maxIntensityText = '預估最大震度: ' + data.MaxIntensity
                         break
                     }
+                    case 'ceaEew':{
+                        eqMessage.id = data.Data.eventId
+                        eqMessage.isEew = true
+                        eqMessage.reportNum = data.Data.updates
+                        eqMessage.reportNumText = '第' + data.Data.updates + '报'
+                        eqMessage.reportTime = data.Data.updateTime
+                        eqMessage.titleText = '中国地震局地震预警'
+                        eqMessage.hypocenter = data.Data.placeName
+                        eqMessage.hypocenterText = '震源: ' + data.Data.placeName
+                        eqMessage.lat = data.Data.latitude
+                        eqMessage.lng = data.Data.longitude
+                        eqMessage.depth = data.Data.depth
+                        eqMessage.depthText = '深度: ' + data.Data.depth + 'km'
+                        eqMessage.originTime = data.Data.shockTime
+                        eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
+                        eqMessage.magnitude = Number(data.Data.magnitude)
+                        eqMessage.magnitudeText = '震级: ' + eqMessage.magnitude.toFixed(1)
+                        eqMessage.maxIntensity = data.Data.epiIntensity.toFixed(0)
+                        eqMessage.maxIntensityText = '估计最大烈度: ' + data.Data.epiIntensity.toFixed(0)
+                        eqMessage.isWarn = data.Data.epiIntensity >= 6.5
+                        break
+                    }
                     case 'iclEew':{
                         eqMessage.id = data.eventId
                         eqMessage.isEew = true
                         eqMessage.reportNum = data.updates
                         eqMessage.reportNumText = '第' + data.updates + '报'
                         eqMessage.reportTime = stampToTime(data.updateAt, 8)
-                        eqMessage.titleText = 'ICL地震预警'
+                        eqMessage.titleText = '成都高新减灾研究所地震预警'
                         eqMessage.hypocenter = data.epicenter
                         eqMessage.hypocenterText = '震源: ' + data.epicenter
                         eqMessage.lat = data.latitude
@@ -179,7 +203,7 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.magnitudeText = '震级: ' + data.magnitude.toFixed(1)
                         eqMessage.maxIntensity = data.epiIntensity?data.epiIntensity.toFixed(0):(this.forceCalcCsis?calcCsisLevel(data.magnitude, data.depth, 0):'不明')
                         eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
-                        eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 7
+                        eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 6.5
                         break
                     }
                     case 'scEew':{
@@ -330,10 +354,14 @@ export const useStatusStore = defineStore('statusStore', {
                 clearInterval(this.httpRequest)
                 this.httpRequest = setInterval(async () => {
                     const promises = this.enabledSource.map(async source=>{
-                        if((source != 'iclEew' && source != 'cwaEqlist' && this.allEewSocketObj?.socket.readyState != 1) || 
+                        if((source != 'ceaEew' && source != 'iclEew' && source != 'cwaEqlist' && this.allEewSocketObj?.socket.readyState != 1) || 
                            (source == 'iclEew' && 'iclEew_http' in eqUrls) || 
                            (source == 'cwaEqlist')){
                             const data = await Http.get(eqUrls[source + '_http'] + `?time=${Date.now()}`)
+                            this.setEqMessage(source, data)
+                        }
+                        else if(source == 'ceaEew' && 'ceaEew_http' in eqUrls) {
+                            const data = await Http.get(eqUrls[source + '_http'] + `&time=${Date.now()}`)
                             this.setEqMessage(source, data)
                         }
                     })
