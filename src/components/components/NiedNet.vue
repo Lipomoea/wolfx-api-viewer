@@ -155,7 +155,7 @@ onMounted(()=>{
                             station.recentLevel.splice(-popNum, popNum)
                         })
                     }
-                    if(timeDiff > 8000){
+                    if(timeDiff > 10000){
                         stations.forEach(station=>{
                             station.isActive = false
                         })
