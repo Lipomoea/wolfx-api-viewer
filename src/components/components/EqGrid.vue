@@ -3,14 +3,14 @@
         <div class="container" @click="handleClick">
             <div class="bg" :class="className"></div>
             <div class="intensity">{{ eqMessage.maxIntensity }}</div>
-            <div :style='{fontSize: "18px", fontWeight: "700"}'>{{ formatText(eqMessage.titleText) }}</div>
-            <div v-if="eqMessage.isEew">{{ formatText(eqMessage.reportNumText) }}</div>
-            <div>{{ formatText(eqMessage.hypocenterText) }}</div>
-            <div>{{ formatText(eqMessage.depthText) }}</div>
-            <div>{{ formatText(eqMessage.originTimeText) }}</div>
-            <div>{{ formatText(eqMessage.magnitudeText) }}</div>
-            <div>{{ formatText(eqMessage.maxIntensityText) }}</div>
-            <div v-if="props.source == 'jmaEqlist'">{{ formatText(eqMessage.info) }}</div>
+            <div class="text title">{{ formatText(eqMessage.titleText) }}</div>
+            <div class="text" v-if="eqMessage.isEew">{{ formatText(eqMessage.reportNumText) }}</div>
+            <div class="text">{{ formatText(eqMessage.hypocenterText) }}</div>
+            <div class="text">{{ formatText(eqMessage.depthText) }}</div>
+            <div class="text">{{ formatText(eqMessage.originTimeText) }}</div>
+            <div class="text">{{ formatText(eqMessage.magnitudeText) }}</div>
+            <div class="text">{{ formatText(eqMessage.maxIntensityText) }}</div>
+            <div class="text" v-if="props.source == 'jmaEqlist'">{{ formatText(eqMessage.info) }}</div>
             <div>经过时间: {{ formatText(msToTime(passedTimeFromOrigin)) }}</div>
         </div>
     </div>
@@ -182,6 +182,14 @@ watch(()=>timeStore.currentTime, ()=>{
             font-size: 200px;
             font-weight: 700;
             color: #0000003f;
+        }
+        .text{
+            text-align: center;
+            max-width: 90%;
+        }
+        .title{
+            font-size: 18px;
+            font-weight: 700;
         }
     }
 }
