@@ -11,7 +11,7 @@
             <div class="text">{{ formatText(eqMessage.magnitudeText) }}</div>
             <div class="text">{{ formatText(eqMessage.maxIntensityText) }}</div>
             <div class="text" v-if="props.source == 'jmaEqlist'">{{ formatText(eqMessage.info) }}</div>
-            <div>经过时间: {{ formatText(msToTime(passedTimeFromOrigin)) }}</div>
+            <div class="text">经过时间: {{ formatText(msToTime(passedTimeFromOrigin)) }}</div>
         </div>
     </div>
 </template>
