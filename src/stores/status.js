@@ -358,11 +358,11 @@ export const useStatusStore = defineStore('statusStore', {
                            (source == 'iclEew' && 'iclEew_http' in eqUrls) || 
                            (source == 'cwaEqlist')){
                             const data = await Http.get(eqUrls[source + '_http'] + `?time=${Date.now()}`)
-                            this.setEqMessage(source, data)
+                            if(data && Object.keys(data).length > 0) this.setEqMessage(source, data)
                         }
                         else if(source == 'ceaEew' && 'ceaEew_http' in eqUrls) {
                             const data = await Http.get(eqUrls[source + '_http'] + `&time=${Date.now()}`)
-                            this.setEqMessage(source, data)
+                            if(data && Object.keys(data).length > 0) this.setEqMessage(source, data)
                         }
                     })
                     await Promise.all(promises)
