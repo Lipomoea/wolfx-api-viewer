@@ -133,7 +133,7 @@ watch(()=>statusStore.map, newVal=>{
                     delete stations[id]
                 })
                 map.eachLayer(layer=>{
-                    if(layer.options.pane == 'tremGridPane' || layer.options.pane.includes('tremStationPane')){
+                    if(layer.options.pane.includes('tremStationPane')){
                         map.removeLayer(layer)
                     }
                 })
