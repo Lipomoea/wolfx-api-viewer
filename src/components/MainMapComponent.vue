@@ -468,7 +468,7 @@ const loadMaps = async () => {
                     let maxInt = 0
                     newVal.forEach(info=>{
                         const dist = pointDistToPolygon([info.lat, info.lng], layer.feature)
-                        const int = calcCsisLevel(info.magnitude, info.depth, dist)
+                        const int = Number(calcCsisLevel(info.magnitude, info.depth, dist))
                         if(int > maxInt) maxInt = int
                     })
                     if(maxInt > 0){
