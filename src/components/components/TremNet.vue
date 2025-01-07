@@ -128,7 +128,15 @@ watch(()=>statusStore.map, newVal=>{
         map.on('zoomend', renderAll)
         unwatchStationList = watch(stationList, newVal=>{
             if(Object.keys(newVal).length > 0){
-                clearReactiveObject(stations)
+                Object.keys(stations).forEach(id=>{
+                    stations[id].terminate()
+                    delete stations[id]
+                })
+                map.eachLayer(layer=>{
+                    if(layer.options.pane == 'tremGridPane' || layer.options.pane.includes('tremStationPane')){
+                        map.removeLayer(layer)
+                    }
+                })
                 Object.keys(newVal).forEach(id=>{
                     const info = newVal[id].info.slice(-1)[0]
                     const latLng = [info.lat, info.lon]
