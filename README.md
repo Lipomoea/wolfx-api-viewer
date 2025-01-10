@@ -13,7 +13,7 @@ wolfx-api-viewer(WAV)是一个基于[Wolfx Open API](https://wolfx.jp/apidoc)以
 * 获取NIED強震モニタ测站数据。
 ## 注意事项
 * 使用本网页前，请详细阅读网页“设置”-“帮助&关于”中的内容。
-* 此应用不属于Wolfx，相关问题请勿咨询Wolfx。
+* 此应用不属于Wolfx Project，相关问题请勿咨询Wolfx Project。
 ## 数据来源
 * 地震预警、地震信息、IP定位：[Wolfx Open API](https://wolfx.jp/apidoc)
 * 強震モニタ震度数据：[Yahoo!天気・災害](https://typhoon.yahoo.co.jp/weather/jp/earthquake/kyoshin/)
