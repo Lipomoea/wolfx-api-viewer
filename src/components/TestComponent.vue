@@ -10,9 +10,9 @@ import { useStatusStore } from '@/stores/status';
 
 const statusStore = useStatusStore()
 
-const testJmaEew = true
+const testJmaEew = false
 const testCwaEew = false
-const testIclEew = false
+const testIclEew = true
 const testScEew = false
 const testJmaEqlist = false
 
@@ -598,35 +598,35 @@ onMounted(()=>{
         }, 2000);
         const source = 'iclEew'
         const startAt = Date.now()
-        setTimeout(() => {
-            const data = {
-                "depth": 8,
-                "epiIntensity": 0,
-                "epicenter": "西藏墨竹工卡",
-                "eventId": 84928653,
-                "insideNet": 0,
-                "latitude": 29.730461,
-                "longitude": 92.168785,
-                "magnitude": 3.700001,
-                "sations": 5,
-                "sourceType": "meihuan",
-                startAt,
-                "updateAt": Date.now(),
-                "updates": 4
-            }
-            statusStore.setEqMessage(source, data)
-        }, 3000);
+        // setTimeout(() => {
+        //     const data = {
+        //         "depth": 0,
+        //         "epiIntensity": 0,
+        //         "epicenter": "西藏墨竹工卡",
+        //         "eventId": 84928653,
+        //         "insideNet": 0,
+        //         "latitude": 29.730461,
+        //         "longitude": 92.168785,
+        //         "magnitude": 6.0,
+        //         "sations": 5,
+        //         "sourceType": "meihuan",
+        //         startAt,
+        //         "updateAt": Date.now(),
+        //         "updates": 4
+        //     }
+        //     statusStore.setEqMessage(source, data)
+        // }, 3000);
         setTimeout(() => {
             const data = {
                 "eventId": 84222641,
                 "updates": 1,
                 "latitude": 32.00443,
                 "longitude": 117.68219,
-                "depth": 5,
+                "depth": 0,
                 "epicenter": "安徽肥东",
                 startAt,
                 "updateAt": Date.now(),
-                "magnitude": 3.0,
+                "magnitude": 6.0,
                 "insideNet": 0,
                 "sations": 7,
                 "sourceType": "meihuan",
@@ -640,11 +640,11 @@ onMounted(()=>{
                 "updates": 2,
                 "latitude": 32.00443,
                 "longitude": 117.68219,
-                "depth": 10,
+                "depth": 5,
                 "epicenter": "安徽肥东",
                 startAt,
                 "updateAt": Date.now(),
-                "magnitude": 3.5,
+                "magnitude": 6.0,
                 "insideNet": 0,
                 "sations": 7,
                 "sourceType": "meihuan",
@@ -658,11 +658,11 @@ onMounted(()=>{
                 "updates": 3,
                 "latitude": 32.00443,
                 "longitude": 117.68219,
-                "depth": 20,
+                "depth": 10,
                 "epicenter": "安徽肥东",
                 startAt,
                 "updateAt": Date.now(),
-                "magnitude": 4.0,
+                "magnitude": 6.0,
                 "insideNet": 0,
                 "sations": 7,
                 "sourceType": "meihuan",
@@ -676,11 +676,11 @@ onMounted(()=>{
                 "updates": 4,
                 "latitude": 32.00443,
                 "longitude": 117.68219,
-                "depth": 30,
+                "depth": 20,
                 "epicenter": "安徽肥东",
                 startAt,
                 "updateAt": Date.now(),
-                "magnitude": 4.5,
+                "magnitude": 6.0,
                 "insideNet": 0,
                 "sations": 7,
                 "sourceType": "meihuan",
@@ -694,11 +694,11 @@ onMounted(()=>{
                 "updates": 5,
                 "latitude": 32.00443,
                 "longitude": 117.68219,
-                "depth": 40,
+                "depth": 30,
                 "epicenter": "安徽肥东",
                 startAt,
                 "updateAt": Date.now(),
-                "magnitude": 5.0,
+                "magnitude": 6.0,
                 "insideNet": 0,
                 "sations": 7,
                 "sourceType": "meihuan",
@@ -712,11 +712,11 @@ onMounted(()=>{
                 "updates": 6,
                 "latitude": 32.00443,
                 "longitude": 117.68219,
-                "depth": 50,
+                "depth": 40,
                 "epicenter": "安徽肥东",
                 startAt,
                 "updateAt": Date.now(),
-                "magnitude": 5.5,
+                "magnitude": 6.0,
                 "insideNet": 0,
                 "sations": 7,
                 "sourceType": "meihuan",
@@ -748,11 +748,11 @@ onMounted(()=>{
                 "updates": 8,
                 "latitude": 32.00443,
                 "longitude": 117.68219,
-                "depth": 70,
+                "depth": 80,
                 "epicenter": "安徽肥东",
                 startAt,
                 "updateAt": Date.now(),
-                "magnitude": 6.5,
+                "magnitude": 6.0,
                 "insideNet": 0,
                 "sations": 7,
                 "sourceType": "meihuan",
@@ -766,11 +766,11 @@ onMounted(()=>{
                 "updates": 9,
                 "latitude": 32.00443,
                 "longitude": 117.68219,
-                "depth": 80,
+                "depth": 100,
                 "epicenter": "安徽肥东",
                 startAt,
                 "updateAt": Date.now(),
-                "magnitude": 7.0,
+                "magnitude": 6.0,
                 "insideNet": 0,
                 "sations": 7,
                 "sourceType": "meihuan",
@@ -784,11 +784,11 @@ onMounted(()=>{
                 "updates": 10,
                 "latitude": 32.00443,
                 "longitude": 117.68219,
-                "depth": 90,
+                "depth": 120,
                 "epicenter": "安徽肥东",
                 startAt,
                 "updateAt": Date.now(),
-                "magnitude": 7.5,
+                "magnitude": 6.0,
                 "insideNet": 0,
                 "sations": 7,
                 "sourceType": "meihuan",
@@ -802,11 +802,11 @@ onMounted(()=>{
                 "updates": 11,
                 "latitude": 32.00443,
                 "longitude": 117.68219,
-                "depth": 100,
+                "depth": 160,
                 "epicenter": "安徽肥东",
                 startAt,
                 "updateAt": Date.now(),
-                "magnitude": 8.0,
+                "magnitude": 6.0,
                 "insideNet": 0,
                 "sations": 7,
                 "sourceType": "meihuan",
