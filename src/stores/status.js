@@ -275,7 +275,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 }
                                 break
                             }
-                            case '震源に関する情報':{
+                            case '震源に関する情報': case '顕著な地震の震源要素更新のお知らせ':{
                                 eqMessage.hypocenter = data.No1.location
                                 eqMessage.hypocenterText = '震源地: ' + data.No1.location
                                 eqMessage.lat = Number(data.No1.latitude)
