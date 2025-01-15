@@ -47,16 +47,31 @@ class NiedStation {
     }
     calcActivity(level, ascend){
         let levelActivity, ascendActivity
-        if(level <= 7) levelActivity = 0
-        else if(level <= 8) levelActivity = 1
-        else if(level <= 9) levelActivity = 2
-        else if(level <= 10) levelActivity = 4
-        else if(level <= 11) levelActivity = 8
-        else levelActivity = 8 * (level - 10)
-        if(ascend <= 1) ascendActivity = 0
+        if(ascend > 0 || this.isActive) {
+            if(level <= 5) levelActivity = 0
+            else if(level <= 7) {
+                if(this.isActive) levelActivity = 0.5
+                else levelActivity = 0
+            }
+            else if(level <= 11) levelActivity = 2 ** (level - 8)
+            else levelActivity = 8 * (level - 10)
+        }
+        else{
+            if(level <= 7) levelActivity = 0
+            else if(level <= 8) levelActivity = 1
+            else levelActivity = 2
+        }
+        if(ascend <= 0) ascendActivity = 0
+        else if(ascend <= 1) {
+            if(this.isActive) ascendActivity = 0.5
+            else ascendActivity = 0
+        }
         else if(ascend <= 2) ascendActivity = 1
-        else if(ascend <= 6) ascendActivity = 2 * (ascend - 2)
-        else ascendActivity = 6 * (ascend - 5)
+        else if(ascend <= 3) ascendActivity = 3
+        else if(ascend <= 4) ascendActivity = 5
+        else if(ascend <= 5) ascendActivity = 8
+        else if(ascend <= 6) ascendActivity = 12
+        else ascendActivity = 6 * (ascend - 4)
         return levelActivity + ascendActivity
     }
     render(){

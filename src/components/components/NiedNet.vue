@@ -31,7 +31,7 @@ const niedUpdateTime = inject('niedUpdateTime')
 const niedPeriodMaxShindo = inject('niedPeriodMaxShindo')
 const periodMaxLevel = ref(-1)
 const currentMaxShindo = computed(()=>{
-    const currentMaxLevel = Math.max(...grids.value.map(grid=>grid.level), -1)
+    const currentMaxLevel = Math.max(...Object.keys(grids.value).map(key=>grids.value[key].level), -1)
     if(currentMaxLevel == -1) return -1
     else if(currentMaxLevel <= 7) return 0
     else if(currentMaxLevel <= 9) return 1
@@ -51,26 +51,24 @@ const activeStations = computed(()=>{
     return list
 })
 const grids = computed(()=>{
-    let grids = []
+    let grids = {}
     activeStations.value.forEach(id=>{
         const latLng = stationList.value[id].map(l=>Math.ceil(l + 0.05) - 0.05)
         const level = stations[id].level
-        let i
-        for(i = 0; i < grids.length; i++){
-            if(grids[i].latLng[0] == latLng[0] && grids[i].latLng[1] == latLng[1]){
-                if(level > grids[i].level) grids[i].level = level
-                break
-            }
+        const key = JSON.stringify(latLng)
+        if(key in grids){
+            if(level > grids[key].level) grids[key].level = level
         }
-        if(i == grids.length ){
-            grids.push({
+        else{
+            grids[key] = {
                 latLng,
                 level
-            })
+            }
         }
     })
     return grids
 })
+const gridRects = {}
 const soundEffect = computed(()=>settingsStore.mainSettings.soundEffect)
 const setView = inject('setView')
 const isAutoZoom = inject('isAutoZoom')
@@ -211,29 +209,41 @@ watch(()=>statusStore.map, newVal=>{
             }
         }, { immediate: true })
         unwatchGrids = watch(grids, (newVal)=>{
-            map.eachLayer(layer=>{
-                if(layer.options.pane == 'niedGridPane') map.removeLayer(layer)
-            })
-            newVal.forEach(item=>{
+            for(let key in newVal) {
+                let item = newVal[key]
                 const color = item.level <= 7?'green':(item.level <= 13?'yellow':'red')
-                L.rectangle([item.latLng, item.latLng.map(l=>l - 0.99)], {
-                    color,
-                    fill: false,
-                    weight: 2,
-                    pane: 'niedGridPane',
-                    interactive: false
-                }).addTo(map)
+                if(!(key in gridRects && gridRects[key].color == color)) {
+                    if(key in gridRects && map.hasLayer(gridRects[key].layer)) map.removeLayer(gridRects[key].layer)
+                    const layer = L.rectangle([item.latLng, item.latLng.map(l=>l - 0.99)], {
+                        color,
+                        fill: false,
+                        weight: 2,
+                        pane: 'niedGridPane',
+                        interactive: false
+                    })
+                    gridRects[key] = {
+                        color,
+                        layer
+                    }
+                    layer.addTo(map)
+                }
                 if(item.level > periodMaxLevel.value) periodMaxLevel.value = item.level
-            })
+            }
+            for(let key in gridRects) {
+                if(!(key in newVal)) {
+                    if(map.hasLayer(gridRects[key].layer)) map.removeLayer(gridRects[key].layer)
+                    delete gridRects[key]
+                }
+            }
             niedPeriodMaxShindo.value = getShindoFromChar(String.fromCharCode(periodMaxLevel.value + 100))
-            if(newVal.length > 0){
+            if(Object.keys(newVal).length > 0){
                 statusStore.isActive.niedNet = true
                 if(isAutoZoom.value) setView()
             }
             else{
                 statusStore.isActive.niedNet = false
             }
-        })
+        }, { immediate: true })
         unwatchDisplayShindo = watch(()=>settingsStore.advancedSettings.displayNiedShindo, ()=>{
             renderAll()
         })
