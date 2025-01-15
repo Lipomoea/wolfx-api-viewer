@@ -29,7 +29,7 @@ const tremUpdateTime = inject('tremUpdateTime')
 const tremPeriodMaxShindo = inject('tremPeriodMaxShindo')
 const periodMaxLevel = ref(-1)
 const currentMaxShindo = computed(()=>{
-    const currentMaxLevel = Math.max(...grids.value.map(grid=>grid.level), -1)
+    const currentMaxLevel = Math.max(...Object.keys(grids.value).map(key=>grids.value[key].level), -1)
     if(currentMaxLevel == -1) return -1
     else if(currentMaxLevel <= 7) return 0
     else if(currentMaxLevel <= 9) return 1
