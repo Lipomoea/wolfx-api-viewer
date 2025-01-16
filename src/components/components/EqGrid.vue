@@ -99,8 +99,7 @@ watch(eqMessage, (newVal)=>{
         }
         if(i == eqlistList.length){
             if(statusStore.map){
-                eqlistList.unshift(reactive(new EqlistEvent(statusStore.map, Object.assign({}, newVal))))
-                eqlistList[0].update(Object.assign({}, newVal), time)
+                eqlistList.push(reactive(new EqlistEvent(statusStore.map, Object.assign({}, newVal), time)))
             }
         }
     }
@@ -121,7 +120,7 @@ watch(eqMessage, (newVal)=>{
             }
             if(i == activeEewList.length){
                 if(statusStore.map){
-                    activeEewList.unshift(reactive(new EewEvent(statusStore.map, Object.assign({}, newVal), activeEewList, time)))
+                    activeEewList.push(reactive(new EewEvent(statusStore.map, Object.assign({}, newVal), activeEewList, time)))
                 }
             }
         }

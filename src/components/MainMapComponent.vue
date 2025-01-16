@@ -27,18 +27,18 @@
                         <div class="countdown eew realtime" v-if="settingsStore.mainSettings.displayCountdown">
                             <div class="shindo-bar" :class="event.countdown <= 0 || event.eqMessage.isCanceled?'gray':event.countdown <= 10?'red':event.countdown <= 60?'orange':'yellow'">{{ event.countdown == -1?'-':Math.floor(event.countdown) }}秒</div>
                             <div class="info" v-if="event.eqMessage.source == 'jmaEew'">
-                                <div class="intensity" :class="shouldCalcCsis(event)?setClassName(calcUserCsis(event), false):setClassName(userJmaAreaShindo, true)">
+                                <div class="intensity" :class="shouldCalcCsis(event)?setClassName(event.userCsis, false):setClassName(userJmaAreaShindo, true)">
                                     <div class="intensity-title">{{ shouldCalcCsis(event)?'本地CSIS':'本地震度' }}</div>
                                     <div :class="userJmaAreaShindo != '?'?'shindo':'csis'">
-                                        {{ shouldCalcCsis(event)?calcUserCsis(event):userJmaAreaShindo }}
+                                        {{ shouldCalcCsis(event)?event.userCsis:userJmaAreaShindo }}
                                     </div>
                                 </div>
                             </div>
                             <div class="info" v-else>
-                                <div class="intensity" :class="setClassName(isValidUserLatLng && settingsStore.advancedSettings.forceCalcCsis?calcUserCsis(event):'?', false)">
+                                <div class="intensity" :class="setClassName(isValidUserLatLng && settingsStore.advancedSettings.forceCalcCsis?event.userCsis:'?', false)">
                                     <div class="intensity-title">本地CSIS</div>
                                     <div class="csis">
-                                        {{ isValidUserLatLng && settingsStore.advancedSettings.forceCalcCsis?calcUserCsis(event):'?' }}
+                                        {{ isValidUserLatLng && settingsStore.advancedSettings.forceCalcCsis?event.userCsis:'?' }}
                                     </div>
                                 </div>
                             </div>
@@ -682,9 +682,6 @@ const cnEewInfoList = computed(()=>{
     })
     return cnEewInfoList
 })
-const calcUserCsis = (event)=>{
-    return calcCsisLevel(event.eqMessage.magnitude, event.eqMessage.depth, L.latLng([event.eqMessage.lat, event.eqMessage.lng]).distanceTo(L.latLng(userLatLng.value)) / 1000)
-}
 onBeforeUnmount(()=>{
     clearInterval(autoZoomInterval)
     clearTimeout(autoZoomTimer)

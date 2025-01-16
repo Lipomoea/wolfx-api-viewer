@@ -1,4 +1,4 @@
-import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendMyNotification, getClassLevel, focusWindow } from '@/utils/Utils';
+import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendMyNotification, getClassLevel, focusWindow, calcCsisLevel } from '@/utils/Utils';
 import travelTimes from '@/utils/TravelTimes';
 import { iconUrls, chimeUrls } from '@/utils/Urls';
 import L from 'leaflet';
@@ -68,11 +68,8 @@ class EewEvent {
         this.activeEewList = activeEewList
         this.useJst = eqMessage.source.includes('jma')
         this.travelTime = travelTimes.jma2001
-        this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
         this.userLatLng = this.settingsStore.mainSettings.userLatLng.map(l=>Number(l))
         this.isValidUserLatLng = this.settingsStore.mainSettings.userLatLng.every(l=>l !== '')
-        this.userDist = L.latLng(this.hypoLatLng).distanceTo(L.latLng(this.userLatLng)) / 1000
-        this.reachTime = calcReachTime(this.travelTime, false, this.eqMessage.depth, this.userDist)
         this.countdown = -1
         this.flags = {
             firstSound: false,
@@ -182,6 +179,7 @@ class EewEvent {
         this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
         this.userDist = L.latLng(this.hypoLatLng).distanceTo(L.latLng(this.userLatLng)) / 1000
         this.reachTime = calcReachTime(this.travelTime, false, this.eqMessage.depth, this.userDist)
+        this.userCsis = calcCsisLevel(this.eqMessage.magnitude, this.eqMessage.depth, this.userDist)
         this.setMark()
         this.drawWaves()
         clearInterval(this.drawWavesInterval)
@@ -307,14 +305,13 @@ class EewEvent {
     }
 }
 class EqlistEvent {
-    constructor(map, eqMessage){
+    constructor(map, eqMessage, time){
         this.map = map
         this.settingsStore = useSettingsStore()
         this.eqMessage = eqMessage
         this.isActive = false
         this.useJst = eqMessage.source.includes('jma')
-        this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
-        this.isValidHypo = !this.hypoLatLng.every(item=>item == 0)
+        this.update(eqMessage, time)
     }
     update(eqMessage, time){
         Object.assign(this.eqMessage, eqMessage)

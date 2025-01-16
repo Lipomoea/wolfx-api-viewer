@@ -128,13 +128,28 @@
                         </div>
                     </div>
                 </div>
-                <div class="subTitle">地图</div>
+                <div class="subTitle">显示</div>
                 <div class="group">
                     <div class="row">
                         <span class="groupTitle">所在地设置</span>
                         <div class="switchGroup">
                             <div class="switch force-wrap">
-                                <span class="full-width">所在地经纬度（均设置时才生效）：</span>
+                                <span class="full-width">
+                                    <span style="margin-right: 5px;">所在地位置</span>
+                                    <el-popover
+                                        placement="top"
+                                        :width="300"
+                                        trigger="hover"
+                                    >
+                                        <template #reference>
+                                            <question-filled width="1em" height="1em"></question-filled>
+                                        </template>
+                                        <strong>
+                                            <p>需要同时设置经纬度方可生效。</p>
+                                            <p>地震预警事件中更新位置不会立即生效。</p>
+                                        </strong>
+                                    </el-popover>
+                                </span>
                                 <span>纬度</span>
                                 <el-input
                                 class="latLng"
@@ -181,7 +196,22 @@
                         <span class="groupTitle">默认视野设置</span>
                         <div class="switchGroup">
                             <div class="switch force-wrap">
-                                <span class="full-width">自定义视野（均设置时才生效）：</span>
+                                <span class="full-width">
+                                    <span style="margin-right: 5px;">自定义视野</span>
+                                    <el-popover
+                                        placement="top"
+                                        :width="300"
+                                        trigger="hover"
+                                    >
+                                        <template #reference>
+                                            <question-filled width="1em" height="1em"></question-filled>
+                                        </template>
+                                        <strong>
+                                            <p>需要同时设置经纬度方可生效。</p>
+                                            <p>若不设置默认使用所在地经纬度。</p>
+                                        </strong>
+                                    </el-popover>
+                                </span>
                                 <span>纬度</span>
                                 <el-input
                                 class="latLng"
@@ -633,7 +663,7 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
-            <p>v2.0.0-rc.3 优化：CSIS计算公式。</p>
+            <p>v2.0.0-rc.3 优化：CSIS计算公式；优化：震度检出算法；优化：部分代码逻辑。</p>
             <p>v2.0.0-rc.2 优化：震度检出算法；优化：测站回放时时间颜色变为黄色；修复：CSIS>=10时，多震地图染色错误的bug；修复：读取设置数据时的部分预期外行为；修复：部分情况下启动页面时异常触发已过期事件的bug。</p>
             <p>v2.0.0-rc.1 新增：单独开关各数据源的功能；修复：部分情况下“隐藏无数据测站”无效的bug。</p>
             <p>v2.0.0-pre.24 新增：强制估算中国地震烈度功能；新增：防闪烁模式；优化：初始地图视野；优化：限制了地图缩放等级范围；修复：测站部分震度配色偏差问题；修复：适配紧急地震速报取消报。</p>
