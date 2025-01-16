@@ -97,10 +97,11 @@ const update = ()=>{
                 const nearbyStations = adjStationIds[station.id].map(id=>stations[id]).filter(station=>station.level > -1)
                 const possibleNearbyStations = nearbyStations.filter(station=>station.activity > 0)
                 const nearbyActiveNum = possibleNearbyStations.length
-                const numThres = nearbyStations.length <= 3 ? 1 : nearbyStations.length <= 10 ? 2 : 3
+                const numThres = nearbyStations.length <= 2 ? 1 : nearbyStations.length <= 10 ? 2 : 3
                 if(nearbyActiveNum >= numThres) {
                     const activityThres = 10 + 0.5 * nearbyStations.length
-                    const nearbyActivity = possibleNearbyStations.reduce((sum, station)=>sum + station.activity, 0) + nearbyActiveNum
+                    const numActivity = nearbyActiveNum * (nearbyActiveNum - 1) / 2
+                    const nearbyActivity = possibleNearbyStations.reduce((sum, station)=>sum + station.activity, 0) + numActivity
                     if(nearbyActivity >= activityThres){
                         chainActivate(station, activeStations, checkedStations)
                     }
