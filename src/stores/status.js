@@ -163,25 +163,25 @@ export const useStatusStore = defineStore('statusStore', {
                         break
                     }
                     case 'ceaEew':{
-                        eqMessage.id = data.Data.eventId
+                        eqMessage.id = data.eventId
                         eqMessage.isEew = true
-                        eqMessage.reportNum = data.Data.updates
-                        eqMessage.reportNumText = '第' + data.Data.updates + '报'
-                        eqMessage.reportTime = data.Data.updateTime
+                        eqMessage.reportNum = data.updates
+                        eqMessage.reportNumText = '第' + data.updates + '报'
+                        eqMessage.reportTime = data.updateTime
                         eqMessage.titleText = '中国地震局地震预警'
-                        eqMessage.hypocenter = data.Data.placeName
-                        eqMessage.hypocenterText = '震源: ' + data.Data.placeName
-                        eqMessage.lat = data.Data.latitude
-                        eqMessage.lng = data.Data.longitude
-                        eqMessage.depth = data.Data.depth === null ? 10 : data.Data.depth
-                        eqMessage.depthText = '深度: ' + (data.Data.depth === null ? '不明' : data.Data.depth + 'km')
-                        eqMessage.originTime = data.Data.shockTime
+                        eqMessage.hypocenter = data.placeName
+                        eqMessage.hypocenterText = '震源: ' + data.placeName
+                        eqMessage.lat = data.latitude
+                        eqMessage.lng = data.longitude
+                        eqMessage.depth = data.depth === null ? 10 : data.depth
+                        eqMessage.depthText = '深度: ' + (data.depth === null ? '不明' : data.depth + 'km')
+                        eqMessage.originTime = data.shockTime
                         eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
-                        eqMessage.magnitude = Number(data.Data.magnitude)
+                        eqMessage.magnitude = Number(data.magnitude)
                         eqMessage.magnitudeText = '震级: ' + eqMessage.magnitude.toFixed(1)
-                        eqMessage.maxIntensity = data.Data.epiIntensity.toFixed(0)
-                        eqMessage.maxIntensityText = '估计最大烈度: ' + data.Data.epiIntensity.toFixed(0)
-                        eqMessage.isWarn = data.Data.epiIntensity >= 6.5
+                        eqMessage.maxIntensity = data.epiIntensity.toFixed(0)
+                        eqMessage.maxIntensityText = '估计最大烈度: ' + data.epiIntensity.toFixed(0)
+                        eqMessage.isWarn = data.epiIntensity >= 6.5
                         break
                     }
                     case 'iclEew':{
@@ -362,7 +362,7 @@ export const useStatusStore = defineStore('statusStore', {
                         }
                         else if(source == 'ceaEew' && 'ceaEew_http' in eqUrls) {
                             const data = await Http.get(eqUrls[source + '_http'] + `&time=${Date.now()}`)
-                            if(data && Object.keys(data).length > 0) this.setEqMessage(source, data)
+                            if(data && data.Data) this.setEqMessage(source, data.Data)
                         }
                     })
                     await Promise.all(promises)
