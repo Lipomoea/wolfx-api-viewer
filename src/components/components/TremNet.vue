@@ -50,7 +50,7 @@ const activeStations = computed(()=>{
 const grids = computed(()=>{
     let grids = {}
     Object.keys(activeStations.value).forEach(id=>{
-        const latLng = stations[id].latLng.map(l=>Math.ceil(l + 0.05) - 0.05)
+        const latLng = stations[id].latLng.map(l=>Math.ceil(l + 0.055) - 0.055)
         const level = stations[id].level
         const key = JSON.stringify(latLng)
         if(key in grids){

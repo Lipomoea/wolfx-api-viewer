@@ -53,7 +53,7 @@ const activeStations = computed(()=>{
 const grids = computed(()=>{
     let grids = {}
     activeStations.value.forEach(id=>{
-        const latLng = stationList.value[id].map(l=>Math.ceil(l + 0.05) - 0.05)
+        const latLng = stationList.value[id].map(l=>Math.ceil(l + 0.055) - 0.055)
         const level = stations[id].level
         const key = JSON.stringify(latLng)
         if(key in grids){
@@ -100,7 +100,7 @@ const update = ()=>{
                 const numThres = nearbyStations.length <= 2 ? 1 : nearbyStations.length <= 10 ? 2 : 3
                 if(nearbyActiveNum >= numThres) {
                     const activityThres = 10 + 0.5 * nearbyStations.length
-                    const numActivity = nearbyActiveNum * (nearbyActiveNum - 1) / 2
+                    const numActivity = Math.max(nearbyActiveNum * 2 - 3, 0)
                     const nearbyActivity = possibleNearbyStations.reduce((sum, station)=>sum + station.activity, 0) + numActivity
                     if(nearbyActivity >= activityThres){
                         chainActivate(station, activeStations, checkedStations)
