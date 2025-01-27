@@ -274,7 +274,7 @@ class EewEvent {
             }
         }
         if(icon){
-            sendMyNotification(`${eqMessage.titleText} #${eqMessage.reportNum}`, 
+            sendMyNotification(`${eqMessage.titleText} ${eqMessage.reportNumText}`, 
                 `${eqMessage.hypocenterText}\n${eqMessage.depthText}\n${eqMessage.magnitudeText}\n${eqMessage.maxIntensityText}`, 
                 icon, 
                 settingsStore.mainSettings.muteNotification)
