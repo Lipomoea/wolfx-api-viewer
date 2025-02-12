@@ -280,6 +280,19 @@
                                 <span>TREM-Net （震度）</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.trem"></el-switch>
                             </div>
+                            <div class="switch" style="width: 100px;" v-show="settingsStore.mainSettings.displaySeisNet.trem">
+                                <span>API: </span>
+                                <el-select 
+                                v-model="settingsStore.mainSettings.displaySeisNet.tremApi"
+                                size="small">
+                                    <el-option label="api-1" value="api-1"></el-option>
+                                    <el-option label="api-2" value="api-2"></el-option>
+                                    <el-option label="lb-1" value="lb-1"></el-option>
+                                    <el-option label="lb-2" value="lb-2"></el-option>
+                                    <el-option label="lb-3" value="lb-3"></el-option>
+                                    <el-option label="lb-4" value="lb-4"></el-option>
+                                </el-select>
+                            </div>
                         </div>
                     </div>
                     <div class="row">

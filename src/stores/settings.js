@@ -51,6 +51,7 @@ export const useSettingsStore = defineStore('settingsStore', {
                 delay: 0,
                 nied: true,
                 trem: false,
+                tremApi: 'api-2'
             },
         },
         advancedSettings: {

@@ -10,7 +10,7 @@ import Http from '@/classes/Http';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { seisNetUrls, chimeUrls, iconUrls } from '@/utils/Urls';
-import { getShindoFromChar, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromInstShindo, stampToTime } from '@/utils/Utils';
+import { getShindoFromChar, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromInstShindo } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { TremStation } from '@/classes/StationClasses';
@@ -234,6 +234,9 @@ watch(currentMaxShindo, (newVal, oldVal)=>{
         focused = false
     }
 })
+watch(() => settingsStore.mainSettings.displaySeisNet.tremApi, newVal => {
+    seisNetUrls.trem.stationData = `https://${newVal}.exptech.dev/api/v2/trem/rts`
+}, { immediate: true })
 onBeforeUnmount(()=>{
     clearInterval(listInterval)
     clearInterval(requestInterval)
