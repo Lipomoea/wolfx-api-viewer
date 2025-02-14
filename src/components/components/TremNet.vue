@@ -10,7 +10,7 @@ import Http from '@/classes/Http';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { seisNetUrls, chimeUrls, iconUrls } from '@/utils/Urls';
-import { getShindoFromChar, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromInstShindo } from '@/utils/Utils';
+import { getShindoFromChar, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromInstShindo, stampToTime } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { TremStation } from '@/classes/StationClasses';
@@ -109,7 +109,7 @@ onMounted(()=>{
         Http.get(seisNetUrls.trem.stationData + (delay.value > 0 ? `/${Math.round(time / 1000)}` : `?time=${time}`)).then(res=>{
             if(res && Object.keys(res).length > 0){
                 stationData = res.station
-                const timeString = new Date(res.time + 8 * 3600 * 1000).toISOString().slice(0, -5)
+                const timeString = stampToTime(res.time, 8)
                 const timeDiff = calcTimeDiff(timeString, 8, tremUpdateTime.value, 8)
                 if(delay.value > 0 && timeDiff < 0 || timeDiff > 0){
                     tremUpdateTime.value = timeString

@@ -166,7 +166,7 @@ onMounted(()=>{
                         })
                     }
                     if(delay.value > maxDelay && timeDiff < 0 || timeDiff > 0){
-                        niedUpdateTime.value = data.realTimeData.dataTime.slice(0, -6)
+                        niedUpdateTime.value = data.realTimeData.dataTime.slice(0, -6).replace('T', ' ')
                         update()
                     }
                 }
