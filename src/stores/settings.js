@@ -50,14 +50,16 @@ export const useSettingsStore = defineStore('settingsStore', {
                 hideNoData: false,
                 delay: 0,
                 nied: true,
+                displayNiedShindo: false,
                 trem: false,
                 tremApi: 'api-2'
             },
-            hideDrawer: false
+            hideDrawer: false,
+            cinemaMode: false,
+            eqlistsAsDefault: false
         },
         advancedSettings: {
             displayNiedShindoSwitch: false,
-            displayNiedShindo: false,
             enableCeaEew: false,
             enableIclEew: false,
             enableTremFunctions: false,

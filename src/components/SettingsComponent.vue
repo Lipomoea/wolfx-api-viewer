@@ -272,7 +272,7 @@
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.nied"></el-switch>
                             </div>
                             <div class="switch" v-if="settingsStore.advancedSettings.displayNiedShindoSwitch">
-                                <el-checkbox v-model="settingsStore.advancedSettings.displayNiedShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.nied">解析震度阶</el-checkbox>
+                                <el-checkbox v-model="settingsStore.mainSettings.displaySeisNet.displayNiedShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.nied">解析震度阶</el-checkbox>
                             </div>
                         </div>
                         <div class="switch-group full-width" v-if="settingsStore.advancedSettings.enableTremFunctions">
@@ -303,10 +303,37 @@
                                 <el-switch v-model="settingsStore.mainSettings.displayCnFault"></el-switch>
                             </div>
                         </div>
-                        <div class="switch-group">
+                        <div class="switch-group full-width">
                             <div class="switch">
                                 <span>预警/信息页不展开侧边栏</span>
                                 <el-switch v-model="settingsStore.mainSettings.hideDrawer"></el-switch>
+                            </div>
+                        </div>
+                        <div class="switch-group">
+                            <div class="switch">
+                                <span>放映模式</span>
+                                <el-popover
+                                    placement="top"
+                                    :width="300"
+                                    trigger="hover"
+                                >
+                                    <template #reference>
+                                        <question-filled width="1em" height="1em"></question-filled>
+                                    </template>
+                                    <p>收到新的信息时自动切换到对应的菜单页面。适合在不频繁操作此应用时使用。</p>
+                                    <p>推荐同步启用“预警/信息页不展开侧边栏”。</p>
+                                    <strong>
+                                        <p>此模式下，收信时您的操作可能被打断。</p>
+                                        <p>需重新加载页面后生效。</p>
+                                    </strong>
+                                </el-popover>
+                                <el-switch v-model="settingsStore.mainSettings.cinemaMode"
+                                @change="needReload = true"></el-switch>
+                            </div>
+                            <div class="switch">
+                                <el-checkbox v-model="settingsStore.mainSettings.eqlistsAsDefault"
+                                :disabled="!settingsStore.mainSettings.cinemaMode"
+                                @change="needReload = true">将地震信息页面设为默认</el-checkbox>
                             </div>
                         </div>
                     </div>
@@ -565,7 +592,7 @@ const handleAdvance = (val)=>{
             break
         }
         case 'hideNiedShindo': {
-            settingsStore.advancedSettings.displayNiedShindo = false
+            settingsStore.mainSettings.displaySeisNet.displayNiedShindo = false
             settingsStore.advancedSettings.displayNiedShindoSwitch = false
             break
         }
@@ -682,7 +709,7 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
-            <p>v2.0.0-rc.4 新增：预警/信息页不展开侧边栏功能；优化：调整自动返回全屏状态的时间；优化：部分代码逻辑。</p>
+            <p>v2.0.0-rc.4 新增：预警/信息页不展开侧边栏功能；新增：放映模式；优化：调整自动返回默认视野状态的时间；优化：部分代码逻辑。</p>
             <p>v2.0.0-rc.3 优化：CSIS计算公式；优化：震度检出算法；优化：部分代码逻辑。</p>
             <p>v2.0.0-rc.2 优化：震度检出算法；优化：测站回放时时间颜色变为黄色；修复：CSIS>=10时，多震地图染色错误的bug；修复：读取设置数据时的部分预期外行为；修复：部分情况下启动页面时异常触发已过期事件的bug。</p>
             <p>v2.0.0-rc.1 新增：单独开关各数据源的功能；修复：部分情况下“隐藏无数据测站”无效的bug。</p>

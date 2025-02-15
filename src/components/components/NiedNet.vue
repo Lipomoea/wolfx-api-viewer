@@ -245,7 +245,7 @@ watch(()=>statusStore.map, newVal=>{
                 statusStore.isActive.niedNet = false
             }
         }, { immediate: true })
-        unwatchDisplayShindo = watch(()=>settingsStore.advancedSettings.displayNiedShindo, ()=>{
+        unwatchDisplayShindo = watch(()=>settingsStore.mainSettings.displaySeisNet.displayNiedShindo, ()=>{
             renderAll()
         })
         unwatchHideNoData = watch(()=>settingsStore.mainSettings.displaySeisNet.hideNoData, ()=>{

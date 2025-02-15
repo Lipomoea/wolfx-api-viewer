@@ -73,7 +73,7 @@ class NiedStation {
     render(){
         this.setColorRadius()
         if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
-        if(settingsStore.advancedSettings.displayNiedShindo && this.level >= 6 && this.map.getZoom() >= 4){
+        if(settingsStore.mainSettings.displaySeisNet.displayNiedShindo && this.level >= 6 && this.map.getZoom() >= 4){
             const shindoIcon = L.icon({
                 iconUrl: shindoIconUrls[this.shindo],
                 iconSize: [this.radius * 2, this.radius * 2],
@@ -107,7 +107,7 @@ class NiedStation {
             this.color = colorBand[this.level]
         }
         const zoom = this.map.getZoom()
-        if(settingsStore.advancedSettings.displayNiedShindo && this.level >= 6 && zoom >= 4){
+        if(settingsStore.mainSettings.displaySeisNet.displayNiedShindo && this.level >= 6 && zoom >= 4){
             this.radius = 8 * 1.5 ** (Math.min(Math.max(zoom, 6), 10) / 2 - 3)
         }
         else{

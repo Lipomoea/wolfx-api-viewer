@@ -66,7 +66,7 @@
                         </div>
                     </div>
                     <div class="event">
-                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.nied && settingsStore.advancedSettings.displayNiedShindo">
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.nied && settingsStore.mainSettings.displaySeisNet.displayNiedShindo">
                             <div class="shindo-bar gray">NIED实时</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(niedMaxShindo, true)">
@@ -77,7 +77,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.nied && settingsStore.advancedSettings.displayNiedShindo && niedPeriodMaxShindo != '?'">
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.nied && settingsStore.mainSettings.displaySeisNet.displayNiedShindo && niedPeriodMaxShindo != '?'">
                             <div class="shindo-bar gray">NIED区间</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(niedPeriodMaxShindo, true)">
@@ -225,7 +225,8 @@ let userMarker
 const isValidViewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.every(item=>item !== ''))
 const viewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.map(val=>Number(val)))
 const zoomLevel = computed(()=>settingsStore.mainSettings.defaultZoom)
-const menuId = ref('main')
+let defaultMenuId = 'main'
+const menuId = ref(defaultMenuId)
 let autoZoomTimer
 let firstMsg = false
 let isEewBlink = true
@@ -493,6 +494,26 @@ const loadMaps = async () => {
                 })
             }, { deep: true, immediate: true })
         }
+        if(settingsStore.mainSettings.cinemaMode) {
+            watch(() => statusStore.isActive, newVal => {
+                const keys = Object.keys(newVal)
+                const isEewOrNetActive = keys.filter(key => key.includes('Eew') || key.includes('Net')).some(key => newVal[key])
+                const isEqlistActive = keys.filter(key => key.includes('Eqlist')).some(key => newVal[key])
+                if(isEewOrNetActive && isEqlistActive) {
+                    defaultMenuId = 'main'
+                }
+                else if(isEewOrNetActive) {
+                    defaultMenuId = 'eews'
+                }
+                else if(isEqlistActive) {
+                    defaultMenuId = 'eqlists'
+                }
+                else {
+                    defaultMenuId = settingsStore.mainSettings.eqlistsAsDefault ? 'eqlists' : 'main'
+                }
+                if(menuId.value != 'settings') menuId.value = defaultMenuId
+            }, { deep: true, immediate: true })
+        }
     }
     else{
         setTimeout(() => {
@@ -611,21 +632,21 @@ const onEachFeature = (name)=>(feature, layer)=>{
         direction: 'auto'
     })
 }
-let returnMainTimer
-const resetMainTimer = ()=>{
-    clearTimeout(returnMainTimer)
-    returnMainTimer = setTimeout(() => {
-        handleMenu('main')
+let defaultMenuTimer
+const resetDefaultMenuTimer = ()=>{
+    clearTimeout(defaultMenuTimer)
+    defaultMenuTimer = setTimeout(() => {
+        handleMenu(defaultMenuId)
     }, 60 * 1000);
 }
 watch(menuId, (newVal)=>{
-    document.removeEventListener('mousemove', resetMainTimer)
-    if(newVal == 'main'){
-        clearTimeout(returnMainTimer)
+    document.removeEventListener('mousemove', resetDefaultMenuTimer)
+    if(newVal == defaultMenuId){
+        clearTimeout(defaultMenuTimer)
     }
     else{
-        resetMainTimer()
-        document.addEventListener('mousemove', resetMainTimer)
+        resetDefaultMenuTimer()
+        document.addEventListener('mousemove', resetDefaultMenuTimer)
     }
     if(newVal == 'eews'){
         eqlistMarkerPane.style.display = 'none'
@@ -688,8 +709,8 @@ onBeforeUnmount(()=>{
     clearInterval(mainInterval)
     clearInterval(autoZoomInterval)
     clearTimeout(autoZoomTimer)
-    clearTimeout(returnMainTimer)
-    document.removeEventListener('mousemove', resetMainTimer)
+    clearTimeout(defaultMenuTimer)
+    document.removeEventListener('mousemove', resetDefaultMenuTimer)
     activeEewList.length = 0
     eqlistList.length = 0
 })
