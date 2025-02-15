@@ -390,6 +390,31 @@ onMounted(()=>{
     watch(()=>settingsStore.mainSettings.displayCnFault, newVal=>{
         cnFaultBasePane.style.display = newVal?'block':'none'
     }, { immediate: true })
+    if(settingsStore.mainSettings.cinemaMode) {
+        watch(() => statusStore.isActive, newVal => {
+            const keys = Object.keys(newVal)
+            const isEewOrNetActive = keys.filter(key => key.includes('Eew') || key.includes('Net')).some(key => newVal[key])
+            const isEqlistActive = keys.filter(key => key.includes('Eqlist')).some(key => newVal[key])
+            if(isEewOrNetActive && isEqlistActive) {
+                defaultMenuId = 'main'
+            }
+            else if(isEewOrNetActive) {
+                defaultMenuId = 'eews'
+            }
+            else if(isEqlistActive) {
+                defaultMenuId = 'eqlists'
+            }
+            else {
+                defaultMenuId = settingsStore.mainSettings.eqlistsAsDefault ? 'eqlists' : 'main'
+            }
+            if(menuId.value != 'settings') {
+                menuId.value = defaultMenuId
+                setTimeout(() => {
+                    map.invalidateSize()
+                }, 0);
+            }
+        }, { deep: true, immediate: true })
+    }
     intervalEvents()
     mainInterval = setInterval(() => {
         blinkStatus = !blinkStatus
@@ -492,26 +517,6 @@ const loadMaps = async () => {
                         }
                     }
                 })
-            }, { deep: true, immediate: true })
-        }
-        if(settingsStore.mainSettings.cinemaMode) {
-            watch(() => statusStore.isActive, newVal => {
-                const keys = Object.keys(newVal)
-                const isEewOrNetActive = keys.filter(key => key.includes('Eew') || key.includes('Net')).some(key => newVal[key])
-                const isEqlistActive = keys.filter(key => key.includes('Eqlist')).some(key => newVal[key])
-                if(isEewOrNetActive && isEqlistActive) {
-                    defaultMenuId = 'main'
-                }
-                else if(isEewOrNetActive) {
-                    defaultMenuId = 'eews'
-                }
-                else if(isEqlistActive) {
-                    defaultMenuId = 'eqlists'
-                }
-                else {
-                    defaultMenuId = settingsStore.mainSettings.eqlistsAsDefault ? 'eqlists' : 'main'
-                }
-                if(menuId.value != 'settings') menuId.value = defaultMenuId
             }, { deep: true, immediate: true })
         }
     }
