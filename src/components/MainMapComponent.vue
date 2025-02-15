@@ -292,6 +292,7 @@ const getBarClass = (eqMessage)=>{
     }
     return 'gray'
 }
+let mainInterval
 onMounted(()=>{
     map = L.map('mainMap', {
         attributionControl: false,
@@ -388,7 +389,7 @@ onMounted(()=>{
         cnFaultBasePane.style.display = newVal?'block':'none'
     }, { immediate: true })
     intervalEvents()
-    setInterval(() => {
+    mainInterval = setInterval(() => {
         blinkStatus = !blinkStatus
         intervalEvents()
     }, 500);
@@ -683,6 +684,7 @@ const cnEewInfoList = computed(()=>{
     return cnEewInfoList
 })
 onBeforeUnmount(()=>{
+    clearInterval(mainInterval)
     clearInterval(autoZoomInterval)
     clearTimeout(autoZoomTimer)
     clearTimeout(returnMainTimer)
