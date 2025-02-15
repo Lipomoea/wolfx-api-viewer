@@ -53,6 +53,7 @@ export const useSettingsStore = defineStore('settingsStore', {
                 trem: false,
                 tremApi: 'api-2'
             },
+            hideDrawer: false
         },
         advancedSettings: {
             displayNiedShindoSwitch: false,

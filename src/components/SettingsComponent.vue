@@ -3,7 +3,7 @@
         <div class="container">
             <div class="title">设置</div>
             <div class="settings">
-                <div class="subTitle">
+                <div class="sub-title">
                     数据源&nbsp;
                     <el-popover
                         placement="top"
@@ -38,11 +38,11 @@
                     <div class="full-width">中国地震台网测定</div>
                     <el-switch v-model="settingsStore.mainSettings.source.cencEqlist"></el-switch>
                 </div>
-                <div class="subTitle">行为</div>
+                <div class="sub-title">行为</div>
                 <div class="group">
                     <div class="row">
-                        <span class="full-width">收到地震预警（警报）时：</span>
-                        <div class="switchGroup">
+                        <span class="full-width group-title">收到地震预警（警报）时</span>
+                        <div class="switch-group">
                             <div class="switch" v-if="showNotifButton">
                                 <span>发送通知</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEewWarn.notification" :disabled="settingsStore.mainSettings.onEew.notification"></el-switch>
@@ -58,8 +58,8 @@
                         </div>
                     </div>
                     <div class="row">
-                        <span class="full-width">收到地震预警（全部）时：</span>
-                        <div class="switchGroup">
+                        <span class="full-width group-title">收到地震预警（全部）时</span>
+                        <div class="switch-group">
                             <div class="switch" v-if="showNotifButton">
                                 <span>发送通知</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEew.notification"></el-switch>
@@ -75,8 +75,8 @@
                         </div>
                     </div>
                     <div class="row">
-                        <span class="full-width">收到地震信息时：</span>
-                        <div class="switchGroup">
+                        <span class="full-width group-title">收到地震信息时</span>
+                        <div class="switch-group">
                             <div class="switch" v-if="showNotifButton">
                                 <span>发送通知</span>
                                 <el-switch v-model="settingsStore.mainSettings.onReport.notification"></el-switch>
@@ -92,8 +92,8 @@
                         </div>
                     </div>
                     <div class="row">
-                        <span class="full-width">地震监测网检测到摇晃时：</span>
-                        <div class="switchGroup">
+                        <span class="full-width group-title">地震监测网检测到摇晃时</span>
+                        <div class="switch-group">
                             <div class="switch" v-if="showNotifButton">
                                 <span>发送通知</span>
                                 <el-switch v-model="settingsStore.mainSettings.onShake.notification"></el-switch>
@@ -109,10 +109,10 @@
                         </div>
                     </div>
                 </div>
-                <div class="subTitle">音效</div>
+                <div class="sub-title">音效</div>
                 <div class="group">
                     <div class="row">
-                        <div class="switchGroup">
+                        <div class="switch-group">
                             <div class="switch">
                                 <span>关闭默认通知音</span>
                                 <el-switch v-model="settingsStore.mainSettings.muteNotification"></el-switch>
@@ -128,11 +128,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="subTitle">显示</div>
+                <div class="sub-title">显示</div>
                 <div class="group">
                     <div class="row">
-                        <span class="groupTitle">所在地设置</span>
-                        <div class="switchGroup">
+                        <span class="group-title">所在地设置</span>
+                        <div class="switch-group">
                             <div class="switch force-wrap">
                                 <span class="full-width">
                                     <span style="margin-right: 5px;">所在地位置</span>
@@ -152,14 +152,14 @@
                                 </span>
                                 <span>纬度</span>
                                 <el-input
-                                class="latLng"
+                                class="lat-lng"
                                 v-model="settingsStore.mainSettings.userLatLng[0]"
                                 size="small"
                                 maxlength="10"
                                 @change="setLat('userLatLng')"></el-input>
                                 <span style="margin-left: 8px;">经度</span>
                                 <el-input
-                                class="latLng"
+                                class="lat-lng"
                                 v-model="settingsStore.mainSettings.userLatLng[1]"
                                 size="small"
                                 maxlength="10"
@@ -193,8 +193,8 @@
                         </div>
                     </div>
                     <div class="row">
-                        <span class="groupTitle">默认视野设置</span>
-                        <div class="switchGroup">
+                        <span class="group-title">默认视野设置</span>
+                        <div class="switch-group">
                             <div class="switch force-wrap">
                                 <span class="full-width">
                                     <span style="margin-right: 5px;">自定义视野</span>
@@ -214,14 +214,14 @@
                                 </span>
                                 <span>纬度</span>
                                 <el-input
-                                class="latLng"
+                                class="lat-lng"
                                 v-model="settingsStore.mainSettings.viewLatLng[0]"
                                 size="small"
                                 maxlength="10"
                                 @change="setLat('viewLatLng')"></el-input>
                                 <span style="margin-left: 8px;">经度</span>
                                 <el-input
-                                class="latLng"
+                                class="lat-lng"
                                 v-model="settingsStore.mainSettings.viewLatLng[1]"
                                 size="small"
                                 maxlength="10"
@@ -246,8 +246,8 @@
                         </div>
                     </div>
                     <div class="row">
-                        <span class="groupTitle">地震监测网设置</span>
-                        <div class="switchGroup">
+                        <span class="group-title">地震监测网设置</span>
+                        <div class="switch-group">
                             <div class="switch">
                                 <span>隐藏无数据测站</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.hideNoData"></el-switch>
@@ -266,7 +266,7 @@
                                 :disabled="settingsStore.mainSettings.displaySeisNet.delay == 0">还原</el-button>
                             </div>
                         </div>
-                        <div class="switchGroup full-width">
+                        <div class="switch-group full-width">
                             <div class="switch">
                                 <span>強震モニタ（震度）</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.nied"></el-switch>
@@ -275,7 +275,7 @@
                                 <el-checkbox v-model="settingsStore.advancedSettings.displayNiedShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.nied">解析震度阶</el-checkbox>
                             </div>
                         </div>
-                        <div class="switchGroup full-width" v-if="settingsStore.advancedSettings.enableTremFunctions">
+                        <div class="switch-group full-width" v-if="settingsStore.advancedSettings.enableTremFunctions">
                             <div class="switch">
                                 <span>TREM-Net （震度）</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.trem"></el-switch>
@@ -296,19 +296,25 @@
                         </div>
                     </div>
                     <div class="row">
-                        <span class="groupTitle">其他</span>
-                        <div class="switchGroup">
+                        <span class="group-title">其他</span>
+                        <div class="switch-group full-width">
                             <div class="switch">
                                 <span>显示中国断层</span>
                                 <el-switch v-model="settingsStore.mainSettings.displayCnFault"></el-switch>
                             </div>
                         </div>
+                        <div class="switch-group">
+                            <div class="switch">
+                                <span>预警/信息页不展开侧边栏</span>
+                                <el-switch v-model="settingsStore.mainSettings.hideDrawer"></el-switch>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="subTitle">高级</div>
+                <div class="sub-title">高级</div>
                 <div class="group">
                     <div class="row">
-                        <div class="switchGroup">
+                        <div class="switch-group">
                             <div class="switch">
                                 <span>强制估算中国地震烈度（实验性）</span>
                                 <el-popover
@@ -337,7 +343,7 @@
                 </div>
                 <div class="group">
                     <div class="row">
-                        <div class="switchGroup">
+                        <div class="switch-group">
                             <div class="switch">
                                 <span>防闪烁模式</span>
                                 <el-popover
@@ -361,7 +367,7 @@
                 </div>
                 <div class="group">
                     <div class="row">
-                        <div class="switchGroup">
+                        <div class="switch-group">
                             <div class="switch">
                                 <span>输入指令</span>
                                 <el-input
@@ -374,10 +380,10 @@
                         </div>
                     </div>
                 </div>
-                <div class="subTitle">关于</div>
+                <div class="sub-title">关于</div>
                 <div class="group">
                     <div class="row">
-                        <div class="switchGroup">
+                        <div class="switch-group">
                             <div class="switch">
                                 <el-button
                                 style="margin-top: 5px;"
@@ -386,7 +392,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="subTitle" v-if="needReload">需要重载</div>
+                <div class="sub-title" v-if="needReload">需要重载</div>
                 <div class="group">
                     <el-button 
                     type="primary"
@@ -676,16 +682,10 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
+            <p>v2.0.0-rc.4 新增：预警/信息页不展开侧边栏功能；优化：调整自动返回全屏状态的时间；优化：部分代码逻辑。</p>
             <p>v2.0.0-rc.3 优化：CSIS计算公式；优化：震度检出算法；优化：部分代码逻辑。</p>
             <p>v2.0.0-rc.2 优化：震度检出算法；优化：测站回放时时间颜色变为黄色；修复：CSIS>=10时，多震地图染色错误的bug；修复：读取设置数据时的部分预期外行为；修复：部分情况下启动页面时异常触发已过期事件的bug。</p>
             <p>v2.0.0-rc.1 新增：单独开关各数据源的功能；修复：部分情况下“隐藏无数据测站”无效的bug。</p>
-            <p>v2.0.0-pre.24 新增：强制估算中国地震烈度功能；新增：防闪烁模式；优化：初始地图视野；优化：限制了地图缩放等级范围；修复：测站部分震度配色偏差问题；修复：适配紧急地震速报取消报。</p>
-            <p>v2.0.0-pre.23 优化：重写震度检出算法，极大幅度降低了误检知的概率。</p>
-            <p>v2.0.0-pre.22 新增：地震波倒计时提示音；优化：多重地震震度检出；优化：降低震度误检出概率；优化：调整部分UI质感；优化：代码逻辑；修复：异色地震波叠加闪烁的问题。</p>
-            <p>v2.0.0-pre.21 新增：EEW显示地震波倒计时；新增：紧急地震速报本地预想震度功能；新增：EEW地图图例；优化：新增烈度配色。</p>
-            <p>v2.0.0-pre.20 新增：首次推出Windows桌面版应用，新增桌面应用弹窗功能。</p>
-            <p>v2.0.0-(pre.1-pre.19) 变更：升级Vue3版本，UI重排，WebSocket使用all_eew接口，使用新的中国和日本地图，暂时移除地震波倒计时功能；新增：同源多个EEW同时展示，适配假定震源，JMA紧急地震速报区域预想震度绘制，中国断层显示，NIED強震モニタ测站显示、震度检出功能，设置默认视野功能，鼠标悬浮提示区域名称，NIED测站回放功能。</p>
-            <p>v1.0.0-1.1.2 新增：地图功能、自动打开地图功能、JMA地震情报列表查看详细、设置用户所在地、IP定位、地震波抵达倒计时等功能；优化：增加自动对时。</p>
         </div>
         <div class="title">使用方法</div>
         <div class="about">
@@ -720,7 +720,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        'wolfx-api-viewer v2.0.0-rc.3',
+        'wolfx-api-viewer v2.0.0-rc.4',
         {
             confirmButtonText: 'OK',
             showClose: false,
@@ -751,7 +751,7 @@ const handleAbout = ()=>{
         .settings{
             display: flex;
             flex-direction: column;
-            .subTitle{
+            .sub-title{
                 font-size: 18px;
                 font-weight: 700;
                 display: flex;
@@ -777,11 +777,11 @@ const handleAbout = ()=>{
                 align-items: center;
                 column-gap: 10px;
             }
-            .groupTitle{
+            .group-title{
                 width: 100%;
                 font-weight: 700;
             }
-            .switchGroup{
+            .switch-group{
                 display: flex;
                 flex-wrap: wrap;
                 align-items: center;
@@ -795,7 +795,7 @@ const handleAbout = ()=>{
             .el-switch{
                 height: 24px;
             }
-            .latLng{
+            .lat-lng{
                 width: 70px;
             }
         }

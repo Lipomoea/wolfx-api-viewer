@@ -170,7 +170,7 @@
                     </el-menu-item>
                 </el-menu>
             </div>
-            <div class="drawer" v-show="menuId != 'main'">
+            <div class="drawer" v-show="(menuId == 'eews' || menuId == 'eqlists') && !settingsStore.mainSettings.hideDrawer || menuId == 'settings'">
                 <EewComponent v-show="menuId == 'eews'"></EewComponent>
                 <SeisNetComponent></SeisNetComponent>
                 <EqlistComponent v-show="menuId == 'eqlists'"></EqlistComponent>
@@ -183,7 +183,7 @@
 <script setup>
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, toRaw, provide } from 'vue';
+import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, provide } from 'vue';
 import '@/assets/background.css'
 import { HomeFilled, FullScreen, WarnTriangleFilled, InfoFilled, Setting } from '@element-plus/icons-vue';
 import { useStatusStore } from '@/stores/status';
@@ -235,13 +235,14 @@ const handleManual = ()=>{
     clearTimeout(autoZoomTimer)
     autoZoomTimer = setTimeout(() => {
         handleHome()
-    }, 120 * 1000);
+    }, 60 * 1000);
 }
 const handleHome = ()=>{
     isAutoZoom.value = true
     setView()
 }
 const handleMenu = (index)=>{
+    if(menuId.value == index && isAutoZoom.value) settingsStore.mainSettings.hideDrawer = !settingsStore.mainSettings.hideDrawer
     menuId.value = index
     setTimeout(() => {
         map.invalidateSize()
