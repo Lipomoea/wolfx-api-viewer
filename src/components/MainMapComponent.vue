@@ -242,7 +242,7 @@ const handleHome = ()=>{
     setView()
 }
 const handleMenu = (index)=>{
-    if(menuId.value == index && isAutoZoom.value) settingsStore.mainSettings.hideDrawer = !settingsStore.mainSettings.hideDrawer
+    if(menuId.value == index && (index == 'eews' || index == 'eqlists') && isAutoZoom.value) settingsStore.mainSettings.hideDrawer = !settingsStore.mainSettings.hideDrawer
     menuId.value = index
     setTimeout(() => {
         map.invalidateSize()
