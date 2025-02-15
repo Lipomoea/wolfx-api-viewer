@@ -411,6 +411,7 @@ onMounted(()=>{
                 menuId.value = defaultMenuId
                 setTimeout(() => {
                     map.invalidateSize()
+                    if(isAutoZoom.value) setView()
                 }, 0);
             }
         }, { deep: true, immediate: true })
