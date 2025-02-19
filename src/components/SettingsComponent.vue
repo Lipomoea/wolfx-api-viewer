@@ -709,6 +709,7 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
+            <p>v2.0.0-rc.4.1 优化：降低震度检出的误检知概率；修复：放映模式下的部分bug。</p>
             <p>v2.0.0-rc.4 新增：预警/信息页不展开侧边栏功能；新增：放映模式；优化：调整自动返回默认视野状态的时间；优化：部分代码逻辑。</p>
             <p>v2.0.0-rc.3 优化：CSIS计算公式；优化：震度检出算法；优化：部分代码逻辑。</p>
             <p>v2.0.0-rc.2 优化：震度检出算法；优化：测站回放时时间颜色变为黄色；修复：CSIS>=10时，多震地图染色错误的bug；修复：读取设置数据时的部分预期外行为；修复：部分情况下启动页面时异常触发已过期事件的bug。</p>
@@ -747,7 +748,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        'wolfx-api-viewer v2.0.0-rc.4',
+        'wolfx-api-viewer v2.0.0-rc.4.1',
         {
             confirmButtonText: 'OK',
             showClose: false,
