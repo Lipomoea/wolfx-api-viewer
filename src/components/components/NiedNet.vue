@@ -103,7 +103,6 @@ const update = ()=>{
                     const numActivity = Math.max(nearbyActiveNum * 2 - 3, 0)
                     const nearbyActivity = possibleNearbyStations.reduce((sum, station)=>sum + station.activity, 0) + numActivity
                     if(nearbyActivity >= activityThres){
-                        console.log(numThres, nearbyActiveNum, activityThres, possibleNearbyStations.map(s=>s.activity));
                         chainActivate(station, activeStations, checkedStations)
                     }
                 }
