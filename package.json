@@ -20,7 +20,7 @@
     "lodash": "^4.17.21",
     "papaparse": "^5.4.1",
     "pinia": "^2.1.7",
-    "vue": "^3.4.38",
+    "vue": "^3.5.13",
     "vue-router": "^4.3.0"
   },
   "devDependencies": {

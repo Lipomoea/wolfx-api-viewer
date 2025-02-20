@@ -79,7 +79,6 @@ class EewEvent {
             lastSecondsCount: 11
         }
         this.maxRadius = 2000
-        this.update(eqMessage, time)
     }
     setMark(){
         if(this.hypoMarker && this.map.hasLayer(this.hypoMarker)) this.map.removeLayer(this.hypoMarker)
@@ -311,7 +310,6 @@ class EqlistEvent {
         this.eqMessage = eqMessage
         this.isActive = false
         this.useJst = eqMessage.source.includes('jma')
-        this.update(eqMessage, time)
     }
     update(eqMessage, time){
         Object.assign(this.eqMessage, eqMessage)
