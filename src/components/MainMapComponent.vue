@@ -448,11 +448,11 @@ const loadMaps = async () => {
         loadBaseMap(global, 'globalBasePane')
         loadBaseMap(cn, 'cnBasePane')
         cnEewBaseMap = loadBaseMap(cn_eew, 'cnEewBasePane', {
-            color: '#55555500',
+            color: '#bbbbbb00',
             opacity: 1,
             fillColor: '#55555500',
             fillOpacity: 1,
-            weight: 2,
+            weight: 1,
         })
         loadBaseMap(cn_fault, 'cnFaultBasePane', {
             color: 'red',
@@ -463,11 +463,11 @@ const loadMaps = async () => {
         })
         loadBaseMap(jp, 'jpBasePane')
         jpEewBaseMap = loadBaseMap(jp_eew, 'jpEewBasePane', {
-            color: '#55555500',
+            color: '#bbbbbb00',
             opacity: 1,
             fillColor: '#55555500',
             fillOpacity: 1,
-            weight: 2,
+            weight: 1,
         })
         watch(jmaWarnArea, (newVal)=>{
             const areas = Object.keys(newVal)
@@ -476,7 +476,7 @@ const loadMaps = async () => {
                 if(areas.includes(layerName)){
                     if(layer.options.fillColor != `var(--${newVal[layerName].className})`){
                         layer.setStyle({
-                            color: `var(--${newVal[layerName].className})`,
+                            color: '#bbbbbb',
                             fillColor: `var(--${newVal[layerName].className})`
                         })
                     }
@@ -484,7 +484,7 @@ const loadMaps = async () => {
                 else{
                     if(layer.options.fillColor != '#55555500'){
                         layer.setStyle({
-                            color: '#55555500',
+                            color: '#bbbbbb00',
                             fillColor: '#55555500'
                         })
                     }
@@ -504,7 +504,7 @@ const loadMaps = async () => {
                         const className = setClassName(maxInt, false)
                         if(layer.options.fillColor != `var(--${className})`){
                             layer.setStyle({
-                                color: `var(--${className})`,
+                                color: '#bbbbbb',
                                 fillColor: `var(--${className})`
                             })
                         }
@@ -512,7 +512,7 @@ const loadMaps = async () => {
                     else{
                         if(layer.options.fillColor != '#55555500'){
                             layer.setStyle({
-                                color: '#55555500',
+                                color: '#bbbbbb00',
                                 fillColor: '#55555500'
                             })
                         }

@@ -709,6 +709,7 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
+            <p>v2.0.0-rc.4.2 优化：相同烈度区域之间增加边界线。</p>
             <p>v2.0.0-rc.4.1 变更：更新Vue版本；修复：首个地震信息活跃状态持续时间异常的bug；修复：放映模式下的部分bug。</p>
             <p>v2.0.0-rc.4 新增：预警/信息页不展开侧边栏功能；新增：放映模式；优化：调整自动返回默认视野状态的时间；优化：部分代码逻辑。</p>
             <p>v2.0.0-rc.3 优化：CSIS计算公式；优化：震度检出算法；优化：部分代码逻辑。</p>
@@ -748,7 +749,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        'wolfx-api-viewer v2.0.0-rc.4.1',
+        'wolfx-api-viewer v2.0.0-rc.4.2',
         {
             confirmButtonText: 'OK',
             showClose: false,
