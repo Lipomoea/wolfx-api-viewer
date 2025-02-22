@@ -27,7 +27,7 @@
 import { reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import Http from '@/classes/Http';
 import { eqUrls } from '@/utils/Urls';
-import { setClassName, stampToTime } from '@/utils/Utils';
+import { setClassName, stampToTime, formatChineseTaiwan } from '@/utils/Utils';
 import '@/assets/background.css'
 import '@/assets/opacity.css'
 const props = defineProps({
@@ -62,7 +62,7 @@ const getEqList = ()=>{
                         eqList[i] = {
                             id: data[keys[i]].EventID,
                             originTime: data[keys[i]].time,
-                            hypocenter: data[keys[i]].location,
+                            hypocenter: formatChineseTaiwan(data[keys[i]].location),
                             depth: data[keys[i]].depth + 'km',
                             magnitude: data[keys[i]].magnitude,
                             maxIntensity: data[keys[i]].intensity,

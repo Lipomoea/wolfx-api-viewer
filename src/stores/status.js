@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import Http from '@/classes/Http'
 import WebSocketObj from '@/classes/WebSocket'
 import { eqUrls } from '@/utils/Urls'
-import { setClassName, calcCsisLevel, stampToTime } from '@/utils/Utils'
+import { setClassName, calcCsisLevel, stampToTime, formatChineseTaiwan } from '@/utils/Utils'
 
 const defaultEqMessage = {
     source: '',
@@ -329,8 +329,8 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.reportTime = data.No1.ReportTime
                         eqMessage.title = data.No1.type
                         eqMessage.titleText = '中国地震台网' + (data.No1.type == 'reviewed'?'正式':'自动') + '测定'
-                        eqMessage.hypocenter = data.No1.location
-                        eqMessage.hypocenterText = '震源: ' + data.No1.location
+                        eqMessage.hypocenter = formatChineseTaiwan(data.No1.location)
+                        eqMessage.hypocenterText = '震源: ' + formatChineseTaiwan(data.No1.location)
                         eqMessage.lat = Number(data.No1.latitude)
                         eqMessage.lng = Number(data.No1.longitude)
                         eqMessage.depth = Number(data.No1.depth)

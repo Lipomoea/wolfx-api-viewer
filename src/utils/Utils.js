@@ -258,3 +258,4 @@ export const calcCsis = (m, dep, dis) => {
     return (m * 1.363 + 2.941 - Math.log(hypoDis) * 1.494);
 }
 export const calcCsisLevel = (m, dep, dis) => Math.min(Math.max(calcCsis(m, dep, dis), 0), 12).toFixed(0)
+export const formatChineseTaiwan = (str) => (str.startsWith('台湾') && !(str.includes('市') || str.includes('县')) ? '中国' : '') + str
