@@ -268,7 +268,7 @@ export const calcJmaShindo = (mj, dep, hypoLat, hypoLng, loc) => {
     const r = 6371;
     const theta = surfaceDist / r;
     const a = r - dep;
-    const hypoDist = Math.sqrt(a * a + r * r - 2 * a * r * Math.cos(theta));
+    const hypoDist = Math.sqrt(a * a + r * r - 2 * a * r * Math.cos(theta)) - long;
     const x = Math.max(hypoDist, 3);
     const pgv600 = 10 ** (
         0.58 * mw +
