@@ -36,7 +36,7 @@ onBeforeMount(() => {
   settingsStore.mainSettings.displaySeisNet.delay = 0
   timeStore.startUpdatingTime()
   statusStore.enabledSource = Object.keys(settingsStore.mainSettings.source).filter(source => settingsStore.mainSettings.source[source])
-  statusStore.forceCalcCsis = settingsStore.advancedSettings.forceCalcCsis
+  statusStore.forceCalcInt = settingsStore.advancedSettings.forceCalcInt
   statusStore.startUpdatingEqMessage()
   getGeojson()
   if('Notification' in window){

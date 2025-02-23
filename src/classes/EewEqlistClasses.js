@@ -176,9 +176,16 @@ class EewEvent {
     update(eqMessage, time){
         Object.assign(this.eqMessage, eqMessage)
         this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
-        this.userDist = L.latLng(this.hypoLatLng).distanceTo(L.latLng(this.userLatLng)) / 1000
-        this.reachTime = calcReachTime(this.travelTime, false, this.eqMessage.depth, this.userDist)
-        this.userCsis = calcCsisLevel(this.eqMessage.magnitude, this.eqMessage.depth, this.userDist)
+        if(this.isValidUserLatLng) {
+            this.userDist = L.latLng(this.hypoLatLng).distanceTo(L.latLng(this.userLatLng)) / 1000
+            this.reachTime = calcReachTime(this.travelTime, false, this.eqMessage.depth, this.userDist)
+            this.userCsis = calcCsisLevel(this.eqMessage.magnitude, this.eqMessage.depth, this.userDist)
+        }
+        else {
+            this.userDist = undefined
+            this.reachTime = -1
+            this.userCsis = '?'
+        }
         this.setMark()
         this.drawWaves()
         clearInterval(this.drawWavesInterval)

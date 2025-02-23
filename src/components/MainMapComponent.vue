@@ -26,19 +26,19 @@
                         </div>
                         <div class="countdown eew realtime" v-if="settingsStore.mainSettings.displayCountdown">
                             <div class="shindo-bar" :class="event.countdown <= 0 || event.eqMessage.isCanceled?'gray':event.countdown <= 10?'red':event.countdown <= 60?'orange':'yellow'">{{ event.countdown == -1?'-':Math.floor(event.countdown) }}秒</div>
-                            <div class="info" v-if="event.eqMessage.source == 'jmaEew'">
-                                <div class="intensity" :class="shouldCalcCsis(event)?setClassName(event.userCsis, false):setClassName(userJmaAreaShindo, true)">
-                                    <div class="intensity-title">{{ shouldCalcCsis(event)?'本地CSIS':'本地震度' }}</div>
+                            <div class="info" v-if="userJmaAreaName">
+                                <div class="intensity" :class="setClassName(userJmaAreaShindo, true)">
+                                    <div class="intensity-title">本地震度</div>
                                     <div :class="userJmaAreaShindo != '?'?'shindo':'csis'">
-                                        {{ shouldCalcCsis(event)?event.userCsis:userJmaAreaShindo }}
+                                        {{ userJmaAreaShindo }}
                                     </div>
                                 </div>
                             </div>
                             <div class="info" v-else>
-                                <div class="intensity" :class="setClassName(isValidUserLatLng && settingsStore.advancedSettings.forceCalcCsis?event.userCsis:'?', false)">
+                                <div class="intensity" :class="setClassName(isValidUserLatLng && settingsStore.advancedSettings.forceCalcInt?event.userCsis:'?', false)">
                                     <div class="intensity-title">本地CSIS</div>
                                     <div class="csis">
-                                        {{ isValidUserLatLng && settingsStore.advancedSettings.forceCalcCsis?event.userCsis:'?' }}
+                                        {{ isValidUserLatLng && settingsStore.advancedSettings.forceCalcInt?event.userCsis:'?' }}
                                     </div>
                                 </div>
                             </div>
@@ -192,9 +192,10 @@ import EewComponent from './EewComponent.vue';
 import SeisNetComponent from './SeisNetComponent.vue';
 import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
-import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToPolygon, csisArray, shindoArray, calcCsisLevel } from '@/utils/Utils';
+import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToPolygon, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel } from '@/utils/Utils';
 import { geojsonUrls } from '@/utils/Urls';
 import { booleanPointInPolygon, point } from '@turf/turf';
+import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
@@ -218,9 +219,9 @@ const userJmaAreaName = computed(()=>{
 })
 const userJmaAreaShindo = computed(()=>{
     if(userJmaAreaName.value in jmaWarnArea.value) return formatIntensity(jmaWarnArea.value[userJmaAreaName.value].intensity)
+    else if(userJmaAreaName.value && settingsStore.advancedSettings.forceCalcInt) return '0'
     else return '?'
 })
-const shouldCalcCsis = (event) => userJmaAreaShindo.value == '?' && isValidUserLatLng.value && settingsStore.advancedSettings.forceCalcCsis && !event.eqMessage.isAssumption
 let userMarker
 const isValidViewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.every(item=>item !== ''))
 const viewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.map(val=>Number(val)))
@@ -491,7 +492,7 @@ const loadMaps = async () => {
                 }
             })
         }, { deep: true, immediate: true })
-        if(settingsStore.advancedSettings.forceCalcCsis){
+        if(settingsStore.advancedSettings.forceCalcInt){
             watch(cnEewInfoList, newVal=>{
                 cnEewBaseMap.eachLayer(layer=>{
                     let maxInt = 0
@@ -701,7 +702,42 @@ const jmaWarnArea = computed(()=>{
             }
         })
     })
+    if(settingsStore.advancedSettings.forceCalcInt) {
+        for(let id in jmaSeisIntLoc) {
+            for(let eew of jpEewInfoList.value) {
+                const { magnitude, depth, lat, lng } = eew
+                const intensity = calcJmaShindoLevel(magnitude, depth, lat, lng, jmaSeisIntLoc[id])
+                if(intensity < '1') continue
+                const sect = jmaSeisIntLoc[id].sect
+                const className = setClassName(intensity, true)
+                if(jmaWarnArea[sect]) {
+                    if(getClassLevel(className) > getClassLevel(jmaWarnArea[sect].className)) {
+                        jmaWarnArea[sect] = {
+                            name: sect,
+                            intensity,
+                            className
+                        }
+                    }
+                }
+                else {
+                    jmaWarnArea[sect] = {
+                        name: sect,
+                        intensity,
+                        className
+                    }
+                }
+            }
+        }
+    }
     return jmaWarnArea
+})
+const jpEewInfoList = computed(()=>{
+    const jpEewList = activeEewList.filter(event=>!(event.eqMessage.isCanceled || event.eqMessage.isAssumption))
+    const jpEewInfoList = jpEewList.map(event=>{
+        const { magnitude, depth, lat, lng } = event.eqMessage
+        return { magnitude, depth, lat, lng }
+    })
+    return jpEewInfoList
 })
 const cnEewInfoList = computed(()=>{
     const cnEewList = menuId.value == 'eqlists'?eqlistList.filter(event=>!(isNaN(event.eqMessage.magnitude) || isNaN(event.eqMessage.depth))):activeEewList.filter(event=>!(event.eqMessage.isCanceled || event.eqMessage.isAssumption))

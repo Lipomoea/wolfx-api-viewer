@@ -63,7 +63,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             enableCeaEew: false,
             enableIclEew: false,
             enableTremFunctions: false,
-            forceCalcCsis: false,
+            forceCalcInt: false,
             preventFlickerMode: false
         }
     }),

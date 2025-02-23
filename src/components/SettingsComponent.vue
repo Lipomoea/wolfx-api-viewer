@@ -328,12 +328,12 @@
                                     </strong>
                                 </el-popover>
                                 <el-switch v-model="settingsStore.mainSettings.cinemaMode"
-                                @change="needReload = true"></el-switch>
+                                @change="handleNeedReload"></el-switch>
                             </div>
                             <div class="switch">
                                 <el-checkbox v-model="settingsStore.mainSettings.eqlistsAsDefault"
                                 :disabled="!settingsStore.mainSettings.cinemaMode"
-                                @change="needReload = true">将地震信息页面设为默认</el-checkbox>
+                                @change="handleNeedReload">将地震信息页面设为默认</el-checkbox>
                             </div>
                         </div>
                     </div>
@@ -343,7 +343,7 @@
                     <div class="row">
                         <div class="switch-group">
                             <div class="switch">
-                                <span>强制估算中国地震烈度（实验性）</span>
+                                <span>强制估算烈度/震度（实验性）</span>
                                 <el-popover
                                     placement="top"
                                     :width="300"
@@ -352,9 +352,9 @@
                                     <template #reference>
                                         <question-filled width="1em" height="1em"></question-filled>
                                     </template>
-                                    <p>本地烈度：日本地区优先使用气象厅提供的预想震度，否则估算中国地震烈度。</p>
-                                    <p>区域烈度：计算中国地区各行政区的最大预估烈度。可能与数据源烈度不一致。</p>
-                                    <p>行政区划分：台湾省为省级，直辖市、特别行政区为县级，其余为地级。</p>
+                                    <p>本地烈度：日本地区使用震度，其他区域使用中国地震烈度。</p>
+                                    <p>区域烈度：可能与数据源烈度不一致。</p>
+                                    <p>行政区划分：中国以地级为主。日本跟随气象厅区划。</p>
                                     <strong>
                                         <p>该功能为实验性功能，精度较低。</p>
                                         <p>此功能会消耗较多计算机资源。</p>
@@ -362,8 +362,8 @@
                                     </strong>
                                 </el-popover>
                                 <el-switch 
-                                v-model="settingsStore.advancedSettings.forceCalcCsis"
-                                @change="needReload = true"></el-switch>
+                                v-model="settingsStore.advancedSettings.forceCalcInt"
+                                @change="handleNeedReload"></el-switch>
                             </div>
                         </div>
                     </div>
@@ -387,7 +387,7 @@
                                 </el-popover>
                                 <el-switch 
                                 v-model="settingsStore.advancedSettings.preventFlickerMode"
-                                @change="needReload = true"></el-switch>
+                                @change="handleNeedReload"></el-switch>
                             </div>
                         </div>
                     </div>
@@ -702,13 +702,21 @@ const postVerify = async ()=>{
         }
     }
 }
-watch(()=>settingsStore.mainSettings.source, ()=>{
+const handleNeedReload = () => {
     needReload.value = true
+    ElMessage({
+        message: '需要重载页面后生效',
+        type: 'warning'
+    })
+}
+watch(()=>settingsStore.mainSettings.source, ()=>{
+    handleNeedReload()
 }, { deep: true })
 const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
+            <p>v2.0.0-rc.5 新增：日本地区震度本地计算；新增：更改的设置需要重载时添加弹窗提示。</p>
             <p>v2.0.0-rc.4.2 优化：相同烈度区域之间增加边界线；优化：规范中国台湾相关地名表述。</p>
             <p>v2.0.0-rc.4.1 变更：更新Vue版本；修复：首个地震信息活跃状态持续时间异常的bug；修复：放映模式下的部分bug。</p>
             <p>v2.0.0-rc.4 新增：预警/信息页不展开侧边栏功能；新增：放映模式；优化：调整自动返回默认视野状态的时间；优化：部分代码逻辑。</p>
@@ -749,7 +757,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        'wolfx-api-viewer v2.0.0-rc.4.2',
+        'wolfx-api-viewer v2.0.0-rc.5',
         {
             confirmButtonText: 'OK',
             showClose: false,

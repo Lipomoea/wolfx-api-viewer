@@ -259,3 +259,32 @@ export const calcCsis = (m, dep, dis) => {
 }
 export const calcCsisLevel = (m, dep, dis) => Math.min(Math.max(calcCsis(m, dep, dis), 0), 12).toFixed(0)
 export const formatChineseTaiwan = (str) => (str.startsWith('台湾') && !(str.includes('市') || str.includes('县')) ? '中国' : '') + str
+export const calcJmaShindo = (mj, dep, hypoLat, hypoLng, loc) => {
+    const mw = mj - 0.171;
+    const long = 10 ** (0.5 * mw - 1.85) / 2;
+    const locPoint = point([loc.location[1], loc.location[0]]);
+    const hypoPoint = point([hypoLng, hypoLat]);
+    const surfaceDist = distance(hypoPoint, locPoint, { units: "kilometers" });
+    const r = 6371;
+    const theta = surfaceDist / r;
+    const a = r - dep;
+    const hypoDist = Math.sqrt(a * a + r * r - 2 * a * r * Math.cos(theta));
+    const x = Math.max(hypoDist, 3);
+    const pgv600 = 10 ** (
+        0.58 * mw +
+        0.0038 * dep - 1.29 -
+        Math.log10(x + 0.0028 * (10 ** (0.5 * mw))) -
+        0.002 * x
+    );
+    const arv = Number(loc.arv);
+    const pgv400 = pgv600 * 1.31;
+    const pgv = pgv400 * arv;
+    const instShindo = 2.68 + 1.72 * Math.log10(pgv);
+    return instShindo
+}
+export const calcJmaShindoLevel = (mj, dep, hypoLat, hypoLng, loc) => {
+    const instShindo = calcJmaShindo(mj, dep, hypoLat, hypoLng, loc)
+    const instShindo1 = Math.floor(Math.round(instShindo * 100) / 10) / 10
+    if(instShindo1 < 0.5) return '0'
+    else return getShindoFromInstShindo(instShindo1)
+}

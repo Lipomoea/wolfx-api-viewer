@@ -67,7 +67,7 @@ export const useStatusStore = defineStore('statusStore', {
             niedNet: false,
             tremNet: false
         },
-        forceCalcCsis: false
+        forceCalcInt: false
     }),
     getters: {
         
@@ -129,7 +129,6 @@ export const useStatusStore = defineStore('statusStore', {
                             eqMessage.maxIntensityText = '推定最大震度: ' + data.MaxIntensity
                             eqMessage.warnArea = JSON.stringify(data.WarnArea.map(item=>{
                                 return {
-                                    id: 0,
                                     name: item.Chiiki,
                                     intensity: item.Shindo1,
                                     className: setClassName(item.Shindo1, true)
@@ -201,7 +200,7 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
                         eqMessage.magnitude = data.magnitude
                         eqMessage.magnitudeText = '震级: ' + data.magnitude.toFixed(1)
-                        eqMessage.maxIntensity = data.epiIntensity?data.epiIntensity.toFixed(0):(this.forceCalcCsis?calcCsisLevel(data.magnitude, data.depth, 0):'不明')
+                        eqMessage.maxIntensity = data.epiIntensity?data.epiIntensity.toFixed(0):(this.forceCalcInt?calcCsisLevel(data.magnitude, data.depth, 0):'不明')
                         eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                         eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 6.5
                         break
@@ -246,7 +245,7 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.originTimeText = '发震时间: ' + data.OriginTime
                         eqMessage.magnitude = data.Magunitude
                         eqMessage.magnitudeText = '震级: ' + data.Magunitude.toFixed(1)
-                        eqMessage.maxIntensity = this.forceCalcCsis?calcCsisLevel(data.Magunitude, 10, 0):'不明'
+                        eqMessage.maxIntensity = this.forceCalcInt?calcCsisLevel(data.Magunitude, 10, 0):'不明'
                         eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                         break
                     }
