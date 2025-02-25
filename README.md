@@ -39,5 +39,6 @@ wolfx-api-viewer(WAV)是一个基于[Wolfx Open API](https://wolfx.jp/apidoc)以
 * [TREM-Lite](https://github.com/ExpTechTW/TREM-Lite)
 * [TREM-tauri](https://github.com/ExpTechTW/TREM-tauri)
 * [EarthQuakeWarning](https://github.com/kengwang/EarthQuakeWarning)
+* [Zero-Quake](https://github.com/0Quake/Zero-Quake)
 ## 开放源代码许可
 本项目基于[AGPL-3.0](https://github.com/Lipomoea/wolfx-api-viewer/blob/main/LICENSE)协议授权。
