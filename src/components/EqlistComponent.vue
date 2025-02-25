@@ -52,6 +52,7 @@ const handleMore = ()=>{
       height: 50px;
       align-self: center;
       font-size: 16px;
+      border-radius: 25px;
     }
   }
 }

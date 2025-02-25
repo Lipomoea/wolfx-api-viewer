@@ -162,8 +162,8 @@ watch(()=>timeStore.currentTime, ()=>{
         flex-direction: column;
         align-items: center;
         justify-content: space-evenly;
-        border: black 1px solid;
-        border-radius: 5px;
+        border: #7f7f7f 1px solid;
+        border-radius: 20px;
         user-select: none;
         *{
             z-index: 10;

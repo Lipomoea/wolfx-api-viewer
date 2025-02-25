@@ -1010,7 +1010,7 @@ onBeforeUnmount(()=>{
                 z-index: 600;
                 border-radius: 10px;
                 overflow: hidden;
-                background-color: #ffffffbf;
+                background-color: #ffffff9f;
                 backdrop-filter: blur(10px);
             }
         }
