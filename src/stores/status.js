@@ -283,7 +283,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.depth = data.earthquake.hypocenter.depth
                                 eqMessage.depthText = '深さ: ' + (eqMessage.depth == 0 ? 'ごく浅い' : eqMessage.depth + 'km')
                                 eqMessage.magnitude = data.earthquake.hypocenter.magnitude
-                                eqMessage.magnitudeText = 'マグニチュード: ' + eqMessage.magnitude
+                                eqMessage.magnitudeText = 'マグニチュード: ' + eqMessage.magnitude.toFixed(1)
                                 if(isNewEvent){
                                     eqMessage.maxIntensity = getShindoFromInstShindo(data.earthquake.maxScale / 10, false)
                                     eqMessage.maxIntensityText = '最大震度: ' + eqMessage.maxIntensity
@@ -316,7 +316,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.depth = data.earthquake.hypocenter.depth
                                 eqMessage.depthText = '深さ: ' + (eqMessage.depth == 0 ? 'ごく浅い' : eqMessage.depth + 'km')
                                 eqMessage.magnitude = data.earthquake.hypocenter.magnitude
-                                eqMessage.magnitudeText = 'マグニチュード: ' + eqMessage.magnitude
+                                eqMessage.magnitudeText = 'マグニチュード: ' + eqMessage.magnitude.toFixed(1)
                                 eqMessage.maxIntensity = getShindoFromInstShindo(data.earthquake.maxScale / 10, false)
                                 eqMessage.maxIntensityText = '最大震度: ' + eqMessage.maxIntensity
                                 eqMessage.warnArea = JSON.stringify(data.points)
