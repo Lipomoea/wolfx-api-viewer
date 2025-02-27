@@ -7,16 +7,17 @@
 <script setup>
 import { onMounted } from 'vue';
 import { useStatusStore } from '@/stores/status';
+import Http from '@/classes/Http';
 
 const statusStore = useStatusStore()
 
-const testJmaEew = true
+const testJmaEew = false
 const testCwaEew = false
-const testIclEew = true
+const testIclEew = false
 const testScEew = false
 const testJmaEqlist = true
 
-onMounted(()=>{
+onMounted(async ()=>{
     if(testJmaEew){
         const time = new Date()
         time.setHours(time.getHours() + 1)
@@ -839,23 +840,19 @@ onMounted(()=>{
     if(testJmaEqlist){
         const source = 'jmaEqlist'
         setTimeout(() => {
-            const data = {
-                "No1": {
-                "Title": "震源・震度情報",
-                "EventID": "20241021231148",
-                "time": "2024/10/21 23:11",
-                "time_full": "2024/10/21 23:11:48",
-                "location": "十勝沖",
-                "magnitude": "4.4",
-                "shindo": "2",
-                "depth": "110km",
-                "latitude": "42.7",
-                "longitude": "143.7",
-                "info": "この地震による津波の心配はありません。"
-                },
+            statusStore.disconnect()
+        }, 2000);
+        const limit = 20
+        const res = await Http.get(`https://api.p2pquake.net/v2/jma/quake?limit=${limit}&order=1&since_date=20240101&until_date=20240101`)
+        console.log(res);
+        let i = -1
+        setInterval(() => {
+            i++
+            if(i < limit) {
+                const data = res[i]
+                statusStore.setEqMessage(source, data)
             }
-            statusStore.setEqMessage(source, data)
-        }, 10000);
+        }, 3000);
     }
 })
 </script>

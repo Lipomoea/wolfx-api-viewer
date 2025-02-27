@@ -55,11 +55,11 @@
                                     </div>
                                 </div>
                                 <div class="right">
-                                    <div class="location">{{ event.eqMessage.hypocenter?event.eqMessage.hypocenter:'震源: 調査中' }}</div>
+                                    <div class="location">{{ event.eqMessage.hypocenter ? event.eqMessage.hypocenter : '震源 調査中' }}</div>
                                     <div class="time">{{ event.eqMessage.originTime + (event.useJst?' (UTC+9)':' (UTC+8)') }}</div>
                                     <div class="bottom">
-                                        <div class="magnitude">{{ event.eqMessage.magnitude?'M' + event.eqMessage.magnitude.toFixed(1):'規模: 調査中' }}</div>
-                                        <div class="depth">{{ event.eqMessage.depthText }}</div>
+                                        <div class="magnitude">{{ event.eqMessage.magnitude != -1 ? 'M' + event.eqMessage.magnitude.toFixed(1) : '規模・深さ 調査中' }}</div>
+                                        <div class="depth">{{ event.eqMessage.depth != -1 ? event.eqMessage.depthText : '' }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -192,7 +192,7 @@ import EewComponent from './EewComponent.vue';
 import SeisNetComponent from './SeisNetComponent.vue';
 import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
-import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToPolygon, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel } from '@/utils/Utils';
+import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToPolygon, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, getShindoFromInstShindo } from '@/utils/Utils';
 import { geojsonUrls } from '@/utils/Urls';
 import { booleanPointInPolygon, point } from '@turf/turf';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
@@ -244,11 +244,12 @@ const handleHome = ()=>{
     setView()
 }
 const handleMenu = (index)=>{
-    if(menuId.value == index && (index == 'eews' || index == 'eqlists') && isAutoZoom.value) settingsStore.mainSettings.hideDrawer = !settingsStore.mainSettings.hideDrawer
+    const shouldHandleHome = menuId.value == index
+    if(shouldHandleHome && (index == 'eews' || index == 'eqlists') && isAutoZoom.value) settingsStore.mainSettings.hideDrawer = !settingsStore.mainSettings.hideDrawer
     menuId.value = index
     setTimeout(() => {
         map.invalidateSize()
-        handleHome()
+        if(shouldHandleHome || isAutoZoom.value) handleHome()
     }, 0);  //语句推迟到容器大小变化后再执行
 }
 provide('handleMenu', handleMenu)
@@ -573,7 +574,7 @@ const setView = ()=>{
             }
         }
         else if(activeEqlistList.value.length == 0){
-            if(layer.options.pane == 'eqlistMarkerPane'){
+            if(layer.options.pane == 'eqlistMarkerPane' || layer.options.pane.includes('EewBasePane') && layer.options.fillColor && layer.options.fillColor != '#55555500'){
                 if(layer.getBounds){
                     bounds.extend(layer.getBounds())
                 }
@@ -585,12 +586,29 @@ const setView = ()=>{
     })
     if(menuId.value != 'eews' && !bounds.isValid()){
         activeEqlistList.value.forEach(event=>{
-            if(event.isValidHypo){
-                bounds.extend(event.hypoLatLng)
+            if(event.eqMessage.source == 'jmaEqlist') {
+                if(event.isValidHypo){
+                    bounds.extend(event.hypoLatLng)
+                }
+                jpEewBaseMap.eachLayer(layer => {
+                    if(layer.options.fillColor && layer.options.fillColor != '#55555500') {
+                        if(layer.getBounds){
+                            bounds.extend(layer.getBounds())
+                        }
+                        else if(layer.getLatLng){
+                            bounds.extend(layer.getLatLng())
+                        }
+                    }
+                })
+                if(!bounds.isValid()) {
+                    bounds.extend([46, 148])
+                    bounds.extend([23.5, 122])
+                }
             }
-            else{
-                bounds.extend([46, 148])
-                bounds.extend([23.5, 122])
+            else {
+                if(event.isValidHypo){
+                    bounds.extend(event.hypoLatLng)
+                }
             }
         })
     }
@@ -666,13 +684,11 @@ watch(menuId, (newVal)=>{
         eewMarkerPane.style.display = 'none'
         wavePane.style.display = 'none'
         waveFillPane.style.display = 'none'
-        jpEewBasePane.style.display = 'none'
     }
     else{
         isEewBlink = true
         wavePane.style.display = 'block'
         waveFillPane.style.display = 'block'
-        jpEewBasePane.style.display = 'block'
     }
 })
 let autoZoomInterval
@@ -687,31 +703,40 @@ watch(isAutoZoom, (newVal)=>{
     }
 }, { immediate: true })
 const jmaWarnArea = computed(()=>{
-    const jmaEewList = activeEewList.filter(event=>event.eqMessage.source == 'jmaEew' && !event.eqMessage.isCanceled)
     const jmaWarnArea = {}
-    jmaEewList.forEach(event=>{
-        const warnArea = JSON.parse(event.eqMessage.warnArea)
-        warnArea.forEach(item=>{
-            if(jmaWarnArea[item.name]){
-                if(getClassLevel(item.className) > getClassLevel(jmaWarnArea[item.name].className)){
+    if(menuId.value != 'eqlists') {
+        const jmaEewList = activeEewList.filter(event=>event.eqMessage.source == 'jmaEew' && !event.eqMessage.isCanceled)
+        jmaEewList.forEach(event=>{
+            const warnArea = JSON.parse(event.eqMessage.warnArea)
+            warnArea.forEach(item=>{
+                if(jmaWarnArea[item.name]){
+                    if(getClassLevel(item.className) > getClassLevel(jmaWarnArea[item.name].className)){
+                        jmaWarnArea[item.name] = item
+                    }
+                }
+                else{
                     jmaWarnArea[item.name] = item
                 }
-            }
-            else{
-                jmaWarnArea[item.name] = item
-            }
+            })
         })
-    })
-    if(settingsStore.advancedSettings.forceCalcInt) {
-        for(let id in jmaSeisIntLoc) {
-            for(let eew of jpEewInfoList.value) {
-                const { magnitude, depth, lat, lng } = eew
-                const intensity = calcJmaShindoLevel(magnitude, depth, lat, lng, jmaSeisIntLoc[id])
-                if(intensity < '1') continue
-                const sect = jmaSeisIntLoc[id].sect
-                const className = setClassName(intensity, true)
-                if(jmaWarnArea[sect]) {
-                    if(getClassLevel(className) > getClassLevel(jmaWarnArea[sect].className)) {
+        if(settingsStore.advancedSettings.forceCalcInt) {
+            for(let id in jmaSeisIntLoc) {
+                for(let eew of jpEewInfoList.value) {
+                    const { magnitude, depth, lat, lng } = eew
+                    const intensity = calcJmaShindoLevel(magnitude, depth, lat, lng, jmaSeisIntLoc[id], false)
+                    if(intensity < '1') continue
+                    const sect = jmaSeisIntLoc[id].sect
+                    const className = setClassName(intensity, true)
+                    if(jmaWarnArea[sect]) {
+                        if(getClassLevel(className) > getClassLevel(jmaWarnArea[sect].className)) {
+                            jmaWarnArea[sect] = {
+                                name: sect,
+                                intensity,
+                                className
+                            }
+                        }
+                    }
+                    else {
                         jmaWarnArea[sect] = {
                             name: sect,
                             intensity,
@@ -719,7 +744,20 @@ const jmaWarnArea = computed(()=>{
                         }
                     }
                 }
-                else {
+            }
+        }
+    }
+    else {
+        const jmaEqlistEvent = eqlistList.find(event => event.eqMessage.source == 'jmaEqlist')
+        if(!jmaEqlistEvent) return {}
+        const warnArea = JSON.parse(jmaEqlistEvent.eqMessage.warnArea)
+        warnArea.forEach(point => {
+            const sect = point.isArea ? point.addr : jmaSeisIntLoc[point.addr]?.sect
+            if(!sect) return
+            const intensity = getShindoFromInstShindo(point.scale / 10, false)
+            const className = setClassName(intensity, true)
+            if(jmaWarnArea[sect]) {
+                if(getClassLevel(className) > getClassLevel(jmaWarnArea[sect].className)) {
                     jmaWarnArea[sect] = {
                         name: sect,
                         intensity,
@@ -727,7 +765,14 @@ const jmaWarnArea = computed(()=>{
                     }
                 }
             }
-        }
+            else {
+                jmaWarnArea[sect] = {
+                    name: sect,
+                    intensity,
+                    className
+                }
+            }
+        })
     }
     return jmaWarnArea
 })
@@ -740,7 +785,7 @@ const jpEewInfoList = computed(()=>{
     return jpEewInfoList
 })
 const cnEewInfoList = computed(()=>{
-    const cnEewList = menuId.value == 'eqlists'?eqlistList.filter(event=>!(isNaN(event.eqMessage.magnitude) || isNaN(event.eqMessage.depth))):activeEewList.filter(event=>!(event.eqMessage.isCanceled || event.eqMessage.isAssumption))
+    const cnEewList = menuId.value == 'eqlists'?eqlistList.filter(event=>!(isNaN(event.eqMessage.magnitude) || isNaN(event.eqMessage.depth) || !event.eqMessage.lat && !event.eqMessage.lng)):activeEewList.filter(event=>!(event.eqMessage.isCanceled || event.eqMessage.isAssumption))
     const cnEewInfoList = cnEewList.map(event=>{
         const { magnitude, depth, lat, lng } = event.eqMessage
         return { magnitude, depth, lat, lng }

@@ -321,7 +321,7 @@ class EqlistEvent {
     update(eqMessage, time){
         Object.assign(this.eqMessage, eqMessage)
         this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
-        this.isValidHypo = !this.hypoLatLng.every(item=>item == 0)
+        this.isValidHypo = this.hypoLatLng.some(item => !!item)
         this.setMark()
         if(time > 0){
             this.handleActions()
@@ -352,23 +352,15 @@ class EqlistEvent {
             switch(eqMessage.source){
                 case 'jmaEqlist':{
                     switch(eqMessage.title){
-                        case '震度速報':{
+                        case '震度速報': {
                             playSound(chimeUrls[soundEffect].shindosokuhou)
                             break
                         }
-                        case '震源に関する情報':{
+                        case '震源に関する情報': {
                             playSound(chimeUrls[soundEffect].shingenzyouhou)
                             break
                         }
-                        case '震源・震度情報':{
-                            playSound(chimeUrls[soundEffect].jishinzyouhou)
-                            break
-                        }
-                        case '顕著な地震の震源要素更新のお知らせ':{
-                            playSound(chimeUrls[soundEffect].shingenzyouhou)
-                            break
-                        }
-                        case '遠地地震に関する情報':{
+                        default: {
                             playSound(chimeUrls[soundEffect].jishinzyouhou)
                             break
                         }

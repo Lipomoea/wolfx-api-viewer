@@ -1,6 +1,6 @@
 {
   "name": "wolfx-api-viewer",
-  "version": "2.0.0-rc.5",
+  "version": "2.0.0-rc.6",
   "private": true,
   "type": "module",
   "scripts": {

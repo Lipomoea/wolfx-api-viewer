@@ -195,17 +195,17 @@ export const getShindoFromChar = (char)=>{
     if(char == 'x') return '7'
     return '?'
 }
-export const getShindoFromInstShindo = (instShindo) => {
+export const getShindoFromInstShindo = (instShindo, useSymbol = true) => {
     if(instShindo < -3.0) return '?'
     else if(instShindo < 0.5) return '0'
     else if(instShindo < 1.5) return '1'
     else if(instShindo < 2.5) return '2'
     else if(instShindo < 3.5) return '3'
     else if(instShindo < 4.5) return '4'
-    else if(instShindo < 5.0) return '5-'
-    else if(instShindo < 5.5) return '5+'
-    else if(instShindo < 6.0) return '6-'
-    else if(instShindo < 6.5) return '6+'
+    else if(instShindo < 5.0) return useSymbol ? '5-' : '5弱'
+    else if(instShindo < 5.5) return useSymbol ? '5+' : '5強'
+    else if(instShindo < 6.0) return useSymbol ? '6-' : '6弱'
+    else if(instShindo < 6.5) return useSymbol ? '6+' : '6強'
     else return '7'
 }
 export const getLevelFromInstShindo = (instShindo) => {
@@ -282,9 +282,9 @@ export const calcJmaShindo = (mj, dep, hypoLat, hypoLng, loc) => {
     const instShindo = 2.68 + 1.72 * Math.log10(pgv);
     return instShindo
 }
-export const calcJmaShindoLevel = (mj, dep, hypoLat, hypoLng, loc) => {
+export const calcJmaShindoLevel = (mj, dep, hypoLat, hypoLng, loc, useSymbol = true) => {
     const instShindo = calcJmaShindo(mj, dep, hypoLat, hypoLng, loc)
     const instShindo1 = Math.floor(Math.round(instShindo * 100) / 10) / 10
     if(instShindo1 < 0.5) return '0'
-    else return getShindoFromInstShindo(instShindo1)
+    else return getShindoFromInstShindo(instShindo1, useSymbol)
 }

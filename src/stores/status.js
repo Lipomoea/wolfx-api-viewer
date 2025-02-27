@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import Http from '@/classes/Http'
 import WebSocketObj from '@/classes/WebSocket'
 import { eqUrls } from '@/utils/Urls'
-import { setClassName, calcCsisLevel, stampToTime, formatChineseTaiwan } from '@/utils/Utils'
+import { setClassName, calcCsisLevel, stampToTime, formatChineseTaiwan, getShindoFromInstShindo } from '@/utils/Utils'
 
 const defaultEqMessage = {
     source: '',
@@ -31,8 +31,7 @@ const defaultEqMessage = {
     maxIntensity: '',
     maxIntensityText: '',
     warnArea: '',
-    className: '',
-    info: '',
+    className: ''
 }
 
 const shindoScale = ['0', '1', '2', '3', '4', '5-', '5+', '6-', '6+', '7']
@@ -250,58 +249,78 @@ export const useStatusStore = defineStore('statusStore', {
                         break
                     }
                     case 'jmaEqlist':{
-                        const isNewEvent = eqMessage.id != data.No1.EventID
-                        eqMessage.id = data.No1.EventID
-                        eqMessage.title = data.No1.Title
-                        eqMessage.titleText = '日本気象庁' + data.No1.Title
+                        const isNewEvent = eqMessage.id != data.earthquake.time
+                        eqMessage.id = data.earthquake.time
                         eqMessage.useShindo = true
-                        eqMessage.originTime = data.No1.time_full
-                        eqMessage.originTimeText = '検知時刻: ' + data.No1.time_full + ' (JST)'
-                        eqMessage.info = data.No1.info
-                        switch(data.No1.Title){
-                            case '震度速報':{
-                                eqMessage.maxIntensity = data.No1.shindo
-                                eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
+                        eqMessage.originTime = data.earthquake.time
+                        eqMessage.originTimeText = '検知時刻: ' + data.earthquake.time + ' (JST)'
+                        eqMessage.reportTime = data.time.slice(0, -4)
+                        switch(data.issue.type) {
+                            case 'ScalePrompt':
+                                eqMessage.title = '震度速報'
+                                eqMessage.titleText = '震度速報'
+                                eqMessage.maxIntensity = getShindoFromInstShindo(data.earthquake.maxScale / 10, false)
+                                eqMessage.maxIntensityText = '最大震度: ' + eqMessage.maxIntensity
+                                eqMessage.warnArea = JSON.stringify(data.points)
                                 if(isNewEvent){
-                                    eqMessage.hypocenter = data.No1.location
+                                    eqMessage.hypocenter = data.earthquake.hypocenter.name
                                     eqMessage.hypocenterText = '震源地: 調査中'
-                                    eqMessage.lat = Number(data.No1.latitude)
-                                    eqMessage.lng = Number(data.No1.longitude)
-                                    eqMessage.depth = Number(data.No1.depth.replace('km', ''))
+                                    eqMessage.lat = null
+                                    eqMessage.lng = null
+                                    eqMessage.depth = -1
                                     eqMessage.depthText = '深さ: 調査中'
-                                    eqMessage.magnitude = Number(data.No1.magnitude)
+                                    eqMessage.magnitude = -1
                                     eqMessage.magnitudeText = 'マグニチュード: 調査中'
                                 }
                                 break
-                            }
-                            case '震源に関する情報': case '顕著な地震の震源要素更新のお知らせ':{
-                                eqMessage.hypocenter = data.No1.location
-                                eqMessage.hypocenterText = '震源地: ' + data.No1.location
-                                eqMessage.lat = Number(data.No1.latitude)
-                                eqMessage.lng = Number(data.No1.longitude)
-                                eqMessage.depth = Number(data.No1.depth.replace('km', ''))
-                                eqMessage.depthText = '深さ: ' + (data.No1.depth == '0km'?'ごく浅い':data.No1.depth)
-                                eqMessage.magnitude = Number(data.No1.magnitude)
-                                eqMessage.magnitudeText = 'マグニチュード: ' + data.No1.magnitude
+                            case 'Destination':
+                                eqMessage.title = '震源に関する情報'
+                                eqMessage.titleText = '震源に関する情報'
+                                eqMessage.hypocenter = data.earthquake.hypocenter.name
+                                eqMessage.hypocenterText = '震源地: ' + eqMessage.hypocenter
+                                eqMessage.lat = data.earthquake.hypocenter.latitude
+                                eqMessage.lng = data.earthquake.hypocenter.longitude
+                                eqMessage.depth = data.earthquake.hypocenter.depth
+                                eqMessage.depthText = '深さ: ' + (eqMessage.depth == 0 ? 'ごく浅い' : eqMessage.depth + 'km')
+                                eqMessage.magnitude = data.earthquake.hypocenter.magnitude
+                                eqMessage.magnitudeText = 'マグニチュード: ' + eqMessage.magnitude
                                 if(isNewEvent){
-                                    eqMessage.maxIntensity = data.No1.shindo
-                                    eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
+                                    eqMessage.maxIntensity = getShindoFromInstShindo(data.earthquake.maxScale / 10, false)
+                                    eqMessage.maxIntensityText = '最大震度: ' + eqMessage.maxIntensity
+                                    eqMessage.warnArea = JSON.stringify(data.points)
                                 }
                                 break
-                            }
-                            default:{
-                                eqMessage.hypocenter = data.No1.location
-                                eqMessage.hypocenterText = '震源地: ' + data.No1.location
-                                eqMessage.lat = Number(data.No1.latitude)
-                                eqMessage.lng = Number(data.No1.longitude)
-                                eqMessage.depth = Number(data.No1.depth.replace('km', ''))
-                                eqMessage.depthText = '深さ: ' + (data.No1.depth == '0km'?'ごく浅い':data.No1.depth)
-                                eqMessage.magnitude = Number(data.No1.magnitude)
-                                eqMessage.magnitudeText = 'マグニチュード: ' + data.No1.magnitude
-                                eqMessage.maxIntensity = data.No1.shindo
-                                eqMessage.maxIntensityText = '最大震度: ' + data.No1.shindo
+                            default:
+                                switch(data.issue.type) {
+                                    case 'ScaleAndDestination':
+                                        eqMessage.title = '震度・震源に関する情報'
+                                        eqMessage.titleText = '震度・震源に関する情報'
+                                        break
+                                    case 'DetailScale':
+                                        eqMessage.title = '各地の震度に関する情報'
+                                        eqMessage.titleText = '各地の震度に関する情報'
+                                        break
+                                    case 'Foreign':
+                                        eqMessage.title = '遠地地震に関する情報'
+                                        eqMessage.titleText = '遠地地震に関する情報'
+                                        break
+                                    case 'Other':
+                                        eqMessage.title = 'その他の情報'
+                                        eqMessage.titleText = 'その他の情報'
+                                        break
+                                }
+                                eqMessage.hypocenter = data.earthquake.hypocenter.name
+                                eqMessage.hypocenterText = '震源地: ' + eqMessage.hypocenter
+                                eqMessage.lat = data.earthquake.hypocenter.latitude
+                                eqMessage.lng = data.earthquake.hypocenter.longitude
+                                eqMessage.depth = data.earthquake.hypocenter.depth
+                                eqMessage.depthText = '深さ: ' + (eqMessage.depth == 0 ? 'ごく浅い' : eqMessage.depth + 'km')
+                                eqMessage.magnitude = data.earthquake.hypocenter.magnitude
+                                eqMessage.magnitudeText = 'マグニチュード: ' + eqMessage.magnitude
+                                eqMessage.maxIntensity = getShindoFromInstShindo(data.earthquake.maxScale / 10, false)
+                                eqMessage.maxIntensityText = '最大震度: ' + eqMessage.maxIntensity
+                                eqMessage.warnArea = JSON.stringify(data.points)
                                 break
-                            }
                         }
                         break
                     }
@@ -353,15 +372,19 @@ export const useStatusStore = defineStore('statusStore', {
                 clearInterval(this.httpRequest)
                 this.httpRequest = setInterval(async () => {
                     const promises = this.enabledSource.map(async source=>{
-                        if((source != 'ceaEew' && source != 'iclEew' && source != 'cwaEqlist' && this.allEewSocketObj?.socket.readyState != 1) || 
+                        if((source != 'ceaEew' && source != 'iclEew' && source != 'cwaEqlist' && source != 'jmaEqlist' && this.allEewSocketObj?.socket.readyState != 1) || 
                            (source == 'iclEew' && 'iclEew_http' in eqUrls) || 
-                           (source == 'cwaEqlist')){
+                           (source == 'cwaEqlist')) {
                             const data = await Http.get(eqUrls[source + '_http'] + `?time=${Date.now()}`)
                             if(data && Object.keys(data).length > 0) this.setEqMessage(source, data)
                         }
                         else if(source == 'ceaEew' && 'ceaEew_http' in eqUrls) {
                             const data = await Http.get(eqUrls[source + '_http'] + `&time=${Date.now()}`)
                             if(data && data.Data) this.setEqMessage(source, data.Data)
+                        }
+                        else if(source == 'jmaEqlist') {
+                            const data = await Http.get(eqUrls[source + '_http'] + `&time=${Date.now()}`)
+                            if(data && data.length > 0) this.setEqMessage(source, data[0])
                         }
                     })
                     await Promise.all(promises)
@@ -378,7 +401,7 @@ export const useStatusStore = defineStore('statusStore', {
                     else if(data.type == 'pong'){
                         // console.log('pong', props.source);
                     }
-                    else{
+                    else if(data.type != 'jma_eqlist'){
                         const splitType = data.type.split('_')
                         const source = splitType[0] + splitType[1][0].toUpperCase() + splitType[1].slice(1)
                         this.setEqMessage(source, data)

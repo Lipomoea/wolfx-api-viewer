@@ -9,7 +9,7 @@
                     </div>
                 </div>
                 <div class="right">
-                    <div class="location">{{ item.hypocenter }}</div>
+                    <div class="location">{{ item.hypocenter ? item.hypocenter : '震源 調査中' }}</div>
                     <div class="rightBottom">
                         <div class="timeDepth">
                             <div class="time">{{ item.originTime + (useJst?' (UTC+9)':' (UTC+8)') }}</div>
@@ -37,7 +37,7 @@ const eqList = reactive([])
 const httpInterval = 10000
 const maxHistoryNumber = 50
 let request
-const source = props.source + '_http'
+const source = props.source + 'History'
 const shindoScale = ['0', '1', '2', '3', '4', '5-', '5+', '6-', '6+', '7']
 
 const getEqList = ()=>{
@@ -75,7 +75,7 @@ const getEqList = ()=>{
         })
     }
     else {
-        Http.get(eqUrls[source] + `?limit=50&time=${Date.now()}`).then(data=>{
+        Http.get(eqUrls[source] + `&time=${Date.now()}`).then(data=>{
             for(let i = 0; i < maxHistoryNumber; i++){
                 eqList[i] = {
                     id: data[i].id,

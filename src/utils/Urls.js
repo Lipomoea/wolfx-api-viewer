@@ -1,17 +1,14 @@
 const eqUrls = {
     scEew_http: 'https://api.wolfx.jp/sc_eew.json',
-    scEew_ws: 'wss://ws-api.wolfx.jp/sc_eew',
     jmaEew_http: 'https://api.wolfx.jp/jma_eew.json',
-    jmaEew_ws: 'wss://ws-api.wolfx.jp/jma_eew',
     fjEew_http: 'https://api.wolfx.jp/fj_eew.json',
-    fjEew_ws: 'wss://ws-api.wolfx.jp/fj_eew',
     cwaEew_http: 'https://api.wolfx.jp/cwa_eew.json',
-    cwaEew_ws: 'wss://ws-api.wolfx.jp/cwa_eew',
     cencEqlist_http: 'https://api.wolfx.jp/cenc_eqlist.json',
-    cencEqlist_ws: 'wss://ws-api.wolfx.jp/cenc_eqlist',
-    jmaEqlist_http: 'https://api.wolfx.jp/jma_eqlist.json',
-    jmaEqlist_ws: 'wss://ws-api.wolfx.jp/jma_eqlist',
+    jmaEqlist_http: 'https://api.p2pquake.net/v2/history?codes=551&limit=1',
     cwaEqlist_http: 'https://api-2.exptech.dev/api/v2/eq/report',
+    cencEqlistHistory: 'https://api.wolfx.jp/cenc_eqlist.json',
+    jmaEqlistHistory: 'https://api.wolfx.jp/jma_eqlist.json',
+    cwaEqlistHistory: 'https://api-2.exptech.dev/api/v2/eq/report?limit=50',
     allEew_ws: 'wss://ws-api.wolfx.jp/all_eew'
 }
 const seisNetUrls = {

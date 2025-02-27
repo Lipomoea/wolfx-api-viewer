@@ -10,7 +10,6 @@
             <div class="text">{{ formatText(eqMessage.originTimeText) }}</div>
             <div class="text">{{ formatText(eqMessage.magnitudeText) }}</div>
             <div class="text">{{ formatText(eqMessage.maxIntensityText) }}</div>
-            <div class="text" v-if="props.source == 'jmaEqlist'">{{ formatText(eqMessage.info) }}</div>
             <div class="text">经过时间: {{ formatText(msToTime(passedTimeFromOrigin)) }}</div>
         </div>
     </div>
@@ -56,11 +55,8 @@ watch(eqMessage, (newVal)=>{
     let passedTime = 0
     if(isLoad){
         isLoad = false
-        if(props.source == 'jmaEew'){
+        if(props.source.includes('jma')){
             passedTime = calcPassedTime(newVal.reportTime, 9)
-        }
-        else if(props.source == 'jmaEqlist'){
-            passedTime = Math.max(calcPassedTime(newVal.originTime, 9) - 300 * 1000, 0)
         }
         else if(props.source == 'cwaEqlist'){
             passedTime = Math.max(calcPassedTime(newVal.originTime, 8) - 300 * 1000, 0)
@@ -128,7 +124,11 @@ watch(eqMessage, (newVal)=>{
                 }
             }
         }
-        if(isAutoZoom.value) setView()
+        if(isAutoZoom.value) {
+            setTimeout(() => {
+                setView()
+            }, 0);
+        }
         className.value = newVal.className + ' highOpacity'
         clearTimeout(timer)
         timer = setTimeout(() => {
