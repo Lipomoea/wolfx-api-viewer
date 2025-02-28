@@ -325,21 +325,21 @@ export const useStatusStore = defineStore('statusStore', {
                         break
                     }
                     case 'cwaEqlist':{
-                        eqMessage.id = data[0].id
+                        eqMessage.id = data.id
                         eqMessage.titleText = '中央氣象署地震報告'
-                        eqMessage.hypocenter = data[0].loc.split(' ').slice(-1)[0].slice(3, -1)
+                        eqMessage.hypocenter = data.loc.split(' ').slice(-1)[0].slice(3, -1)
                         eqMessage.hypocenterText = '震央: ' + eqMessage.hypocenter
-                        eqMessage.lat = data[0].lat
-                        eqMessage.lng = data[0].lon
-                        eqMessage.depth = data[0].depth
-                        eqMessage.depthText = '深度: ' + data[0].depth + 'km'
-                        eqMessage.originTime = stampToTime(data[0].time, 8)
+                        eqMessage.lat = data.lat
+                        eqMessage.lng = data.lon
+                        eqMessage.depth = data.depth
+                        eqMessage.depthText = '深度: ' + data.depth + 'km'
+                        eqMessage.originTime = stampToTime(data.time, 8)
                         eqMessage.originTimeText = '時間: ' + eqMessage.originTime
-                        eqMessage.magnitude = data[0].mag
-                        eqMessage.magnitudeText = '規模: ' + data[0].mag.toFixed(1)
+                        eqMessage.magnitude = data.mag
+                        eqMessage.magnitudeText = '規模: ' + data.mag.toFixed(1)
                         eqMessage.useShindo = true
-                        eqMessage.maxIntensity = shindoScale[data[0].int]
-                        eqMessage.maxIntensityText = '最大震度: ' + shindoScale[data[0].int]
+                        eqMessage.maxIntensity = shindoScale[data.int]
+                        eqMessage.maxIntensityText = '最大震度: ' + shindoScale[data.int]
                         break
                     }
                     case 'cencEqlist':{
@@ -373,8 +373,7 @@ export const useStatusStore = defineStore('statusStore', {
                 this.httpRequest = setInterval(async () => {
                     const promises = this.enabledSource.map(async source=>{
                         if((source != 'ceaEew' && source != 'iclEew' && source != 'cwaEqlist' && source != 'jmaEqlist' && this.allEewSocketObj?.socket.readyState != 1) || 
-                           (source == 'iclEew' && 'iclEew_http' in eqUrls) || 
-                           (source == 'cwaEqlist')) {
+                           (source == 'iclEew' && 'iclEew_http' in eqUrls)) {
                             const data = await Http.get(eqUrls[source + '_http'] + `?time=${Date.now()}`)
                             if(data && Object.keys(data).length > 0) this.setEqMessage(source, data)
                         }
@@ -382,7 +381,7 @@ export const useStatusStore = defineStore('statusStore', {
                             const data = await Http.get(eqUrls[source + '_http'] + `&time=${Date.now()}`)
                             if(data && data.Data) this.setEqMessage(source, data.Data)
                         }
-                        else if(source == 'jmaEqlist') {
+                        else if(source == 'jmaEqlist' || source == 'cwaEqlist') {
                             const data = await Http.get(eqUrls[source + '_http'] + `&time=${Date.now()}`)
                             if(data && data.length > 0) this.setEqMessage(source, data[0])
                         }
