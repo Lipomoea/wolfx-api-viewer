@@ -97,9 +97,24 @@ const update = ()=>{
                 const nearbyStations = adjStationIds[station.id].map(id=>stations[id]).filter(station=>station.level > -1)
                 const possibleNearbyStations = nearbyStations.filter(station=>station.activity > 0)
                 const nearbyActiveNum = possibleNearbyStations.length
-                const numThres = nearbyStations.length <= 2 ? 1 : nearbyStations.length <= 10 ? 2 : 3
+                let numThres, activityThres
+                switch(settingsStore.mainSettings.displaySeisNet.niedSensitivity) {
+                    case 1:
+                        numThres = 3
+                        activityThres = 12 + 0.5 * nearbyStations.length
+                        break
+                    case 2:
+                        numThres = nearbyStations.length <= 6 ? 2 : 3
+                        activityThres = 10 + 0.5 * nearbyStations.length
+                        break
+                    case 3:
+                        numThres = nearbyStations.length <= 2 ? 1 : 2
+                        activityThres = 8 + 0.5 * nearbyStations.length
+                        break
+                    default:
+                        return
+                }
                 if(nearbyActiveNum >= numThres) {
-                    const activityThres = 10 + 0.5 * nearbyStations.length
                     const numActivity = Math.max(nearbyActiveNum * 2 - 3, 0)
                     const nearbyActivity = possibleNearbyStations.reduce((sum, station)=>sum + station.activity, 0) + numActivity
                     if(nearbyActivity >= activityThres){
@@ -201,11 +216,13 @@ watch(()=>statusStore.map, newVal=>{
                     latLngs[i] = L.latLng(newVal[i])
                 }
                 for(let i = 0; i < newVal.length; i++){
-                    adjStationIds[i] = []
+                    const distances = []
                     for(let j = 0; j < newVal.length; j++){
                         const distance = latLngs[i].distanceTo(latLngs[j]) / 1000
-                        if(distance <= 30) adjStationIds[i].push(j)
+                        if(distance <= 30) distances.push({ id: j, distance })
                     }
+                    distances.sort((a, b) => a.distance - b.distance).splice(7)
+                    adjStationIds[i] = distances.map(obj => obj.id)
                 }
             }
         }, { immediate: true })

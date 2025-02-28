@@ -50,6 +50,7 @@ export const useSettingsStore = defineStore('settingsStore', {
                 hideNoData: false,
                 delay: 0,
                 nied: true,
+                niedSensitivity: 2,
                 displayNiedShindo: false,
                 trem: false,
                 tremApi: 'api-2'

@@ -268,8 +268,20 @@
                         </div>
                         <div class="switch-group full-width">
                             <div class="switch">
-                                <span>強震モニタ（震度）</span>
+                                <span>強震モニタ</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.nied"></el-switch>
+                            </div>
+                            <div class="switch">
+                                <span>检知灵敏度: </span>
+                                <el-select 
+                                v-model="settingsStore.mainSettings.displaySeisNet.niedSensitivity"
+                                size="small"
+                                style="width: 50px;">
+                                    <el-option label="关" :value="0"></el-option>
+                                    <el-option label="低" :value="1"></el-option>
+                                    <el-option label="中" :value="2"></el-option>
+                                    <el-option label="高" :value="3"></el-option>
+                                </el-select>
                             </div>
                             <div class="switch" v-if="settingsStore.advancedSettings.displayNiedShindoSwitch">
                                 <el-checkbox v-model="settingsStore.mainSettings.displaySeisNet.displayNiedShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.nied">解析震度阶</el-checkbox>
@@ -277,7 +289,7 @@
                         </div>
                         <div class="switch-group full-width" v-if="settingsStore.advancedSettings.enableTremFunctions">
                             <div class="switch">
-                                <span>TREM-Net （震度）</span>
+                                <span>TREM-Net&nbsp;</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.trem"></el-switch>
                             </div>
                             <div class="switch" style="width: 100px;" v-show="settingsStore.mainSettings.displaySeisNet.trem">
@@ -716,7 +728,7 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
-            <p>v2.0.0-rc.6 变更：JMA地震情报使用了新的接口，降低了数据延迟；新增：日本气象厅地震情报分区震度；优化：切换菜单栏时不再强制缩放地图。</p>
+            <p>v2.0.0-rc.6 变更：JMA地震情报使用了新的接口，降低了数据延迟；新增：日本气象厅地震情报分区震度；新增：支持设置強震モニタ检知灵敏度，且降低了误检知概率；优化：切换菜单栏时不再强制缩放地图。</p>
             <p>v2.0.0-rc.5 新增：日本地区震度本地计算；新增：更改的设置需要重载时添加弹窗提示；优化：侧边栏的美观程度。</p>
             <p>v2.0.0-rc.4.2 优化：相同烈度区域之间增加边界线；优化：规范中国台湾相关地名表述。</p>
             <p>v2.0.0-rc.4.1 变更：更新Vue版本；修复：首个地震信息活跃状态持续时间异常的bug；修复：放映模式下的部分bug。</p>
