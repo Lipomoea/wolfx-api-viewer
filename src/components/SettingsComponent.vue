@@ -318,6 +318,16 @@
                         <div class="switch-group full-width">
                             <div class="switch">
                                 <span>预警/信息页不展开侧边栏</span>
+                                <el-popover
+                                    placement="top"
+                                    :width="300"
+                                    trigger="hover"
+                                >
+                                    <template #reference>
+                                        <question-filled width="1em" height="1em"></question-filled>
+                                    </template>
+                                    <p>当前处于预警/信息页面且地图处于自动缩放状态时，可再次点击对应菜单快速切换状态。</p>
+                                </el-popover>
                                 <el-switch v-model="settingsStore.mainSettings.hideDrawer"></el-switch>
                             </div>
                         </div>
@@ -355,7 +365,7 @@
                     <div class="row">
                         <div class="switch-group">
                             <div class="switch">
-                                <span>强制估算烈度/震度（实验性）</span>
+                                <span>强制估算烈度/震度（低精度）</span>
                                 <el-popover
                                     placement="top"
                                     :width="300"
@@ -364,11 +374,13 @@
                                     <template #reference>
                                         <question-filled width="1em" height="1em"></question-filled>
                                     </template>
-                                    <p>本地烈度：日本地区使用震度，其他区域使用中国地震烈度。</p>
-                                    <p>区域烈度：可能与数据源烈度不一致。</p>
-                                    <p>行政区划分：中国以地级为主。日本跟随气象厅区划。</p>
+                                    <p>强制估算以下数据：</p>
+                                    <p>-本地烈度/震度</p>
+                                    <p>-中国各区划预警和信息下最大烈度</p>
+                                    <p>-日本各区划预警下最大震度（融合数据源）</p>
+                                    <p>估算结果与数据源显示可能有差异。</p>
                                     <strong>
-                                        <p>该功能为实验性功能，精度较低。</p>
+                                        <p>低精度（尤其是深源地震）。</p>
                                         <p>此功能会消耗较多计算机资源。</p>
                                         <p>部分功能需重新加载页面后生效。</p>
                                     </strong>
@@ -728,14 +740,8 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
-            <p>v2.0.0-rc.6 变更：JMA地震情报使用了新的接口，降低了数据延迟；新增：日本气象厅地震情报分区震度；新增：支持设置強震モニタ检知灵敏度，且降低了误检知概率；优化：切换菜单栏时不再强制缩放地图。</p>
+            <p>v2.0.0-rc.6 变更：JMA地震情报使用了新的接口，降低了数据延迟；新增：日本气象厅地震情报分区震度；新增：支持设置強震モニタ检知灵敏度，且降低了误检知概率；优化：切换菜单栏时不再强制缩放地图；修复：侧边栏开关异常自动切换的问题。</p>
             <p>v2.0.0-rc.5 新增：日本地区震度本地计算；新增：更改的设置需要重载时添加弹窗提示；优化：侧边栏的美观程度。</p>
-            <p>v2.0.0-rc.4.2 优化：相同烈度区域之间增加边界线；优化：规范中国台湾相关地名表述。</p>
-            <p>v2.0.0-rc.4.1 变更：更新Vue版本；修复：首个地震信息活跃状态持续时间异常的bug；修复：放映模式下的部分bug。</p>
-            <p>v2.0.0-rc.4 新增：预警/信息页不展开侧边栏功能；新增：放映模式；优化：调整自动返回默认视野状态的时间；优化：部分代码逻辑。</p>
-            <p>v2.0.0-rc.3 优化：CSIS计算公式；优化：震度检出算法；优化：部分代码逻辑。</p>
-            <p>v2.0.0-rc.2 优化：震度检出算法；优化：测站回放时时间颜色变为黄色；修复：CSIS>=10时，多震地图染色错误的bug；修复：读取设置数据时的部分预期外行为；修复：部分情况下启动页面时异常触发已过期事件的bug。</p>
-            <p>v2.0.0-rc.1 新增：单独开关各数据源的功能；修复：部分情况下“隐藏无数据测站”无效的bug。</p>
         </div>
         <div class="title">使用方法</div>
         <div class="about">

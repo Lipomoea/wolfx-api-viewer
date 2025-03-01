@@ -252,7 +252,6 @@ const handleMenu = (index)=>{
         if(shouldHandleHome || isAutoZoom.value) handleHome()
     }, 0);  //语句推迟到容器大小变化后再执行
 }
-provide('handleMenu', handleMenu)
 provide('handleHome', handleHome)
 const wsStatusCode = ref(4)
 const statusList = ['正在连接', '已连接', '正在断开', '已断开', '未连接', '不使用']
@@ -661,7 +660,7 @@ let defaultMenuTimer
 const resetDefaultMenuTimer = ()=>{
     clearTimeout(defaultMenuTimer)
     defaultMenuTimer = setTimeout(() => {
-        handleMenu(defaultMenuId)
+        menuId.value = defaultMenuId
     }, 60 * 1000);
 }
 watch(menuId, (newVal)=>{
