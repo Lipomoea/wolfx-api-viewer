@@ -839,6 +839,7 @@ onBeforeUnmount(()=>{
                 top: 0;
                 left: 0;
                 z-index: 500;   // >=400才会显示在地图上方？
+                pointer-events: none;
                 .event{
                     display: flex;
                 }
@@ -849,7 +850,6 @@ onBeforeUnmount(()=>{
                     border: black 1px solid;
                     border-top: 0px;
                     border-left: 0px;
-                    pointer-events: none;
                     user-select: none;
                     .bar{
                         width: 100%;
@@ -967,6 +967,7 @@ onBeforeUnmount(()=>{
                 z-index: 499;
                 font-size: 18px;
                 color: #ffffff;
+                pointer-events: none;
                 .legend{
                     width: 90px;
                     background-color: #5555553f;
@@ -978,7 +979,6 @@ onBeforeUnmount(()=>{
                     border-radius: 5px;
                     box-shadow: 0px 0px 2px 1px #333;
                     backdrop-filter: blur(10px);
-                    pointer-events: none;
                     user-select: none;
                     .align-right{
                         text-align: right;
