@@ -15,7 +15,8 @@ wolfx-api-viewer(WAV)是一个基于[Wolfx Open API](https://wolfx.jp/apidoc)以
 * 使用本网页前，请详细阅读网页“设置”-“帮助&关于”中的内容。
 * 此应用不属于Wolfx Project，相关问题请勿咨询Wolfx Project。
 ## 数据来源
-* 地震预警、地震信息、IP定位：[Wolfx Open API](https://wolfx.jp/apidoc)
+* 地震预警、地震信息（除JMA地震情报）、IP定位：[Wolfx Open API](https://wolfx.jp/apidoc)
+* 地震信息（JMA地震情报）：[P2PQuake](https://www.p2pquake.net/develop/json_api_v2/#/P2P%E5%9C%B0%E9%9C%87%E6%83%85%E5%A0%B1%20API/get_history)
 * 強震モニタ震度数据：[Yahoo!天気・災害](https://typhoon.yahoo.co.jp/weather/jp/earthquake/kyoshin/)
 * 中国地图：[阿里云DataV.GeoAtlas](https://datav.aliyun.com/portal/school/atlas/area_selector)
 * 中国断层：[国家地震科学数据中心](https://data.earthquake.cn/datashare/report.shtml?PAGEID=datasourcelist&dt=ff808082845b8fd401845bf036a1000c)
@@ -33,6 +34,8 @@ wolfx-api-viewer(WAV)是一个基于[Wolfx Open API](https://wolfx.jp/apidoc)以
 * [FAN](https://www.fanstudio.tech/)
 * Dxr (QQ: 2194362576)
 * HomoOS
+* [azzbm](https://space.bilibili.com/702013828)
+* [不知道要取什么系列](https://space.bilibili.com/499911115)
 * 各位提供帮助的EEW爱好者
 ## 版权声明
 本项目参考了以下项目的源代码。
