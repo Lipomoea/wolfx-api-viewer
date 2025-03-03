@@ -253,9 +253,13 @@ export const calcCsis = (m, dep, dis) => {
     const theta = dis / r;
     const a = r - dep;
     const lineDis = Math.sqrt(a * a + r * r - 2 * a * r * Math.cos(theta));
-    const k = 1 - 0.7 / Math.sqrt(dep / 10)
-    const hypoDis = lineDis - k * dep;
-    return (m * 1.363 + 2.941 - Math.log(hypoDis) * 1.494);
+    const k = 1 - 0.7 / Math.sqrt(dep / 10);
+    const ceaHypoDis = Math.max(lineDis - k * dep + 8, dis);
+    const ceaCsis = 1.297 * m - 4.368 * Math.log10(ceaHypoDis) + 5.363;
+    const iclHypoDis = Math.max(lineDis - k * dep, dis);
+    const iclCsis = 1.363 * m - 1.494 * Math.log(iclHypoDis) + 2.941;
+    const avg = (ceaCsis + iclCsis) / 2;
+    return avg;
 }
 export const calcCsisLevel = (m, dep, dis) => Math.min(Math.max(calcCsis(m, dep, dis), 0), 12).toFixed(0)
 export const formatChineseTaiwan = (str) => (str.startsWith('台湾') && !(str.includes('市') || str.includes('县')) ? '中国' : '') + str

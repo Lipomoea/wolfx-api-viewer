@@ -740,6 +740,7 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
+            <p>v2.0.0-rc.6.1 优化：CSIS计算公式；修复：地图左下角无法正常拖动的bug。</p>
             <p>v2.0.0-rc.6 变更：JMA地震情报使用了新的接口，降低了数据延迟；新增：日本气象厅地震情报分区震度；新增：支持设置強震モニタ检知灵敏度，且降低了误检知概率；优化：切换菜单栏时不再强制缩放地图；修复：侧边栏开关异常自动切换的问题。</p>
             <p>v2.0.0-rc.5 新增：日本地区震度本地计算；新增：更改的设置需要重载时添加弹窗提示；优化：侧边栏的美观程度。</p>
         </div>
@@ -776,7 +777,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        'wolfx-api-viewer v2.0.0-rc.6',
+        'wolfx-api-viewer v2.0.0-rc.6.1',
         {
             confirmButtonText: 'OK',
             showClose: false,
