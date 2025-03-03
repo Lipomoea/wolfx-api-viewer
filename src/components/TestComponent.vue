@@ -11,9 +11,9 @@ import Http from '@/classes/Http';
 
 const statusStore = useStatusStore()
 
-const testJmaEew = false
-const testCwaEew = false
-const testIclEew = false
+const testJmaEew = true
+const testCwaEew = true
+const testIclEew = true
 const testScEew = false
 const testJmaEqlist = true
 
