@@ -53,7 +53,8 @@ export const useSettingsStore = defineStore('settingsStore', {
                 niedSensitivity: 2,
                 displayNiedShindo: false,
                 trem: false,
-                tremApi: 'api-2'
+                tremApi: 'api-2',
+                displayTremShindo: false
             },
             hideDrawer: false,
             cinemaMode: false,

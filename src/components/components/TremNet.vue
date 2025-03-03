@@ -119,7 +119,7 @@ onMounted(()=>{
         })
     }, 1000);
 })
-let unwatchStationList, unwatchGrids, unwatchHideNoData
+let unwatchStationList, unwatchGrids, unwatchDisplayShindo, unwatchHideNoData
 watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
@@ -179,6 +179,9 @@ watch(()=>statusStore.map, newVal=>{
                 statusStore.isActive.tremNet = false
             }
         }, { immediate: true })
+        unwatchDisplayShindo = watch(()=>settingsStore.mainSettings.displaySeisNet.displayTremShindo, ()=>{
+            renderAll()
+        })
         unwatchHideNoData = watch(()=>settingsStore.mainSettings.displaySeisNet.hideNoData, ()=>{
             renderAll()
         })
@@ -243,6 +246,7 @@ onBeforeUnmount(()=>{
     if(map !== null) map.off('zoomend', renderAll)
     if(unwatchStationList) unwatchStationList()
     if(unwatchGrids) unwatchGrids()
+    if(unwatchDisplayShindo) unwatchDisplayShindo()
     if(unwatchHideNoData) unwatchHideNoData()
     Object.keys(stations).forEach(id=>{
         stations[id].terminate()

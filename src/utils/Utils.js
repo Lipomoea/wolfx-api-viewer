@@ -116,6 +116,7 @@ export const setClassName = (intensity, useShindo, isCanceled = false)=>{
 export const classNameArray = ['dark-gray', 'gray', 'sky-blue', 'blue', 'green', 'yellow', 'orange', 'dark-orange', 'red', 'dark-red', 'purple']
 export const csisArray = ['<1', '2', '3', '4', '5', '6', '7', '8', '9', '', '>10']
 export const shindoArray = ['', '1', '', '2', '3', '4', '5-', '5+', '6-', '6+', '7']
+export const shindoScale = ['0', '1', '2', '3', '4', '5-', '5+', '6-', '6+', '7']
 export const getClassLevel = (className)=>{
     return classNameArray.indexOf(className)
 }

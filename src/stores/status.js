@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import Http from '@/classes/Http'
 import WebSocketObj from '@/classes/WebSocket'
 import { eqUrls } from '@/utils/Urls'
-import { setClassName, calcCsisLevel, stampToTime, formatChineseTaiwan, getShindoFromInstShindo } from '@/utils/Utils'
+import { setClassName, calcCsisLevel, stampToTime, formatChineseTaiwan, getShindoFromInstShindo, shindoScale } from '@/utils/Utils'
 
 const defaultEqMessage = {
     source: '',
@@ -33,8 +33,6 @@ const defaultEqMessage = {
     warnArea: '',
     className: ''
 }
-
-const shindoScale = ['0', '1', '2', '3', '4', '5-', '5+', '6-', '6+', '7']
 
 export const useStatusStore = defineStore('statusStore', {
     state: ()=>({

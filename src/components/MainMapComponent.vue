@@ -88,7 +88,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.trem">
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.trem && settingsStore.mainSettings.displaySeisNet.displayTremShindo">
                             <div class="shindo-bar gray">TREM实时</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(tremMaxShindo, true)">
@@ -99,7 +99,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.trem && tremPeriodMaxShindo != '?'">
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.trem && settingsStore.mainSettings.displaySeisNet.displayTremShindo && tremPeriodMaxShindo != '?'">
                             <div class="shindo-bar gray">TREM区间</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(tremPeriodMaxShindo, true)">

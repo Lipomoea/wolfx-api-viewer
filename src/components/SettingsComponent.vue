@@ -276,6 +276,7 @@
                                 <el-select 
                                 v-model="settingsStore.mainSettings.displaySeisNet.niedSensitivity"
                                 size="small"
+                                :disabled="!settingsStore.mainSettings.displaySeisNet.nied"
                                 style="width: 50px;">
                                     <el-option label="关" :value="0"></el-option>
                                     <el-option label="低" :value="1"></el-option>
@@ -292,11 +293,12 @@
                                 <span>TREM-Net&nbsp;</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.trem"></el-switch>
                             </div>
-                            <div class="switch" style="width: 100px;" v-show="settingsStore.mainSettings.displaySeisNet.trem">
+                            <div class="switch" style="width: 100px;">
                                 <span>API: </span>
                                 <el-select 
                                 v-model="settingsStore.mainSettings.displaySeisNet.tremApi"
-                                size="small">
+                                size="small"
+                                :disabled="!settingsStore.mainSettings.displaySeisNet.trem">
                                     <el-option label="api-1" value="api-1"></el-option>
                                     <el-option label="api-2" value="api-2"></el-option>
                                     <el-option label="lb-1" value="lb-1"></el-option>
@@ -304,6 +306,9 @@
                                     <el-option label="lb-3" value="lb-3"></el-option>
                                     <el-option label="lb-4" value="lb-4"></el-option>
                                 </el-select>
+                            </div>
+                            <div class="switch">
+                                <el-checkbox v-model="settingsStore.mainSettings.displaySeisNet.displayTremShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.trem">解析震度阶</el-checkbox>
                             </div>
                         </div>
                     </div>
@@ -740,7 +745,7 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
-            <p>v2.0.0-rc.6.1 优化：CSIS计算公式；修复：地图左下角无法正常拖动的bug。</p>
+            <p>v2.0.0-rc.6.1 优化：CSIS计算公式；优化：部分绘图性能；修复：地图左下角无法正常拖动的bug。</p>
             <p>v2.0.0-rc.6 变更：JMA地震情报使用了新的接口，降低了数据延迟；新增：日本气象厅地震情报分区震度；新增：支持设置強震モニタ检知灵敏度，且降低了误检知概率；优化：切换菜单栏时不再强制缩放地图；修复：侧边栏开关异常自动切换的问题。</p>
             <p>v2.0.0-rc.5 新增：日本地区震度本地计算；新增：更改的设置需要重载时添加弹窗提示；优化：侧边栏的美观程度。</p>
         </div>

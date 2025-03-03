@@ -1,16 +1,31 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { getLevelFromInstShindo, getShindoFromChar, getShindoFromInstShindo } from '@/utils/Utils';
+import { getLevelFromInstShindo, getShindoFromChar, getShindoFromInstShindo, shindoScale } from '@/utils/Utils';
 import { useSettingsStore } from '@/stores/settings';
 import { shindoIconUrls } from '@/utils/Urls';
 
-let colorBand = [
+const colorBand = [
     '#0003cf', 
     '#0014da', '#0037f0', '#006cdc', '#00b3a2', '#12dc72', 
     '#31f049', '#64fb2a', '#9dfe17', '#ccff09', '#ebff03', 
     '#fff500', '#ffe500', '#ffca00', '#ffa600', '#ff7e00', 
     '#ff5900', '#fd3500', '#f81100', '#e50000', '#bd0000'
 ]
+
+const shindoIcons = {}
+for(let zoom = 6; zoom <= 10; zoom ++) {
+    const icons = {}
+    const radius = 8 * 1.5 ** (zoom / 2 - 3)
+    shindoScale.forEach(shindo => {
+        const shindoIcon = L.icon({
+            iconUrl: shindoIconUrls[shindo],
+            iconSize: [radius * 2, radius * 2],
+            iconAnchor: [radius, radius]
+        })
+        icons[shindo] = shindoIcon
+    })
+    shindoIcons[zoom] = icons
+}
 
 let settingsStore
 class NiedStation {
@@ -73,12 +88,10 @@ class NiedStation {
     render(){
         this.setColorRadius()
         if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
-        if(settingsStore.mainSettings.displaySeisNet.displayNiedShindo && this.level >= 6 && this.map.getZoom() >= 4){
-            const shindoIcon = L.icon({
-                iconUrl: shindoIconUrls[this.shindo],
-                iconSize: [this.radius * 2, this.radius * 2],
-                iconAnchor: [this.radius, this.radius],
-            })
+        const zoom = this.map.getZoom()
+        if(settingsStore.mainSettings.displaySeisNet.displayNiedShindo && this.level >= 6 && zoom >= 4){
+            const iconZoom = Math.min(Math.max(zoom, 6), 10)
+            const shindoIcon = shindoIcons[iconZoom][this.shindo]
             this.marker = L.marker(this.latLng, {
                 icon: shindoIcon,
                 pane: `niedStationPane${this.level}`,
@@ -107,12 +120,7 @@ class NiedStation {
             this.color = colorBand[this.level]
         }
         const zoom = this.map.getZoom()
-        if(settingsStore.mainSettings.displaySeisNet.displayNiedShindo && this.level >= 6 && zoom >= 4){
-            this.radius = 8 * 1.5 ** (Math.min(Math.max(zoom, 6), 10) / 2 - 3)
-        }
-        else{
-            this.radius = (2 + this.level * 0.1) * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
-        }
+        this.radius = (2 + this.level * 0.1) * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
     }
     setActive(){
         this.isActive = true
@@ -153,12 +161,10 @@ class TremStation {
     render(){
         this.setColorRadius()
         if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
-        if(this.level >= 6 && this.map.getZoom() >= 4){
-            const shindoIcon = L.icon({
-                iconUrl: shindoIconUrls[this.shindo],
-                iconSize: [this.radius * 2, this.radius * 2],
-                iconAnchor: [this.radius, this.radius],
-            })
+        const zoom = this.map.getZoom()
+        if(settingsStore.mainSettings.displaySeisNet.displayTremShindo && this.level >= 6 && zoom >= 4){
+            const iconZoom = Math.min(Math.max(zoom, 6), 10)
+            const shindoIcon = shindoIcons[iconZoom][this.shindo]
             this.marker = L.marker(this.latLng, {
                 icon: shindoIcon,
                 pane: `tremStationPane${this.level}`,
@@ -187,12 +193,7 @@ class TremStation {
             this.color = colorBand[this.level]
         }
         const zoom = this.map.getZoom()
-        if(this.level >= 6 && zoom >= 4){
-            this.radius = 8 * 1.5 ** (Math.min(Math.max(zoom, 6), 10) / 2 - 3)
-        }
-        else{
-            this.radius = (2 + this.level * 0.1) * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
-        }
+        this.radius = (2 + this.level * 0.1) * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
     }
     terminate(){
         if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
