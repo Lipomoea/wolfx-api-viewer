@@ -106,12 +106,7 @@ watch(eqMessage, (newVal)=>{
             let i = 0
             while(i < activeEewList.length){
                 if(judgeSameEvent(newVal, activeEewList[i].eqMessage)){
-                    if(newVal.isCanceled){
-                        activeEewList[i].handleCancel(Object.assign({}, newVal), time)
-                    }
-                    else{
-                        activeEewList[i].update(Object.assign({}, newVal), time)
-                    }
+                    activeEewList[i].update(Object.assign({}, newVal), time)
                     break
                 }
                 i++
