@@ -55,7 +55,7 @@
                                     </div>
                                 </div>
                                 <div class="right">
-                                    <div class="location">{{ event.eqMessage.hypocenter ? event.eqMessage.hypocenter : '震源 調査中' }}</div>
+                                    <div class="location">{{ event.eqMessage.hypocenter || '震源 調査中' }}</div>
                                     <div class="time">{{ event.eqMessage.originTime + (event.useJst?' (UTC+9)':' (UTC+8)') }}</div>
                                     <div class="bottom">
                                         <div class="magnitude">{{ event.eqMessage.magnitude != -1 ? 'M' + event.eqMessage.magnitude.toFixed(1) : '規模・深さ 調査中' }}</div>

@@ -9,7 +9,7 @@
                     </div>
                 </div>
                 <div class="right">
-                    <div class="location">{{ item.hypocenter ? item.hypocenter : '震源 調査中' }}</div>
+                    <div class="location">{{ item.hypocenter || '震源 調査中' }}</div>
                     <div class="rightBottom">
                         <div class="timeDepth">
                             <div class="time">{{ item.originTime + (useJst?' (UTC+9)':' (UTC+8)') }}</div>
