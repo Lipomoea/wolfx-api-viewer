@@ -82,13 +82,15 @@ class EewEvent {
     }
     setMark(){
         if(this.hypoMarker && this.map.hasLayer(this.hypoMarker)) this.map.removeLayer(this.hypoMarker)
-        if(this.eqMessage.isCanceled){
-            this.hypoMarker = L.marker(this.hypoLatLng, {icon: this.eqMessage.isAssumption?eewCancelCircleDivIcon:eewCancelCrossDivIcon, pane: 'eewMarkerPane', interactive: false})
+        if(this.hypoLatLng) {
+            if(this.eqMessage.isCanceled){
+                this.hypoMarker = L.marker(this.hypoLatLng, {icon: this.eqMessage.isAssumption?eewCancelCircleDivIcon:eewCancelCrossDivIcon, pane: 'eewMarkerPane', interactive: false})
+            }
+            else{
+                this.hypoMarker = L.marker(this.hypoLatLng, {icon: this.eqMessage.isAssumption?eewCircleDivIcon:eewCrossDivIcon, pane: 'eewMarkerPane', interactive: false})
+            }
+            this.hypoMarker.addTo(this.map)
         }
-        else{
-            this.hypoMarker = L.marker(this.hypoLatLng, {icon: this.eqMessage.isAssumption?eewCircleDivIcon:eewCrossDivIcon, pane: 'eewMarkerPane', interactive: false})
-        }
-        this.hypoMarker.addTo(this.map)
     }
     drawWaves(){
         let passedTime
@@ -99,7 +101,7 @@ class EewEvent {
             passedTime = calcPassedTime(this.eqMessage.originTime, 8) / 1000
         }
         this.handleCountdown(passedTime)
-        if(!this.eqMessage.isAssumption){
+        if(this.hypoLatLng && !this.eqMessage.isAssumption){
             this.switchDrawWaves(passedTime)
         }
         else{
@@ -131,7 +133,6 @@ class EewEvent {
                 interactive: false
             })
             this.pWave.addTo(this.map)
-            // L.DomUtil.addClass(this.pWave.getElement(), 'wave')
         }
         if(this.sWave && this.map.hasLayer(this.sWave)) this.map.removeLayer(this.sWave)
         if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) this.map.removeLayer(this.sWaveFill)
@@ -157,8 +158,6 @@ class EewEvent {
                 interactive: false
             })
             this.sWaveFill.addTo(this.map)
-            // L.DomUtil.addClass(this.sWave.getElement(), 'wave')
-            // L.DomUtil.addClass(this.sWaveFill.getElement(), 'wave')
         }
     }
     calcOpacityRatio(radius, maxRadius){
