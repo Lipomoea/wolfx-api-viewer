@@ -128,7 +128,8 @@
                     </div>
                     <div class="ws-status">
                         WebSocket状态: 
-                        <div class="dot" :class="'s' + wsStatusCode"></div>
+                        <div class="dot" :class="'s' + wolfxRS"></div>
+                        <div class="dot" :class="'s' + p2pquakeRS"></div>
                         {{ statusList[wsStatusCode] }}
                     </div>
                     <div class="nied-update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isNiedDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.nied">
@@ -172,7 +173,7 @@
             </div>
             <div class="drawer" v-show="(menuId == 'eews' || menuId == 'eqlists') && !settingsStore.mainSettings.hideDrawer || menuId == 'settings'">
                 <EewComponent v-show="menuId == 'eews'"></EewComponent>
-                <SeisNetComponent></SeisNetComponent>
+                <SeisNetComponent v-show="false"></SeisNetComponent>
                 <EqlistComponent v-show="menuId == 'eqlists'"></EqlistComponent>
                 <SettingsComponent v-show="menuId == 'settings'"></SettingsComponent>
             </div>
@@ -253,8 +254,10 @@ const handleMenu = (index)=>{
     }, 0);  //语句推迟到容器大小变化后再执行
 }
 provide('handleHome', handleHome)
-const wsStatusCode = ref(4)
-const statusList = ['正在连接', '已连接', '正在断开', '已断开', '未连接', '不使用']
+const wsStatusCode = ref(0)
+const wolfxRS = ref(4)
+const p2pquakeRS = ref(4)
+const statusList = ['未连接', '部分连接', '已连接']
 const niedUpdateTime = ref('1970-01-01 09:00:00')
 const niedMaxShindo = ref('?')
 const niedPeriodMaxShindo = ref('?')
@@ -533,7 +536,9 @@ const intervalEvents = ()=>{
     tremGridPane.style.display = blinkStatus && !statusStore.isActive.cwaEew?'block':'none'
     isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
     isTremDelayed.value = !verifyUpToDate(tremUpdateTime.value, 8, 10000)
-    wsStatusCode.value = statusStore.allEewSocketObj?statusStore.allEewSocketObj.socket.readyState:4
+    wolfxRS.value = statusStore.wolfxSocket?.socket.readyState || 4
+    p2pquakeRS.value = statusStore.p2pquakeSocket?.socket.readyState || 4
+    wsStatusCode.value = (wolfxRS.value == 1) + (p2pquakeRS.value == 1)
     if(isEewBlink) eewMarkerPane.style.display = blinkStatus?'block':'none'
 }
 const setMapHeight = (height) => {
@@ -724,20 +729,11 @@ const jmaWarnArea = computed(()=>{
                     const { magnitude, depth, lat, lng } = eew
                     const intensity = calcJmaShindoLevel(magnitude, depth, lat, lng, jmaSeisIntLoc[id], false)
                     if(intensity < '1') continue
-                    const sect = jmaSeisIntLoc[id].sect
+                    const name = jmaSeisIntLoc[id].sect
                     const className = setClassName(intensity, true)
-                    if(jmaWarnArea[sect]) {
-                        if(getClassLevel(className) > getClassLevel(jmaWarnArea[sect].className)) {
-                            jmaWarnArea[sect] = {
-                                name: sect,
-                                intensity,
-                                className
-                            }
-                        }
-                    }
-                    else {
-                        jmaWarnArea[sect] = {
-                            name: sect,
+                    if(!jmaWarnArea[name] || getClassLevel(className) > getClassLevel(jmaWarnArea[name].className)) {
+                        jmaWarnArea[name] = {
+                            name,
                             intensity,
                             className
                         }
@@ -751,25 +747,10 @@ const jmaWarnArea = computed(()=>{
         if(!jmaEqlistEvent) return {}
         const warnArea = JSON.parse(jmaEqlistEvent.eqMessage.warnArea)
         warnArea.forEach(point => {
-            const sect = point.isArea ? point.addr : jmaSeisIntLoc[point.addr]?.sect
-            if(!sect) return
-            const intensity = getShindoFromInstShindo(point.scale / 10, false)
-            const className = setClassName(intensity, true)
-            if(jmaWarnArea[sect]) {
-                if(getClassLevel(className) > getClassLevel(jmaWarnArea[sect].className)) {
-                    jmaWarnArea[sect] = {
-                        name: sect,
-                        intensity,
-                        className
-                    }
-                }
-            }
-            else {
-                jmaWarnArea[sect] = {
-                    name: sect,
-                    intensity,
-                    className
-                }
+            const { name, className } = point
+            if(!name) return
+            if(!jmaWarnArea[name] || getClassLevel(className) > getClassLevel(jmaWarnArea[name].className)) {
+                jmaWarnArea[name] = point
             }
         })
     }
@@ -1026,9 +1007,6 @@ onBeforeUnmount(()=>{
                     }
                     .s2,.s3,.s4{
                         background-color: red;
-                    }
-                    .s5{
-                        background-color: white;
                     }
                 }
                 .delayed{

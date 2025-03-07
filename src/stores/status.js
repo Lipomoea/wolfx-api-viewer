@@ -3,6 +3,7 @@ import Http from '@/classes/Http'
 import WebSocketObj from '@/classes/WebSocket'
 import { eqUrls } from '@/utils/Urls'
 import { setClassName, calcCsisLevel, stampToTime, formatChineseTaiwan, getShindoFromInstShindo, shindoScale } from '@/utils/Utils'
+import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc'
 
 const defaultEqMessage = {
     source: '',
@@ -38,7 +39,10 @@ export const useStatusStore = defineStore('statusStore', {
     state: ()=>({
         map: null,
         httpRequest: null,
-        allEewSocketObj: null,
+        wolfxSocket: null,
+        p2pquakeSocket: null,
+        useWolfxSocket: ['jmaEew', 'cwaEew', 'scEew', 'fjEew', 'cencEqlist'],
+        useP2pquakeSocket: ['jmaEqlist'],
         enabledSource: [],
         eqMessage: {
             jmaEew: Object.assign({}, defaultEqMessage),
@@ -259,7 +263,16 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.titleText = '震度速報'
                                 eqMessage.maxIntensity = getShindoFromInstShindo(data.earthquake.maxScale / 10, false)
                                 eqMessage.maxIntensityText = '最大震度: ' + eqMessage.maxIntensity
-                                eqMessage.warnArea = JSON.stringify(data.points)
+                                eqMessage.warnArea = JSON.stringify(data.points.map(point => {
+                                    const name = point.isArea ? point.addr : jmaSeisIntLoc[point.addr]?.sect
+                                    const intensity = getShindoFromInstShindo(point.scale / 10, false)
+                                    const className = setClassName(intensity, true)
+                                    return {
+                                        name,
+                                        intensity,
+                                        className
+                                    }
+                                }))
                                 if(isNewEvent){
                                     eqMessage.hypocenter = data.earthquake.hypocenter.name
                                     eqMessage.hypocenterText = '震源地: 調査中'
@@ -285,7 +298,16 @@ export const useStatusStore = defineStore('statusStore', {
                                 if(isNewEvent){
                                     eqMessage.maxIntensity = getShindoFromInstShindo(data.earthquake.maxScale / 10, false)
                                     eqMessage.maxIntensityText = '最大震度: ' + eqMessage.maxIntensity
-                                    eqMessage.warnArea = JSON.stringify(data.points)
+                                    eqMessage.warnArea = JSON.stringify(data.points.map(point => {
+                                        const name = point.isArea ? point.addr : jmaSeisIntLoc[point.addr]?.sect
+                                        const intensity = getShindoFromInstShindo(point.scale / 10, false)
+                                        const className = setClassName(intensity, true)
+                                        return {
+                                            name,
+                                            intensity,
+                                            className
+                                        }
+                                    }))
                                 }
                                 break
                             default:
@@ -317,7 +339,16 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.magnitudeText = 'マグニチュード: ' + eqMessage.magnitude.toFixed(1)
                                 eqMessage.maxIntensity = getShindoFromInstShindo(data.earthquake.maxScale / 10, false)
                                 eqMessage.maxIntensityText = '最大震度: ' + eqMessage.maxIntensity
-                                eqMessage.warnArea = JSON.stringify(data.points)
+                                eqMessage.warnArea = JSON.stringify(data.points.map(point => {
+                                    const name = point.isArea ? point.addr : jmaSeisIntLoc[point.addr]?.sect
+                                    const intensity = getShindoFromInstShindo(point.scale / 10, false)
+                                    const className = setClassName(intensity, true)
+                                    return {
+                                        name,
+                                        intensity,
+                                        className
+                                    }
+                                }))
                                 break
                         }
                         break
@@ -370,40 +401,57 @@ export const useStatusStore = defineStore('statusStore', {
                 clearInterval(this.httpRequest)
                 this.httpRequest = setInterval(async () => {
                     const promises = this.enabledSource.map(async source=>{
-                        if((source != 'ceaEew' && source != 'iclEew' && source != 'cwaEqlist' && source != 'jmaEqlist' && this.allEewSocketObj?.socket.readyState != 1) || 
-                           (source == 'iclEew' && 'iclEew_http' in eqUrls)) {
+                        if((this.useWolfxSocket.includes(source) && (this.wolfxSocket?.socket.readyState != 1 || !this.eqMessage[source].id)) || 
+                            (source == 'iclEew' && 'iclEew_http' in eqUrls)) {
                             const data = await Http.get(eqUrls[source + '_http'] + `?time=${Date.now()}`)
                             if(data && Object.keys(data).length > 0) this.setEqMessage(source, data)
+                        }
+                        else if((this.useP2pquakeSocket.includes(source) && (this.p2pquakeSocket?.socket.readyState != 1 || !this.eqMessage[source].id)) ||
+                            (source == 'cwaEqlist')) {
+                            const data = await Http.get(eqUrls[source + '_http'] + `&time=${Date.now()}`)
+                            if(data && data.length > 0) this.setEqMessage(source, data[0])
                         }
                         else if(source == 'ceaEew' && 'ceaEew_http' in eqUrls) {
                             const data = await Http.get(eqUrls[source + '_http'] + `&time=${Date.now()}`)
                             if(data && data.Data) this.setEqMessage(source, data.Data)
-                        }
-                        else if(source == 'jmaEqlist' || source == 'cwaEqlist') {
-                            const data = await Http.get(eqUrls[source + '_http'] + `&time=${Date.now()}`)
-                            if(data && data.length > 0) this.setEqMessage(source, data[0])
                         }
                     })
                     await Promise.all(promises)
                 }, 1000);
             }
             else if(protocol == 'ws'){
-                if(this.allEewSocketObj) this.allEewSocketObj.close()
-                this.allEewSocketObj = new WebSocketObj(eqUrls.allEew_ws)
-                this.allEewSocketObj.setMessageHandler((e)=>{
-                    let data = JSON.parse(e.data)
-                    if(data.type == 'heartbeat'){
-                        this.allEewSocketObj.ping()
-                    }
-                    else if(data.type == 'pong'){
-                        // console.log('pong', props.source);
-                    }
-                    else if(data.type != 'jma_eqlist'){
-                        const splitType = data.type.split('_')
-                        const source = splitType[0] + splitType[1][0].toUpperCase() + splitType[1].slice(1)
-                        this.setEqMessage(source, data)
-                    }
-                })
+                if(this.wolfxSocket) this.wolfxSocket.close()
+                if(this.useWolfxSocket.some(source => this.enabledSource.includes(source))) {
+                    this.wolfxSocket = new WebSocketObj(eqUrls.wolfx_ws)
+                    this.wolfxSocket.setMessageHandler((e)=>{
+                        let data = JSON.parse(e.data)
+                        if(data.type == 'heartbeat'){
+                            this.wolfxSocket.ping()
+                        }
+                        else if(data.type == 'pong'){
+                            // console.log('pong', props.source);
+                        }
+                        else if(data.type != 'jma_eqlist'){
+                            const splitType = data.type.split('_')
+                            const source = splitType[0] + splitType[1][0].toUpperCase() + splitType[1].slice(1)
+                            this.setEqMessage(source, data)
+                        }
+                    })
+                }
+                if(this.p2pquakeSocket) this.p2pquakeSocket.close()
+                if(this.useP2pquakeSocket.some(source => this.enabledSource.includes(source))) {
+                    this.p2pquakeSocket = new WebSocketObj(eqUrls.p2pquake_ws)
+                    this.p2pquakeSocket.setMessageHandler((e)=>{
+                        let data = JSON.parse(e.data)
+                        switch(data.code) {
+                            case 551:
+                                if(data.time.slice(0, -4) > this.eqMessage.jmaEqlist.reportTime) {
+                                    this.setEqMessage('jmaEqlist', data)
+                                }
+                                break
+                        }
+                    })
+                }
             }
             else{
                 console.log('Unrecognized protocol type.')
@@ -411,13 +459,12 @@ export const useStatusStore = defineStore('statusStore', {
         },
         disconnect(){
             clearInterval(this.httpRequest)
-            if(this.allEewSocketObj) this.allEewSocketObj.close()
+            if(this.wolfxSocket) this.wolfxSocket.close()
+            if(this.p2pquakeSocket) this.p2pquakeSocket.close()
         },
         startUpdatingEqMessage(){
             this.connect('http')
-            setTimeout(() => {
-                this.connect('ws')
-            }, 3000);
+            this.connect('ws')
         },
         setActive(source, isActive){
             this.isActive[source] = isActive

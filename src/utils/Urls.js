@@ -9,7 +9,8 @@ const eqUrls = {
     cencEqlistHistory: 'https://api.wolfx.jp/cenc_eqlist.json',
     jmaEqlistHistory: 'https://api.wolfx.jp/jma_eqlist.json',
     cwaEqlistHistory: 'https://api-2.exptech.dev/api/v2/eq/report?limit=50',
-    allEew_ws: 'wss://ws-api.wolfx.jp/all_eew'
+    wolfx_ws: 'wss://ws-api.wolfx.jp/all_eew',
+    p2pquake_ws: 'wss://api.p2pquake.net/v2/ws'
 }
 const seisNetUrls = {
     nied: {
