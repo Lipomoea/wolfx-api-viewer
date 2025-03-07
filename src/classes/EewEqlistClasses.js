@@ -183,7 +183,7 @@ class EewEvent {
             this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
             if(this.isValidUserLatLng) {
                 this.userDist = L.latLng(this.hypoLatLng).distanceTo(L.latLng(this.userLatLng)) / 1000
-                this.reachTime = calcReachTime(this.travelTime, false, this.eqMessage.depth, this.userDist)
+                this.reachTime = calcReachTime(this.userDist <= this.maxRadius ? travelTimes.jma2001 : travelTimes.jb, false, this.eqMessage.depth, this.userDist)
                 this.userCsis = calcCsisLevel(this.eqMessage.magnitude, this.eqMessage.depth, this.userDist)
             }
             else {
