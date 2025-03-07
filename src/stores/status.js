@@ -445,9 +445,7 @@ export const useStatusStore = defineStore('statusStore', {
                         let data = JSON.parse(e.data)
                         switch(data.code) {
                             case 551:
-                                if(data.time.slice(0, -4) > this.eqMessage.jmaEqlist.reportTime) {
-                                    this.setEqMessage('jmaEqlist', data)
-                                }
+                                this.setEqMessage('jmaEqlist', data)
                                 break
                         }
                     })
