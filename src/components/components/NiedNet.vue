@@ -219,7 +219,7 @@ watch(()=>statusStore.map, newVal=>{
                     const distances = []
                     for(let j = 0; j < newVal.length; j++){
                         const distance = latLngs[i].distanceTo(latLngs[j]) / 1000
-                        if(distance <= 30) distances.push({ id: j, distance })
+                        if(distance <= 40) distances.push({ id: j, distance })
                     }
                     distances.sort((a, b) => a.distance - b.distance).splice(7)
                     adjStationIds[i] = distances.map(obj => obj.id)
