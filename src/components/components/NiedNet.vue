@@ -43,6 +43,7 @@ const currentMaxShindo = computed(()=>{
     else return 7
 })
 let adjStationIds = {}
+let expireSeconds = {}
 const activeStations = computed(()=>{
     let list = []
     stations.forEach(station=>{
@@ -207,10 +208,6 @@ watch(()=>statusStore.map, newVal=>{
         map.on('zoomend', renderAll)
         unwatchStationList = watch(stationList, newVal=>{
             if(newVal.length > 0){
-                newVal.forEach((latLng, index)=>{
-                    const station = reactive(new NiedStation(map, index, latLng, 'c'))
-                    stations.push(station)
-                })
                 let latLngs = []
                 for(let i = 0; i < newVal.length; i++){
                     latLngs[i] = L.latLng(newVal[i])
@@ -223,7 +220,12 @@ watch(()=>statusStore.map, newVal=>{
                     }
                     distances.sort((a, b) => a.distance - b.distance).splice(7)
                     adjStationIds[i] = distances.map(obj => obj.id)
+                    expireSeconds[i] = Math.max(Math.ceil(distances[distances.length - 1].distance / 3.5), 4)
                 }
+                newVal.forEach((latLng, index)=>{
+                    const station = reactive(new NiedStation(map, index, latLng, 'c', expireSeconds[index]))
+                    stations.push(station)
+                })
             }
         }, { immediate: true })
         unwatchGrids = watch(grids, (newVal)=>{

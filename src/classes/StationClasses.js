@@ -29,12 +29,13 @@ for(let zoom = 6; zoom <= 10; zoom ++) {
 
 let settingsStore
 class NiedStation {
-    constructor(map, id, latLng, intensity){
+    constructor(map, id, latLng, intensity, expireSeconds){
         if(!settingsStore) settingsStore = useSettingsStore()
         this.map = map
         this.id = id
         this.latLng = latLng
         this.intensity = intensity
+        this.expireSeconds = expireSeconds
         this.shindo = getShindoFromChar(intensity)
         this.level = intensity.charCodeAt(0) - 100
         this.recentLevel = [this.level]
@@ -58,7 +59,7 @@ class NiedStation {
         }
         this.activity = this.calcActivity(level, ascend)
         this.recentLevel.unshift(level)
-        if(this.recentLevel.length > 10) this.recentLevel.pop()
+        if(this.recentLevel.length > this.expireSeconds) this.recentLevel.pop()
     }
     calcActivity(level, ascend){
         let levelActivity, ascendActivity
