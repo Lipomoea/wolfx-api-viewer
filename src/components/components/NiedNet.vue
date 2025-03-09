@@ -220,7 +220,7 @@ watch(()=>statusStore.map, newVal=>{
                     }
                     distances.sort((a, b) => a.distance - b.distance).splice(7)
                     adjStationIds[i] = distances.map(obj => obj.id)
-                    expireSeconds[i] = Math.max(Math.ceil(distances[distances.length - 1].distance / 3.5), 4)
+                    expireSeconds[i] = Math.max(Math.ceil(distances[distances.length - 1].distance / 3.5), 6)
                 }
                 newVal.forEach((latLng, index)=>{
                     const station = reactive(new NiedStation(map, index, latLng, 'c', expireSeconds[index]))
