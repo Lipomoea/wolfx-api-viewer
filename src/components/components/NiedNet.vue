@@ -105,7 +105,7 @@ const update = ()=>{
                         activityThres = 12 + 0.5 * nearbyStations.length
                         break
                     case 2:
-                        numThres = nearbyStations.length <= 6 ? 2 : 3
+                        numThres = nearbyStations.length <= 1 ? 1 : nearbyStations.length <= 6 ? 2 : 3
                         activityThres = 10 + 0.5 * nearbyStations.length
                         break
                     case 3:
