@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2.0.0-rc",
-  "productName": "wolfx-api-viewer",
+  "productName": "kanameishi",
   "version": "2.0.0-1062",
   "identifier": "com.viewer.wolfx",
   "build": {
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "wolfx-api-viewer",
+        "title": "要石 kanameishi",
         "width": 1280,
         "height": 720,
         "minWidth": 960,

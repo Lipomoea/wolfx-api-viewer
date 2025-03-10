@@ -1,12 +1,12 @@
-# wolfx-api-viewer
+# 要石 kanameishi (原wolfx-api-viewer)
 > [!TIP]
 > 你正在浏览dev分支。
 ## 简介
-wolfx-api-viewer(WAV)是一个基于[Wolfx Open API](https://wolfx.jp/apidoc)以及其他API制作的地震预警和地震信息可视化Web应用，基于Vite+Vue3+Leaflet开发。  
-现已提供基于Tauri构建的Windows应用程序，推荐Windows 10及以上系统使用。  
+要石(kanameishi / 原wolfx-api-viewer)是一个基于[Wolfx Open API](https://wolfx.jp/apidoc)以及其他API制作的地震预警和地震信息可视化Web应用，基于Vite+Vue3+Leaflet开发。  
+提供基于Tauri构建的Windows应用程序，推荐Windows 10及以上系统使用。  
 * [Web稳定版](http://124.70.142.213:8080/)
 * [Web开发版](http://124.70.142.213:8081/)
-* [Windows应用程序下载](https://github.com/Lipomoea/wolfx-api-viewer/releases)
+* [Windows应用程序下载](https://github.com/Lipomoea/kanameishi/releases)
 ## 主要功能  
 * 接收日本气象厅、台湾省中央气象署、四川省地震局、福建省地震局地震预警信息。
 * 接收日本气象厅、中国地震台网地震信息。
@@ -44,4 +44,4 @@ wolfx-api-viewer(WAV)是一个基于[Wolfx Open API](https://wolfx.jp/apidoc)以
 * [EarthQuakeWarning](https://github.com/kengwang/EarthQuakeWarning)
 * [Zero-Quake](https://github.com/0Quake/Zero-Quake)
 ## 开放源代码许可
-本项目基于[AGPL-3.0](https://github.com/Lipomoea/wolfx-api-viewer/blob/main/LICENSE)协议授权。
+本项目基于[AGPL-3.0](https://github.com/Lipomoea/kanameishi/blob/main/LICENSE)协议授权。

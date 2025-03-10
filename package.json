@@ -1,6 +1,6 @@
 {
-  "name": "wolfx-api-viewer",
-  "version": "2.0.0-rc.6.2",
+  "name": "kanameishi",
+  "version": "2.0.0-rc.7",
   "private": true,
   "type": "module",
   "scripts": {
