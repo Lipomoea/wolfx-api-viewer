@@ -858,7 +858,7 @@ onBeforeUnmount(()=>{
                         display: flex;
                         gap: 10px;
                         align-items: center;
-                        background-color: #cfcfcf9f;
+                        background-color: #ffffff9f;
                         backdrop-filter: blur(10px);
                         .intensity{
                             width: 100px;
