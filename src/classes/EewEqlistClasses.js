@@ -84,11 +84,19 @@ class EewEvent {
         if(this.hypoMarker && this.map.hasLayer(this.hypoMarker)) this.map.removeLayer(this.hypoMarker)
         if(this.hypoLatLng) {
             if(this.eqMessage.isCanceled){
-                this.hypoMarker = L.marker(this.hypoLatLng, {icon: this.eqMessage.isAssumption?eewCancelCircleDivIcon:eewCancelCrossDivIcon, pane: 'eewMarkerPane', interactive: false})
+                this.hypoMarker = L.marker(this.hypoLatLng, { icon: this.eqMessage.isAssumption?eewCancelCircleDivIcon:eewCancelCrossDivIcon, pane: 'eewMarkerPane' })
             }
             else{
-                this.hypoMarker = L.marker(this.hypoLatLng, {icon: this.eqMessage.isAssumption?eewCircleDivIcon:eewCrossDivIcon, pane: 'eewMarkerPane', interactive: false})
+                this.hypoMarker = L.marker(this.hypoLatLng, { icon: this.eqMessage.isAssumption?eewCircleDivIcon:eewCrossDivIcon, pane: 'eewMarkerPane' })
             }
+            this.hypoMarker.bindTooltip(`
+                <strong>${this.eqMessage.titleText}</strong><br>
+                ${this.eqMessage.reportNumText}<br>
+                ${this.eqMessage.hypocenter}(${this.eqMessage.lat},${this.eqMessage.lng})<br>
+                ${this.eqMessage.depthText}<br>
+                M${this.eqMessage.magnitude}<br>
+                ${this.eqMessage.maxIntensityText}`, 
+                { permanent: false, direction: 'top', className: 'custom-tooltip' })
             this.hypoMarker.addTo(this.map)
         }
     }
@@ -330,7 +338,14 @@ class EqlistEvent {
     setMark(){
         this.removeMark()
         if(this.isValidHypo){
-            this.hypoMarker = L.marker(this.hypoLatLng, {icon: eqlistCrossDivIcon, pane: 'eqlistMarkerPane', interactive: false})
+            this.hypoMarker = L.marker(this.hypoLatLng, { icon: eqlistCrossDivIcon, pane: 'eqlistMarkerPane' })
+            this.hypoMarker.bindTooltip(`
+                <strong>${this.eqMessage.titleText}</strong><br>
+                ${this.eqMessage.hypocenter}(${this.eqMessage.lat},${this.eqMessage.lng})<br>
+                ${this.eqMessage.depthText}<br>
+                M${this.eqMessage.magnitude}<br>
+                ${this.eqMessage.maxIntensityText}`, 
+                { permanent: false, direction: 'top', className: 'custom-tooltip' })
             this.hypoMarker.addTo(this.map)    
         }
     }

@@ -16,3 +16,7 @@ body{
 path.leaflet-interactive:focus {
   outline: none;
 }
+
+.custom-tooltip {
+  text-align: center;
+}

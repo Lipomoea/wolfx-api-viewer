@@ -231,7 +231,6 @@ let defaultMenuId = 'main'
 const menuId = ref(defaultMenuId)
 let autoZoomTimer
 let firstMsg = false
-let isEewBlink = true
 let blinkStatus = true
 const handleManual = ()=>{
     isAutoZoom.value = false
@@ -392,7 +391,7 @@ onMounted(()=>{
     }, { immediate: true })
     loadMaps()
     watch(()=>settingsStore.mainSettings.displayCnFault, newVal=>{
-        cnFaultBasePane.style.display = newVal?'block':'none'
+        cnFaultBasePane.style.display = newVal ? 'block' : 'none'
     }, { immediate: true })
     if(settingsStore.mainSettings.cinemaMode) {
         watch(() => statusStore.isActive, newVal => {
@@ -422,7 +421,6 @@ onMounted(()=>{
     }
     intervalEvents()
     mainInterval = setInterval(() => {
-        blinkStatus = !blinkStatus
         intervalEvents()
     }, 500);
 })
@@ -532,14 +530,15 @@ const loadMaps = async () => {
     }
 }
 const intervalEvents = ()=>{
-    niedGridPane.style.display = blinkStatus && !statusStore.isActive.jmaEew?'block':'none'
-    tremGridPane.style.display = blinkStatus && !statusStore.isActive.cwaEew?'block':'none'
+    blinkStatus = !blinkStatus
+    eewMarkerPane.style.opacity = blinkStatus ? 1 : 0
+    niedGridPane.style.opacity = blinkStatus && !statusStore.isActive.jmaEew ? 1 : 0
+    tremGridPane.style.opacity = blinkStatus && !statusStore.isActive.cwaEew ? 1 : 0
     isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
     isTremDelayed.value = !verifyUpToDate(tremUpdateTime.value, 8, 10000)
     wolfxRS.value = statusStore.wolfxSocket?.socket.readyState || 4
     p2pquakeRS.value = statusStore.p2pquakeSocket?.socket.readyState || 4
     wsStatusCode.value = (wolfxRS.value == 1) + (p2pquakeRS.value == 1)
-    if(isEewBlink) eewMarkerPane.style.display = blinkStatus?'block':'none'
 }
 const setMapHeight = (height) => {
     const mapElement = map.getContainer()
@@ -658,7 +657,7 @@ const loadBaseMap = (geojson, pane, style = {
 const onEachFeature = (name)=>(feature, layer)=>{
     layer.bindTooltip(feature.properties[name], {
         permanent: false,
-        direction: 'auto'
+        direction: 'top'
     })
 }
 let defaultMenuTimer
@@ -684,13 +683,12 @@ watch(menuId, (newVal)=>{
         eqlistMarkerPane.style.display = 'block'
     }
     if(newVal == 'eqlists'){
-        isEewBlink = false
         eewMarkerPane.style.display = 'none'
         wavePane.style.display = 'none'
         waveFillPane.style.display = 'none'
     }
     else{
-        isEewBlink = true
+        eewMarkerPane.style.display = 'block'
         wavePane.style.display = 'block'
         waveFillPane.style.display = 'block'
     }
