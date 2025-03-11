@@ -61,7 +61,7 @@ const eewCancelCircleDivIcon = L.divIcon({
 })
 
 class EewEvent {
-    constructor(map, eqMessage, activeEewList, time){
+    constructor(map, eqMessage, activeEewList){
         this.map = map
         this.settingsStore = useSettingsStore()
         this.eqMessage = eqMessage
@@ -94,6 +94,7 @@ class EewEvent {
                 ${this.eqMessage.reportNumText}<br>
                 ${this.eqMessage.hypocenter}(${this.eqMessage.lat},${this.eqMessage.lng})<br>
                 ${this.eqMessage.depthText}<br>
+                ${this.eqMessage.originTime} (+${this.useJst ? 9 : 8})<br>
                 M${this.eqMessage.magnitude.toFixed(1)}<br>
                 ${this.eqMessage.maxIntensityText}`, 
                 { permanent: false, direction: 'top', className: 'custom-tooltip' })
@@ -314,7 +315,7 @@ class EewEvent {
     }
 }
 class EqlistEvent {
-    constructor(map, eqMessage, time){
+    constructor(map, eqMessage){
         this.map = map
         this.settingsStore = useSettingsStore()
         this.eqMessage = eqMessage
@@ -343,6 +344,7 @@ class EqlistEvent {
                 <strong>${this.eqMessage.titleText}</strong><br>
                 ${this.eqMessage.hypocenter}(${this.eqMessage.lat},${this.eqMessage.lng})<br>
                 ${this.eqMessage.depthText}<br>
+                ${this.eqMessage.originTime} (+${this.useJst ? 9 : 8})<br>
                 M${this.eqMessage.magnitude.toFixed(1)}<br>
                 ${this.eqMessage.maxIntensityText}`, 
                 { permanent: false, direction: 'top', className: 'custom-tooltip' })
