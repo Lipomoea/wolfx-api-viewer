@@ -94,7 +94,7 @@ class EewEvent {
                 ${this.eqMessage.reportNumText}<br>
                 ${this.eqMessage.hypocenter}(${this.eqMessage.lat},${this.eqMessage.lng})<br>
                 ${this.eqMessage.depthText}<br>
-                M${this.eqMessage.magnitude}<br>
+                M${this.eqMessage.magnitude.toFixed(1)}<br>
                 ${this.eqMessage.maxIntensityText}`, 
                 { permanent: false, direction: 'top', className: 'custom-tooltip' })
             this.hypoMarker.addTo(this.map)
@@ -343,7 +343,7 @@ class EqlistEvent {
                 <strong>${this.eqMessage.titleText}</strong><br>
                 ${this.eqMessage.hypocenter}(${this.eqMessage.lat},${this.eqMessage.lng})<br>
                 ${this.eqMessage.depthText}<br>
-                M${this.eqMessage.magnitude}<br>
+                M${this.eqMessage.magnitude.toFixed(1)}<br>
                 ${this.eqMessage.maxIntensityText}`, 
                 { permanent: false, direction: 'top', className: 'custom-tooltip' })
             this.hypoMarker.addTo(this.map)    
