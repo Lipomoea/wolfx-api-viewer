@@ -73,7 +73,7 @@ const geojsonUrls = {
 }
 const utilUrls = {
     geoIp: 'https://api.wolfx.jp/geoip.php',
-    ntpTime: 'https://worldtimeapi.org/api/timezone/Asia/Hong_Kong',
+    ntpTime: 'https://api.wolfx.jp/ntp.json',
 }
 
 export { eqUrls, seisNetUrls, iconUrls, shindoIconUrls, chimeUrls, geojsonUrls, utilUrls }

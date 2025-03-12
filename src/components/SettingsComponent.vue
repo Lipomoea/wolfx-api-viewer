@@ -745,6 +745,7 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
+            <p>v2.0.0-rc.7.1 变更：使用新的ntp对时api；新增：鼠标悬浮到震源图标上显示地震参数。</p>
             <p>v2.0.0-rc.7 变更：“wolfx-api-viewer”正式更名“要石”（"kanameishi"）；优化：调整震度检出算法。</p>
             <p>v2.0.0-rc.6.2 新增：JMA地震情报接入WebSocket；新增：支持震中距2000km以上使用J-B走时表计算横波到时。</p>
             <p>v2.0.0-rc.6.1 优化：CSIS计算公式；优化：部分绘图性能；修复：地图左下角无法正常拖动的bug。</p>
@@ -784,7 +785,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        '要石 v2.0.0-rc.7',
+        '要石 v2.0.0-rc.7.1',
         {
             confirmButtonText: 'OK',
             showClose: false,

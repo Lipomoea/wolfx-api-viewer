@@ -17,6 +17,10 @@ export const useTimeStore = defineStore('timeStore', {
             this.stopUpdatingTime()
             this.calibrateOffset()
             this.updateTime()
+            setTimeout(() => {
+                this.calibrateOffset()
+                this.updateTime()
+            }, 5000);
             this.calibrateInterval = setInterval(this.calibrateOffset, 60000)
             this.updateInterval = setInterval(this.updateTime, 500)
         },
@@ -26,8 +30,8 @@ export const useTimeStore = defineStore('timeStore', {
         },
         calibrateOffset() {
             Http.get(utilUrls.ntpTime).then(res=>{
-                if(res?.unixtime && res?.utc_datetime){
-                    let ntpTimeStamp = res.unixtime * 1000 + Number(res.utc_datetime.split('.')[1].slice(0, 3))
+                if(res?.timestamp){
+                    let ntpTimeStamp = res.timestamp
                     let systemTimeStamp = Date.now()
                     this.offset = ntpTimeStamp - systemTimeStamp
                 }
