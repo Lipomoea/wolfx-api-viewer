@@ -15,7 +15,7 @@
 * 使用本网页前，请详细阅读网页“设置”-“帮助&关于”中的内容。
 * 此应用不属于Wolfx Project，相关问题请勿咨询Wolfx Project。
 ## 数据来源
-* 地震预警、地震信息（除JMA地震情报）、IP定位：[Wolfx Open API](https://wolfx.jp/apidoc)
+* 地震预警、地震信息（除JMA地震情报）、IP定位、NTP时间：[Wolfx Open API](https://wolfx.jp/apidoc)
 * 地震信息（JMA地震情报）：[P2PQuake](https://www.p2pquake.net/develop/json_api_v2/#/P2P%E5%9C%B0%E9%9C%87%E6%83%85%E5%A0%B1%20API/get_history)
 * 強震モニタ震度数据：[Yahoo!天気・災害](https://typhoon.yahoo.co.jp/weather/jp/earthquake/kyoshin/)
 * 中国地图：[阿里云DataV.GeoAtlas](https://datav.aliyun.com/portal/school/atlas/area_selector)
@@ -23,7 +23,6 @@
 * 日本地图：[日本気象庁](https://www.data.jma.go.jp/developer/gis.html)
 * 世界地图：[GeoJSON Maps of the globe](https://geojson-maps.kyd.au/)
 * SREV音效：[scratch-realtime-earthquake-viewer-page](https://github.com/kotoho7/scratch-realtime-earthquake-viewer-page)
-* NTP时间：[WorldTimeAPI](https://www.worldtimeapi.org/)
 ## 参考软件
 * [JQuake](https://jquake.net/)
 * [scratch-realtime-earthquake-viewer-page](https://github.com/kotoho7/scratch-realtime-earthquake-viewer-page)
