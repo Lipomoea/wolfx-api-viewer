@@ -863,16 +863,16 @@ onMounted(async ()=>{
         const limit = 20
         const res = await Http.get(`https://api.p2pquake.net/v2/jma/tsunami?limit=${limit}&order=1&since_date=20240101`)
         console.log(res);
-        let i = 0
+        let i = 1
         const data = res[i]
         statusStore.setTsunamiMessage(source, data)
-        setInterval(() => {
-            i++
-            if(i < limit) {
-                const data = res[i]
-                statusStore.setTsunamiMessage(source, data)
-            }
-        }, 15000);
+        // setInterval(() => {
+        //     i++
+        //     if(i < limit) {
+        //         const data = res[i]
+        //         statusStore.setTsunamiMessage(source, data)
+        //     }
+        // }, 15000);
     }
 })
 </script>

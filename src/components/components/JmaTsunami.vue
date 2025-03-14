@@ -67,7 +67,7 @@ const formatArrival = (condition, arrivalTime) => {
         }
     }
     else {
-        return arrivalTime.slice(8).replace(' ', '日 ')
+        return arrivalTime.slice(8, -3).replace(' ', '日 ')
     }
 }
 const formatDescription = description => description.replace('０', '0').replace('１', '1').replace('３', '3').replace('５', '5').replace('ｍ', 'm')
@@ -195,13 +195,13 @@ watch(() => statusStore.map, newVal => {
                 .info {
                     width: 100%;
                     display: grid;
-                    grid-template-columns: 1fr 0.8fr 0.5fr;
+                    grid-template-columns: 5fr 3fr 2fr;
                     column-gap: 5px;
                     div {
-                        height: 28px;
+                        height: 30px;
                         justify-self: center;
                         align-self: center;
-                        font-size: 16px;
+                        font-size: 18px;
                         display: flex;
                         justify-content: center;
                         align-items: center;
@@ -213,7 +213,7 @@ watch(() => statusStore.map, newVal => {
                         width: 100%;
                     }
                     .description {
-                        width: 60px;
+                        width: 65px;
                         height: 100%;
                     }
                 }
