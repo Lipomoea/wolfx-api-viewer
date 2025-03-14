@@ -2,7 +2,7 @@
     <div class="outer">
         <div class="container" @click="handleClick">
             <div class="title">津波到達予想</div>
-            <div class="receive">{{ statusStore.tsunamiMessage.jmaTsunami.reportTime }} (UTC+9) 受信</div>
+            <div class="receive">{{ statusStore.tsunamiMessage.jmaTsunami.reportTime }} (UTC+9) 発表</div>
             <div class="details">
                 <div class="sub-title purple" v-if="warnAreaByGrade.MajorWarning">大津波警報</div>
                 <div class="group" v-if="warnAreaByGrade.MajorWarning">
