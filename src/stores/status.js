@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia'
 import Http from '@/classes/Http'
 import WebSocketObj from '@/classes/WebSocket'
-import { eqUrls } from '@/utils/Urls'
+import { eqUrls, tsunamiUrls } from '@/utils/Urls'
 import { setClassName, calcCsisLevel, stampToTime, formatChineseTaiwan, getShindoFromInstShindo, shindoScale } from '@/utils/Utils'
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc'
 
-const defaultEqMessage = {
+export const defaultEqMessage = {
     source: '',
     id: '',
     isEew: false,
@@ -31,7 +31,17 @@ const defaultEqMessage = {
     useShindo: false,
     maxIntensity: '',
     maxIntensityText: '',
-    warnArea: '',
+    warnArea: '[]',
+    className: ''
+}
+export const defaultTsunamiMessage = {
+    source: '',
+    id: '',
+    reportTime: '',
+    title: '',
+    titleText: '',
+    status: 0,
+    warnArea: '[]',
     className: ''
 }
 
@@ -42,7 +52,7 @@ export const useStatusStore = defineStore('statusStore', {
         wolfxSocket: null,
         p2pquakeSocket: null,
         useWolfxSocket: ['jmaEew', 'cwaEew', 'scEew', 'fjEew', 'cencEqlist'],
-        useP2pquakeSocket: ['jmaEqlist'],
+        useP2pquakeSocket: ['jmaEqlist', 'jmaTsunami'],
         enabledSource: [],
         eqMessage: {
             jmaEew: Object.assign({}, defaultEqMessage),
@@ -55,6 +65,9 @@ export const useStatusStore = defineStore('statusStore', {
             cwaEqlist: Object.assign({}, defaultEqMessage),
             cencEqlist: Object.assign({}, defaultEqMessage)
         },
+        tsunamiMessage: {
+            jmaTsunami: Object.assign({}, defaultTsunamiMessage)
+        },
         isActive: {
             jmaEew: false,
             cwaEew: false,
@@ -66,7 +79,8 @@ export const useStatusStore = defineStore('statusStore', {
             cwaEqlist: false,
             cencEqlist: false,
             niedNet: false,
-            tremNet: false
+            tremNet: false,
+            jmaTsunami: false
         },
         forceCalcInt: false
     }),
@@ -396,18 +410,93 @@ export const useStatusStore = defineStore('statusStore', {
                 console.log(err);
             }
         },
+        setTsunamiMessage(source, data) {
+            try{
+                const tsunamiMessage = this.tsunamiMessage[source]
+                tsunamiMessage.source = source
+                tsunamiMessage.reportTime = data.issue.time
+                switch(source){
+                    case 'jmaTsunami': {
+                        tsunamiMessage.id = data.id
+                        if(data.cancelled) {
+                            tsunamiMessage.title = '津波警報・注意報なし'
+                            tsunamiMessage.titleText = '津波警報・注意報なし'
+                            tsunamiMessage.status = 0
+                            tsunamiMessage.className = 'white'
+                        }
+                        else {
+                            switch(data.areas[0].grade) {
+                                case 'Watch':
+                                    tsunamiMessage.title = '津波注意報'
+                                    tsunamiMessage.titleText = '津波注意報発表中'
+                                    tsunamiMessage.status = 1
+                                    tsunamiMessage.className = 'yellow'
+                                    break
+                                case 'Warning':
+                                    tsunamiMessage.title = '津波警報'
+                                    tsunamiMessage.titleText = '津波警報発表中'
+                                    tsunamiMessage.status = 2
+                                    tsunamiMessage.className = 'red'
+                                    break
+                                case 'MajorWarning':
+                                    tsunamiMessage.title = '大津波警報'
+                                    tsunamiMessage.titleText = '大津波警報発表中'
+                                    tsunamiMessage.status = 3
+                                    tsunamiMessage.className = 'purple'
+                                    break
+                            }    
+                        }
+                        tsunamiMessage.warnArea = JSON.stringify(data.areas.map(item => {
+                            let className = 'white'
+                            switch(item.grade) {
+                                case 'Watch':
+                                    className = 'yellow'
+                                    break
+                                case 'Warning':
+                                    className = 'red'
+                                    break
+                                case 'MajorWarning':
+                                    className = 'purple'
+                                    break
+                            }    
+                            return {
+                                name: item.name,
+                                grade: item.grade,
+                                height: item.maxHeight?.value,
+                                description: item.maxHeight.description,
+                                arrivalTime: item.firstHeight?.arrivalTime,
+                                condition: item.firstHeight?.condition,
+                                className
+                            }
+                        }))
+                        this.isActive.jmaTsunami = !!tsunamiMessage.status
+                        break
+                    }
+                }
+            } catch(err) {
+                console.log(err);
+            }
+        },
         connect(protocol){
             if(protocol == 'http'){
                 clearInterval(this.httpRequest)
                 this.httpRequest = setInterval(async () => {
+                    const status = Date.now() % 2000 < 1000
                     const promises = this.enabledSource.map(async source=>{
                         if((this.useWolfxSocket.includes(source) && (this.wolfxSocket?.socket.readyState != 1 || !this.eqMessage[source].id)) || 
                             (source == 'iclEew' && 'iclEew_http' in eqUrls)) {
                             const data = await Http.get(eqUrls[source + '_http'] + `?time=${Date.now()}`)
                             if(data && Object.keys(data).length > 0) this.setEqMessage(source, data)
                         }
-                        else if((this.useP2pquakeSocket.includes(source) && (this.p2pquakeSocket?.socket.readyState != 1 || !this.eqMessage[source].id)) ||
-                            (source == 'cwaEqlist')) {
+                        else if(source == 'jmaEqlist' && (this.p2pquakeSocket?.socket.readyState != 1 || !this.eqMessage[source].id) && status) {
+                            const data = await Http.get(eqUrls[source + '_http'] + `&time=${Date.now()}`)
+                            if(data && data.length > 0) this.setEqMessage(source, data[0])
+                        }
+                        else if(source == 'jmaTsunami' && (this.p2pquakeSocket?.socket.readyState != 1 || !this.tsunamiMessage[source].id) && !status) {
+                            const data = await Http.get(tsunamiUrls[source + '_http'] + `&time=${Date.now()}`)
+                            if(data && data.length > 0) this.setTsunamiMessage(source, data[0])
+                        }
+                        else if(source == 'cwaEqlist') {
                             const data = await Http.get(eqUrls[source + '_http'] + `&time=${Date.now()}`)
                             if(data && data.length > 0) this.setEqMessage(source, data[0])
                         }
@@ -434,7 +523,7 @@ export const useStatusStore = defineStore('statusStore', {
                         else if(data.type != 'jma_eqlist'){
                             const splitType = data.type.split('_')
                             const source = splitType[0] + splitType[1][0].toUpperCase() + splitType[1].slice(1)
-                            this.setEqMessage(source, data)
+                            if(this.enabledSource.includes(source)) this.setEqMessage(source, data)
                         }
                     })
                 }
@@ -445,7 +534,10 @@ export const useStatusStore = defineStore('statusStore', {
                         let data = JSON.parse(e.data)
                         switch(data.code) {
                             case 551:
-                                this.setEqMessage('jmaEqlist', data)
+                                if(this.enabledSource.includes('jmaEqlist')) this.setEqMessage('jmaEqlist', data)
+                                break
+                            case 552:
+                                if(this.enabledSource.includes('jmaTsunami')) this.setTsunamiMessage('jmaTsunami', data)
                                 break
                         }
                     })

@@ -2,7 +2,7 @@
     <div class="outer">
         <div class="container">
             <div class="mapContainer">
-                <div id="mainMap" @wheel="handleManual" @dblclick="handleManual"></div>
+                <div id="mainMap" @wheel.passive="handleManual" @dblclick="handleManual"></div>
                 <div class="eewList">
                     <div class="event" v-for="(event, index) of activeEewList" :key="index" v-show="menuId != 'eqlists'">
                         <div class="eew">
@@ -62,6 +62,19 @@
                                         <div class="depth">{{ event.eqMessage.depth != -1 ? event.eqMessage.depthText : '' }}</div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="event" v-if="settingsStore.mainSettings.source.jmaTsunami && statusStore.isActive.jmaTsunami">
+                        <div class="eew">
+                            <div class="bar" :class="statusStore.tsunamiMessage.jmaTsunami.className">{{ statusStore.tsunamiMessage.jmaTsunami.titleText }}</div>
+                            <div class="tsunami-info">
+                                <div v-show="statusStore.tsunamiMessage.jmaTsunami.status >= 3" class="text">大津波警報</div>
+                                <div v-show="statusStore.tsunamiMessage.jmaTsunami.status >= 3" class="legend tsunami-purple"></div>
+                                <div v-show="statusStore.tsunamiMessage.jmaTsunami.status >= 2" class="text">津波警報</div>
+                                <div v-show="statusStore.tsunamiMessage.jmaTsunami.status >= 2" class="legend tsunami-red"></div>
+                                <div v-show="statusStore.tsunamiMessage.jmaTsunami.status >= 1" class="text">津波注意報</div>
+                                <div v-show="statusStore.tsunamiMessage.jmaTsunami.status >= 1" class="legend tsunami-yellow"></div>
                             </div>
                         </div>
                     </div>
@@ -200,8 +213,8 @@ import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
-let map, jpEewBaseMap, cnEewBaseMap
-let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, cnFaultBasePane, jpEewBasePane, cnEewBasePane
+let map, jpEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap
+let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, cnFaultBasePane, jpEewBasePane, cnEewBasePane, jpTsunamiBasePane
 const defaultLatLng = [38.1, 104.6]
 const isValidUserLatLng = computed(()=>settingsStore.mainSettings.userLatLng.every(item=>item !== ''))
 const isDisplayUser = computed(()=>isValidUserLatLng.value && settingsStore.mainSettings.displayUser)
@@ -232,6 +245,7 @@ const menuId = ref(defaultMenuId)
 let autoZoomTimer
 let firstMsg = false
 let blinkStatus = true
+let tsunamiFlickerCounter = -1
 const handleManual = ()=>{
     isAutoZoom.value = false
     clearTimeout(autoZoomTimer)
@@ -277,14 +291,22 @@ const eqlistList = reactive([])
 const activeEqlistList = computed(()=>eqlistList.filter(event=>event.isActive))
 provide('activeEewList', activeEewList)
 provide('eqlistList', eqlistList)
+const jmaTsunamiWarnArea = computed(() => {
+    const warnArea = JSON.parse(statusStore.tsunamiMessage.jmaTsunami.warnArea)
+    const jmaTsunamiWarnArea = {}
+    warnArea.forEach(item => {
+        jmaTsunamiWarnArea[item.name] = item
+    })
+    return jmaTsunamiWarnArea
+})
+provide('jmaTsunamiWarnArea', jmaTsunamiWarnArea)
 const activeSources = computed(()=>
     [...new Set(activeEewList.map(event=>event.eqMessage.source)), ...new Set(activeEqlistList.value.map(event=>event.eqMessage.source))]
 )
 watch(activeSources, newVal=>{
     for(let source in statusStore.isActive){
-        if(!source.includes('Net')){
-            if(newVal.includes(source)) statusStore.isActive[source] = true
-            else statusStore.isActive[source] = false
+        if(source.includes('Eew') || source.includes('Eqlist')){
+            statusStore.isActive[source] = newVal.includes(source)
         }
     }
 })
@@ -348,6 +370,9 @@ onMounted(()=>{
     map.createPane('cnFaultBasePane')
     cnFaultBasePane = map.getPane('cnFaultBasePane')
     cnFaultBasePane.style.zIndex = 30
+    map.createPane('jpTsunamiBasePane')
+    jpTsunamiBasePane = map.getPane('jpTsunamiBasePane')
+    jpTsunamiBasePane.style.zIndex = 40
     for(let i = -1; i <= 20; i++){
         map.createPane(`niedStationPane${i}`)
         map.getPane(`niedStationPane${i}`).style.zIndex = i + 50
@@ -397,14 +422,14 @@ onMounted(()=>{
         watch(() => statusStore.isActive, newVal => {
             const keys = Object.keys(newVal)
             const isEewOrNetActive = keys.filter(key => key.includes('Eew') || key.includes('Net')).some(key => newVal[key])
-            const isEqlistActive = keys.filter(key => key.includes('Eqlist')).some(key => newVal[key])
-            if(isEewOrNetActive && isEqlistActive) {
+            const isEqlistOrTsunamiActive = keys.filter(key => key.includes('Eqlist') || key.includes('Tsunami')).some(key => newVal[key])
+            if(isEewOrNetActive && isEqlistOrTsunamiActive) {
                 defaultMenuId = 'main'
             }
             else if(isEewOrNetActive) {
                 defaultMenuId = 'eews'
             }
-            else if(isEqlistActive) {
+            else if(isEqlistOrTsunamiActive) {
                 defaultMenuId = 'eqlists'
             }
             else {
@@ -444,8 +469,8 @@ const loadMaps = async () => {
         promises = Object.keys(geojsonUrls).map(key=>fetch(geojsonUrls[key]).then(res=>res?.json()))
     }
     const resps = await Promise.all(promises)
-    const [global, cn, cn_eew, cn_fault, jp, jp_eew] = resps
-    if(global && cn && cn_eew && cn_fault && jp && jp_eew){
+    const [global, cn, cn_eew, cn_fault, jp, jp_eew, jp_tsunami] = resps
+    if(global && cn && cn_eew && cn_fault && jp && jp_eew && jp_tsunami){
         clearTimeout(msgTimer)
         loadBaseMap(global, 'globalBasePane')
         loadBaseMap(cn, 'cnBasePane')
@@ -471,11 +496,15 @@ const loadMaps = async () => {
             fillOpacity: 1,
             weight: 1,
         })
+        jpTsunamiBaseMap = loadBaseMap(jp_tsunami, 'jpTsunamiBasePane', {
+            color: '#ffffff00',
+            opacity: 1,
+            weight: 6,
+        })
         watch(jmaWarnArea, (newVal)=>{
-            const areas = Object.keys(newVal)
             jpEewBaseMap.eachLayer(layer=>{
                 const layerName = layer.feature.properties.name
-                if(areas.includes(layerName)){
+                if(layerName in newVal){
                     if(layer.options.fillColor != `var(--${newVal[layerName].className})`){
                         layer.setStyle({
                             color: '#bbbbbb',
@@ -522,6 +551,28 @@ const loadMaps = async () => {
                 })
             }, { deep: true, immediate: true })
         }
+        if(settingsStore.mainSettings.source.jmaTsunami) {
+            watch(jmaTsunamiWarnArea, newVal => {
+                jpTsunamiBaseMap.eachLayer(layer => {
+                    const layerName = layer.feature.properties.name
+                    if(layerName in newVal){
+                        if(layer.options.color != `var(--tsunami-${newVal[layerName].className})`){
+                            layer.setStyle({
+                                color: `var(--tsunami-${newVal[layerName].className})`
+                            })
+                        }
+                    }
+                    else{
+                        if(layer.options.color != '#ffffff00'){
+                            layer.setStyle({
+                                color: '#ffffff00'
+                            })
+                        }
+                    }
+                })
+                if(isAutoZoom.value) setView()
+            }, { deep: true, immediate: true })
+        }
     }
     else{
         setTimeout(() => {
@@ -531,9 +582,11 @@ const loadMaps = async () => {
 }
 const intervalEvents = ()=>{
     blinkStatus = !blinkStatus
+    tsunamiFlickerCounter = (tsunamiFlickerCounter + 1) % 6
     eewMarkerPane.style.opacity = blinkStatus ? 1 : 0
     niedGridPane.style.opacity = blinkStatus && !statusStore.isActive.jmaEew ? 1 : 0
     tremGridPane.style.opacity = blinkStatus && !statusStore.isActive.cwaEew ? 1 : 0
+    jpTsunamiBasePane.style.opacity = tsunamiFlickerCounter ? 1 : 0
     isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
     isTremDelayed.value = !verifyUpToDate(tremUpdateTime.value, 8, 10000)
     wolfxRS.value = statusStore.wolfxSocket?.socket.readyState || 4
@@ -549,8 +602,9 @@ const setMapHeight = (height) => {
 }
 const setView = ()=>{
     const bounds = L.latLngBounds([])
-    map.eachLayer(layer=>{
-        if(menuId.value != 'eqlists'){
+    //Eew和SeisNet
+    if(menuId.value != 'eqlists'){
+        map.eachLayer(layer=>{
             if(['waveFillPane', 'eewMarkerPane'].includes(layer.options.pane)){
                 if(layer.getBounds){
                     bounds.extend(layer.getBounds())
@@ -575,9 +629,12 @@ const setView = ()=>{
                     bounds.extend(layer.getLatLng())
                 }
             }
-        }
-        else if(activeEqlistList.value.length == 0){
-            if(layer.options.pane == 'eqlistMarkerPane' || layer.options.pane.includes('EewBasePane') && layer.options.fillColor && layer.options.fillColor != '#55555500'){
+        })
+    }
+    //活跃的Eqlist和Tsunami
+    if(!bounds.isValid() && menuId.value != 'eews') {
+        jpTsunamiBaseMap?.eachLayer(layer => {
+            if(statusStore.isActive.jmaTsunami && layer.options.pane.includes('TsunamiBasePane') && layer.options.color && layer.options.color != '#ffffff00') {
                 if(layer.getBounds){
                     bounds.extend(layer.getBounds())
                 }
@@ -585,9 +642,7 @@ const setView = ()=>{
                     bounds.extend(layer.getLatLng())
                 }
             }
-        }
-    })
-    if(menuId.value != 'eews' && !bounds.isValid()){
+        })
         activeEqlistList.value.forEach(event=>{
             if(event.eqMessage.source == 'jmaEqlist') {
                 if(event.isValidHypo){
@@ -615,6 +670,21 @@ const setView = ()=>{
             }
         })
     }
+    //不活跃的Eqlist
+    if(!bounds.isValid() && menuId.value == 'eqlists') {
+        map.eachLayer(layer => {
+            if(layer.options.pane == 'eqlistMarkerPane' || 
+            layer.options.pane.includes('EewBasePane') && layer.options.fillColor && layer.options.fillColor != '#55555500'){
+                if(layer.getBounds){
+                    bounds.extend(layer.getBounds())
+                }
+                else if(layer.getLatLng){
+                    bounds.extend(layer.getLatLng())
+                }
+            }
+        })
+    }
+    //应用bounds
     if(bounds.isValid()){
         map.fitBounds(bounds, {
             padding: [50, 50],
@@ -622,6 +692,7 @@ const setView = ()=>{
             animate: true
         })
     }
+    //默认视野
     else{
         let targetCenter
         if(isValidViewLatLng.value){
@@ -929,6 +1000,34 @@ onBeforeUnmount(()=>{
                                     font-size: 22px;
                                 }
                             }
+                        }
+                    }
+                    .tsunami-info {
+                        height: 100px;
+                        padding: 10px 40px;
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        column-gap: 30px;
+                        align-items: center;
+                        background-color: #ffffff9f;
+                        backdrop-filter: blur(10px);
+                        .text {
+                            justify-self: end;
+                            text-align: right;
+                            font-size: 18px;
+                        }
+                        .legend {
+                            width: 80px;
+                            height: 5px;
+                        }
+                        .tsunami-purple {
+                            background-color: var(--tsunami-purple);
+                        }
+                        .tsunami-red {
+                            background-color: var(--tsunami-red);
+                        }
+                        .tsunami-yellow {
+                            background-color: var(--tsunami-yellow);
                         }
                     }
                 }

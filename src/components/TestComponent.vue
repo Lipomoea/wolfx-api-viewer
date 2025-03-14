@@ -16,6 +16,7 @@ const testCwaEew = true
 const testIclEew = true
 const testScEew = false
 const testJmaEqlist = true
+const testJmaTsunami = true
 
 onMounted(async ()=>{
     if(testJmaEew){
@@ -450,7 +451,7 @@ onMounted(async ()=>{
                 "Pond": ""
             }
             statusStore.setEqMessage(source, data)
-        }, 8000);
+        }, 15000);
         // setTimeout(() => {
         //     const data = {
         //         "Title": "緊急地震速報（警報）",
@@ -853,6 +854,25 @@ onMounted(async ()=>{
                 statusStore.setEqMessage(source, data)
             }
         }, 3000);
+    }
+    if(testJmaEqlist){
+        const source = 'jmaTsunami'
+        setTimeout(() => {
+            statusStore.disconnect()
+        }, 2000);
+        const limit = 20
+        const res = await Http.get(`https://api.p2pquake.net/v2/jma/tsunami?limit=${limit}&order=1&since_date=20240101`)
+        console.log(res);
+        let i = 0
+        const data = res[i]
+        statusStore.setTsunamiMessage(source, data)
+        setInterval(() => {
+            i++
+            if(i < limit) {
+                const data = res[i]
+                statusStore.setTsunamiMessage(source, data)
+            }
+        }, 15000);
     }
 })
 </script>

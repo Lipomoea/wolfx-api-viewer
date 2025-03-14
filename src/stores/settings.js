@@ -13,7 +13,8 @@ export const useSettingsStore = defineStore('settingsStore', {
                 fjEew: true,
                 jmaEqlist: true,
                 cwaEqlist: false,
-                cencEqlist: true
+                cencEqlist: true,
+                jmaTsunami: true
             },
             onEew: {
                 notification: false,
@@ -31,6 +32,11 @@ export const useSettingsStore = defineStore('settingsStore', {
                 focus:false,
             },
             onShake: {
+                notification: false,
+                sound: false,
+                focus:false,
+            },
+            onTsunami: {
                 notification: false,
                 sound: false,
                 focus:false,

@@ -1,7 +1,10 @@
 <template>
   <div class="outer">
     <div class="container">
-      <div class="title">地震信息</div>
+      <div class="title">地震/海啸信息</div>
+      <div class="eqGrid">
+        <JmaTsunami v-if="settingsStore.mainSettings.source.jmaTsunami" v-show="statusStore.isActive.jmaTsunami"></JmaTsunami>
+      </div>
       <div class="eqGrid">
         <EqGrid
         v-for="(source, index) of eqlistList"
@@ -15,11 +18,14 @@
 
 <script setup>
 import EqGrid from '@/components/components/EqGrid.vue';
+import JmaTsunami from './components/JmaTsunami.vue';
 import { More } from '@element-plus/icons-vue';
 import router from '@/router';
 import { useSettingsStore } from '@/stores/settings';
+import { useStatusStore } from '@/stores/status';
 
 const settingsStore = useSettingsStore()
+const statusStore = useStatusStore()
 
 const eqlistList = Object.keys(settingsStore.mainSettings.source).filter(source => source.includes('Eqlist') && settingsStore.mainSettings.source[source])
 

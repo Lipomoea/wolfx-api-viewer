@@ -37,6 +37,8 @@
                     <el-switch v-if="settingsStore.advancedSettings.enableTremFunctions" v-model="settingsStore.mainSettings.source.cwaEqlist"></el-switch>
                     <div class="full-width">中国地震台网测定</div>
                     <el-switch v-model="settingsStore.mainSettings.source.cencEqlist"></el-switch>
+                    <div class="full-width">日本気象庁津波情報</div>
+                    <el-switch v-model="settingsStore.mainSettings.source.jmaTsunami"></el-switch>
                 </div>
                 <div class="sub-title">行为</div>
                 <div class="group">
@@ -105,6 +107,23 @@
                             <div class="switch" v-if="showFocusButton">
                                 <span>弹出窗口</span>
                                 <el-switch v-model="settingsStore.mainSettings.onShake.focus"></el-switch>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <span class="full-width group-title">收到海啸信息时</span>
+                        <div class="switch-group">
+                            <div class="switch" v-if="showNotifButton">
+                                <span>发送通知</span>
+                                <el-switch v-model="settingsStore.mainSettings.onTsunami.notification"></el-switch>
+                            </div>
+                            <div class="switch">
+                                <span>播放声音</span>
+                                <el-switch v-model="settingsStore.mainSettings.onTsunami.sound"></el-switch>
+                            </div>
+                            <div class="switch" v-if="showFocusButton">
+                                <span>弹出窗口</span>
+                                <el-switch v-model="settingsStore.mainSettings.onTsunami.focus"></el-switch>
                             </div>
                         </div>
                     </div>
@@ -360,7 +379,7 @@
                             <div class="switch">
                                 <el-checkbox v-model="settingsStore.mainSettings.eqlistsAsDefault"
                                 :disabled="!settingsStore.mainSettings.cinemaMode"
-                                @change="handleNeedReload">将地震信息页面设为默认</el-checkbox>
+                                @change="handleNeedReload">将地震/海啸信息页面设为默认</el-checkbox>
                             </div>
                         </div>
                     </div>
@@ -745,6 +764,7 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
+            <p>v2.0.0-rc.8 新增：JMA津波情報。</p>
             <p>v2.0.0-rc.7.1 变更：使用新的ntp对时api；新增：鼠标悬浮到震源图标上显示地震参数。</p>
             <p>v2.0.0-rc.7 变更：“wolfx-api-viewer”正式更名“要石”（"kanameishi"）；优化：调整震度检出算法。</p>
             <p>v2.0.0-rc.6.2 新增：JMA地震情报接入WebSocket；新增：支持震中距2000km以上使用J-B走时表计算横波到时。</p>
@@ -754,7 +774,7 @@ const handleAbout = ()=>{
         </div>
         <div class="title">使用方法</div>
         <div class="about">
-            <p>主要功能：接收日本气象厅、台湾省中央气象署、四川省地震局、福建省地震局地震预警信息，日本气象厅、中国地震台网地震信息，NIED強震モニタ测站数据。</p>
+            <p>主要功能：接收日本气象厅、台湾省中央气象署、四川省地震局、福建省地震局地震预警信息，日本气象厅、中国地震台网地震信息，日本气象厅海啸信息，NIED強震モニタ测站数据。</p>
             <p>Windows Chrome/Edge推荐设置（以Chrome为例，Edge方法类似）：
                 <ul style="list-style-position: inside;">
                     <li>保持后台刷新：浏览器访问chrome://flags - Calculate window occlusion on Windows - Disabled - 右下角重新启动</li>
@@ -785,7 +805,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        '要石 v2.0.0-rc.7.1',
+        '要石 v2.0.0-rc.8',
         {
             confirmButtonText: 'OK',
             showClose: false,

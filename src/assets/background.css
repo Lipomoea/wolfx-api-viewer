@@ -11,6 +11,11 @@
     --red: #df0f0f;
     --dark-red: #af0000;
     --purple: #7f007f;
+
+    --tsunami-white: #ffffff;
+    --tsunami-yellow: #ffff00;
+    --tsunami-red: #ff0000;
+    --tsunami-purple: #ff00ff;
 }
 .white{
     background-color: #ffffff;
