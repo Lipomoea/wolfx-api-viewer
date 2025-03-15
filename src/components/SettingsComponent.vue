@@ -4,7 +4,7 @@
             <div class="title">设置</div>
             <div class="settings">
                 <div class="sub-title">
-                    数据源&nbsp;
+                    预警/信息数据源&nbsp;
                     <el-popover
                         placement="top"
                         :width="300"
@@ -39,6 +39,86 @@
                     <el-switch v-model="settingsStore.mainSettings.source.cencEqlist"></el-switch>
                     <div class="full-width">日本気象庁津波情報</div>
                     <el-switch v-model="settingsStore.mainSettings.source.jmaTsunami"></el-switch>
+                </div>
+                <div class="sub-title">地震监测网</div>
+                <div class="group">
+                    <div class="row">
+                        <span class="group-title">数据源</span>
+                        <div class="switch-group full-width">
+                            <div class="switch">
+                                <span>強震モニタ</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.nied"></el-switch>
+                            </div>
+                            <div class="switch">
+                                <span>检知灵敏度: </span>
+                                <el-select 
+                                v-model="settingsStore.mainSettings.displaySeisNet.niedSensitivity"
+                                size="small"
+                                :disabled="!settingsStore.mainSettings.displaySeisNet.nied"
+                                style="width: 50px;">
+                                    <el-option label="关" :value="0"></el-option>
+                                    <el-option label="低" :value="1"></el-option>
+                                    <el-option label="中" :value="2"></el-option>
+                                    <el-option label="高" :value="3"></el-option>
+                                </el-select>
+                            </div>
+                            <div class="switch" v-if="settingsStore.advancedSettings.displayNiedShindoSwitch">
+                                <el-checkbox v-model="settingsStore.mainSettings.displaySeisNet.displayNiedShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.nied">解析震度阶</el-checkbox>
+                            </div>
+                        </div>
+                        <div class="switch-group full-width" v-if="settingsStore.advancedSettings.enableTremFunctions">
+                            <div class="switch">
+                                <span>TREM-Net&nbsp;</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.trem"></el-switch>
+                            </div>
+                            <div class="switch" style="width: 100px;">
+                                <span>API: </span>
+                                <el-select 
+                                v-model="settingsStore.mainSettings.displaySeisNet.tremApi"
+                                size="small"
+                                :disabled="!settingsStore.mainSettings.displaySeisNet.trem">
+                                    <el-option label="api-1" value="api-1"></el-option>
+                                    <el-option label="api-2" value="api-2"></el-option>
+                                    <el-option label="lb-1" value="lb-1"></el-option>
+                                    <el-option label="lb-2" value="lb-2"></el-option>
+                                    <el-option label="lb-3" value="lb-3"></el-option>
+                                    <el-option label="lb-4" value="lb-4"></el-option>
+                                </el-select>
+                            </div>
+                            <div class="switch">
+                                <el-checkbox v-model="settingsStore.mainSettings.displaySeisNet.displayTremShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.trem">解析震度阶</el-checkbox>
+                            </div>
+                        </div>
+                        <div class="group-title">通用设置</div>
+                        <div class="switch-group full-width">
+                            <div class="switch full-width">
+                                <span>测站回放(min)</span>
+                                <el-input
+                                v-model="settingsStore.mainSettings.displaySeisNet.delay"
+                                size="small"
+                                type="number"
+                                style="width: 70px;"
+                                @input="setDelay"></el-input>
+                                <el-button
+                                size="small"
+                                @click="settingsStore.mainSettings.displaySeisNet.delay = 0"
+                                :disabled="settingsStore.mainSettings.displaySeisNet.delay == 0">还原</el-button>
+                            </div>
+                            <div class="switch">
+                                <span>测站风格</span>
+                                <el-select
+                                style="width: 70px;"
+                                v-model="settingsStore.mainSettings.displaySeisNet.style"
+                                size="small">
+                                    <el-option label="NIED" value="nied"></el-option>
+                                    <el-option label="SREV" value="srev"></el-option>
+                                </el-select>
+                            </div>
+                            <div class="switch" v-show="settingsStore.mainSettings.displaySeisNet.style == 'nied'">
+                                <el-checkbox v-model="settingsStore.mainSettings.displaySeisNet.hideNoData">隐藏无数据测站</el-checkbox>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="sub-title">行为</div>
                 <div class="group">
@@ -261,73 +341,6 @@
                                 <el-button
                                 size="small"
                                 @click="clearViewLatLng">清除经纬度</el-button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <span class="group-title">地震监测网设置</span>
-                        <div class="switch-group">
-                            <div class="switch">
-                                <span>隐藏无数据测站</span>
-                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.hideNoData"></el-switch>
-                            </div>
-                            <div class="switch">
-                                <span>回放(min)</span>
-                                <el-input
-                                v-model="settingsStore.mainSettings.displaySeisNet.delay"
-                                size="small"
-                                type="number"
-                                style="width: 70px;"
-                                @input="setDelay"></el-input>
-                                <el-button
-                                size="small"
-                                @click="settingsStore.mainSettings.displaySeisNet.delay = 0"
-                                :disabled="settingsStore.mainSettings.displaySeisNet.delay == 0">还原</el-button>
-                            </div>
-                        </div>
-                        <div class="switch-group full-width">
-                            <div class="switch">
-                                <span>強震モニタ</span>
-                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.nied"></el-switch>
-                            </div>
-                            <div class="switch">
-                                <span>检知灵敏度: </span>
-                                <el-select 
-                                v-model="settingsStore.mainSettings.displaySeisNet.niedSensitivity"
-                                size="small"
-                                :disabled="!settingsStore.mainSettings.displaySeisNet.nied"
-                                style="width: 50px;">
-                                    <el-option label="关" :value="0"></el-option>
-                                    <el-option label="低" :value="1"></el-option>
-                                    <el-option label="中" :value="2"></el-option>
-                                    <el-option label="高" :value="3"></el-option>
-                                </el-select>
-                            </div>
-                            <div class="switch" v-if="settingsStore.advancedSettings.displayNiedShindoSwitch">
-                                <el-checkbox v-model="settingsStore.mainSettings.displaySeisNet.displayNiedShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.nied">解析震度阶</el-checkbox>
-                            </div>
-                        </div>
-                        <div class="switch-group full-width" v-if="settingsStore.advancedSettings.enableTremFunctions">
-                            <div class="switch">
-                                <span>TREM-Net&nbsp;</span>
-                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.trem"></el-switch>
-                            </div>
-                            <div class="switch" style="width: 100px;">
-                                <span>API: </span>
-                                <el-select 
-                                v-model="settingsStore.mainSettings.displaySeisNet.tremApi"
-                                size="small"
-                                :disabled="!settingsStore.mainSettings.displaySeisNet.trem">
-                                    <el-option label="api-1" value="api-1"></el-option>
-                                    <el-option label="api-2" value="api-2"></el-option>
-                                    <el-option label="lb-1" value="lb-1"></el-option>
-                                    <el-option label="lb-2" value="lb-2"></el-option>
-                                    <el-option label="lb-3" value="lb-3"></el-option>
-                                    <el-option label="lb-4" value="lb-4"></el-option>
-                                </el-select>
-                            </div>
-                            <div class="switch">
-                                <el-checkbox v-model="settingsStore.mainSettings.displaySeisNet.displayTremShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.trem">解析震度阶</el-checkbox>
                             </div>
                         </div>
                     </div>
@@ -764,7 +777,7 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
-            <p>v2.0.0-rc.8 新增：JMA津波情報。</p>
+            <p>v2.0.0-rc.8 新增：JMA津波情報；新增：SREV测站风格；修复：強震モニタ测站列表小概率加载失败的bug。</p>
             <p>v2.0.0-rc.7.1 变更：使用新的ntp对时api；新增：鼠标悬浮到震源图标上显示地震参数。</p>
             <p>v2.0.0-rc.7 变更：“wolfx-api-viewer”正式更名“要石”（"kanameishi"）；优化：调整震度检出算法。</p>
             <p>v2.0.0-rc.6.2 新增：JMA地震情报接入WebSocket；新增：支持震中距2000km以上使用J-B走时表计算横波到时。</p>

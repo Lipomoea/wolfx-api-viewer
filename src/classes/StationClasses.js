@@ -4,13 +4,23 @@ import { getLevelFromInstShindo, getShindoFromChar, getShindoFromInstShindo, shi
 import { useSettingsStore } from '@/stores/settings';
 import { shindoIconUrls } from '@/utils/Urls';
 
-const colorBand = [
-    '#0003cf', 
-    '#0014da', '#0037f0', '#006cdc', '#00b3a2', '#12dc72', 
-    '#31f049', '#64fb2a', '#9dfe17', '#ccff09', '#ebff03', 
-    '#fff500', '#ffe500', '#ffca00', '#ffa600', '#ff7e00', 
-    '#ff5900', '#fd3500', '#f81100', '#e50000', '#bd0000'
-]
+const colorBand = {
+    nied: [
+        '#0003cf', 
+        '#0014da', '#0037f0', '#006cdc', '#00b3a2', '#12dc72', 
+        '#31f049', '#64fb2a', '#9dfe17', '#ccff09', '#ebff03', 
+        '#fff500', '#ffe500', '#ffca00', '#ffa600', '#ff7e00', 
+        '#ff5900', '#fd3500', '#f81100', '#e50000', '#bd0000'
+    ],
+    srev: [
+        '#ffffff00', 
+        '#ffffff33', '#ffffff66', '#ffffff99', '#ffffffcc', '#ffffffff', 
+        '#31f049', '#64fb2a', '#9dfe17', '#ccff09', '#ebff03', 
+        '#fff500', '#ffe500', '#ffca00', '#ffa600', '#ff7e00', 
+        '#ff5900', '#fd3500', '#f81100', '#e50000', '#bd0000'
+    ]
+}
+
 
 const shindoIcons = {}
 for(let zoom = 6; zoom <= 10; zoom ++) {
@@ -113,15 +123,28 @@ class NiedStation {
         this.marker.addTo(this.map)
     }
     setColorRadius(){
-        if(this.level < 0 || this.level >= colorBand.length){
-            if(settingsStore.mainSettings.displaySeisNet.hideNoData) this.color = '#cfcfcf00'
-            else this.color = '#cfcfcf'
-        }
-        else{
-            this.color = colorBand[this.level]
-        }
         const zoom = this.map.getZoom()
-        this.radius = (2 + this.level * 0.1) * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+        switch(settingsStore.mainSettings.displaySeisNet.style) {
+            case 'nied':
+                if(this.level < 0 || this.level >= colorBand.nied.length){
+                    if(settingsStore.mainSettings.displaySeisNet.hideNoData) this.color = '#cfcfcf00'
+                    else this.color = '#cfcfcf'
+                }
+                else{
+                    this.color = colorBand.nied[this.level]
+                }
+                this.radius = (2 + this.level * 0.1) * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+                break
+            case 'srev':
+                if(this.level <= 0 || this.level >= colorBand.srev.length){
+                    this.color = colorBand.srev[0]
+                }
+                else{
+                    this.color = colorBand.srev[this.level]
+                }
+                this.radius = 2.5 * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+                break
+        }
     }
     setActive(){
         this.isActive = true
@@ -186,15 +209,28 @@ class TremStation {
         this.marker.addTo(this.map)
     }
     setColorRadius(){
-        if(this.level < 0 || this.level >= colorBand.length){
-            if(settingsStore.mainSettings.displaySeisNet.hideNoData) this.color = '#cfcfcf00'
-            else this.color = '#cfcfcf'
-        }
-        else{
-            this.color = colorBand[this.level]
-        }
         const zoom = this.map.getZoom()
-        this.radius = (2 + this.level * 0.1) * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+        switch(settingsStore.mainSettings.displaySeisNet.style) {
+            case 'nied':
+                if(this.level < 0 || this.level >= colorBand.nied.length){
+                    if(settingsStore.mainSettings.displaySeisNet.hideNoData) this.color = '#cfcfcf00'
+                    else this.color = '#cfcfcf'
+                }
+                else{
+                    this.color = colorBand.nied[this.level]
+                }
+                this.radius = (2 + this.level * 0.1) * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+                break
+            case 'srev':
+                if(this.level <= 0 || this.level >= colorBand.srev.length){
+                    this.color = colorBand.srev[0]
+                }
+                else{
+                    this.color = colorBand.srev[this.level]
+                }
+                this.radius = 2.5 * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+                break
+        }
     }
     terminate(){
         if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)

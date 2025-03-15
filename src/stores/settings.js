@@ -53,6 +53,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             viewLatLng: ['', ''],
             defaultZoom: 5,
             displaySeisNet: {
+                style: 'nied',
                 hideNoData: false,
                 delay: 0,
                 nied: true,

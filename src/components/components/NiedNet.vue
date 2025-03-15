@@ -214,7 +214,7 @@ onMounted(()=>{
         }
     }, 500);
 })
-let unwatchStationList, unwatchGrids, unwatchDisplayShindo, unwatchHideNoData
+let unwatchStationList, unwatchGrids, unwatchRender
 watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
@@ -277,12 +277,10 @@ watch(()=>statusStore.map, newVal=>{
                 statusStore.isActive.niedNet = false
             }
         }, { immediate: true })
-        unwatchDisplayShindo = watch(()=>settingsStore.mainSettings.displaySeisNet.displayNiedShindo, ()=>{
-            renderAll()
-        })
-        unwatchHideNoData = watch(()=>settingsStore.mainSettings.displaySeisNet.hideNoData, ()=>{
-            renderAll()
-        })
+        unwatchRender = watch(
+            ()=>[settingsStore.mainSettings.displaySeisNet.style, settingsStore.mainSettings.displaySeisNet.displayNiedShindo, settingsStore.mainSettings.displaySeisNet.hideNoData], 
+            renderAll
+        )
     }
 }, { immediate: true })
 watch(()=>(statusStore.isActive.jmaEew || statusStore.isActive.niedNet), newVal=>{
@@ -355,8 +353,7 @@ onBeforeUnmount(()=>{
     if(map !== null) map.off('zoomend', renderAll)
     if(unwatchStationList) unwatchStationList()
     if(unwatchGrids) unwatchGrids()
-    if(unwatchDisplayShindo) unwatchDisplayShindo()
-    if(unwatchHideNoData) unwatchHideNoData()
+    if(unwatchRender) unwatchRender()
     stations.forEach((station, index)=>{
         station.terminate()
         stations[index] = null
