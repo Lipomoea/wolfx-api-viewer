@@ -149,56 +149,69 @@ const renderAll = ()=>{
         station.render()
     })
 }
-let requestInterval, delayInterval
-onMounted(()=>{
-    Http.get(seisNetUrls.nied.stationList).then(res=>{
-        stationList.value = res.items
-        siteConfigId.value = res.siteConfigId
-    })
-    requestInterval = setInterval(() => {
-        const time = getTimeNumberString(9, -delay.value)
-        const date = time.slice(0, 8)
-        getData(`${seisNetUrls.nied.stationData}/${date}/${time}.json`).then(res=>{
-            if(res?.status == 200){
-                const data = res.data
-                if(data.realTimeData.siteConfigId == siteConfigId.value){
-                    stationData.value = data.realTimeData.intensity.split('')
-                    const timeDiff = calcTimeDiff(data.realTimeData.dataTime.slice(0, -6), 9, niedUpdateTime.value, 9)
-                    if(timeDiff > 1000){
-                        const popNum = Math.floor(timeDiff / 1000) - 1
-                        stations.forEach(station=>{
-                            station.recentLevel.splice(-popNum, popNum)
-                        })
-                    }
-                    if(timeDiff > 10000){
-                        stations.forEach(station=>{
-                            station.isActive = false
-                        })
-                    }
-                    if(delay.value > maxDelay && timeDiff < 0){
-                        stations.forEach(station=>{
-                            station.recentLevel = []
-                            station.isActive = false
-                        })
-                    }
-                    if(delay.value > maxDelay && timeDiff < 0 || timeDiff > 0){
-                        niedUpdateTime.value = data.realTimeData.dataTime.slice(0, -6).replace('T', ' ')
-                        update()
-                    }
-                }
-                else if(siteConfigId.value){
-                    ElMessage({
-                        message: '站点数据已更新，正在重新加载…',
-                        type: 'warning',
-                    })
-                    settingsStore.mainSettings.displaySeisNet.nied = false
-                    settingsStore.mainSettings.displaySeisNet.delay = 0
-                    setTimeout(() => {
-                        settingsStore.mainSettings.displaySeisNet.nied = true
-                    }, 1000);
-                }
-            }
+let fetchStationInterval, requestInterval, delayInterval
+const fetchStationList = () => {
+    try {
+        Http.get(seisNetUrls.nied.stationList).then(res=>{
+            stationList.value = res.items
+            siteConfigId.value = res.siteConfigId
+            clearInterval(fetchStationInterval)
         })
+    } catch (err) {
+        console.log(err);
+    }
+}
+onMounted(()=>{
+    fetchStationInterval = setInterval(fetchStationList, 5000);
+    fetchStationList()
+    requestInterval = setInterval(() => {
+        try {
+            const time = getTimeNumberString(9, -delay.value)
+            const date = time.slice(0, 8)
+            getData(`${seisNetUrls.nied.stationData}/${date}/${time}.json`).then(res=>{
+                if(res?.status == 200){
+                    const data = res.data
+                    if(data.realTimeData.siteConfigId == siteConfigId.value){
+                        stationData.value = data.realTimeData.intensity.split('')
+                        const timeDiff = calcTimeDiff(data.realTimeData.dataTime.slice(0, -6), 9, niedUpdateTime.value, 9)
+                        if(timeDiff > 1000){
+                            const popNum = Math.floor(timeDiff / 1000) - 1
+                            stations.forEach(station=>{
+                                station.recentLevel.splice(-popNum, popNum)
+                            })
+                        }
+                        if(timeDiff > 10000){
+                            stations.forEach(station=>{
+                                station.isActive = false
+                            })
+                        }
+                        if(delay.value > maxDelay && timeDiff < 0){
+                            stations.forEach(station=>{
+                                station.recentLevel = []
+                                station.isActive = false
+                            })
+                        }
+                        if(delay.value > maxDelay && timeDiff < 0 || timeDiff > 0){
+                            niedUpdateTime.value = data.realTimeData.dataTime.slice(0, -6).replace('T', ' ')
+                            update()
+                        }
+                    }
+                    else if(siteConfigId.value){
+                        ElMessage({
+                            message: '站点数据已更新，正在重新加载…',
+                            type: 'warning',
+                        })
+                        settingsStore.mainSettings.displaySeisNet.nied = false
+                        settingsStore.mainSettings.displaySeisNet.delay = 0
+                        setTimeout(() => {
+                            settingsStore.mainSettings.displaySeisNet.nied = true
+                        }, 1000);
+                    }
+                }
+            })
+        } catch (err) {
+            console.log(err);
+        }
     }, 500);
 })
 let unwatchStationList, unwatchGrids, unwatchDisplayShindo, unwatchHideNoData
@@ -336,6 +349,7 @@ watch(()=>settingsStore.mainSettings.displaySeisNet.delay, newVal=>{
     }
 }, { immediate: true })
 onBeforeUnmount(()=>{
+    clearInterval(fetchStationInterval)
     clearInterval(requestInterval)
     clearInterval(delayInterval)
     if(map !== null) map.off('zoomend', renderAll)

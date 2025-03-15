@@ -88,7 +88,7 @@ export const useStatusStore = defineStore('statusStore', {
         
     },
     actions: {
-        setEqMessage(source, data){
+        setEqMessage(source, data) {
             try{
                 const eqMessage = this.eqMessage[source]
                 eqMessage.source = source
