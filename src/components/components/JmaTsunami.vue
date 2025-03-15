@@ -36,7 +36,7 @@
 <script setup>
 import { defaultTsunamiMessage, useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
-import { computed, watch, inject } from 'vue';
+import { computed, watch } from 'vue';
 import { focusWindow, playSound, sendMyNotification } from '@/utils/Utils';
 import { chimeUrls, iconUrls, tsunamiUrls } from '@/utils/Urls';
 
@@ -76,13 +76,12 @@ const handleClick = ()=>{
 }
 
 let map
-let unwatchSource
 let oldMessage = Object.assign({}, defaultTsunamiMessage)
 let currentStatus = 'notsunami'
 watch(() => statusStore.map, newVal => {
     if(newVal !== null) {
         map = newVal
-        unwatchSource = watch(() => statusStore.tsunamiMessage.jmaTsunami, newMessage => {
+        watch(() => statusStore.tsunamiMessage.jmaTsunami, newMessage => {
             let title, body, icon, speech, playEws = false, shouldFocus = true
             const soundEffect = settingsStore.mainSettings.soundEffect
             if(newMessage.status > oldMessage.status) {
