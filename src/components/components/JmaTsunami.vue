@@ -127,10 +127,12 @@ watch(() => statusStore.map, newVal => {
             }
             if(sound && speech) {
                 if(playEws) {
-                    playSound(chimeUrls.general.ews)
+                    setTimeout(() => {
+                        playSound(chimeUrls.general.ews)
+                    }, 1500);
                     setTimeout(() => {
                         playSound(speech)
-                    }, 11000);
+                    }, 12000);
                 }
                 else {
                     playSound(speech)
