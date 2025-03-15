@@ -186,7 +186,7 @@ watch(()=>statusStore.map, newVal=>{
             }
         }, { immediate: true })
         unwatchRender = watch(
-            ()=>[settingsStore.mainSettings.displaySeisNet.style, settingsStore.mainSettings.displaySeisNet.displayTremShindo, settingsStore.mainSettings.displaySeisNet.hideNoData], 
+            ()=>`${settingsStore.mainSettings.displaySeisNet.style}|${settingsStore.mainSettings.displaySeisNet.displayTremShindo}|${settingsStore.mainSettings.displaySeisNet.hideNoData}`, 
             renderAll
         )
     }
