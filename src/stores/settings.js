@@ -65,7 +65,9 @@ export const useSettingsStore = defineStore('settingsStore', {
             },
             hideDrawer: false,
             cinemaMode: false,
-            eqlistsAsDefault: false
+            eqlistsAsDefault: false,
+            autoCheckNewVersion: false,
+            checkPrerelease: true
         },
         advancedSettings: {
             displayNiedShindoSwitch: false,

@@ -20,25 +20,25 @@
                 </div>
                 <div class="grid-group" style="grid-template-columns: 3fr 1fr 3fr 1fr;">
                     <div class="full-width">緊急地震速報</div>
-                    <el-switch v-model="settingsStore.mainSettings.source.jmaEew"></el-switch>
+                    <el-switch v-model="settingsStore.mainSettings.source.jmaEew" @change="handleNeedReload"></el-switch>
                     <div class="full-width">中央氣象署地震速報</div>
-                    <el-switch v-model="settingsStore.mainSettings.source.cwaEew"></el-switch>
+                    <el-switch v-model="settingsStore.mainSettings.source.cwaEew" @change="handleNeedReload"></el-switch>
                     <div class="full-width" v-if="settingsStore.advancedSettings.enableCeaEew">中国地震局地震预警</div>
-                    <el-switch v-if="settingsStore.advancedSettings.enableCeaEew" v-model="settingsStore.mainSettings.source.ceaEew"></el-switch>
+                    <el-switch v-if="settingsStore.advancedSettings.enableCeaEew" v-model="settingsStore.mainSettings.source.ceaEew" @change="handleNeedReload"></el-switch>
                     <div class="full-width" v-if="settingsStore.advancedSettings.enableIclEew">成都高新所地震预警</div>
-                    <el-switch v-if="settingsStore.advancedSettings.enableIclEew" v-model="settingsStore.mainSettings.source.iclEew"></el-switch>
+                    <el-switch v-if="settingsStore.advancedSettings.enableIclEew" v-model="settingsStore.mainSettings.source.iclEew" @change="handleNeedReload"></el-switch>
                     <div class="full-width">四川地震局地震预警</div>
-                    <el-switch v-model="settingsStore.mainSettings.source.scEew"></el-switch>
+                    <el-switch v-model="settingsStore.mainSettings.source.scEew" @change="handleNeedReload"></el-switch>
                     <div class="full-width">福建地震局地震预警</div>
-                    <el-switch v-model="settingsStore.mainSettings.source.fjEew"></el-switch>
+                    <el-switch v-model="settingsStore.mainSettings.source.fjEew" @change="handleNeedReload"></el-switch>
                     <div class="full-width">日本気象庁地震情報</div>
-                    <el-switch v-model="settingsStore.mainSettings.source.jmaEqlist"></el-switch>
+                    <el-switch v-model="settingsStore.mainSettings.source.jmaEqlist" @change="handleNeedReload"></el-switch>
                     <div class="full-width" v-if="settingsStore.advancedSettings.enableTremFunctions">中央氣象署地震報告</div>
-                    <el-switch v-if="settingsStore.advancedSettings.enableTremFunctions" v-model="settingsStore.mainSettings.source.cwaEqlist"></el-switch>
+                    <el-switch v-if="settingsStore.advancedSettings.enableTremFunctions" v-model="settingsStore.mainSettings.source.cwaEqlist" @change="handleNeedReload"></el-switch>
                     <div class="full-width">中国地震台网测定</div>
-                    <el-switch v-model="settingsStore.mainSettings.source.cencEqlist"></el-switch>
+                    <el-switch v-model="settingsStore.mainSettings.source.cencEqlist" @change="handleNeedReload"></el-switch>
                     <div class="full-width">日本気象庁津波情報</div>
-                    <el-switch v-model="settingsStore.mainSettings.source.jmaTsunami"></el-switch>
+                    <el-switch v-model="settingsStore.mainSettings.source.jmaTsunami" @change="handleNeedReload"></el-switch>
                 </div>
                 <div class="sub-title">地震监测网</div>
                 <div class="group">
@@ -473,9 +473,26 @@
                     <div class="row">
                         <div class="switch-group">
                             <div class="switch">
+                                <el-checkbox v-model="settingsStore.mainSettings.autoCheckNewVersion" @change="handleAutoCheckVersion">自动检查更新</el-checkbox>
+                            </div>
+                            <div class="switch">
+                                <el-checkbox v-model="settingsStore.mainSettings.checkPrerelease">检查预发布版本</el-checkbox>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="group">
+                    <div class="row">
+                        <div class="switch-group">
+                            <div class="switch">
                                 <el-button
                                 style="margin-top: 5px;"
                                 @click="handleAbout">帮助&关于</el-button>
+                            </div>
+                            <div class="switch">
+                                <el-button
+                                style="margin-top: 5px;"
+                                @click="checkNewVersion(false)">检查更新</el-button>
                             </div>
                         </div>
                     </div>
@@ -511,7 +528,7 @@ import { useSettingsStore } from '@/stores/settings';
 import { useStatusStore } from '@/stores/status';
 import { utilUrls } from '@/utils/Urls';
 import Http from '@/classes/Http';
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { QuestionFilled } from '@element-plus/icons-vue';
 
 const showNotifButton = 'Notification' in window
@@ -770,14 +787,11 @@ const handleNeedReload = () => {
         type: 'warning'
     })
 }
-watch(()=>settingsStore.mainSettings.source, ()=>{
-    handleNeedReload()
-}, { deep: true })
 const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
-            <p>v2.0.0-rc.8 新增：JMA津波情報；新增：SREV测站风格；修复：強震モニタ测站列表小概率加载失败的bug。</p>
+            <p>v2.0.0-rc.8 新增：JMA津波情報；新增：SREV测站风格；新增：从GitHub检查更新功能；修复：強震モニタ测站列表小概率加载失败的bug。</p>
             <p>v2.0.0-rc.7.1 变更：使用新的ntp对时api；新增：鼠标悬浮到震源图标上显示地震参数。</p>
             <p>v2.0.0-rc.7 变更：“wolfx-api-viewer”正式更名“要石”（"kanameishi"）；优化：调整震度检出算法。</p>
             <p>v2.0.0-rc.6.2 新增：JMA地震情报接入WebSocket；新增：支持震中距2000km以上使用J-B走时表计算横波到时。</p>
@@ -831,6 +845,132 @@ const handleAbout = ()=>{
         }
     )
 }
+const checkNewVersion = async (silent = false) => {
+    const currentVersion = document.title.split('v')[1]
+    try {
+        const versionInfo = await Http.get('https://api.github.com/repos/Lipomoea/kanameishi/releases')
+        let checkedVersion, downloadUrl
+        if(settingsStore.mainSettings.checkPrerelease) {
+            checkedVersion = versionInfo[0].tag_name.slice(1)
+            downloadUrl = versionInfo[0].assets[0].browser_download_url
+        }
+        else {
+            let i = 0
+            while(i < versionInfo.length) {
+                if(!versionInfo[i].prerelease) break
+                i++
+            }
+            if(i == versionInfo.length) {
+                ElMessage({
+                    message: '未检测到可用版本',
+                    type: 'info'
+                })
+                return
+            }
+            else {
+                checkedVersion = versionInfo[i].tag_name.slice(1)
+                downloadUrl = versionInfo[i].assets[0].browser_download_url
+            }
+        }
+        if(compareVersion(currentVersion, checkedVersion)) {
+            if(window.__TAURI_INTERNALS__) {
+                ElMessageBox.confirm(
+                    `检查到新版本v${checkedVersion}，是否下载？`,
+                    '检查更新',
+                    {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'info',
+                        showClose: false,
+                    }
+                ).then(()=>{
+                    window.open(downloadUrl, '_blank')
+                })
+            }
+            else {
+                ElMessageBox.confirm(
+                    `检查到新版本v${checkedVersion}，是否刷新页面？`,
+                    '检查更新',
+                    {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'info',
+                        showClose: false,
+                    }
+                ).then(()=>{
+                    handleReload()
+                })
+            }
+        }
+        else if(!silent) {
+            ElMessage({
+                message: '当前已经是最新版本',
+                type: 'success'
+            })
+        }
+    } catch {
+        ElMessage({
+            message: '检查更新失败，请稍后重试！',
+            type: 'error'
+        })
+    }
+}
+const compareArray = (arr1, arr2) => {
+    arr1 = arr1.map(i => Number(i))
+    arr2 = arr2.map(i => Number(i))
+    const len1 = arr1.length
+    const len2 = arr2.length
+    const lenDiff = len1 - len2
+    if(lenDiff > 0) {
+        arr2.push(...new Array(lenDiff).fill(0))
+    }
+    else {
+        arr1.push(...new Array(lenDiff).fill(0))
+    }
+    const len = arr1.length
+    for(let i = 0; i < len; i++) {
+        if(arr1[i] > arr2[i]) return true
+        else if(arr1[i] < arr2[i]) return false
+    }
+    return false
+}
+const compareVersion = (currentVersion, checkedVersion) => {
+    const splitCurrent = currentVersion.split('-')
+    const splitChecked = checkedVersion.split('-')
+    if(compareArray(splitChecked[0].split('.'), splitCurrent[0].split('.'))) return true
+    else if(splitChecked.length < splitCurrent.length) return true
+    else if(splitChecked.length > splitCurrent.length) return false
+    else if(splitChecked.length == 1) return false
+    else {
+        const typeArr = ['pre', 'rc']
+        const currentSuffixArr = splitCurrent[1].split('.')
+        const checkedSuffixArr = splitChecked[1].split('.')
+        if(typeArr.indexOf(currentSuffixArr[0]) > typeArr.indexOf(checkedSuffixArr[0])) return false
+        else if(typeArr.indexOf(currentSuffixArr[0]) < typeArr.indexOf(checkedSuffixArr[0])) return true
+        else {
+            currentSuffixArr.shift()
+            checkedSuffixArr.shift()
+            if(compareArray(checkedSuffixArr, currentSuffixArr)) return true
+            else return false
+        }
+    }
+}
+let autoCheckInterval
+const handleAutoCheckVersion = (val) => {
+    clearInterval(autoCheckInterval)
+    if(val) {
+        checkNewVersion(true)
+        autoCheckInterval = setInterval(() => {
+            checkNewVersion(true)
+        }, 6 * 3600 * 1000);
+    }
+}
+onMounted(() => {
+    handleAutoCheckVersion(settingsStore.mainSettings.autoCheckNewVersion)
+})
+onBeforeUnmount(() => {
+    clearInterval(autoCheckInterval)
+})
 </script>
 
 <style lang="scss" scoped>
@@ -857,10 +997,9 @@ const handleAbout = ()=>{
             }
             .group{
                 display: flex;
-                align-items: center;
-                flex-wrap: wrap;
+                flex-direction: column;
+                align-items: flex-start;
                 row-gap: 5px;
-                column-gap: 40px;
                 margin-bottom: 5px;
             }
             .grid-group{
@@ -911,6 +1050,7 @@ const handleAbout = ()=>{
 }
 .el-checkbox{
     height: 24px;
+    margin: 0px;
 }
 </style>
 <style lang="scss">
