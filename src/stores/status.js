@@ -270,7 +270,7 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.useShindo = true
                         eqMessage.originTime = data.earthquake.time
                         eqMessage.originTimeText = '検知時刻: ' + data.earthquake.time + ' (JST)'
-                        eqMessage.reportTime = data.time.slice(0, -4)
+                        eqMessage.reportTime = data.issue.time
                         switch(data.issue.type) {
                             case 'ScalePrompt':
                                 eqMessage.title = '震度速報'
@@ -414,10 +414,10 @@ export const useStatusStore = defineStore('statusStore', {
             try{
                 const tsunamiMessage = this.tsunamiMessage[source]
                 tsunamiMessage.source = source
-                tsunamiMessage.reportTime = data.issue.time
                 switch(source){
                     case 'jmaTsunami': {
                         tsunamiMessage.id = data.id
+                        tsunamiMessage.reportTime = data.issue.time
                         if(data.cancelled) {
                             tsunamiMessage.title = '津波警報・注意報なし'
                             tsunamiMessage.titleText = '津波警報・注意報なし'
