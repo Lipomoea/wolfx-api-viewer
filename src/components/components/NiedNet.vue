@@ -78,7 +78,7 @@ const getData = async (url)=>{
         const res = await axios.get(url)
         return res
     }
-    catch (err){
+    catch {
         if(delay.value <= maxDelay - 100) delay.value += 100
     }
 }
