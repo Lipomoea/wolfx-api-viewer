@@ -909,7 +909,7 @@ const checkNewVersion = async (silent = false) => {
                 type: 'success'
             })
         }
-    } catch {
+    } catch (_) {
         ElMessage({
             message: '检查更新失败，请稍后重试！',
             type: 'error'
