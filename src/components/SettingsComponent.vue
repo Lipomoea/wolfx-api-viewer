@@ -491,6 +491,7 @@
                             </div>
                             <div class="switch">
                                 <el-button
+                                type="primary"
                                 style="margin-top: 5px;"
                                 @click="checkNewVersion(false)">检查更新</el-button>
                             </div>
@@ -924,8 +925,8 @@ const compareArray = (arr1, arr2) => {
     if(lenDiff > 0) {
         arr2.push(...new Array(lenDiff).fill(0))
     }
-    else {
-        arr1.push(...new Array(lenDiff).fill(0))
+    else if(lenDiff < 0) {
+        arr1.push(...new Array(-lenDiff).fill(0))
     }
     const len = arr1.length
     for(let i = 0; i < len; i++) {
