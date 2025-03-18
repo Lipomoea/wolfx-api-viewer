@@ -133,7 +133,7 @@
                                 <span>播放声音</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEewWarn.sound" :disabled="settingsStore.mainSettings.onEew.sound"></el-switch>
                             </div>
-                            <div class="switch" v-if="showFocusButton">
+                            <div class="switch" v-if="isTauri">
                                 <span>弹出窗口</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEewWarn.focus" :disabled="settingsStore.mainSettings.onEew.focus"></el-switch>
                             </div>
@@ -150,7 +150,7 @@
                                 <span>播放声音</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEew.sound"></el-switch>
                             </div>
-                            <div class="switch" v-if="showFocusButton">
+                            <div class="switch" v-if="isTauri">
                                 <span>弹出窗口</span>
                                 <el-switch v-model="settingsStore.mainSettings.onEew.focus"></el-switch>
                             </div>
@@ -167,7 +167,7 @@
                                 <span>播放声音</span>
                                 <el-switch v-model="settingsStore.mainSettings.onReport.sound"></el-switch>
                             </div>
-                            <div class="switch" v-if="showFocusButton">
+                            <div class="switch" v-if="isTauri">
                                 <span>弹出窗口</span>
                                 <el-switch v-model="settingsStore.mainSettings.onReport.focus"></el-switch>
                             </div>
@@ -184,7 +184,7 @@
                                 <span>播放声音</span>
                                 <el-switch v-model="settingsStore.mainSettings.onShake.sound"></el-switch>
                             </div>
-                            <div class="switch" v-if="showFocusButton">
+                            <div class="switch" v-if="isTauri">
                                 <span>弹出窗口</span>
                                 <el-switch v-model="settingsStore.mainSettings.onShake.focus"></el-switch>
                             </div>
@@ -201,7 +201,7 @@
                                 <span>播放声音</span>
                                 <el-switch v-model="settingsStore.mainSettings.onTsunami.sound"></el-switch>
                             </div>
-                            <div class="switch" v-if="showFocusButton">
+                            <div class="switch" v-if="isTauri">
                                 <span>弹出窗口</span>
                                 <el-switch v-model="settingsStore.mainSettings.onTsunami.focus"></el-switch>
                             </div>
@@ -475,8 +475,11 @@
                             <div class="switch">
                                 <el-checkbox v-model="settingsStore.mainSettings.autoCheckNewVersion" @change="handleAutoCheckVersion">自动检查更新</el-checkbox>
                             </div>
-                            <div class="switch">
+                            <div class="switch" v-if="isTauri">
                                 <el-checkbox v-model="settingsStore.mainSettings.checkPrerelease">检查预发布版本</el-checkbox>
+                            </div>
+                            <div class="switch" v-if="!isTauri">
+                                <el-checkbox v-model="settingsStore.mainSettings.autoRefresh" :disabled="!settingsStore.mainSettings.autoCheckNewVersion">自动应用更新</el-checkbox>
                             </div>
                         </div>
                     </div>
@@ -533,7 +536,7 @@ import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { QuestionFilled } from '@element-plus/icons-vue';
 
 const showNotifButton = 'Notification' in window
-const showFocusButton = !!window.__TAURI_INTERNALS__
+const isTauri = !!window.__TAURI_INTERNALS__
 
 const settingsStore = useSettingsStore()
 const statusStore = useStatusStore()
@@ -851,7 +854,7 @@ const checkNewVersion = async (silent = false) => {
     try {
         const versionInfo = await Http.get('https://api.github.com/repos/Lipomoea/kanameishi/releases')
         let checkedVersion, downloadUrl
-        if(settingsStore.mainSettings.checkPrerelease) {
+        if(settingsStore.mainSettings.checkPrerelease || !isTauri) {
             checkedVersion = versionInfo[0].tag_name.slice(1)
             downloadUrl = versionInfo[0].assets[0].browser_download_url
         }
@@ -874,7 +877,7 @@ const checkNewVersion = async (silent = false) => {
             }
         }
         if(compareVersion(currentVersion, checkedVersion)) {
-            if(window.__TAURI_INTERNALS__) {
+            if(isTauri) {
                 ElMessageBox.confirm(
                     `检查到新版本v${checkedVersion}，是否下载？`,
                     '检查更新',
@@ -889,18 +892,29 @@ const checkNewVersion = async (silent = false) => {
                 })
             }
             else {
-                ElMessageBox.confirm(
-                    `检查到新版本v${checkedVersion}，是否刷新页面？`,
-                    '检查更新',
-                    {
-                        confirmButtonText: '确定',
-                        cancelButtonText: '取消',
-                        type: 'info',
-                        showClose: false,
-                    }
-                ).then(()=>{
-                    handleReload()
-                })
+                if(settingsStore.mainSettings.autoRefresh) {
+                    ElMessage({
+                        message: '发现新版本，即将自动刷新',
+                        type: 'success'
+                    })
+                    setTimeout(() => {
+                        handleReload()
+                    }, 5000);
+                }
+                else {
+                    ElMessageBox.confirm(
+                        `检查到新版本v${checkedVersion}，是否刷新页面？`,
+                        '检查更新',
+                        {
+                            confirmButtonText: '确定',
+                            cancelButtonText: '取消',
+                            type: 'info',
+                            showClose: false,
+                        }
+                    ).then(()=>{
+                        handleReload()
+                    })
+                }
             }
         }
         else if(!silent) {
