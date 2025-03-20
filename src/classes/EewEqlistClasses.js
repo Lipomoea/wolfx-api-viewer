@@ -70,7 +70,9 @@ class EewEvent {
         this.travelTime = travelTimes.jma2001
         this.userLatLng = this.settingsStore.mainSettings.userLatLng.map(l=>Number(l))
         this.isValidUserLatLng = this.settingsStore.mainSettings.userLatLng.every(l=>l !== '')
+        this.userCsis = '?'
         this.countdown = -1
+        this.shouldAction = false
         this.flags = {
             firstSound: false,
             cautionSound: false,
@@ -193,7 +195,8 @@ class EewEvent {
             if(this.isValidUserLatLng) {
                 this.userDist = L.latLng(this.hypoLatLng).distanceTo(L.latLng(this.userLatLng)) / 1000
                 this.reachTime = calcReachTime(this.userDist <= this.maxRadius ? travelTimes.jma2001 : travelTimes.jb, false, this.eqMessage.depth, this.userDist)
-                this.userCsis = calcCsisLevel(this.eqMessage.magnitude, this.eqMessage.depth, this.userDist)
+                this.userCsis = this.settingsStore.advancedSettings.forceCalcInt ? 
+                    calcCsisLevel(this.eqMessage.magnitude, this.eqMessage.depth, this.userDist) : '?'
             }
             else {
                 this.userDist = undefined
@@ -207,7 +210,8 @@ class EewEvent {
             }, 100);
         }
         this.setMark()
-        this.handleActions()
+        if(this.userCsis == '?' || Number(this.userCsis) >= this.settingsStore.mainSettings.actionCsis) this.shouldAction = true
+        if(this.shouldAction) this.handleActions()
         clearTimeout(this.terminateTimer)
         this.terminateTimer = setTimeout(() => {
             this.terminate()
@@ -293,7 +297,7 @@ class EewEvent {
     handleCountdown(passedTime){
         if(this.settingsStore.mainSettings.displayCountdown && this.isValidUserLatLng && (this.userDist <= this.maxRadius && !this.eqMessage.isAssumption || this.settingsStore.mainSettings.forceDisplayCountdown)){
             this.countdown = Math.max(this.reachTime - passedTime, 0)
-            if(this.settingsStore.mainSettings.playCountdownSound){
+            if(this.settingsStore.mainSettings.playCountdownSound && this.shouldAction) {
                 const secondsCount = Math.ceil(this.countdown)
                 if(secondsCount < this.flags.lastSecondsCount){
                     playSound(chimeUrls.general.countdown)

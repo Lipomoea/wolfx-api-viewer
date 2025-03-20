@@ -16,6 +16,18 @@ export const useSettingsStore = defineStore('settingsStore', {
                 cencEqlist: true,
                 jmaTsunami: true
             },
+            displaySeisNet: {
+                style: 'nied',
+                hideNoData: false,
+                delay: 0,
+                nied: true,
+                niedSensitivity: 2,
+                displayNiedShindo: false,
+                trem: false,
+                tremApi: 'lb-1',
+                displayTremShindo: false
+            },
+            actionCsis: 0,
             onEew: {
                 notification: false,
                 sound: false,
@@ -52,17 +64,6 @@ export const useSettingsStore = defineStore('settingsStore', {
             playCountdownSound: false,
             viewLatLng: ['', ''],
             defaultZoom: 5,
-            displaySeisNet: {
-                style: 'nied',
-                hideNoData: false,
-                delay: 0,
-                nied: true,
-                niedSensitivity: 2,
-                displayNiedShindo: false,
-                trem: false,
-                tremApi: 'api-2',
-                displayTremShindo: false
-            },
             hideDrawer: false,
             cinemaMode: false,
             eqlistsAsDefault: false,

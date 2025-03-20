@@ -35,10 +35,10 @@
                                 </div>
                             </div>
                             <div class="info" v-else>
-                                <div class="intensity" :class="setClassName(isValidUserLatLng && settingsStore.advancedSettings.forceCalcInt?event.userCsis:'?', false)">
+                                <div class="intensity" :class="setClassName(event.userCsis, false)">
                                     <div class="intensity-title">本地CSIS</div>
                                     <div class="csis">
-                                        {{ isValidUserLatLng && settingsStore.advancedSettings.forceCalcInt?event.userCsis:'?' }}
+                                        {{ event.userCsis }}
                                     </div>
                                 </div>
                             </div>

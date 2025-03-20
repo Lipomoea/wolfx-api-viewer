@@ -123,6 +123,37 @@
                 <div class="sub-title">行为</div>
                 <div class="group">
                     <div class="row">
+                        <span class="full-width group-title">预警设置</span>
+                        <div class="switch-group">
+                            <div class="switch">
+                                <span>本地烈度阈值
+                                    <el-popover
+                                        placement="top"
+                                        :width="300"
+                                        trigger="hover"
+                                    >
+                                        <template #reference>
+                                            <question-filled width="1em" height="1em"></question-filled>
+                                        </template>
+                                        <p><strong>需要启用“强制估算烈度/震度”</strong></p>
+                                        <p>仅在本地烈度达到阈值时执行下方行为。</p>
+                                        <p>对任意位置（不仅限于国内）生效。</p>
+                                        <p>设置为“0”表示接收全部预警。</p>
+                                    </el-popover>
+                                </span>
+                                <el-slider
+                                v-model="settingsStore.mainSettings.actionCsis"
+                                :disabled="!settingsStore.advancedSettings.forceCalcInt"
+                                :min="0" :max="12"
+                                :step="1"
+                                size="small"
+                                show-stops
+                                style="width: 200px; margin-left: 10px;"></el-slider>
+                                <div class="csis" :class="setClassName(settingsStore.mainSettings.actionCsis, false)">{{ settingsStore.mainSettings.actionCsis }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
                         <span class="full-width group-title">收到地震预警（警报）时</span>
                         <div class="switch-group">
                             <div class="switch" v-if="showNotifButton">
@@ -534,6 +565,7 @@ import { utilUrls } from '@/utils/Urls';
 import Http from '@/classes/Http';
 import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { QuestionFilled } from '@element-plus/icons-vue';
+import { setClassName } from '@/utils/Utils';
 
 const showNotifButton = 'Notification' in window
 const isTauri = !!window.__TAURI_INTERNALS__
@@ -795,13 +827,10 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
+            <p>v2.0.0-rc.8.1 新增：设置预警烈度阈值功能；新增：网页端自动应用更新功能；修复：网页端可以设置检查预发布版本的问题。</p>
             <p>v2.0.0-rc.8 新增：JMA津波情報；新增：SREV测站风格；新增：从GitHub检查更新功能；修复：強震モニタ测站列表小概率加载失败的bug。</p>
             <p>v2.0.0-rc.7.1 变更：使用新的ntp对时api；新增：鼠标悬浮到震源图标上显示地震参数。</p>
             <p>v2.0.0-rc.7 变更：“wolfx-api-viewer”正式更名“要石”（"kanameishi"）；优化：调整震度检出算法。</p>
-            <p>v2.0.0-rc.6.2 新增：JMA地震情报接入WebSocket；新增：支持震中距2000km以上使用J-B走时表计算横波到时。</p>
-            <p>v2.0.0-rc.6.1 优化：CSIS计算公式；优化：部分绘图性能；修复：地图左下角无法正常拖动的bug。</p>
-            <p>v2.0.0-rc.6 变更：JMA地震情报使用了新的接口，降低了数据延迟；新增：日本气象厅地震情报分区震度；新增：支持设置強震モニタ检知灵敏度，且降低了误检知概率；优化：切换菜单栏时不再强制缩放地图；修复：侧边栏开关异常自动切换的问题。</p>
-            <p>v2.0.0-rc.5 新增：日本地区震度本地计算；新增：更改的设置需要重载时添加弹窗提示；优化：侧边栏的美观程度。</p>
         </div>
         <div class="title">使用方法</div>
         <div class="about">
@@ -836,7 +865,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        '要石 v2.0.0-rc.8',
+        '要石 v2.0.0-rc.8.1',
         {
             confirmButtonText: 'OK',
             showClose: false,
@@ -1066,6 +1095,18 @@ onBeforeUnmount(() => {
 .el-checkbox{
     height: 24px;
     margin: 0px;
+}
+.csis {
+    width: 22px;
+    height: 22px;
+    margin-left: 6px;
+    border: #cfcfcf 1px solid;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    user-select: none;
 }
 </style>
 <style lang="scss">
