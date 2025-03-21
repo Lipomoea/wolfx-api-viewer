@@ -510,7 +510,7 @@
                                 <el-checkbox v-model="settingsStore.mainSettings.checkPrerelease">检查预发布版本</el-checkbox>
                             </div>
                             <div class="switch" v-if="!isTauri">
-                                <el-checkbox v-model="settingsStore.mainSettings.autoRefresh" :disabled="!settingsStore.mainSettings.autoCheckNewVersion">自动应用更新</el-checkbox>
+                                <el-checkbox v-model="settingsStore.mainSettings.autoRefresh">自动应用更新</el-checkbox>
                             </div>
                         </div>
                     </div>
@@ -906,6 +906,7 @@ const checkNewVersion = async (silent = false) => {
             }
         }
         if(compareVersion(currentVersion, checkedVersion)) {
+            ElMessageBox.close()
             if(isTauri) {
                 ElMessageBox.confirm(
                     `检查到新版本v${checkedVersion}，是否下载？`,
