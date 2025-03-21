@@ -136,8 +136,8 @@
                                             <question-filled width="1em" height="1em"></question-filled>
                                         </template>
                                         <p><strong>需要启用“强制估算烈度/震度”</strong></p>
-                                        <p>仅在本地烈度达到阈值时执行下方行为。</p>
-                                        <p>对任意位置（不仅限于国内）生效。</p>
+                                        <p>仅在预估本地烈度达到阈值时执行下方行为。</p>
+                                        <p>对任意位置（不仅限于中国）生效。</p>
                                         <p>设置为“0”表示接收全部预警。</p>
                                     </el-popover>
                                 </span>
