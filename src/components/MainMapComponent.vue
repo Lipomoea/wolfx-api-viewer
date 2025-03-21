@@ -974,6 +974,7 @@ onBeforeUnmount(()=>{
                             flex-direction: column;
                             justify-content: space-evenly;
                             .location{
+                                width: 100%;
                                 display: flex;
                                 align-items: center;
                                 font-size: 28px;
@@ -982,6 +983,7 @@ onBeforeUnmount(()=>{
                                 overflow: hidden;
                             }
                             .time{
+                                width: 100%;
                                 display: flex;
                                 align-items: center;
                                 font-size: 22px;

@@ -171,6 +171,7 @@ onBeforeUnmount(()=>{
             flex-direction: column;
             justify-content: center;
             .location{
+                width: 100%;
                 font-size: 1.5em;
                 white-space: nowrap;
                 text-overflow: ellipsis;
@@ -180,7 +181,9 @@ onBeforeUnmount(()=>{
                 display: flex;
                 justify-content: space-between;
                 .timeDepth{
+                    width: 100%;
                     .time,.depth{
+                        width: 100%;
                         font-size: 1.1em;
                         white-space: nowrap;
                         text-overflow: ellipsis;
