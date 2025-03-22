@@ -827,6 +827,7 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
+            <p>v2.0.0-rc.8.2 优化：放映模式下的显示逻辑；优化：震源地溢出时显示省略号；修复：检查更新弹窗可能出现多个的bug。</p>
             <p>v2.0.0-rc.8.1 新增：设置预警烈度阈值功能；新增：网页端自动应用更新功能；修复：网页端可以设置检查预发布版本的问题。</p>
             <p>v2.0.0-rc.8 新增：JMA津波情報；新增：SREV测站风格；新增：从GitHub检查更新功能；修复：強震モニタ测站列表小概率加载失败的bug。</p>
             <p>v2.0.0-rc.7.1 变更：使用新的ntp对时api；新增：鼠标悬浮到震源图标上显示地震参数。</p>
@@ -865,7 +866,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        '要石 v2.0.0-rc.8.1',
+        '要石 v2.0.0-rc.8.2',
         {
             confirmButtonText: 'OK',
             showClose: false,

@@ -197,7 +197,7 @@
 <script setup>
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, provide } from 'vue';
+import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, watchEffect, provide } from 'vue';
 import '@/assets/background.css'
 import { HomeFilled, FullScreen, WarnTriangleFilled, InfoFilled, Setting } from '@element-plus/icons-vue';
 import { useStatusStore } from '@/stores/status';
@@ -240,8 +240,49 @@ let userMarker
 const isValidViewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.every(item=>item !== ''))
 const viewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.map(val=>Number(val)))
 const zoomLevel = computed(()=>settingsStore.mainSettings.defaultZoom)
-let defaultMenuId = 'main'
-const menuId = ref(defaultMenuId)
+const tempEqlists = ref(false)
+let tempEqlistsTimer
+const handleTempEqlists = (isEqlists) => {
+    if(isEqlists) {
+        tempEqlists.value = true
+        clearTimeout(tempEqlistsTimer)
+        tempEqlistsTimer = setTimeout(() => {
+            tempEqlists.value = false
+        }, 6000);
+    }
+    else {
+        clearTimeout(tempEqlistsTimer)
+        tempEqlists.value = false
+    }
+}
+const defaultMenuId = computed(() => {
+    let defaultMenuId = 'main'
+    if(settingsStore.mainSettings.cinemaMode) {
+        if(tempEqlists.value) {
+            defaultMenuId = 'eqlists'
+        }
+        else {
+            const isActive = statusStore.isActive
+            const keys = Object.keys(isActive)
+            const isEewOrNetActive = keys.filter(key => key.includes('Eew') || key.includes('Net')).some(key => isActive[key])
+            const isEqlistOrTsunamiActive = keys.filter(key => key.includes('Eqlist') || key.includes('Tsunami')).some(key => isActive[key])
+            if(isEewOrNetActive && isEqlistOrTsunamiActive) {
+                defaultMenuId = 'main'
+            }
+            else if(isEewOrNetActive) {
+                defaultMenuId = 'eews'
+            }
+            else if(isEqlistOrTsunamiActive) {
+                defaultMenuId = 'eqlists'
+            }
+            else {
+                defaultMenuId = settingsStore.mainSettings.eqlistsAsDefault ? 'eqlists' : 'main'
+            }
+        }
+    }
+    return defaultMenuId
+})
+const menuId = ref(defaultMenuId.value)
 let autoZoomTimer
 let firstMsg = false
 let blinkStatus = true
@@ -401,7 +442,7 @@ onMounted(()=>{
         map.on('zoomstart', ()=>{setMapHeight('calc(100% - 1px)');})
         map.on('zoomend', ()=>{setMapHeight('100%');})
     }
-    watch([isDisplayUser, userLatLng], ()=>{
+    watchEffect(()=>{
         if(userMarker && map.hasLayer(userMarker)) map.removeLayer(userMarker)
         if(isDisplayUser.value){
             userMarker = L.circleMarker(userLatLng.value, {
@@ -413,36 +454,30 @@ onMounted(()=>{
             })
             userMarker.addTo(map)
         }
-    }, { immediate: true })
+    })
     loadMaps()
     watch(()=>settingsStore.mainSettings.displayCnFault, newVal=>{
         cnFaultBasePane.style.display = newVal ? 'block' : 'none'
     }, { immediate: true })
     if(settingsStore.mainSettings.cinemaMode) {
-        watch(() => statusStore.isActive, newVal => {
-            const keys = Object.keys(newVal)
-            const isEewOrNetActive = keys.filter(key => key.includes('Eew') || key.includes('Net')).some(key => newVal[key])
-            const isEqlistOrTsunamiActive = keys.filter(key => key.includes('Eqlist') || key.includes('Tsunami')).some(key => newVal[key])
-            if(isEewOrNetActive && isEqlistOrTsunamiActive) {
-                defaultMenuId = 'main'
+        statusStore.enabledSource.forEach(key => {
+            let isLoad = true
+            if(!key.includes('Tsunami')) {
+                watch(() => statusStore.eqMessage[key], () => {
+                    if(isLoad) isLoad = false
+                    else handleTempEqlists(key.includes('Eqlist'))
+                }, { deep: true })
             }
-            else if(isEewOrNetActive) {
-                defaultMenuId = 'eews'
-            }
-            else if(isEqlistOrTsunamiActive) {
-                defaultMenuId = 'eqlists'
-            }
-            else {
-                defaultMenuId = settingsStore.mainSettings.eqlistsAsDefault ? 'eqlists' : 'main'
-            }
+        })
+        watch(defaultMenuId, newVal => {
             if(menuId.value != 'settings') {
-                menuId.value = defaultMenuId
+                menuId.value = newVal
                 setTimeout(() => {
                     map.invalidateSize()
                     if(isAutoZoom.value) setView()
                 }, 0);
             }
-        }, { deep: true, immediate: true })
+        }, { immediate: true })
     }
     intervalEvents()
     mainInterval = setInterval(() => {
@@ -735,12 +770,12 @@ let defaultMenuTimer
 const resetDefaultMenuTimer = ()=>{
     clearTimeout(defaultMenuTimer)
     defaultMenuTimer = setTimeout(() => {
-        menuId.value = defaultMenuId
+        menuId.value = defaultMenuId.value
     }, 60 * 1000);
 }
 watch(menuId, (newVal)=>{
     document.removeEventListener('mousemove', resetDefaultMenuTimer)
-    if(newVal == defaultMenuId){
+    if(newVal == defaultMenuId.value){
         clearTimeout(defaultMenuTimer)
     }
     else{
@@ -846,6 +881,7 @@ onBeforeUnmount(()=>{
     clearInterval(autoZoomInterval)
     clearTimeout(autoZoomTimer)
     clearTimeout(defaultMenuTimer)
+    clearTimeout(tempEqlistsTimer)
     document.removeEventListener('mousemove', resetDefaultMenuTimer)
     activeEewList.length = 0
     eqlistList.length = 0

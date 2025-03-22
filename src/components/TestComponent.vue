@@ -853,9 +853,9 @@ onMounted(async ()=>{
                 const data = res[i]
                 statusStore.setEqMessage(source, data)
             }
-        }, 3000);
+        }, 10000);
     }
-    if(testJmaEqlist){
+    if(testJmaTsunami){
         const source = 'jmaTsunami'
         setTimeout(() => {
             statusStore.disconnect()
