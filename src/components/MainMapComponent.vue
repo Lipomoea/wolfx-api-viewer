@@ -1011,8 +1011,6 @@ onBeforeUnmount(()=>{
                             justify-content: space-evenly;
                             .location{
                                 width: 100%;
-                                display: flex;
-                                align-items: center;
                                 font-size: 28px;
                                 white-space: nowrap;
                                 text-overflow: ellipsis;
@@ -1020,8 +1018,6 @@ onBeforeUnmount(()=>{
                             }
                             .time{
                                 width: 100%;
-                                display: flex;
-                                align-items: center;
                                 font-size: 22px;
                                 white-space: nowrap;
                                 text-overflow: ellipsis;
