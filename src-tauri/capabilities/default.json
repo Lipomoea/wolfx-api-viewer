@@ -19,6 +19,11 @@
     "core:window:allow-unminimize",
     "core:window:allow-show",
     "core:tray:default",
-    "core:app:allow-default-window-icon"
+    "core:app:allow-default-window-icon",
+    "core:path:allow-join",
+    "fs:allow-exists",
+    "fs:allow-appdata-read-recursive",
+    "shell:default",
+    "shell:allow-open"
   ]
 }

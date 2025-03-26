@@ -38,7 +38,7 @@ import { defaultTsunamiMessage, useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { computed, watch } from 'vue';
 import { focusWindow, playSound, sendMyNotification } from '@/utils/Utils';
-import { chimeUrls, iconUrls, tsunamiUrls } from '@/utils/Urls';
+import { iconUrls, tsunamiUrls } from '@/utils/Urls';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
@@ -89,7 +89,7 @@ watch(() => statusStore.map, newVal => {
                 title = newMessage.title + 'が発表されました'
                 body = newMessage.status > 1 ? '今すぐ避難！' : '海岸から離れてください。'
                 icon = newMessage.status > 1 ? iconUrls.warn : iconUrls.caution
-                speech = chimeUrls[soundEffect][currentStatus]
+                speech = currentStatus
                 playEws = newMessage.status > 1
             }
             else if(newMessage.status < oldMessage.status) {
@@ -98,14 +98,14 @@ watch(() => statusStore.map, newVal => {
                     title = oldMessage.title + 'が解除されました'
                     body = '今後の情報に注意してください。'
                     icon = iconUrls.info
-                    speech = chimeUrls[soundEffect][currentStatus]
+                    speech = currentStatus
                 }
                 else {
                     currentStatus = `tsunami${newMessage.status}switch`
                     title = newMessage.title + 'に切り替えられました'
                     body = '今後の情報に注意してください。'
                     icon = iconUrls.info
-                    speech = chimeUrls[soundEffect][currentStatus]
+                    speech = currentStatus
                 }
             }
             else {
@@ -118,7 +118,7 @@ watch(() => statusStore.map, newVal => {
                     title = newMessage.title + 'が更新されました'
                     body = newMessage.status > 1 ? '今すぐ避難！' : '海岸から離れてください。'
                     icon = newMessage.status > 1 ? iconUrls.warn : iconUrls.caution
-                    speech = chimeUrls[soundEffect][currentStatus]
+                    speech = currentStatus
                 }
             }
             const { notification, sound, focus } = settingsStore.mainSettings.onTsunami
@@ -128,7 +128,7 @@ watch(() => statusStore.map, newVal => {
             if(sound && speech) {
                 if(playEws) {
                     setTimeout(() => {
-                        playSound(chimeUrls.general.ews)
+                        playSound("ews")
                     }, 1500);
                     setTimeout(() => {
                         playSound(speech)

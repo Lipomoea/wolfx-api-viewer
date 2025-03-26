@@ -1,6 +1,6 @@
 import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendMyNotification, getClassLevel, focusWindow, calcCsisLevel } from '@/utils/Utils';
 import travelTimes from '@/utils/TravelTimes';
-import { iconUrls, chimeUrls } from '@/utils/Urls';
+import { iconUrls } from '@/utils/Urls';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useSettingsStore } from '@/stores/settings';
@@ -231,16 +231,16 @@ class EewEvent {
             }
             //声音
             if(settingsStore.mainSettings.onEew.sound || settingsStore.mainSettings.onEewWarn.sound){
-                if(eqMessage.isCanceled) playSound(chimeUrls[soundEffect].torikeshi)
+                if(eqMessage.isCanceled) playSound("cancel")
                 else{
                     if(!this.flags.firstSound){
-                        playSound(chimeUrls[soundEffect].happyou)
+                        playSound("issue")
                         this.flags.firstSound = true
                     }
-                    else if(eqMessage.isFinal) playSound(chimeUrls[soundEffect].saisyuu)
-                    else playSound(chimeUrls[soundEffect].koushin)
+                    else if(eqMessage.isFinal) playSound("final")
+                    else playSound("update")
                     if(!this.flags.warnSound){
-                        playSound(chimeUrls[soundEffect].keihou)
+                        playSound("warn")
                         this.flags.cautionSound = true
                         this.flags.warnSound = true
                     }
@@ -263,17 +263,17 @@ class EewEvent {
             }
             //声音
             if(settingsStore.mainSettings.onEew.sound){
-                if(eqMessage.isCanceled) playSound(chimeUrls[soundEffect].torikeshi)
+                if(eqMessage.isCanceled) playSound("cancel")
                 else{
                     if(!this.flags.firstSound){
-                        playSound(chimeUrls[soundEffect].happyou)
+                        playSound("issue")
                         this.flags.firstSound = true
                     }
-                    else if(eqMessage.isFinal) playSound(chimeUrls[soundEffect].saisyuu)
-                    else playSound(chimeUrls[soundEffect].koushin)
+                    else if(eqMessage.isFinal) playSound("final")
+                    else playSound("update")
                     if(getClassLevel(eqMessage.className) >= getClassLevel('green')){
                         if(!this.flags.cautionSound){
-                            playSound(chimeUrls[soundEffect].yohou)
+                            playSound("caution")
                             this.flags.cautionSound = true
                         }
                     }
@@ -300,7 +300,7 @@ class EewEvent {
             if(this.settingsStore.mainSettings.playCountdownSound && this.shouldAction) {
                 const secondsCount = Math.ceil(this.countdown)
                 if(secondsCount < this.flags.lastSecondsCount){
-                    playSound(chimeUrls.general.countdown)
+                    playSound("countdown")
                     this.flags.lastSecondsCount = secondsCount
                 }
             }
@@ -369,30 +369,30 @@ class EqlistEvent {
                 case 'jmaEqlist':{
                     switch(eqMessage.title){
                         case '震度速報': {
-                            playSound(chimeUrls[soundEffect].shindosokuhou)
+                            playSound("prompt")
                             break
                         }
                         case '震源に関する情報': {
-                            playSound(chimeUrls[soundEffect].shingenzyouhou)
+                            playSound("hypocenter")
                             break
                         }
                         default: {
-                            playSound(chimeUrls[soundEffect].jishinzyouhou)
+                            playSound("detail")
                             break
                         }
                     }
                     break
                 }
                 case 'cwaEqlist':{
-                    playSound(chimeUrls[soundEffect].jishinzyouhou)
+                    playSound("detail")
                     break
                 }
                 case 'cencEqlist':{
                     if(eqMessage.title != 'reviewed'){
-                        playSound(chimeUrls[soundEffect].shingenzyouhou)
+                        playSound("hypocenter")
                     }
                     else{
-                        playSound(chimeUrls[soundEffect].jishinzyouhou)
+                        playSound("detail")
                     }
                     break
                 }

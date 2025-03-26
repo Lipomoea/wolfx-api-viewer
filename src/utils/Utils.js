@@ -1,6 +1,11 @@
 import { useTimeStore } from "@/stores/time";
+import { useSettingsStore } from "@/stores/settings";
+import { chimeUrls } from "./Urls";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { booleanPointInPolygon, point, polygonToLine, pointToLineDistance, area, distance, centroid } from "@turf/turf";
+
+let timeStore
+let settingsStore
 
 export const formatNumber = (value, digit)=>{
     if(value){
@@ -50,7 +55,7 @@ export const stampToTime = (timeStamp, timeZone) => {
 }
 export const calcPassedTime = (time, timeZone)=>{
     if(!time || !timeZone) return
-    const timeStore = useTimeStore()
+    if(!timeStore) timeStore = useTimeStore()
     let stamp1 = Date.now() + timeStore.offset
     let stamp2 = timeToStamp(time, timeZone)
     return stamp1 - stamp2
@@ -120,9 +125,16 @@ export const shindoScale = ['0', '1', '2', '3', '4', '5-', '5+', '6-', '6+', '7'
 export const getClassLevel = (className)=>{
     return classNameArray.indexOf(className)
 }
-export const playSound = (url)=>{
-    const audio = new Audio(url)
-    audio.play()
+export const playSound = (type)=>{
+    if(!settingsStore) settingsStore = useSettingsStore()
+    const soundEffect = settingsStore.mainSettings.soundEffect
+    const url = chimeUrls.custom[type] || chimeUrls.general[type] || chimeUrls[soundEffect][type]
+    try {
+        const audio = new Audio(url)
+        audio.play()
+    } catch (_) {
+        console.log("不受支持的音频文件");
+    }
 }
 export const calcWaveDistance = (travelTime, isPWave, depth, time)=>{
     const { depths, distances } = travelTime
@@ -173,7 +185,7 @@ export const extractNumbers = (str)=>{
     return numberString
 }
 export const getTimeNumberString = (timeZone, offset)=>{
-    const timeStore = useTimeStore()
+    if(!timeStore) timeStore = useTimeStore()
     const now = new Date(Date.now() + timeStore.offset + timeZone * 3600 * 1000 + offset);
     const year = now.getUTCFullYear();
     const month = String(now.getUTCMonth() + 1).padStart(2, '0');

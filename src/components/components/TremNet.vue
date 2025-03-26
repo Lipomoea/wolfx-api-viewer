@@ -9,7 +9,7 @@ import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, inject } fr
 import Http from '@/classes/Http';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
-import { seisNetUrls, chimeUrls, iconUrls } from '@/utils/Urls';
+import { seisNetUrls, iconUrls } from '@/utils/Urls';
 import { getShindoFromChar, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromInstShindo, stampToTime } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -66,7 +66,6 @@ const grids = computed(()=>{
     return grids
 })
 const gridRects = {}
-const soundEffect = computed(()=>settingsStore.mainSettings.soundEffect)
 const setView = inject('setView')
 const isAutoZoom = inject('isAutoZoom')
 const update = ()=>{
@@ -208,8 +207,8 @@ let focused = false
 watch(currentMaxShindo, (newVal, oldVal)=>{
     if(newVal > oldVal){
         if(settingsStore.mainSettings.onShake.sound){
-            const url = chimeUrls[soundEffect.value][`shindo${newVal}`]
-            playSound(url)
+            const type = `shindo${newVal}`
+            playSound(type)
         }
         if(settingsStore.mainSettings.onShake.notification){
             if(newVal >= 1 && newVal <= 3 && !shake1Notified){

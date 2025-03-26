@@ -48,15 +48,15 @@ export const chimeUrls = {
         ews: '/sound/general/ews.mp3',
     },
     srev: {
-        happyou: '/sound/srev/happyou.mp3',
-        yohou: '/sound/srev/yohou.mp3',
-        keihou: '/sound/srev/keihou.mp3',
-        koushin: '/sound/srev/koushin.mp3',
-        saisyuu: '/sound/srev/saisyuu.mp3',
-        torikeshi: '/sound/srev/torikeshi.mp3',
-        shindosokuhou: '/sound/srev/shindosokuhou.mp3',
-        shingenzyouhou: '/sound/srev/shingenzyouhou.mp3',
-        jishinzyouhou: '/sound/srev/jishinzyouhou.mp3',
+        issue: '/sound/srev/issue.mp3',
+        caution: '/sound/srev/caution.mp3',
+        warn: '/sound/srev/warn.mp3',
+        update: '/sound/srev/update.mp3',
+        final: '/sound/srev/final.mp3',
+        cancel: '/sound/srev/cancel.mp3',
+        prompt: '/sound/srev/prompt.mp3',
+        hypocenter: '/sound/srev/hypocenter.mp3',
+        detail: '/sound/srev/detail.mp3',
         shindo0:'/sound/srev/shindo0.mp3',
         shindo1:'/sound/srev/shindo1.mp3',
         shindo2:'/sound/srev/shindo2.mp3',
@@ -77,6 +77,7 @@ export const chimeUrls = {
         tsunami3update: '/sound/srev/tsunami3update.mp3',
         tsunami3cancel: '/sound/srev/tsunami3cancel.mp3',
     },
+    custom: {}
 }
 export const geojsonUrls = {
     global: '/json/medium.global.modified.geo.json',

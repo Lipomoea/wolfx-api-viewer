@@ -484,6 +484,15 @@
                         </div>
                     </div>
                 </div>
+                <div class="group" v-if="isTauri">
+                    <div class="row">
+                        <div class="switch-group">
+                            <div class="switch">
+                                <el-button @click="customizeAudio = true">自定义音效</el-button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="group">
                     <div class="row">
                         <div class="switch-group">
@@ -555,17 +564,49 @@
                 <el-button type="primary" @click="postVerify">确定</el-button>
             </template>
         </el-dialog>
+        <el-dialog class="customize-audio" v-model="customizeAudio" width="60vw" :show-close="false">
+            <div class="explanation">
+                <div class="text">
+                    <p><strong>Windows桌面应用程序版本支持自定义音效，请参考下列步骤。</strong></p>
+                    <p>1. 点击“打开音频文件夹”按钮，Windows资源管理器会打开该应用程序的数据文件夹。</p>
+                    <p>2. 在该目录下创建一个“audio”文件夹。</p>
+                    <p>3. 将你想替换的音频文件（需要为mp3格式）放入该文件夹并重命名为“xxx.mp3”，具体名称请参照下方按钮显示的名称。</p>
+                    <p>4. 点击“重新加载音频”按钮，或按“F5”刷新页面即完成替换。</p>
+                    <p>替换完成后可点击下方按钮进行音效测试。如需恢复默认，删除对应的mp3文件并重载音频即可。</p>
+                    <p><strong>如因此功能产生任何侵权行为将由您自行承担，开发者不承担任何责任。</strong></p>
+                </div>
+                <div class="buttons">
+                    <el-button @click="openDataFolder">打开数据文件夹</el-button>
+                    <el-button @click="loadAudio">重新加载音频</el-button>
+                </div>
+            </div>
+            <div class="test">
+                <div class="text">
+                    <strong>点击下方按钮进行音效试听</strong>
+                </div>
+                <div class="buttons">
+                    <el-button v-for="(type, index) of audioTypes" :key="index" @click="playSound(type)">{{ type }}</el-button>
+                </div>
+            </div>
+            <template #footer>
+                <el-button type="default" @click="customizeAudio = false">关闭</el-button>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
 <script setup>
 import { useSettingsStore } from '@/stores/settings';
 import { useStatusStore } from '@/stores/status';
-import { utilUrls } from '@/utils/Urls';
+import { chimeUrls, utilUrls } from '@/utils/Urls';
 import Http from '@/classes/Http';
 import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { QuestionFilled } from '@element-plus/icons-vue';
-import { setClassName } from '@/utils/Utils';
+import { playSound, setClassName } from '@/utils/Utils';
+import { join, appDataDir } from "@tauri-apps/api/path";
+import { convertFileSrc } from "@tauri-apps/api/core";
+import { exists } from "@tauri-apps/plugin-fs";
+import { open } from "@tauri-apps/plugin-shell";
 
 const showNotifButton = 'Notification' in window
 const isTauri = !!window.__TAURI_INTERNALS__
@@ -827,6 +868,7 @@ const handleAbout = ()=>{
     ElMessageBox.alert(
         `<div class="title">最近更新</div>
         <div class="about">
+            <p>v2.0.0-rc.8.3 新增：Windows桌面版应用支持自定义音效；优化：假定震源不受预警烈度限制；修复：震源地溢出时显示省略号。</p>
             <p>v2.0.0-rc.8.2 优化：放映模式下的显示逻辑；优化：震源地溢出时显示省略号；修复：检查更新弹窗可能出现多个的bug。</p>
             <p>v2.0.0-rc.8.1 新增：设置预警烈度阈值功能；新增：网页端自动应用更新功能；修复：网页端可以设置检查预发布版本的问题。</p>
             <p>v2.0.0-rc.8 新增：JMA津波情報；新增：SREV测站风格；新增：从GitHub检查更新功能；修复：強震モニタ测站列表小概率加载失败的bug。</p>
@@ -866,7 +908,7 @@ const handleAbout = ()=>{
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </p>
         </div>`,
-        '要石 v2.0.0-rc.8.2',
+        '要石 v2.0.0-rc.8.3',
         {
             confirmButtonText: 'OK',
             showClose: false,
@@ -1011,8 +1053,34 @@ const handleAutoCheckVersion = (val) => {
         }, 6 * 3600 * 1000);
     }
 }
+const audioTypes = Object.keys(chimeUrls.general).concat(Object.keys(chimeUrls.srev))
+const customizeAudio = ref(false)
+const loadAudio = () => {
+    if(isTauri) {
+        chimeUrls.custom = {}
+        audioTypes.forEach(async type => {
+            try {
+                const fileName = type + '.mp3'
+                const appDataPath = await appDataDir()
+                const filePath = await join(appDataPath, 'audio', fileName)
+                const isExist = await exists(filePath)
+                if(isExist) {
+                    const url = convertFileSrc(filePath)
+                    chimeUrls.custom[type] = url
+                }
+            } catch (err) {
+                console.log(err);
+            }
+        })
+    }
+}
+const openDataFolder = async () => {
+    const appDataPath = await appDataDir()
+    open(appDataPath)
+}
 onMounted(() => {
     handleAutoCheckVersion(settingsStore.mainSettings.autoCheckNewVersion)
+    loadAudio()
 })
 onBeforeUnmount(() => {
     clearInterval(autoCheckInterval)
@@ -1109,6 +1177,36 @@ onBeforeUnmount(() => {
     align-items: center;
     pointer-events: none;
     user-select: none;
+}
+.customize-audio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    .explanation,.test {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        .text {
+            font-size: 16px;
+        }
+        .buttons {
+            width: 100%;
+            display: flex;
+            column-gap: 20px;
+            row-gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            .el-button {
+                width: 150px;
+                margin: 0;
+            }
+        }
+    }
+    .test {
+        margin-top: 20px;
+    }
 }
 </style>
 <style lang="scss">
