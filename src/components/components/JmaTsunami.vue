@@ -83,7 +83,6 @@ watch(() => statusStore.map, newVal => {
         map = newVal
         watch(() => statusStore.tsunamiMessage.jmaTsunami, newMessage => {
             let title, body, icon, speech, playEws = false, shouldFocus = true
-            const soundEffect = settingsStore.mainSettings.soundEffect
             if(newMessage.status > oldMessage.status) {
                 currentStatus = `tsunami${newMessage.status}issue`
                 title = newMessage.title + 'が発表されました'

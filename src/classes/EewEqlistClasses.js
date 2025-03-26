@@ -219,7 +219,6 @@ class EewEvent {
     }
     handleActions(){
         const settingsStore = this.settingsStore
-        const soundEffect = settingsStore.mainSettings.soundEffect
         const eqMessage = this.eqMessage
         let icon = ''
         //是Warn
@@ -360,7 +359,6 @@ class EqlistEvent {
     }
     handleActions(){
         const settingsStore = this.settingsStore
-        const soundEffect = settingsStore.mainSettings.soundEffect
         const eqMessage = this.eqMessage
         let icon = ''
         if(settingsStore.mainSettings.onReport.notification) icon = iconUrls.info
