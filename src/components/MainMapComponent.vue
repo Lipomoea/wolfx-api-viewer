@@ -817,12 +817,7 @@ const jmaWarnArea = computed(()=>{
         jmaEewList.forEach(event=>{
             const warnArea = JSON.parse(event.eqMessage.warnArea)
             warnArea.forEach(item=>{
-                if(jmaWarnArea[item.name]){
-                    if(getClassLevel(item.className) > getClassLevel(jmaWarnArea[item.name].className)){
-                        jmaWarnArea[item.name] = item
-                    }
-                }
-                else{
+                if(!jmaWarnArea[item.name] || getClassLevel(item.className) > getClassLevel(jmaWarnArea[item.name].className)){
                     jmaWarnArea[item.name] = item
                 }
             })
