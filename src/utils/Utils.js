@@ -258,14 +258,18 @@ export const pointDistToPolygon = (pointLatLng, feature)=>{
         return dist
     }
 }
-export const calcCsis = (m, dep, dis) => {
-    if (isNaN(m) || isNaN(dep) || isNaN(dis)) return 0;
-    if (dis > 10000) return 0;
-    dep = dep >= 10 ? dep : (Math.max(dep, 0) + 10) / 2;
-    const r = 6371;
+const r = 6371;
+const calcLineDis = (dep, dis) => {
     const theta = dis / r;
     const a = r - dep;
     const lineDis = Math.sqrt(a * a + r * r - 2 * a * r * Math.cos(theta));
+    return lineDis;
+}
+export const calcCsis = (m, dep, dis) => {
+    if (isNaN(m) || isNaN(dis)) return 0;
+    if (dis > 10000) return 0;
+    dep = (isNaN(dis) || dep === null || dep < 0) ? 10 : dep >= 10 ? dep : (dep + 10) / 2;
+    const lineDis = calcLineDis(dep, dis);
     const k = 1 - 0.7 / Math.sqrt(dep / 10);
     const hypoDis = lineDis - k * dep;
     const ceaCsis = 1.297 * m - 4.368 * Math.log10(hypoDis + 8) + 5.363;
@@ -281,10 +285,8 @@ export const calcJmaShindo = (mj, dep, hypoLat, hypoLng, loc) => {
     const locPoint = point([loc.location[1], loc.location[0]]);
     const hypoPoint = point([hypoLng, hypoLat]);
     const surfaceDist = distance(hypoPoint, locPoint, { units: "kilometers" });
-    const r = 6371;
-    const theta = surfaceDist / r;
-    const a = r - dep;
-    const hypoDist = Math.sqrt(a * a + r * r - 2 * a * r * Math.cos(theta)) - long;
+    const lineDis = calcLineDis(dep, surfaceDist);
+    const hypoDist = lineDis - long;
     const x = Math.max(hypoDist, 3);
     const pgv600 = 10 ** (
         0.58 * mw +
@@ -296,7 +298,7 @@ export const calcJmaShindo = (mj, dep, hypoLat, hypoLng, loc) => {
     const pgv400 = pgv600 * 1.31;
     const pgv = pgv400 * arv;
     const instShindo = 2.68 + 1.72 * Math.log10(pgv);
-    return instShindo
+    return instShindo;
 }
 export const calcJmaShindoLevel = (mj, dep, hypoLat, hypoLng, loc, useSymbol = true) => {
     const instShindo = calcJmaShindo(mj, dep, hypoLat, hypoLng, loc)
