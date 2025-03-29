@@ -268,7 +268,7 @@ const calcLineDis = (dep, dis) => {
 export const calcCsis = (m, dep, dis) => {
     if (isNaN(m) || isNaN(dis)) return 0;
     if (dis > 10000) return 0;
-    dep = (isNaN(dis) || dep === null || dep < 0) ? 10 : dep >= 10 ? dep : (dep + 10) / 2;
+    dep = (isNaN(dep) || dep === null || dep < 0) ? 10 : dep >= 10 ? dep : (dep + 10) / 2;
     const lineDis = calcLineDis(dep, dis);
     const k = 1 - 0.7 / Math.sqrt(dep / 10);
     const hypoDis = lineDis - k * dep;
