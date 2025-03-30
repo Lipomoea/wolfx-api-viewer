@@ -366,7 +366,7 @@ onMounted(()=>{
         attributionControl: false,
         center: defaultLatLng,
         zoom: 4,
-        minZoom: 3,
+        minZoom: 2,
         maxZoom: 12
     })
     //傻逼Leaflet
