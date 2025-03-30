@@ -771,6 +771,10 @@ const resetDefaultMenuTimer = ()=>{
     clearTimeout(defaultMenuTimer)
     defaultMenuTimer = setTimeout(() => {
         menuId.value = defaultMenuId.value
+        setTimeout(() => {
+            map.invalidateSize()
+            if(isAutoZoom.value) setView()
+        }, 0);
     }, 60 * 1000);
 }
 watch(menuId, (newVal)=>{
