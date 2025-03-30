@@ -67,6 +67,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             hideDrawer: false,
             cinemaMode: false,
             eqlistsAsDefault: false,
+            minimizeOnLaunch: false,
             autoCheckNewVersion: false,
             checkPrerelease: true,
             autoRefresh: false

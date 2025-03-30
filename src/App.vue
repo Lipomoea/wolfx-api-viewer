@@ -13,6 +13,7 @@ import { useTimeStore } from './stores/time';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from './stores/settings';
 import { geojsonUrls } from './utils/Urls';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import Http from './classes/Http';
 
 const timeStore = useTimeStore()
@@ -30,7 +31,7 @@ async function getGeojson(){
   }
 }
 
-onBeforeMount(() => {
+onBeforeMount(async () => {
   settingsStore.setMainSettings(localStorage.getItem('mainSettings'))
   settingsStore.setAdvancedSettings(localStorage.getItem('advancedSettings'))
   settingsStore.mainSettings.displaySeisNet.delay = 0
@@ -43,6 +44,9 @@ onBeforeMount(() => {
     if (Notification.permission !== 'granted') {
       Notification.requestPermission()
     }
+  }
+  if(window.__TAURI_INTERNALS__ && settingsStore.mainSettings.minimizeOnLaunch) {
+    await getCurrentWindow().hide()
   }
 })
 onBeforeUnmount(() => {

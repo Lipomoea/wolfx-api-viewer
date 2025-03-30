@@ -510,6 +510,18 @@
                 </div>
                 <div class="sub-title">关于</div>
                 <div class="group">
+                    <div class="row full-width" v-if="isTauri">
+                        <div class="switch-group">
+                            <div class="switch">
+                                <span>开机自启动</span>
+                                <el-switch v-model="isAutoStart" @change="handleAutoStart"></el-switch>
+                            </div>
+                            <div class="switch">
+                                <span>最小化启动</span>
+                                <el-switch v-model="settingsStore.mainSettings.minimizeOnLaunch"></el-switch>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="switch-group">
                             <div class="switch">
@@ -530,7 +542,7 @@
                             <div class="switch">
                                 <el-button
                                 style="margin-top: 5px;"
-                                @click="handleAbout">帮助&关于</el-button>
+                                @click="showAbout = true">帮助&关于</el-button>
                             </div>
                             <div class="switch">
                                 <el-button
@@ -592,6 +604,53 @@
                 <el-button type="default" @click="customizeAudio = false">关闭</el-button>
             </template>
         </el-dialog>
+        <el-dialog class="about-box" v-model="showAbout" width="60vw" :show-close="false">
+            <div class="header">要石 v2.0.0-rc.9</div>
+            <div class="title">最近更新</div>
+            <div class="about">
+                <p>v2.0.0-rc.9 新增：Windows桌面版应用支持设置开机自启动和最小化启动；优化：调整部分代码结构；修复：日本气象厅远地地震情报默认深度错误的问题。</p>
+                <p>v2.0.0-rc.8.3 新增：Windows桌面版应用支持自定义音效；优化：假定震源不受预警烈度限制；修复：震源地溢出时显示省略号。</p>
+                <p>v2.0.0-rc.8.2 优化：放映模式下的显示逻辑；优化：震源地溢出时显示省略号；修复：检查更新弹窗可能出现多个的bug。</p>
+                <p>v2.0.0-rc.8.1 新增：设置预警烈度阈值功能；新增：网页端自动应用更新功能；修复：网页端可以设置检查预发布版本的问题。</p>
+                <p>v2.0.0-rc.8 新增：JMA津波情報；新增：SREV测站风格；新增：从GitHub检查更新功能；修复：強震モニタ测站列表小概率加载失败的bug。</p>
+                <p>v2.0.0-rc.7.1 变更：使用新的ntp对时api；新增：鼠标悬浮到震源图标上显示地震参数。</p>
+                <p>v2.0.0-rc.7 变更：“wolfx-api-viewer”正式更名“要石”（"kanameishi"）；优化：调整震度检出算法。</p>
+            </div>
+            <div class="title">使用方法</div>
+            <div class="about">
+                <p>主要功能：接收日本气象厅、台湾省中央气象署、四川省地震局、福建省地震局地震预警信息，日本气象厅、中国地震台网地震信息，日本气象厅海啸信息，NIED強震モニタ测站数据。</p>
+                <p>Windows Chrome/Edge推荐设置（以Chrome为例，Edge方法类似）：</p>
+                <ul style="list-style-position: inside;">
+                    <li>保持后台刷新：浏览器访问chrome://flags - Calculate window occlusion on Windows - Disabled - 右下角重新启动</li>
+                    <li>去除网页“不安全”提示（同时解除网页权限设置限制，但浏览器启动时会收到横幅提示）：chrome://flags - Insecure origins treated as secure - 启用 - 输入本网页的链接 - 右下角重新启动</li>
+                    <li>作为网页应用安装：Chrome打开此页面，右上角三点 - 保存并分享 - 将网页作为应用安装。安装一次后刷新页面即可加载最新版本网页，无需重新安装。</li>
+                </ul>
+                <p>通知推送：需授予通知权限。Chrome：点击网页链接左侧按钮-网站设置-通知-允许，刷新页面。</p>
+                <p>播放声音：需开启声音权限。Chrome：点击网页链接左侧按钮-网站设置-声音-允许，刷新页面。</p>
+            </div>
+            <div class="title">注意事项</div>
+            <div class="about">
+                <p>关于烈度：日本气象厅紧急地震速报（气象厅震度，预估值），台湾中央气象署（CWA震度，预估值），四川地震局（CSIS，预估值），福建地震局（CSIS，预估值），日本气象厅地震情报（气象厅震度，测定值），中国地震台网地震信息（CSIS，预估值）。</p>
+                <p>关于时间：显示为发报机构当地时间。</p>
+                <p>关于延迟：受API限制，部分资料具有延迟是正常现象。</p>
+                <p>关于走时：目前所有地震波位置均采用jma2001走时表计算，对日本以外地区可能有较大误差。未知震源深度视为10km。</p>
+                <p>关于地图：由于服务器带宽限制，进入页面后需要一定时间加载地图。如长时间未加载地图，请刷新页面。</p>
+            </div>
+            <div class="title">关于</div>
+            <div class="about">
+                <p>Windows 10及以上用户推荐使用应用程序：<a href="https://github.com/Lipomoea/kanameishi/releases" target="_blank">Windows应用程序下载</a></p>
+                <p>本页面基于Wolfx Open API (<a href="https://api.wolfx.jp" target="_blank">api.wolfx.jp</a>) 开发，不属于Wolfx官方。</p>
+                <p>本页面未针对移动端进行适配，建议使用Windows应用程序或电脑浏览器访问本网页。</p>
+                <p>联系我：<a href="https://space.bilibili.com/316757498" target="_blank">リッポミャ</a>（哔哩哔哩）</p>
+                <p>Github: <a href="https://github.com/Lipomoea/kanameishi" target="_blank">https://github.com/Lipomoea/kanameishi</a></p>
+                <p>特别鸣谢：</p>
+                <p>Wolfx Project：接口支持。</p>
+                <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
+            </div>
+            <template #footer>
+                <el-button type="default" @click="showAbout = false">关闭</el-button>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
@@ -607,6 +666,7 @@ import { join, appDataDir } from "@tauri-apps/api/path";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { exists } from "@tauri-apps/plugin-fs";
 import { open } from "@tauri-apps/plugin-shell";
+import { enable, disable, isEnabled } from '@tauri-apps/plugin-autostart';
 
 const showNotifButton = 'Notification' in window
 const isTauri = !!window.__TAURI_INTERNALS__
@@ -864,63 +924,7 @@ const handleNeedReload = () => {
         type: 'warning'
     })
 }
-const handleAbout = ()=>{
-    ElMessageBox.alert(
-        `<div class="title">最近更新</div>
-        <div class="about">
-            <p>v2.0.0-rc.8.3 新增：Windows桌面版应用支持自定义音效；优化：假定震源不受预警烈度限制；修复：震源地溢出时显示省略号。</p>
-            <p>v2.0.0-rc.8.2 优化：放映模式下的显示逻辑；优化：震源地溢出时显示省略号；修复：检查更新弹窗可能出现多个的bug。</p>
-            <p>v2.0.0-rc.8.1 新增：设置预警烈度阈值功能；新增：网页端自动应用更新功能；修复：网页端可以设置检查预发布版本的问题。</p>
-            <p>v2.0.0-rc.8 新增：JMA津波情報；新增：SREV测站风格；新增：从GitHub检查更新功能；修复：強震モニタ测站列表小概率加载失败的bug。</p>
-            <p>v2.0.0-rc.7.1 变更：使用新的ntp对时api；新增：鼠标悬浮到震源图标上显示地震参数。</p>
-            <p>v2.0.0-rc.7 变更：“wolfx-api-viewer”正式更名“要石”（"kanameishi"）；优化：调整震度检出算法。</p>
-        </div>
-        <div class="title">使用方法</div>
-        <div class="about">
-            <p>主要功能：接收日本气象厅、台湾省中央气象署、四川省地震局、福建省地震局地震预警信息，日本气象厅、中国地震台网地震信息，日本气象厅海啸信息，NIED強震モニタ测站数据。</p>
-            <p>Windows Chrome/Edge推荐设置（以Chrome为例，Edge方法类似）：
-                <ul style="list-style-position: inside;">
-                    <li>保持后台刷新：浏览器访问chrome://flags - Calculate window occlusion on Windows - Disabled - 右下角重新启动</li>
-                    <li>去除网页“不安全”提示（同时解除网页权限设置限制，但浏览器启动时会收到横幅提示）：chrome://flags - Insecure origins treated as secure - 启用 - 输入本网页的链接 - 右下角重新启动</li>
-                    <li>作为网页应用安装：Chrome打开此页面，右上角三点 - 保存并分享 - 将网页作为应用安装。安装一次后刷新页面即可加载最新版本网页，无需重新安装。</li>
-                </ul>
-            </p>
-            <p>通知推送：需授予通知权限。Chrome：点击网页链接左侧按钮-网站设置-通知-允许，刷新页面。</p>
-            <p>播放声音：需开启声音权限。Chrome：点击网页链接左侧按钮-网站设置-声音-允许，刷新页面。</p>
-        </div>
-        <div class="title">注意事项</div>
-        <div class="about">
-            <p>关于烈度：日本气象厅紧急地震速报（气象厅震度，预估值），台湾中央气象署（CWA震度，预估值），四川地震局（CSIS，预估值），福建地震局（CSIS，预估值），日本气象厅地震情报（气象厅震度，测定值），中国地震台网地震信息（CSIS，预估值）。</p>
-            <p>关于时间：显示为发报机构当地时间。</p>
-            <p>关于延迟：受API限制，部分资料具有延迟是正常现象。</p>
-            <p>关于走时：目前所有地震波位置均采用jma2001走时表计算，对日本以外地区可能有较大误差。未知震源深度视为10km。</p>
-            <p>关于地图：由于服务器带宽限制，进入页面后需要一定时间加载地图。如长时间未加载地图，请刷新页面。</p>
-        </div>
-        <div class="title">关于</div>
-        <div class="about">
-            <p>Windows 10及以上用户推荐使用应用程序：<a href="https://github.com/Lipomoea/kanameishi/releases" target="_blank">Windows应用程序下载</a></p>
-            <p>本页面基于Wolfx Open API (<a href="https://api.wolfx.jp" target="_blank">api.wolfx.jp</a>) 开发，不属于Wolfx官方。</p>
-            <p>本页面未针对移动端进行适配，建议使用Windows应用程序或电脑浏览器访问本网页。</p>
-            <p>联系我：<a href="https://space.bilibili.com/316757498" target="_blank">リッポミャ</a>（哔哩哔哩）</p>
-            <p>Github: <a href="https://github.com/Lipomoea/kanameishi" target="_blank">https://github.com/Lipomoea/kanameishi</a></p>
-            <p>特别鸣谢：
-                <p>Wolfx Project：接口支持。</p>
-                <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
-            </p>
-        </div>`,
-        '要石 v2.0.0-rc.8.3',
-        {
-            confirmButtonText: 'OK',
-            showClose: false,
-            dangerouslyUseHTMLString: true,
-            customStyle: {
-                '--el-messagebox-width': '60vw',
-                padding: '20px'
-            },
-            customClass: 'about-box'
-        }
-    )
-}
+const showAbout = ref(false)
 const checkNewVersion = async (silent = false) => {
     const currentVersion = document.title.split('v')[1]
     try {
@@ -1078,9 +1082,19 @@ const openDataFolder = async () => {
     const appDataPath = await appDataDir()
     open(appDataPath)
 }
-onMounted(() => {
+const isAutoStart = ref(false)
+const handleAutoStart = async (value) => {
+    if(isTauri) {
+        value ? await enable() : await disable()
+        isAutoStart.value = await isEnabled()
+    }
+}
+onMounted(async () => {
     handleAutoCheckVersion(settingsStore.mainSettings.autoCheckNewVersion)
-    loadAudio()
+    if(isTauri) {
+        loadAudio()
+        isAutoStart.value = await isEnabled()
+    }
 })
 onBeforeUnmount(() => {
     clearInterval(autoCheckInterval)
@@ -1151,6 +1165,28 @@ onBeforeUnmount(() => {
             }
         }
     }
+    .about-box{
+        padding: 20px;
+        .header {
+            width: 100%;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .title{
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .about {
+            font-size: 16px;
+        }
+        .about+.about{
+            margin-top: 10px;
+        }
+        a,a:visited{
+            color: blue;
+        }
+    }
 }
 .force-wrap{
     flex-wrap: wrap;
@@ -1206,20 +1242,6 @@ onBeforeUnmount(() => {
     }
     .test {
         margin-top: 20px;
-    }
-}
-</style>
-<style lang="scss">
-.about-box{
-    .title{
-        font-size: 20px;
-    }
-    .about{
-        font-size: 16px;
-        margin-bottom: 10px;
-    }
-    a,a:visited{
-        color: blue;
     }
 }
 </style>
