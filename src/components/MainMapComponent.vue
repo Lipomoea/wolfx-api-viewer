@@ -9,7 +9,7 @@
                             <div class="bar" :class="getBarClass(event.eqMessage)">{{ event.eqMessage.titleText + ' ' + event.eqMessage.reportNumText }}</div>
                             <div class="info">
                                 <div class="intensity" :class="event.eqMessage.className">
-                                    <div class="intensity-title">{{ event.eqMessage.useShindo?'最大震度':'最大CSIS' }}</div>
+                                    <div class="intensity-title">{{ event.eqMessage.useShindo?'最大震度':'最大烈度' }}</div>
                                     <div :class="event.eqMessage.useShindo && formatIntensity(event.eqMessage.maxIntensity) != '?'?'shindo':'csis'">
                                         {{ formatIntensity(event.eqMessage.maxIntensity) }}
                                     </div>
@@ -36,7 +36,7 @@
                             </div>
                             <div class="info" v-else>
                                 <div class="intensity" :class="setClassName(event.userCsis, false)">
-                                    <div class="intensity-title">本地CSIS</div>
+                                    <div class="intensity-title">本地烈度</div>
                                     <div class="csis">
                                         {{ event.userCsis }}
                                     </div>
@@ -49,7 +49,7 @@
                             <div class="bar" :class="getBarClass(event.eqMessage)">{{ event.eqMessage.titleText + ' ' + event.eqMessage.reportNumText }}</div>
                             <div class="info">
                                 <div class="intensity" :class="event.eqMessage.className">
-                                    <div class="intensity-title">{{ event.eqMessage.useShindo?'最大震度':'最大CSIS' }}</div>
+                                    <div class="intensity-title">{{ event.eqMessage.useShindo?'最大震度':'最大烈度' }}</div>
                                     <div :class="event.eqMessage.useShindo && formatIntensity(event.eqMessage.maxIntensity) != '?'?'shindo':'csis'">
                                         {{ formatIntensity(event.eqMessage.maxIntensity) }}
                                     </div>
@@ -133,11 +133,11 @@
                             <div class="align-left">{{ shindoArray[index] }}</div>
                         </div>
                         <div class="sub-title single-legend">
-                            <div class="align-right">CSIS</div>
+                            <div class="align-right">烈度</div>
                             <div class="color"></div>
                             <div class="align-left">震度</div>
                         </div>
-                        <div class="legend-title">图例</div>
+                        <div class="legend-title">地图颜色</div>
                     </div>
                     <div class="ws-status">
                         WebSocket状态: 
@@ -1115,7 +1115,7 @@ onBeforeUnmount(()=>{
                         width: 100%;
                         display: flex;
                         justify-content: center;
-                        font-size: 20px;
+                        font-size: 18px;
                         margin-bottom: 5px;
                     }
                 }
