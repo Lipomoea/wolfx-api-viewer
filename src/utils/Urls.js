@@ -19,10 +19,6 @@ export const seisNetUrls = {
     nied: {
         stationList: 'https://weather-kyoshin.east.edge.storage-yahoo.jp/SiteList/sitelist.json',
         stationData: 'https://weather-kyoshin.east.edge.storage-yahoo.jp/RealTimeData'
-    },
-    trem: {
-        stationList: 'https://api-2.exptech.dev/api/v1/trem/station',
-        stationData: 'https://api-2.exptech.dev/api/v2/trem/rts'
     }
 }
 export const iconUrls = {

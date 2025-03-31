@@ -899,9 +899,10 @@ const postVerify = async ()=>{
             break
         }
         case 'enableTremFunctions': {
-            const res = await Http.post('http://124.70.142.213:8766/verify_admin', idForm)
+            const res = await Http.post('http://124.70.142.213:8766/trem_url', idForm)
             if(res && res.success){
                 settingsStore.advancedSettings.enableTremFunctions = true
+                localStorage.setItem('tremUrl', JSON.stringify(res.data))
                 verifyDialog.value = false
                 ElMessage({
                     message: '认证成功',

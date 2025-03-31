@@ -19,6 +19,8 @@ import { useTimeStore } from '@/stores/time';
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 const timeStore = useTimeStore()
+
+Object.assign(seisNetUrls, JSON.parse(localStorage.getItem('tremUrl')))
 const stationList = reactive({})
 let stationData
 const stations = reactive({})
@@ -92,7 +94,7 @@ const clearReactiveObject = (obj) => {
 let fetchStationInterval, requestInterval
 const fetchStationList = () => {
     try {
-        Http.get(seisNetUrls.trem.stationList + `?time=${Date.now()}`).then(res=>{
+        Http.get(seisNetUrls?.trem.stationList + `?time=${Date.now()}`).then(res=>{
             if(res && JSON.stringify(res) != JSON.stringify(stationList)){
                 clearReactiveObject(stationList)
                 Object.assign(stationList, res)
@@ -108,7 +110,7 @@ onMounted(()=>{
     requestInterval = setInterval(() => {
         try {
             const time = Date.now() + timeStore.offset - delay.value
-            Http.get(seisNetUrls.trem.stationData + (delay.value > 0 ? `/${Math.round(time / 1000)}` : `?time=${time}`)).then(res=>{
+            Http.get(stationDataUrl.value + (delay.value > 0 ? `/${Math.round(time / 1000)}` : `?time=${time}`)).then(res=>{
                 if(res && Object.keys(res).length > 0){
                     stationData = res.station
                     const timeString = stampToTime(res.time, 8)
@@ -240,9 +242,7 @@ watch(currentMaxShindo, (newVal, oldVal)=>{
         focused = false
     }
 })
-watch(() => settingsStore.mainSettings.displaySeisNet.tremApi, newVal => {
-    seisNetUrls.trem.stationData = `https://${newVal}.exptech.dev/api/v2/trem/rts`
-}, { immediate: true })
+const stationDataUrl = computed(() => seisNetUrls?.trem.stationData.replace('api-2', settingsStore.mainSettings.displaySeisNet.tremApi))
 onBeforeUnmount(()=>{
     clearInterval(fetchStationInterval)
     clearInterval(requestInterval)
