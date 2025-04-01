@@ -836,13 +836,13 @@ const handleAdvance = (val)=>{
             break
         }
         case 'disableCeaEew': {
+            if(settingsStore.mainSettings.source.ceaEew) handleNeedReload()
             settingsStore.advancedSettings.enableCeaEew = false
             settingsStore.mainSettings.source.ceaEew = false
             ElMessage({
                 message: '功能已关闭',
                 type: 'success'
             })
-            handleNeedReload()
             break
         }
         case 'enableIclEew': {
@@ -851,13 +851,13 @@ const handleAdvance = (val)=>{
             break
         }
         case 'disableIclEew': {
+            if(settingsStore.mainSettings.source.iclEew) handleNeedReload()
             settingsStore.advancedSettings.enableIclEew = false
             settingsStore.mainSettings.source.iclEew = false
             ElMessage({
                 message: '功能已关闭',
                 type: 'success'
             })
-            handleNeedReload()
             break
         }
         case 'enableTremFunctions': {
@@ -866,6 +866,7 @@ const handleAdvance = (val)=>{
             break
         }
         case 'disableTremFunctions': {
+            if(settingsStore.mainSettings.source.cwaEqlist) handleNeedReload()
             settingsStore.advancedSettings.enableTremFunctions = false
             settingsStore.mainSettings.source.cwaEqlist = false
             settingsStore.mainSettings.displaySeisNet.trem = false
@@ -873,7 +874,6 @@ const handleAdvance = (val)=>{
                 message: '功能已关闭',
                 type: 'success'
             })
-            handleNeedReload()
             break
         }
         case 'enableMultiApi': {
@@ -882,13 +882,13 @@ const handleAdvance = (val)=>{
             break
         }
         case 'disableMultiApi': {
+            if(settingsStore.advancedSettings.multiApi) handleNeedReload()
             settingsStore.advancedSettings.displayMultiApi = false
             settingsStore.advancedSettings.multiApi = false
             ElMessage({
                 message: '功能已关闭',
                 type: 'success'
             })
-            handleNeedReload()
             break
         }
     }
