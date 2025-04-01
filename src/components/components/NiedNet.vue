@@ -152,9 +152,11 @@ let fetchStationInterval, requestInterval, delayInterval
 const fetchStationList = () => {
     try {
         Http.get(seisNetUrls.nied.stationList).then(res=>{
-            stationList.value = res.items
-            siteConfigId.value = res.siteConfigId
-            clearInterval(fetchStationInterval)
+            if(res && res.siteConfigId) {
+                stationList.value = res.items
+                siteConfigId.value = res.siteConfigId
+                clearInterval(fetchStationInterval)
+            }
         })
     } catch (err) {
         console.log(err);
