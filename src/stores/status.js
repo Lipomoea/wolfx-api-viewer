@@ -98,49 +98,34 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.isEew = true
                         eqMessage.isCanceled = data.isCancel
                         eqMessage.useShindo = true
+                        eqMessage.reportNum = data.Serial
+                        eqMessage.reportTime = data.AnnouncedTime.replace(/\//g, '-')
+                        eqMessage.isAssumption = data.isAssumption
+                        eqMessage.isWarn = data.isWarn
+                        eqMessage.isFinal = data.isFinal
+                        eqMessage.title = data.Title
+                        eqMessage.lat = data.Latitude
+                        eqMessage.lng = data.Longitude
+                        eqMessage.depth = data.Depth
+                        eqMessage.depthText = '深さ: ' + data.Depth + 'km'
+                        eqMessage.originTime = data.OriginTime.replace(/\//g, '-')
+                        eqMessage.originTimeText = '発震時刻: ' + data.OriginTime.replace(/\//g, '-') + ' (JST)'
+                        eqMessage.magnitude = data.Magunitude
+                        eqMessage.magnitudeText = 'マグニチュード: ' + data.Magunitude.toFixed(1)
+                        eqMessage.maxIntensity = data.MaxIntensity
                         if(data.isCancel){
-                            eqMessage.reportNum = data.Serial
                             eqMessage.reportNumText = 'キャンセル報'
-                            eqMessage.reportTime = data.AnnouncedTime
-                            eqMessage.isAssumption = data.isAssumption
-                            eqMessage.isWarn = data.isWarn
-                            eqMessage.isFinal = data.isFinal
-                            eqMessage.title = data.Title
                             eqMessage.titleText = '緊急地震速報（取消）'
                             eqMessage.hypocenter = '取り消されました'
                             eqMessage.hypocenterText = '震源地: 取り消されました'
-                            eqMessage.lat = data.Latitude
-                            eqMessage.lng = data.Longitude
-                            eqMessage.depth = data.Depth
-                            eqMessage.depthText = '深さ: ' + data.Depth + 'km'
-                            eqMessage.originTime = data.OriginTime
-                            eqMessage.originTimeText = '発震時刻: ' + data.OriginTime + ' (JST)'
-                            eqMessage.magnitude = data.Magunitude
-                            eqMessage.magnitudeText = 'マグニチュード: ' + data.Magunitude.toFixed(1)
-                            eqMessage.maxIntensity = data.MaxIntensity
                             eqMessage.maxIntensityText = '推定最大震度: なし'
                             eqMessage.warnArea = ''
                         }
                         else{
-                            eqMessage.reportNum = data.Serial
                             eqMessage.reportNumText = '第' + data.Serial + '報' + (data.isFinal?'（最終）':'')
-                            eqMessage.reportTime = data.AnnouncedTime
-                            eqMessage.isAssumption = data.isAssumption
-                            eqMessage.isWarn = data.isWarn
-                            eqMessage.isFinal = data.isFinal
-                            eqMessage.title = data.Title
                             eqMessage.titleText = data.Title
                             eqMessage.hypocenter = data.Hypocenter
                             eqMessage.hypocenterText = '震源地: ' + data.Hypocenter
-                            eqMessage.lat = data.Latitude
-                            eqMessage.lng = data.Longitude
-                            eqMessage.depth = data.Depth
-                            eqMessage.depthText = '深さ: ' + data.Depth + 'km'
-                            eqMessage.originTime = data.OriginTime
-                            eqMessage.originTimeText = '発震時刻: ' + data.OriginTime + ' (JST)'
-                            eqMessage.magnitude = data.Magunitude
-                            eqMessage.magnitudeText = 'マグニチュード: ' + data.Magunitude.toFixed(1)
-                            eqMessage.maxIntensity = data.MaxIntensity
                             eqMessage.maxIntensityText = '推定最大震度: ' + data.MaxIntensity
                             eqMessage.warnArea = JSON.stringify(data.WarnArea.map(item=>{
                                 return {
@@ -265,12 +250,12 @@ export const useStatusStore = defineStore('statusStore', {
                         break
                     }
                     case 'jmaEqlist':{
-                        const isNewEvent = eqMessage.id != data.earthquake.time
-                        eqMessage.id = data.earthquake.time
+                        const isNewEvent = eqMessage.id != data.earthquake.time.replace(/\//g, '-')
+                        eqMessage.id = data.earthquake.time.replace(/\//g, '-')
                         eqMessage.useShindo = true
-                        eqMessage.originTime = data.earthquake.time
-                        eqMessage.originTimeText = '検知時刻: ' + data.earthquake.time + ' (JST)'
-                        eqMessage.reportTime = data.issue.time
+                        eqMessage.originTime = data.earthquake.time.replace(/\//g, '-')
+                        eqMessage.originTimeText = '検知時刻: ' + data.earthquake.time.replace(/\//g, '-') + ' (JST)'
+                        eqMessage.reportTime = data.issue.time.replace(/\//g, '-')
                         switch(data.issue.type) {
                             case 'ScalePrompt':
                                 eqMessage.title = '震度速報'
@@ -417,7 +402,7 @@ export const useStatusStore = defineStore('statusStore', {
                 switch(source){
                     case 'jmaTsunami': {
                         tsunamiMessage.id = data.id
-                        tsunamiMessage.reportTime = data.issue.time
+                        tsunamiMessage.reportTime = data.issue.time.replace(/\//g, '-')
                         if(data.cancelled) {
                             tsunamiMessage.title = '津波警報・注意報なし'
                             tsunamiMessage.titleText = '津波警報・注意報なし'

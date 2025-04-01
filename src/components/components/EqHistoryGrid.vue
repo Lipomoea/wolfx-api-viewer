@@ -49,7 +49,7 @@ const getEqList = ()=>{
                     case 'jmaEqlist':{
                         eqList[i] = {
                             id: data[keys[i]].EventID,
-                            originTime: data[keys[i]].time_full,
+                            originTime: data[keys[i]].time_full.replace(/\//g, '-'),
                             hypocenter: data[keys[i]].location,
                             depth: data[keys[i]].depth == '0km'?'ごく浅い':data[keys[i]].depth,
                             magnitude: data[keys[i]].magnitude,
