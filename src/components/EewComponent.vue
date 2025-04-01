@@ -20,6 +20,7 @@ import { eqUrls } from '@/utils/Urls';
 const settingsStore = useSettingsStore()
 if(settingsStore.advancedSettings.enableCeaEew) Object.assign(eqUrls, JSON.parse(localStorage.getItem('ceaUrl')))
 if(settingsStore.advancedSettings.enableIclEew) Object.assign(eqUrls, JSON.parse(localStorage.getItem('iclUrl')))
+if(settingsStore.advancedSettings.multiApi) Object.assign(eqUrls, JSON.parse(localStorage.getItem('multiApi')))
 const eewList = Object.keys(settingsStore.mainSettings.source).filter(source => source.includes('Eew') && settingsStore.mainSettings.source[source])
 </script>
 

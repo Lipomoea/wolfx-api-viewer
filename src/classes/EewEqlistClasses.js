@@ -183,13 +183,15 @@ class EewEvent {
         if(this.sWave && this.map.hasLayer(this.sWave)) this.map.removeLayer(this.sWave)
         if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) this.map.removeLayer(this.sWaveFill)
     }
-    update(eqMessage, time){
+    update(eqMessage, time, isFirst = false){
+        let isAddition = false
         if(eqMessage.isCanceled) {
             const { isCanceled, title, titleText, reportNum, reportNumText } = eqMessage
             Object.assign(this.eqMessage, { isCanceled, title, titleText, reportNum, reportNumText })
             this.renderStop()
         }
-        else {
+        else if(isFirst || eqMessage.reportNum > this.eqMessage.reportNum || eqMessage.reportNum == this.eqMessage.reportNum && eqMessage.type < this.eqMessage.type) {
+            isAddition = eqMessage.reportNum == this.eqMessage.reportNum && eqMessage.type < this.eqMessage.type
             Object.assign(this.eqMessage, eqMessage)
             this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
             if(this.isValidUserLatLng) {
@@ -211,7 +213,7 @@ class EewEvent {
         }
         this.setMark()
         if(this.userCsis == '?' || Number(this.userCsis) >= this.settingsStore.mainSettings.actionCsis) this.shouldAction = true
-        if(this.shouldAction) this.handleActions()
+        if(this.shouldAction && !isAddition) this.handleActions()
         clearTimeout(this.terminateTimer)
         this.terminateTimer = setTimeout(() => {
             this.terminate()

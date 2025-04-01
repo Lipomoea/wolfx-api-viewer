@@ -7,6 +7,7 @@ import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc'
 
 export const defaultEqMessage = {
     source: '',
+    type: 0,
     id: '',
     isEew: false,
     reportNum: 0,
@@ -54,6 +55,8 @@ export const useStatusStore = defineStore('statusStore', {
         useWolfxSocket: ['jmaEew', 'cwaEew', 'scEew', 'fjEew', 'cencEqlist'],
         useP2pquakeSocket: ['jmaEqlist', 'jmaTsunami'],
         enabledSource: [],
+        multiApi: false,
+        forceCalcInt: false,
         eqMessage: {
             jmaEew: Object.assign({}, defaultEqMessage),
             cwaEew: Object.assign({}, defaultEqMessage),
@@ -81,59 +84,103 @@ export const useStatusStore = defineStore('statusStore', {
             niedNet: false,
             tremNet: false,
             jmaTsunami: false
-        },
-        forceCalcInt: false
+        }
     }),
     getters: {
         
     },
     actions: {
-        setEqMessage(source, data) {
+        setEqMessage(source, data, type = 0) {
             try{
                 const eqMessage = this.eqMessage[source]
                 eqMessage.source = source
+                eqMessage.type = type
                 switch(source){
                     case 'jmaEew':{
-                        eqMessage.id = data.EventID
-                        eqMessage.isEew = true
-                        eqMessage.isCanceled = data.isCancel
-                        eqMessage.useShindo = true
-                        eqMessage.reportNum = data.Serial
-                        eqMessage.reportTime = data.AnnouncedTime.replace(/\//g, '-')
-                        eqMessage.isAssumption = data.isAssumption
-                        eqMessage.isWarn = data.isWarn
-                        eqMessage.isFinal = data.isFinal
-                        eqMessage.title = data.Title
-                        eqMessage.lat = data.Latitude
-                        eqMessage.lng = data.Longitude
-                        eqMessage.depth = data.Depth
-                        eqMessage.depthText = '深さ: ' + data.Depth + 'km'
-                        eqMessage.originTime = data.OriginTime.replace(/\//g, '-')
-                        eqMessage.originTimeText = '発震時刻: ' + data.OriginTime.replace(/\//g, '-') + ' (JST)'
-                        eqMessage.magnitude = data.Magunitude
-                        eqMessage.magnitudeText = 'マグニチュード: ' + data.Magunitude.toFixed(1)
-                        eqMessage.maxIntensity = data.MaxIntensity
-                        if(data.isCancel){
-                            eqMessage.reportNumText = 'キャンセル報'
-                            eqMessage.titleText = '緊急地震速報（取消）'
-                            eqMessage.hypocenter = '取り消されました'
-                            eqMessage.hypocenterText = '震源地: 取り消されました'
-                            eqMessage.maxIntensityText = '推定最大震度: なし'
-                            eqMessage.warnArea = ''
-                        }
-                        else{
-                            eqMessage.reportNumText = '第' + data.Serial + '報' + (data.isFinal?'（最終）':'')
-                            eqMessage.titleText = data.Title
-                            eqMessage.hypocenter = data.Hypocenter
-                            eqMessage.hypocenterText = '震源地: ' + data.Hypocenter
-                            eqMessage.maxIntensityText = '推定最大震度: ' + data.MaxIntensity
-                            eqMessage.warnArea = JSON.stringify(data.WarnArea.map(item=>{
-                                return {
-                                    name: item.Chiiki,
-                                    intensity: item.Shindo1,
-                                    className: setClassName(item.Shindo1, true)
+                        switch(type) {
+                            case 0:
+                                eqMessage.id = data.EventID
+                                eqMessage.isEew = true
+                                eqMessage.isCanceled = data.isCancel
+                                eqMessage.useShindo = true
+                                eqMessage.reportNum = data.Serial
+                                eqMessage.reportTime = data.AnnouncedTime.replace(/\//g, '-')
+                                eqMessage.isAssumption = data.isAssumption
+                                eqMessage.isWarn = data.isWarn
+                                eqMessage.isFinal = data.isFinal
+                                eqMessage.title = data.Title
+                                eqMessage.lat = data.Latitude
+                                eqMessage.lng = data.Longitude
+                                eqMessage.depth = data.Depth
+                                eqMessage.depthText = '深さ: ' + data.Depth + 'km'
+                                eqMessage.originTime = data.OriginTime.replace(/\//g, '-')
+                                eqMessage.originTimeText = '発震時刻: ' + data.OriginTime.replace(/\//g, '-') + ' (JST)'
+                                eqMessage.magnitude = data.Magunitude
+                                eqMessage.magnitudeText = 'マグニチュード: ' + data.Magunitude.toFixed(1)
+                                eqMessage.maxIntensity = data.MaxIntensity
+                                if(data.isCancel){
+                                    eqMessage.reportNumText = 'キャンセル報'
+                                    eqMessage.titleText = '緊急地震速報（取消）'
+                                    eqMessage.hypocenter = '取り消されました'
+                                    eqMessage.hypocenterText = '震源地: 取り消されました'
+                                    eqMessage.maxIntensityText = '推定最大震度: なし'
+                                    eqMessage.warnArea = ''
                                 }
-                            }))
+                                else{
+                                    eqMessage.reportNumText = '第' + data.Serial + '報' + (data.isFinal?'（最終）':'')
+                                    eqMessage.titleText = data.Title
+                                    eqMessage.hypocenter = data.Hypocenter
+                                    eqMessage.hypocenterText = '震源地: ' + data.Hypocenter
+                                    eqMessage.maxIntensityText = '推定最大震度: ' + data.MaxIntensity
+                                    eqMessage.warnArea = JSON.stringify(data.WarnArea.map(item=>{
+                                        return {
+                                            name: item.Chiiki,
+                                            intensity: item.Shindo1,
+                                            className: setClassName(item.Shindo1, true)
+                                        }
+                                    }))
+                                }
+                                break
+                            case 1:
+                                eqMessage.id = data.report_id
+                                eqMessage.isEew = true
+                                eqMessage.isCanceled = data.is_cancel
+                                eqMessage.useShindo = true
+                                eqMessage.reportNum = Number(data.report_num)
+                                eqMessage.reportTime = data.report_time.replace(/\//g, '-')
+                                eqMessage.isAssumption = false
+                                eqMessage.isWarn = data.alertflg == '警報'
+                                eqMessage.isFinal = data.is_final
+                                eqMessage.title = `緊急地震速報（${data.alertflg}）`
+                                eqMessage.lat = Number(data.latitude)
+                                eqMessage.lng = Number(data.longitude)
+                                eqMessage.depth = Number(data.depth.replace('km', ''))
+                                eqMessage.depthText = '深さ: ' + data.depth
+                                eqMessage.originTime = data.origin_time.replace(
+                                    /^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/,
+                                    '$1-$2-$3 $4:$5:$6'
+                                )
+                                eqMessage.originTimeText = '発震時刻: ' + eqMessage.originTime + ' (JST)'
+                                eqMessage.magnitude = Number(data.magunitude)
+                                eqMessage.magnitudeText = 'マグニチュード: ' + eqMessage.magnitude.toFixed(1)
+                                eqMessage.maxIntensity = data.calcintensity
+                                if(data.is_cancel){
+                                    eqMessage.reportNumText = 'キャンセル報'
+                                    eqMessage.titleText = '緊急地震速報（取消）'
+                                    eqMessage.hypocenter = '取り消されました'
+                                    eqMessage.hypocenterText = '震源地: 取り消されました'
+                                    eqMessage.maxIntensityText = '推定最大震度: なし'
+                                    eqMessage.warnArea = '[]'
+                                }
+                                else{
+                                    eqMessage.reportNumText = '第' + data.report_num + '報' + (data.is_final?'（最終）':'')
+                                    eqMessage.titleText = `緊急地震速報（${data.alertflg}）`
+                                    eqMessage.hypocenter = data.region_name
+                                    eqMessage.hypocenterText = '震源地: ' + data.region_name
+                                    eqMessage.maxIntensityText = '推定最大震度: ' + data.calcintensity
+                                    eqMessage.warnArea = '[]'
+                                }
+                                break
                         }
                         break
                     }
@@ -488,6 +535,14 @@ export const useStatusStore = defineStore('statusStore', {
                         else if(source == 'ceaEew' && 'ceaEew_http' in eqUrls) {
                             const data = await Http.get(eqUrls[source + '_http'] + `&time=${Date.now()}`)
                             if(data && data.Data) this.setEqMessage(source, data.Data)
+                        }
+                        if(source == 'jmaEew' && this.multiApi && 'jmaEew2_http' in eqUrls && 'niedLatest' in eqUrls) {
+                            const timeData = await Http.get(`${eqUrls.niedLatest}?time=${Date.now()}`)
+                            if(timeData && timeData.result.status == 'success') {
+                                const timeStr = timeData.latest_time.replace(/\D/g, '')
+                                const data = await Http.get(`${eqUrls.jmaEew2_http}?time=${timeStr}`)
+                                if(data && data.report_id) this.setEqMessage(source, data, 1)
+                            }
                         }
                     })
                     await Promise.all(promises)

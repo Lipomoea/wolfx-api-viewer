@@ -115,7 +115,7 @@ watch(eqMessage, (newVal)=>{
                 if(statusStore.map){
                     const newEvent = reactive(new EewEvent(statusStore.map, Object.assign({}, newVal), activeEewList))
                     activeEewList.unshift(newEvent)
-                    newEvent.update(Object.assign({}, newVal), time)
+                    newEvent.update(Object.assign({}, newVal), time, true)
                 }
             }
         }

@@ -430,6 +430,32 @@
                 </div>
                 <div class="sub-title">高级</div>
                 <div class="group">
+                    <div class="row" v-if="settingsStore.advancedSettings.displayMultiApi">
+                        <div class="switch-group">
+                            <div class="switch">
+                                <span>融合数据源（实验性）</span>
+                                <el-popover
+                                    placement="top"
+                                    :width="300"
+                                    trigger="hover"
+                                >
+                                    <template #reference>
+                                        <question-filled width="1em" height="1em"></question-filled>
+                                    </template>
+                                    <p>使得部分数据源支持同时接入多个API。</p>
+                                    <strong>
+                                        <p>能够在部分情况下降低数据延迟，但部分信息可能缺失。</p>
+                                        <p>会轻微增加流量消耗。</p>
+                                        <p>当前为实验性功能，可能导致意外的bug。</p>
+                                        <p>需重新加载页面后生效。</p>
+                                    </strong>
+                                </el-popover>
+                                <el-switch 
+                                v-model="settingsStore.advancedSettings.multiApi"
+                                @change="handleNeedReload"></el-switch>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="switch-group">
                             <div class="switch">
@@ -459,8 +485,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="group">
                     <div class="row">
                         <div class="switch-group">
                             <div class="switch">
@@ -483,8 +507,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="group" v-if="isTauri">
                     <div class="row">
                         <div class="switch-group">
                             <div class="switch">
@@ -492,8 +514,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="group">
                     <div class="row">
                         <div class="switch-group">
                             <div class="switch">
@@ -535,8 +555,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="group">
                     <div class="row">
                         <div class="switch-group">
                             <div class="switch">
@@ -824,6 +842,7 @@ const handleAdvance = (val)=>{
                 message: '功能已关闭',
                 type: 'success'
             })
+            handleNeedReload()
             break
         }
         case 'enableIclEew': {
@@ -838,6 +857,7 @@ const handleAdvance = (val)=>{
                 message: '功能已关闭',
                 type: 'success'
             })
+            handleNeedReload()
             break
         }
         case 'enableTremFunctions': {
@@ -853,6 +873,22 @@ const handleAdvance = (val)=>{
                 message: '功能已关闭',
                 type: 'success'
             })
+            handleNeedReload()
+            break
+        }
+        case 'enableMultiApi': {
+            verifyType = 'enableMultiApi'
+            verifyDialog.value = true
+            break
+        }
+        case 'disableMultiApi': {
+            settingsStore.advancedSettings.displayMultiApi = false
+            settingsStore.advancedSettings.multiApi = false
+            ElMessage({
+                message: '功能已关闭',
+                type: 'success'
+            })
+            handleNeedReload()
             break
         }
     }
@@ -903,6 +939,25 @@ const postVerify = async ()=>{
             if(res && res.success){
                 settingsStore.advancedSettings.enableTremFunctions = true
                 localStorage.setItem('tremUrl', JSON.stringify(res.data))
+                verifyDialog.value = false
+                ElMessage({
+                    message: '认证成功',
+                    type: 'success'
+                })
+            }
+            else{
+                ElMessage({
+                    message: '认证失败',
+                    type: 'error'
+                })
+            }
+            break
+        }
+        case 'enableMultiApi': {
+            const res = await Http.post('http://124.70.142.213:8766/multi_api', idForm)
+            if(res && res.success){
+                settingsStore.advancedSettings.displayMultiApi = true
+                localStorage.setItem('multiApi', JSON.stringify(res.data))
                 verifyDialog.value = false
                 ElMessage({
                     message: '认证成功',
