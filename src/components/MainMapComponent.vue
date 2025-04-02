@@ -788,17 +788,17 @@ watch(menuId, (newVal)=>{
         document.addEventListener('mousemove', resetDefaultMenuTimer)
     }
     if(newVal == 'eews'){
-        eqlistMarkerPane.style.opacity = 0.5
-        jpTsunamiBasePane.style.opacity = 0.5
+        eqlistMarkerPane.style.opacity = 0.3
+        jpTsunamiBasePane.style.opacity = 0.3
     }
     else{
         eqlistMarkerPane.style.opacity = 1
         jpTsunamiBasePane.style.opacity = 1
     }
     if(newVal == 'eqlists'){
-        eewMarkerPane.style.opacity = 0.5
-        wavePane.style.opacity = 0.5
-        waveFillPane.style.opacity = 0.5
+        eewMarkerPane.style.opacity = 0.3
+        wavePane.style.opacity = 0.3
+        waveFillPane.style.opacity = 0.3
     }
     else{
         eewMarkerPane.style.opacity = 1
