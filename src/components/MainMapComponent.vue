@@ -20,6 +20,7 @@
                                     <div class="bottom">
                                         <div class="magnitude">{{ event.eqMessage.isAssumption?'仮定震源要素':'M' + event.eqMessage.magnitude.toFixed(1) }}</div>
                                         <div class="depth">{{ event.eqMessage.isAssumption?'':event.eqMessage.depthText }}</div>
+                                        <div class="type" v-if="settingsStore.advancedSettings.multiApi">type: {{ event.eqMessage.type }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -1023,6 +1024,7 @@ onBeforeUnmount(()=>{
                                 overflow: hidden;
                             }
                             .bottom{
+                                width: 100%;
                                 display: flex;
                                 align-items: center;
                                 gap: 15px;
@@ -1031,6 +1033,12 @@ onBeforeUnmount(()=>{
                                 }
                                 .depth{
                                     font-size: 22px;
+                                }
+                                .type {
+                                    margin-left: auto;
+                                    margin-right: 10px;
+                                    font-size: 16px;
+                                    color: #7f7f7f;
                                 }
                             }
                         }

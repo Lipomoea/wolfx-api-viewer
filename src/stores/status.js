@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import Http from '@/classes/Http'
 import WebSocketObj from '@/classes/WebSocket'
 import { eqUrls, tsunamiUrls } from '@/utils/Urls'
-import { setClassName, calcCsisLevel, stampToTime, formatChineseTaiwan, getShindoFromInstShindo, shindoScale } from '@/utils/Utils'
+import { setClassName, calcCsisLevel, stampToTime, formatChineseTaiwan, getShindoFromInstShindo, shindoScaleKanji } from '@/utils/Utils'
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc'
 
 export const defaultEqMessage = {
@@ -119,7 +119,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.magnitudeText = 'マグニチュード: ' + data.Magunitude.toFixed(1)
                                 eqMessage.maxIntensity = data.MaxIntensity
                                 if(data.isCancel){
-                                    eqMessage.reportNumText = 'キャンセル報'
+                                    eqMessage.reportNumText = '第' + data.Serial + '報' + '（キャンセル）'
                                     eqMessage.titleText = '緊急地震速報（取消）'
                                     eqMessage.hypocenter = '取り消されました'
                                     eqMessage.hypocenterText = '震源地: 取り消されました'
@@ -165,7 +165,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.magnitudeText = 'マグニチュード: ' + eqMessage.magnitude.toFixed(1)
                                 eqMessage.maxIntensity = data.calcintensity
                                 if(data.is_cancel){
-                                    eqMessage.reportNumText = 'キャンセル報'
+                                    eqMessage.reportNumText = '第' + data.report_num + '報' + '（キャンセル）'
                                     eqMessage.titleText = '緊急地震速報（取消）'
                                     eqMessage.hypocenter = '取り消されました'
                                     eqMessage.hypocenterText = '震源地: 取り消されました'
@@ -185,27 +185,54 @@ export const useStatusStore = defineStore('statusStore', {
                         break
                     }
                     case 'cwaEew':{
-                        eqMessage.id = data.ID
-                        eqMessage.isEew = true
-                        eqMessage.reportNum = data.ReportNum
-                        eqMessage.reportNumText = '第' + data.ReportNum + '報'
-                        eqMessage.reportTime = data.ReportTime
-                        eqMessage.isWarn = data.MaxIntensity >= '5'
-                        eqMessage.isCanceled = data.isCancel
-                        eqMessage.titleText = '中央氣象署地震速報' + (data.isCancel?'（取消）':'')
-                        eqMessage.hypocenter = data.HypoCenter
-                        eqMessage.hypocenterText = '震央: ' + data.HypoCenter
-                        eqMessage.lat = data.Latitude
-                        eqMessage.lng = data.Longitude
-                        eqMessage.depth = data.Depth
-                        eqMessage.depthText = '深度: ' + data.Depth + 'km'
-                        eqMessage.originTime = data.OriginTime
-                        eqMessage.originTimeText = '時間: ' + data.OriginTime
-                        eqMessage.magnitude = data.Magunitude
-                        eqMessage.magnitudeText = '規模: ' + data.Magunitude.toFixed(1)
-                        eqMessage.useShindo = true
-                        eqMessage.maxIntensity = data.MaxIntensity
-                        eqMessage.maxIntensityText = '預估最大震度: ' + data.MaxIntensity
+                        switch(type) {
+                            case 0:
+                                eqMessage.id = data.ID
+                                eqMessage.isEew = true
+                                eqMessage.reportNum = data.ReportNum
+                                eqMessage.reportNumText = '第' + data.ReportNum + '報'
+                                eqMessage.reportTime = data.ReportTime
+                                eqMessage.isWarn = data.MaxIntensity >= '5'
+                                eqMessage.isCanceled = data.isCancel
+                                eqMessage.titleText = '中央氣象署地震速報' + (data.isCancel?'（取消）':'')
+                                eqMessage.hypocenter = data.HypoCenter
+                                eqMessage.hypocenterText = '震央: ' + data.HypoCenter
+                                eqMessage.lat = data.Latitude
+                                eqMessage.lng = data.Longitude
+                                eqMessage.depth = data.Depth
+                                eqMessage.depthText = '深度: ' + data.Depth + 'km'
+                                eqMessage.originTime = data.OriginTime
+                                eqMessage.originTimeText = '時間: ' + data.OriginTime
+                                eqMessage.magnitude = data.Magunitude
+                                eqMessage.magnitudeText = '規模: ' + data.Magunitude.toFixed(1)
+                                eqMessage.useShindo = true
+                                eqMessage.maxIntensity = data.MaxIntensity
+                                eqMessage.maxIntensityText = '預估最大震度: ' + data.MaxIntensity
+                                break
+                            case 1:
+                                eqMessage.id = data.id
+                                eqMessage.isEew = true
+                                eqMessage.reportNum = data.serial
+                                eqMessage.reportNumText = '第' + data.serial + '報'
+                                eqMessage.reportTime = stampToTime(data.time, 8)
+                                eqMessage.isWarn = data.eq.max >= 5
+                                eqMessage.isCanceled = false
+                                eqMessage.titleText = '中央氣象署地震速報'
+                                eqMessage.hypocenter = data.eq.loc
+                                eqMessage.hypocenterText = '震央: ' + data.eq.loc
+                                eqMessage.lat = data.eq.lat
+                                eqMessage.lng = data.eq.lon
+                                eqMessage.depth = data.eq.depth
+                                eqMessage.depthText = '深度: ' + data.eq.depth + 'km'
+                                eqMessage.originTime = stampToTime(data.eq.time, 8)
+                                eqMessage.originTimeText = '時間: ' + eqMessage.originTime
+                                eqMessage.magnitude = data.eq.mag
+                                eqMessage.magnitudeText = '規模: ' + data.eq.mag.toFixed(1)
+                                eqMessage.useShindo = true
+                                eqMessage.maxIntensity = shindoScaleKanji[data.eq.max]
+                                eqMessage.maxIntensityText = '預估最大震度: ' + eqMessage.maxIntensity
+                                break
+                        }
                         break
                     }
                     case 'ceaEew':{
@@ -413,8 +440,8 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.magnitude = data.mag
                         eqMessage.magnitudeText = '規模: ' + data.mag.toFixed(1)
                         eqMessage.useShindo = true
-                        eqMessage.maxIntensity = shindoScale[data.int]
-                        eqMessage.maxIntensityText = '最大震度: ' + shindoScale[data.int]
+                        eqMessage.maxIntensity = shindoScaleKanji[data.int]
+                        eqMessage.maxIntensityText = '最大震度: ' + eqMessage.maxIntensity
                         break
                     }
                     case 'cencEqlist':{
@@ -528,7 +555,7 @@ export const useStatusStore = defineStore('statusStore', {
                             const data = await Http.get(tsunamiUrls[source + '_http'] + `&time=${Date.now()}`)
                             if(data && data.length > 0) this.setTsunamiMessage(source, data[0])
                         }
-                        else if(source == 'cwaEqlist') {
+                        else if(source == 'cwaEqlist' && 'cwaEqlist_http' in eqUrls) {
                             const data = await Http.get(eqUrls[source + '_http'] + `&time=${Date.now()}`)
                             if(data && data.length > 0) this.setEqMessage(source, data[0])
                         }
@@ -536,12 +563,21 @@ export const useStatusStore = defineStore('statusStore', {
                             const data = await Http.get(eqUrls[source + '_http'] + `&time=${Date.now()}`)
                             if(data && data.Data) this.setEqMessage(source, data.Data)
                         }
-                        if(source == 'jmaEew' && this.multiApi && 'jmaEew2_http' in eqUrls && 'niedLatest' in eqUrls) {
-                            const timeData = await Http.get(`${eqUrls.niedLatest}?time=${Date.now()}`)
-                            if(timeData && timeData.result.status == 'success') {
-                                const timeStr = timeData.latest_time.replace(/\D/g, '')
-                                const data = await Http.get(`${eqUrls.jmaEew2_http}?time=${timeStr}`)
-                                if(data && data.report_id) this.setEqMessage(source, data, 1)
+                        if(this.multiApi) {
+                            if(source == 'jmaEew' && 'jmaEew2_http' in eqUrls && 'niedLatest' in eqUrls) {
+                                const timeData = await Http.get(`${eqUrls.niedLatest}?time=${Date.now()}`)
+                                if(timeData && timeData.result.status == 'success') {
+                                    const timeStr = timeData.latest_time.replace(/\D/g, '')
+                                    const data = await Http.get(`${eqUrls.jmaEew2_http}?time=${timeStr}`)
+                                    if(data && data.report_id) this.setEqMessage(source, data, 1)
+                                }
+                            }
+                            if(source == 'cwaEew' && 'cwaEew2_http' in eqUrls) {
+                                const arr = await Http.get(`${eqUrls.cwaEew2_http}?time=${Date.now()}`)
+                                if(arr && arr.length > 0) {
+                                    const data = arr.find(item => item.author == 'cwa')
+                                    if(data) this.setEqMessage(source, data, 1)
+                                }
                             }
                         }
                     })

@@ -623,17 +623,17 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60vw" :show-close="false">
-            <div class="header">要石 v2.0.0-rc.9.1</div>
+            <div class="header">要石 v2.0.0-rc.9.2</div>
             <div class="title">最近更新</div>
             <div class="about">
+                <p>v2.0.0-rc.9.2 优化：规范了时间和震度显示格式；优化：取消报的标题格式；优化：更新报的更新逻辑；修复：強震モニタ测站列表可能加载失败的bug。</p>
                 <p>v2.0.0-rc.9.1 优化：将“CSIS”（中国地震烈度）修改为“烈度”以便于理解；修复：自动返回主菜单时地图显示范围可能出现异常的问题。</p>
                 <p>v2.0.0-rc.9 新增：Windows桌面版应用支持设置开机自启动和最小化启动；优化：调整部分代码结构；修复：日本气象厅远地地震情报默认深度错误的问题。</p>
                 <p>v2.0.0-rc.8.3 新增：Windows桌面版应用支持自定义音效；优化：假定震源不受预警烈度限制；修复：震源地溢出时显示省略号。</p>
                 <p>v2.0.0-rc.8.2 优化：放映模式下的显示逻辑；优化：震源地溢出时显示省略号；修复：检查更新弹窗可能出现多个的bug。</p>
                 <p>v2.0.0-rc.8.1 新增：设置预警烈度阈值功能；新增：网页端自动应用更新功能；修复：网页端可以设置检查预发布版本的问题。</p>
                 <p>v2.0.0-rc.8 新增：JMA津波情報；新增：SREV测站风格；新增：从GitHub检查更新功能；修复：強震モニタ测站列表小概率加载失败的bug。</p>
-                <p>v2.0.0-rc.7.1 变更：使用新的ntp对时api；新增：鼠标悬浮到震源图标上显示地震参数。</p>
-                <p>v2.0.0-rc.7 变更：“wolfx-api-viewer”正式更名“要石”（"kanameishi"）；优化：调整震度检出算法。</p>
+                <p>v2.0.0-rc.7 变更：“wolfx-api-viewer”正式更名“要石”（"kanameishi"）。</p>
             </div>
             <div class="title">使用方法</div>
             <div class="about">

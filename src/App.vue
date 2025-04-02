@@ -12,7 +12,7 @@ import { onBeforeMount, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useTimeStore } from './stores/time';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from './stores/settings';
-import { geojsonUrls } from './utils/Urls';
+import { eqUrls, geojsonUrls } from './utils/Urls';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import Http from './classes/Http';
 
@@ -35,6 +35,7 @@ onBeforeMount(async () => {
   settingsStore.setMainSettings(localStorage.getItem('mainSettings'))
   settingsStore.setAdvancedSettings(localStorage.getItem('advancedSettings'))
   settingsStore.mainSettings.displaySeisNet.delay = 0
+  if(settingsStore.advancedSettings.multiApi) Object.assign(eqUrls, JSON.parse(localStorage.getItem('multiApi')))
   timeStore.startUpdatingTime()
   statusStore.enabledSource = Object.keys(settingsStore.mainSettings.source).filter(source => settingsStore.mainSettings.source[source])
   statusStore.multiApi = settingsStore.advancedSettings.multiApi

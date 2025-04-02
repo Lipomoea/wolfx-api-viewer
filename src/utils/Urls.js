@@ -5,10 +5,8 @@ export const eqUrls = {
     cwaEew_http: 'https://api.wolfx.jp/cwa_eew.json',
     cencEqlist_http: 'https://api.wolfx.jp/cenc_eqlist.json',
     jmaEqlist_http: 'https://api.p2pquake.net/v2/history?codes=551&limit=1',
-    cwaEqlist_http: 'https://api-2.exptech.dev/api/v2/eq/report?limit=1',
     cencEqlistHistory: 'https://api.wolfx.jp/cenc_eqlist.json',
     jmaEqlistHistory: 'https://api.wolfx.jp/jma_eqlist.json',
-    cwaEqlistHistory: 'https://api-2.exptech.dev/api/v2/eq/report?limit=50',
     wolfx_ws: 'wss://ws-api.wolfx.jp/all_eew',
     p2pquake_ws: 'wss://api.p2pquake.net/v2/ws'
 }

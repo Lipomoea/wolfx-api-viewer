@@ -184,40 +184,43 @@ class EewEvent {
         if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) this.map.removeLayer(this.sWaveFill)
     }
     update(eqMessage, time, isFirst = false){
-        let isAddition = false
-        if(eqMessage.isCanceled) {
-            const { isCanceled, title, titleText, reportNum, reportNumText } = eqMessage
-            Object.assign(this.eqMessage, { isCanceled, title, titleText, reportNum, reportNumText })
-            this.renderStop()
-        }
-        else if(isFirst || eqMessage.reportNum > this.eqMessage.reportNum || eqMessage.reportNum == this.eqMessage.reportNum && eqMessage.type < this.eqMessage.type) {
-            isAddition = eqMessage.reportNum == this.eqMessage.reportNum && eqMessage.type < this.eqMessage.type
-            Object.assign(this.eqMessage, eqMessage)
-            this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
-            if(this.isValidUserLatLng) {
-                this.userDist = L.latLng(this.hypoLatLng).distanceTo(L.latLng(this.userLatLng)) / 1000
-                this.reachTime = calcReachTime(this.userDist <= this.maxRadius ? travelTimes.jma2001 : travelTimes.jb, false, this.eqMessage.depth, this.userDist)
-                this.userCsis = this.settingsStore.advancedSettings.forceCalcInt && !this.eqMessage.isAssumption ? 
-                    calcCsisLevel(this.eqMessage.magnitude, this.eqMessage.depth, this.userDist) : '?'
+        if(isFirst || eqMessage.reportNum > this.eqMessage.reportNum || 
+        eqMessage.reportNum == this.eqMessage.reportNum && eqMessage.isCanceled > this.eqMessage.isCanceled || 
+        eqMessage.reportNum == this.eqMessage.reportNum && eqMessage.isCanceled == this.eqMessage.isCanceled && eqMessage.type < this.eqMessage.type) {
+            const isAddition = eqMessage.reportNum == this.eqMessage.reportNum && eqMessage.isCanceled == this.eqMessage.isCanceled && eqMessage.type < this.eqMessage.type
+            if(eqMessage.isCanceled) {
+                const { isCanceled, title, titleText, reportNum, reportNumText } = eqMessage
+                Object.assign(this.eqMessage, { isCanceled, title, titleText, reportNum, reportNumText })
+                this.renderStop()
             }
             else {
-                this.userDist = undefined
-                this.reachTime = -1
-                this.userCsis = '?'
-            }
-            this.drawWaves()
-            clearInterval(this.drawWavesInterval)
-            this.drawWavesInterval = setInterval(() => {
+                Object.assign(this.eqMessage, eqMessage)
+                this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
+                if(this.isValidUserLatLng) {
+                    this.userDist = L.latLng(this.hypoLatLng).distanceTo(L.latLng(this.userLatLng)) / 1000
+                    this.reachTime = calcReachTime(this.userDist <= this.maxRadius ? travelTimes.jma2001 : travelTimes.jb, false, this.eqMessage.depth, this.userDist)
+                    this.userCsis = this.settingsStore.advancedSettings.forceCalcInt && !this.eqMessage.isAssumption ? 
+                        calcCsisLevel(this.eqMessage.magnitude, this.eqMessage.depth, this.userDist) : '?'
+                }
+                else {
+                    this.userDist = undefined
+                    this.reachTime = -1
+                    this.userCsis = '?'
+                }
                 this.drawWaves()
-            }, 100);
+                clearInterval(this.drawWavesInterval)
+                this.drawWavesInterval = setInterval(() => {
+                    this.drawWaves()
+                }, 100);
+            }
+            this.setMark()
+            if(this.userCsis == '?' || Number(this.userCsis) >= this.settingsStore.mainSettings.actionCsis) this.shouldAction = true
+            if(this.shouldAction && !isAddition) this.handleActions()
+            clearTimeout(this.terminateTimer)
+            this.terminateTimer = setTimeout(() => {
+                this.terminate()
+            }, time);
         }
-        this.setMark()
-        if(this.userCsis == '?' || Number(this.userCsis) >= this.settingsStore.mainSettings.actionCsis) this.shouldAction = true
-        if(this.shouldAction && !isAddition) this.handleActions()
-        clearTimeout(this.terminateTimer)
-        this.terminateTimer = setTimeout(() => {
-            this.terminate()
-        }, time);
     }
     handleActions(){
         const settingsStore = this.settingsStore

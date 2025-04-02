@@ -72,7 +72,7 @@ onMounted(async ()=>{
                     "Status": ""
                 },
                 "EventID": "20240808164303",
-                "Serial": 0,
+                "Serial": 1,
                 "AnnouncedTime": timeStr,
                 "OriginTime": timeStr,
                 "Hypocenter": '',
@@ -383,7 +383,7 @@ onMounted(async ()=>{
                     "Status": ""
                 },
                 "EventID": "20240808164303",
-                "Serial": 0,
+                "Serial": 4,
                 "AnnouncedTime": timeStr,
                 "OriginTime": timeStr,
                 "Hypocenter": "",

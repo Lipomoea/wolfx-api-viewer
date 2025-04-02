@@ -20,7 +20,7 @@ const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 const timeStore = useTimeStore()
 
-Object.assign(seisNetUrls, JSON.parse(localStorage.getItem('tremUrl')))
+Object.assign(seisNetUrls, JSON.parse(localStorage.getItem('tremUrl'))?.seisNetUrls)
 const stationList = reactive({})
 let stationData
 const stations = reactive({})
