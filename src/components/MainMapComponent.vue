@@ -619,10 +619,10 @@ const loadMaps = async () => {
 const intervalEvents = ()=>{
     blinkStatus = !blinkStatus
     tsunamiFlickerCounter = (tsunamiFlickerCounter + 1) % 6
-    eewMarkerPane.style.opacity = blinkStatus ? 1 : 0
-    niedGridPane.style.opacity = blinkStatus && !statusStore.isActive.jmaEew ? 1 : 0
-    tremGridPane.style.opacity = blinkStatus && !statusStore.isActive.cwaEew ? 1 : 0
-    jpTsunamiBasePane.style.opacity = tsunamiFlickerCounter ? 1 : 0
+    eewMarkerPane.style.display = blinkStatus ? 'block' : 'none'
+    niedGridPane.style.display = blinkStatus && !statusStore.isActive.jmaEew ? 'block' : 'none'
+    tremGridPane.style.display = blinkStatus && !statusStore.isActive.cwaEew ? 'block' : 'none'
+    jpTsunamiBasePane.style.display = tsunamiFlickerCounter ? 'block' : 'none'
     isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
     isTremDelayed.value = !verifyUpToDate(tremUpdateTime.value, 8, 10000)
     wolfxRS.value = statusStore.wolfxSocket?.socket.readyState || 4
@@ -788,20 +788,22 @@ watch(menuId, (newVal)=>{
         document.addEventListener('mousemove', resetDefaultMenuTimer)
     }
     if(newVal == 'eews'){
-        eqlistMarkerPane.style.display = 'none'
+        eqlistMarkerPane.style.opacity = 0.5
+        jpTsunamiBasePane.style.opacity = 0.5
     }
     else{
-        eqlistMarkerPane.style.display = 'block'
+        eqlistMarkerPane.style.opacity = 1
+        jpTsunamiBasePane.style.opacity = 1
     }
     if(newVal == 'eqlists'){
-        eewMarkerPane.style.display = 'none'
-        wavePane.style.display = 'none'
-        waveFillPane.style.display = 'none'
+        eewMarkerPane.style.opacity = 0.5
+        wavePane.style.opacity = 0.5
+        waveFillPane.style.opacity = 0.5
     }
     else{
-        eewMarkerPane.style.display = 'block'
-        wavePane.style.display = 'block'
-        waveFillPane.style.display = 'block'
+        eewMarkerPane.style.opacity = 1
+        wavePane.style.opacity = 1
+        waveFillPane.style.opacity = 1
     }
 })
 let autoZoomInterval
