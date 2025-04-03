@@ -619,10 +619,10 @@ const loadMaps = async () => {
 const intervalEvents = ()=>{
     blinkStatus = !blinkStatus
     tsunamiFlickerCounter = (tsunamiFlickerCounter + 1) % 6
-    eewMarkerPane.style.display = blinkStatus ? 'block' : 'none'
-    niedGridPane.style.display = blinkStatus && !statusStore.isActive.jmaEew ? 'block' : 'none'
-    tremGridPane.style.display = blinkStatus && !statusStore.isActive.cwaEew ? 'block' : 'none'
-    jpTsunamiBasePane.style.display = tsunamiFlickerCounter ? 'block' : 'none'
+    eewMarkerPane.style.opacity = (blinkStatus ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
+    niedGridPane.style.opacity = blinkStatus && !statusStore.isActive.jmaEew ? 1 : 0
+    tremGridPane.style.opacity = blinkStatus && !statusStore.isActive.cwaEew ? 1 : 0
+    jpTsunamiBasePane.style.opacity = (tsunamiFlickerCounter ? 1 : 0) * (menuId.value == 'eews' ? 0.3 : 1)
     isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
     isTremDelayed.value = !verifyUpToDate(tremUpdateTime.value, 8, 10000)
     wolfxRS.value = statusStore.wolfxSocket?.socket.readyState || 4
@@ -789,19 +789,19 @@ watch(menuId, (newVal)=>{
     }
     if(newVal == 'eews'){
         eqlistMarkerPane.style.opacity = 0.3
-        jpTsunamiBasePane.style.opacity = 0.3
+        jpTsunamiBasePane.style.opacity = 0.3 * (tsunamiFlickerCounter ? 1 : 0)
     }
     else{
         eqlistMarkerPane.style.opacity = 1
-        jpTsunamiBasePane.style.opacity = 1
+        jpTsunamiBasePane.style.opacity = 1 * (tsunamiFlickerCounter ? 1 : 0)
     }
     if(newVal == 'eqlists'){
-        eewMarkerPane.style.opacity = 0.3
+        eewMarkerPane.style.opacity = 0.3 * (blinkStatus ? 1 : 0)
         wavePane.style.opacity = 0.3
         waveFillPane.style.opacity = 0.3
     }
     else{
-        eewMarkerPane.style.opacity = 1
+        eewMarkerPane.style.opacity = 1 * (blinkStatus ? 1 : 0)
         wavePane.style.opacity = 1
         waveFillPane.style.opacity = 1
     }
