@@ -44,7 +44,6 @@ class NiedStation {
         this.map = map
         this.id = id
         this.latLng = latLng
-        this.intensity = intensity
         this.expireSeconds = expireSeconds
         this.shindo = getShindoFromChar(intensity)
         this.level = intensity.charCodeAt(0) - 100
@@ -54,21 +53,21 @@ class NiedStation {
         this.render()
     }
     update(intensity){
-        const level = intensity.charCodeAt(0) - 100
-        if(intensity != this.intensity){
-            this.intensity = intensity
+        const originLevel = intensity.charCodeAt(0) - 100
+        const level = originLevel == -1 ? this.recentLevel.slice(0, 4).find(val => val != -1) ?? -1 : originLevel
+        if(level != this.level){
             this.shindo = getShindoFromChar(intensity)
             this.level = level
             this.render()
         }
-        const recentFilter = this.recentLevel.filter(val=>val != -1)
+        const recentFilter = this.recentLevel.filter(val => val != -1)
         let ascend = 0
         if(recentFilter.length > 0){
             const minRecent = Math.min(...recentFilter)
             ascend = level - minRecent
         }
         this.activity = this.calcActivity(level, ascend)
-        this.recentLevel.unshift(level)
+        this.recentLevel.unshift(originLevel)
         if(this.recentLevel.length > this.expireSeconds) this.recentLevel.pop()
     }
     calcActivity(level, ascend){
@@ -136,7 +135,7 @@ class NiedStation {
                 this.radius = (2 + this.level * 0.1) * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
                 break
             case 'srev':
-                if(this.level <= 0 || this.level >= colorBand.srev.length){
+                if(this.level < 0 || this.level >= colorBand.srev.length){
                     this.color = colorBand.srev[0]
                 }
                 else{
@@ -222,7 +221,7 @@ class TremStation {
                 this.radius = (2 + this.level * 0.1) * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
                 break
             case 'srev':
-                if(this.level <= 0 || this.level >= colorBand.srev.length){
+                if(this.level < 0 || this.level >= colorBand.srev.length){
                     this.color = colorBand.srev[0]
                 }
                 else{

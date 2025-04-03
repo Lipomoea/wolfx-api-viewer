@@ -209,6 +209,19 @@ export const getShindoFromChar = (char)=>{
     if(char == 'x') return '7'
     return '?'
 }
+export const getShindoFromLevel = level => {
+    if(level >= 0 && level <= 7) return '0'
+    if(level >= 8 && level <= 9) return '1'
+    if(level >= 10 && level <= 11) return '2'
+    if(level >= 12 && level <= 13) return '3'
+    if(level >= 14 && level <= 15) return '4'
+    if(level == 16) return '5-'
+    if(level == 17) return '5+'
+    if(level == 18) return '6-'
+    if(level == 19) return '6+'
+    if(level == 20) return '7'
+    return '?'
+}
 export const getShindoFromInstShindo = (instShindo, useSymbol = true) => {
     if(instShindo < -3.0) return '?'
     else if(instShindo < 0.5) return '0'

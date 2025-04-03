@@ -11,7 +11,7 @@ import axios from 'axios';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { seisNetUrls, iconUrls } from '@/utils/Urls';
-import { getTimeNumberString, getShindoFromChar, playSound, sendMyNotification, calcTimeDiff, focusWindow } from '@/utils/Utils';
+import { getTimeNumberString, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromLevel } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { NiedStation } from '@/classes/StationClasses';
@@ -83,12 +83,12 @@ const getData = async (url)=>{
 }
 const update = ()=>{
     if(stationList.value.length == stations.length && stations.length == stationData.value.length){
-        let maxChar = ''
+        let maxLevel = -1
         for(let i = 0; i < stationList.value.length; i++){
             stations[i].update(stationData.value[i])
-            if(stationData.value[i] > maxChar) maxChar = stationData.value[i]
+            if(stations[i].level > maxLevel) maxLevel = stations[i].level
         }
-        niedMaxShindo.value = getShindoFromChar(maxChar)
+        niedMaxShindo.value = getShindoFromLevel(maxLevel)
         const possibleStations = stations.filter(station=>station.activity > 0)
         const activeStations = new Set()
         const checkedStations = new Set()
@@ -269,7 +269,7 @@ watch(()=>statusStore.map, newVal=>{
                     delete gridRects[key]
                 }
             }
-            niedPeriodMaxShindo.value = getShindoFromChar(String.fromCharCode(periodMaxLevel.value + 100))
+            niedPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel.value)
             if(Object.keys(newVal).length > 0){
                 statusStore.isActive.niedNet = true
                 if(isAutoZoom.value) setView()
@@ -288,12 +288,12 @@ watch(()=>(statusStore.isActive.jmaEew || statusStore.isActive.niedNet), newVal=
     if(newVal){
         if(periodMaxLevel.value == -1){
             periodMaxLevel.value = 0
-            niedPeriodMaxShindo.value = getShindoFromChar(String.fromCharCode(periodMaxLevel.value + 100))
+            niedPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel.value)
         }
     }
     else{
         periodMaxLevel.value = -1
-        niedPeriodMaxShindo.value = getShindoFromChar(String.fromCharCode(periodMaxLevel.value + 100))
+        niedPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel.value)
     }
 })
 let shake1Notified = false, shake2Notified = false

@@ -10,7 +10,7 @@ import Http from '@/classes/Http';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { seisNetUrls, iconUrls } from '@/utils/Urls';
-import { getShindoFromChar, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromInstShindo, stampToTime } from '@/utils/Utils';
+import { playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromInstShindo, stampToTime, getShindoFromLevel } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { TremStation } from '@/classes/StationClasses';
@@ -177,7 +177,7 @@ watch(()=>statusStore.map, newVal=>{
                     delete gridRects[key]
                 }
             }
-            tremPeriodMaxShindo.value = getShindoFromChar(String.fromCharCode(periodMaxLevel.value + 100))
+            tremPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel.value)
             if(Object.keys(newVal).length > 0){
                 statusStore.isActive.tremNet = true
                 if(isAutoZoom.value) setView()
@@ -196,12 +196,12 @@ watch(()=>(statusStore.isActive.cwaEew || statusStore.isActive.tremNet), newVal=
     if(newVal){
         if(periodMaxLevel.value == -1){
             periodMaxLevel.value = 0
-            tremPeriodMaxShindo.value = getShindoFromChar(String.fromCharCode(periodMaxLevel.value + 100))
+            tremPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel.value)
         }
     }
     else{
         periodMaxLevel.value = -1
-        tremPeriodMaxShindo.value = getShindoFromChar(String.fromCharCode(periodMaxLevel.value + 100))
+        tremPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel.value)
     }
 })
 let shake1Notified = false, shake2Notified = false
