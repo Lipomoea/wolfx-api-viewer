@@ -48,22 +48,18 @@ onBeforeUnmount(()=>{
 
 const className = ref('white midOpacity')
 let timer
-let isLoad = true
 
 watch(eqMessage, (newVal)=>{
     className.value = newVal.className + ' midOpacity'
     let passedTime = 0
-    if(isLoad){
-        isLoad = false
-        if(props.source.includes('jma')){
-            passedTime = calcPassedTime(newVal.reportTime, 9)
-        }
-        else if(props.source == 'cwaEqlist'){
-            passedTime = Math.max(calcPassedTime(newVal.originTime, 8) - 300 * 1000, 0)
-        }
-        else{
-            passedTime = calcPassedTime(newVal.reportTime, 8)
-        }
+    if(props.source.includes('jma')){
+        passedTime = calcPassedTime(newVal.reportTime, 9)
+    }
+    else if(props.source == 'cwaEqlist'){
+        passedTime = Math.max(calcPassedTime(newVal.originTime, 8) - 300 * 1000, 0)
+    }
+    else{
+        passedTime = calcPassedTime(newVal.reportTime, 8)
     }
     let time
     if(newVal.isEew){
