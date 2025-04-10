@@ -53,13 +53,13 @@ watch(eqMessage, (newVal)=>{
     className.value = newVal.className + ' midOpacity'
     let passedTime = 0
     if(useJst){
-        passedTime = calcPassedTime(newVal.reportTime, 9)
+        passedTime = Math.max(calcPassedTime(newVal.reportTime, 9), 0)
     }
     else if(props.source == 'cwaEqlist'){
         passedTime = Math.max(calcPassedTime(newVal.originTime, 8) - 300 * 1000, 0)
     }
     else{
-        passedTime = calcPassedTime(newVal.reportTime, 8)
+        passedTime = Math.max(calcPassedTime(newVal.reportTime, 8), 0)
     }
     let time
     if(newVal.isEew){
