@@ -52,7 +52,7 @@ let timer
 watch(eqMessage, (newVal)=>{
     className.value = newVal.className + ' midOpacity'
     let passedTime = 0
-    if(props.source.includes('jma')){
+    if(useJst){
         passedTime = calcPassedTime(newVal.reportTime, 9)
     }
     else if(props.source == 'cwaEqlist'){
