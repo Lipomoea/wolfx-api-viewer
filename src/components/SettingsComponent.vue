@@ -623,9 +623,10 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60vw" :show-close="false">
-            <div class="header">要石 v2.0.0-rc.9.2</div>
+            <div class="header">要石 v2.0.0-rc.9.3</div>
             <div class="title">最近更新</div>
             <div class="about">
+                <p>v2.0.0-rc.9.3 优化：对福建地震局地震预警地名应用反篡改；优化：过时数据的激活逻辑。</p>
                 <p>v2.0.0-rc.9.2 优化：各菜单下地图元素显示逻辑；优化：规范了时间和震度显示格式；优化：強震モニタ测站的更新逻辑；优化：更新报的更新逻辑；修复：強震モニタ测站列表可能加载失败的bug。</p>
                 <p>v2.0.0-rc.9.1 优化：将“CSIS”（中国地震烈度）修改为“烈度”以便于理解；修复：自动返回主菜单时地图显示范围可能出现异常的问题。</p>
                 <p>v2.0.0-rc.9 新增：Windows桌面版应用支持设置开机自启动和最小化启动；优化：调整部分代码结构；修复：日本气象厅远地地震情报默认深度错误的问题。</p>
