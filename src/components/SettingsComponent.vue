@@ -659,12 +659,10 @@
             <div class="title">关于</div>
             <div class="about">
                 <p>Windows 10及以上用户推荐使用应用程序：<a href="https://github.com/Lipomoea/kanameishi/releases" target="_blank">Windows应用程序下载</a></p>
-                <p>本页面基于Wolfx Open API (<a href="https://api.wolfx.jp" target="_blank">api.wolfx.jp</a>) 开发，不属于Wolfx官方。</p>
                 <p>本页面未针对移动端进行适配，建议使用Windows应用程序或电脑浏览器访问本网页。</p>
                 <p>联系我：<a href="https://space.bilibili.com/316757498" target="_blank">リッポミャ</a>（哔哩哔哩）</p>
                 <p>Github: <a href="https://github.com/Lipomoea/kanameishi" target="_blank">https://github.com/Lipomoea/kanameishi</a></p>
                 <p>特别鸣谢：</p>
-                <p>Wolfx Project：接口支持。</p>
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </div>
             <template #footer>
