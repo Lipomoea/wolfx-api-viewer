@@ -623,9 +623,10 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60vw" :show-close="false">
-            <div class="header">要石 v2.0.0-rc.9.3</div>
+            <div class="header">要石 v2.0.0-rc.9.4</div>
             <div class="title">最近更新</div>
             <div class="about">
+                <p>v2.0.0-rc.9.4 优化：根据Wolfx Open API最新修改，现已回退对福建地震局地震预警的反篡改（实际并未篡改）并同步中国地震台网地震信息的最新接口。</p>
                 <p>v2.0.0-rc.9.3 优化：对福建地震局地震预警地名应用反篡改；优化：过时数据的激活逻辑。</p>
                 <p>v2.0.0-rc.9.2 优化：各菜单下地图元素显示逻辑；优化：规范了时间和震度显示格式；优化：強震モニタ测站的更新逻辑；优化：更新报的更新逻辑；修复：強震モニタ测站列表可能加载失败的bug。</p>
                 <p>v2.0.0-rc.9.1 优化：将“CSIS”（中国地震烈度）修改为“烈度”以便于理解；修复：自动返回主菜单时地图显示范围可能出现异常的问题。</p>
@@ -663,6 +664,7 @@
                 <p>联系我：<a href="https://space.bilibili.com/316757498" target="_blank">リッポミャ</a>（哔哩哔哩）</p>
                 <p>Github: <a href="https://github.com/Lipomoea/kanameishi" target="_blank">https://github.com/Lipomoea/kanameishi</a></p>
                 <p>特别鸣谢：</p>
+                <p>Wolfx Open API、P2P地震情報：接口支持。</p>
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
             </div>
             <template #footer>

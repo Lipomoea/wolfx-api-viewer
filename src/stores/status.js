@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import Http from '@/classes/Http'
 import WebSocketObj from '@/classes/WebSocket'
 import { eqUrls, tsunamiUrls } from '@/utils/Urls'
-import { setClassName, calcCsisLevel, stampToTime, formatChineseTaiwan, getShindoFromInstShindo, shindoScaleKanji } from '@/utils/Utils'
+import { setClassName, calcCsisLevel, stampToTime, getShindoFromInstShindo, shindoScaleKanji } from '@/utils/Utils'
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc'
 
 export const defaultEqMessage = {
@@ -309,8 +309,8 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.reportTime = data.ReportTime
                         eqMessage.isFinal = data.isFinal
                         eqMessage.titleText = '福建地震局地震预警'
-                        eqMessage.hypocenter = formatChineseTaiwan(data.HypoCenter)
-                        eqMessage.hypocenterText = '震源: ' + formatChineseTaiwan(data.HypoCenter)
+                        eqMessage.hypocenter = data.HypoCenter
+                        eqMessage.hypocenterText = '震源: ' + data.HypoCenter
                         eqMessage.lat = data.Latitude
                         eqMessage.lng = data.Longitude
                         eqMessage.depth = 10
@@ -449,8 +449,8 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.reportTime = data.No1.ReportTime
                         eqMessage.title = data.No1.type
                         eqMessage.titleText = '中国地震台网' + (data.No1.type == 'reviewed'?'正式':'自动') + '测定'
-                        eqMessage.hypocenter = formatChineseTaiwan(data.No1.location)
-                        eqMessage.hypocenterText = '震源: ' + formatChineseTaiwan(data.No1.location)
+                        eqMessage.hypocenter = data.No1.placeName
+                        eqMessage.hypocenterText = '震源: ' + data.No1.placeName
                         eqMessage.lat = Number(data.No1.latitude)
                         eqMessage.lng = Number(data.No1.longitude)
                         eqMessage.depth = Number(data.No1.depth)
