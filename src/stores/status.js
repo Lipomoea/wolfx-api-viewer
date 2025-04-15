@@ -329,7 +329,7 @@ export const useStatusStore = defineStore('statusStore', {
                     case 'gqEew':{
                         const isNewEvent = eqMessage.id != data.Id
                         eqMessage.id = data.Id
-                        eqMessage.type = data.Quality.QualityLevel
+                        eqMessage.type = data?.Quality.QualityLevel
                         eqMessage.isEew = true
                         eqMessage.isCanceled = data.RevisionId < 0
                         if(!eqMessage.isCanceled || isNewEvent) {
