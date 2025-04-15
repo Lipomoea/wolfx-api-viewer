@@ -31,6 +31,8 @@
                     <el-switch v-model="settingsStore.mainSettings.source.scEew" @change="handleNeedReload"></el-switch>
                     <div class="full-width">福建地震局地震预警</div>
                     <el-switch v-model="settingsStore.mainSettings.source.fjEew" @change="handleNeedReload"></el-switch>
+                    <div class="full-width" v-if="settingsStore.advancedSettings.enableGqEew">GlobalQuake预警</div>
+                    <el-switch v-if="settingsStore.advancedSettings.enableGqEew" v-model="settingsStore.mainSettings.source.gqEew" @change="handleNeedReload"></el-switch>
                     <div class="full-width">日本気象庁地震情報</div>
                     <el-switch v-model="settingsStore.mainSettings.source.jmaEqlist" @change="handleNeedReload"></el-switch>
                     <div class="full-width" v-if="settingsStore.advancedSettings.enableTremFunctions">中央氣象署地震報告</div>
@@ -877,6 +879,21 @@ const handleAdvance = (val)=>{
             })
             break
         }
+        case 'enableGqEew': {
+            verifyType = 'enableGqEew'
+            verifyDialog.value = true
+            break
+        }
+        case 'disableGqEew': {
+            if(settingsStore.mainSettings.source.gqEew) handleNeedReload()
+            settingsStore.advancedSettings.enableGqEew = false
+            settingsStore.mainSettings.source.gqEew = false
+            ElMessage({
+                message: '功能已关闭',
+                type: 'success'
+            })
+            break
+        }
         case 'enableMultiApi': {
             verifyType = 'enableMultiApi'
             verifyDialog.value = true
@@ -940,6 +957,25 @@ const postVerify = async ()=>{
             if(res && res.success){
                 settingsStore.advancedSettings.enableTremFunctions = true
                 localStorage.setItem('tremUrl', JSON.stringify(res.data))
+                verifyDialog.value = false
+                ElMessage({
+                    message: '认证成功',
+                    type: 'success'
+                })
+            }
+            else{
+                ElMessage({
+                    message: '认证失败',
+                    type: 'error'
+                })
+            }
+            break
+        }
+        case 'enableGqEew': {
+            const res = await Http.post('http://124.70.142.213:8766/gq_url', idForm)
+            if(res && res.success){
+                settingsStore.advancedSettings.enableGqEew = true
+                localStorage.setItem('gqUrl', JSON.stringify(res.data))
                 verifyDialog.value = false
                 ElMessage({
                     message: '认证成功',

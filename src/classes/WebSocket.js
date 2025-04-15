@@ -1,5 +1,5 @@
 class WebSocketObj {
-    constructor(url){
+    constructor(url, isAutoPing = false){
         this.url = url
         this.socket = new WebSocket(this.url)
         this.setupWebSocket()
@@ -7,6 +7,12 @@ class WebSocketObj {
         this.retryInterval = 5000
         this.messageHandler = null
         this.timer = null
+        this.pingTimer = null
+        if(isAutoPing) {
+            this.pingTimer = setInterval(() => {
+                this.ping()
+            }, 60000);
+        }
     }
     setupWebSocket(){
         this.socket.onopen = ()=>{
@@ -41,6 +47,7 @@ class WebSocketObj {
     close(){
         this.shouldConnect = false
         clearTimeout(this.timer)
+        clearInterval(this.pingTimer)
         if(this.socket){
             this.socket.onopen = null
             this.socket.onclose = null

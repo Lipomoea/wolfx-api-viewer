@@ -144,7 +144,7 @@
                         WebSocket状态: 
                         <div class="dot" :class="'s' + wolfxRS"></div>
                         <div class="dot" :class="'s' + p2pquakeRS"></div>
-                        {{ statusList[wsStatusCode] }}
+                        <div v-if="settingsStore.mainSettings.source.gqEew" class="dot" :class="'s' + gqRS"></div>
                     </div>
                     <div class="nied-update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isNiedDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.nied">
                         強震モニタ: {{ niedUpdateTime }} (UTC+9)
@@ -309,10 +309,9 @@ const handleMenu = (index)=>{
     }, 0);  //语句推迟到容器大小变化后再执行
 }
 provide('handleHome', handleHome)
-const wsStatusCode = ref(0)
 const wolfxRS = ref(4)
 const p2pquakeRS = ref(4)
-const statusList = ['未连接', '部分连接', '已连接']
+const gqRS = ref(4)
 const niedUpdateTime = ref('1970-01-01 09:00:00')
 const niedMaxShindo = ref('?')
 const niedPeriodMaxShindo = ref('?')
@@ -368,7 +367,8 @@ onMounted(()=>{
         center: defaultLatLng,
         zoom: 4,
         minZoom: 2,
-        maxZoom: 12
+        maxZoom: 12,
+        worldCopyJump: true
     })
     //傻逼Leaflet
     L.Marker.prototype._animateZoom = function (opt) {
@@ -627,7 +627,7 @@ const intervalEvents = ()=>{
     isTremDelayed.value = !verifyUpToDate(tremUpdateTime.value, 8, 10000)
     wolfxRS.value = statusStore.wolfxSocket?.socket.readyState || 4
     p2pquakeRS.value = statusStore.p2pquakeSocket?.socket.readyState || 4
-    wsStatusCode.value = (wolfxRS.value == 1) + (p2pquakeRS.value == 1)
+    gqRS.value = statusStore.gqSocket?.socket.readyState || 4
 }
 const setMapHeight = (height) => {
     const mapElement = map.getContainer()

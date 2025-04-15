@@ -52,6 +52,7 @@ export const useStatusStore = defineStore('statusStore', {
         httpRequest: null,
         wolfxSocket: null,
         p2pquakeSocket: null,
+        gqSocket: null,
         useWolfxSocket: ['jmaEew', 'cwaEew', 'scEew', 'fjEew', 'cencEqlist'],
         useP2pquakeSocket: ['jmaEqlist', 'jmaTsunami'],
         enabledSource: [],
@@ -64,6 +65,7 @@ export const useStatusStore = defineStore('statusStore', {
             iclEew: Object.assign({}, defaultEqMessage),
             scEew: Object.assign({}, defaultEqMessage),
             fjEew: Object.assign({}, defaultEqMessage),
+            gqEew: Object.assign({}, defaultEqMessage),
             jmaEqlist: Object.assign({}, defaultEqMessage),
             cwaEqlist: Object.assign({}, defaultEqMessage),
             cencEqlist: Object.assign({}, defaultEqMessage)
@@ -78,6 +80,7 @@ export const useStatusStore = defineStore('statusStore', {
             iclEew: false,
             scEew: false,
             fjEew: false,
+            gqEew: false,
             jmaEqlist: false,
             cwaEqlist: false,
             cencEqlist: false,
@@ -321,6 +324,36 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.magnitudeText = '震级: ' + data.Magunitude.toFixed(1)
                         eqMessage.maxIntensity = this.forceCalcInt?calcCsisLevel(data.Magunitude, 10, 0):'不明'
                         eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
+                        break
+                    }
+                    case 'gqEew':{
+                        const isNewEvent = eqMessage.id != data.Id
+                        eqMessage.id = data.Id
+                        eqMessage.isEew = true
+                        eqMessage.isCanceled = data.RevisionId < 0
+                        if(!eqMessage.isCanceled || isNewEvent) {
+                            eqMessage.reportNum = data.RevisionId
+                            eqMessage.reportNumText = '第' + data.RevisionId + '报'
+                            let date = new Date(data.LastUpdatedTime)
+                            date.setHours(date.getHours() + 8)
+                            eqMessage.reportTime = date.toISOString().replace('T', ' ').slice(0, -5)
+                            eqMessage.isFinal = data.isFinal
+                            eqMessage.titleText = 'GlobalQuake地震预警'
+                            eqMessage.hypocenter = data.Region.split(',')[0] ?? '未知区域'
+                            eqMessage.hypocenterText = '震源: ' + eqMessage.hypocenter
+                            eqMessage.lat = data.Latitude
+                            eqMessage.lng = data.Longitude
+                            eqMessage.depth = data.Depth
+                            eqMessage.depthText = '深度: ' + data.Depth + 'km'
+                            date = new Date(data.OriginTime)
+                            date.setHours(date.getHours() + 8)
+                            eqMessage.originTime = date.toISOString().replace('T', ' ').slice(0, -5)
+                            eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
+                            eqMessage.magnitude = data.Magnitude
+                            eqMessage.magnitudeText = '震级: ' + eqMessage.magnitude.toFixed(1)
+                            eqMessage.maxIntensity = this.forceCalcInt?calcCsisLevel(data.Magunitude, 10, 0):'不明'
+                            eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity    
+                        }
                         break
                     }
                     case 'jmaEqlist':{
@@ -618,6 +651,14 @@ export const useStatusStore = defineStore('statusStore', {
                         }
                     })
                 }
+                if(this.gqSocket) this.gqSocket.close()
+                if(this.enabledSource.includes('gqEew') && 'gqEew_ws' in eqUrls) {
+                    this.gqSocket = new WebSocketObj(eqUrls.gqEew_ws, true)
+                    this.gqSocket.setMessageHandler((e)=>{
+                        let data = JSON.parse(e.data)
+                        if(data.RevisionId) this.setEqMessage('gqEew', data)
+                    })
+                }
             }
             else{
                 console.log('Unrecognized protocol type.')
@@ -630,7 +671,9 @@ export const useStatusStore = defineStore('statusStore', {
         },
         startUpdatingEqMessage(){
             this.connect('http')
-            this.connect('ws')
+            setTimeout(() => {
+                this.connect('ws')
+            }, 1000);
         },
         setActive(source, isActive){
             this.isActive[source] = isActive
