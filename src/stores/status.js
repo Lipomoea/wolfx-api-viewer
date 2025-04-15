@@ -669,6 +669,7 @@ export const useStatusStore = defineStore('statusStore', {
             clearInterval(this.httpRequest)
             if(this.wolfxSocket) this.wolfxSocket.close()
             if(this.p2pquakeSocket) this.p2pquakeSocket.close()
+            if(this.gqSocket) this.gqSocket.close()
         },
         startUpdatingEqMessage(){
             this.connect('http')
