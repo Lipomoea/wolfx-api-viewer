@@ -22,6 +22,7 @@ import { eqUrls } from '@/utils/Urls';
 import { EewEvent, EqlistEvent } from '@/classes/EewEqlistClasses';
 import { useTimeStore } from '@/stores/time';
 import { useStatusStore } from '@/stores/status';
+import { useSettingsStore } from '@/stores/settings';
 import '@/assets/background.css'
 import '@/assets/opacity.css'
 
@@ -35,6 +36,7 @@ const isAutoZoom = inject('isAutoZoom')
 const setView = inject('setView')
 const timeStore = useTimeStore()
 const statusStore = useStatusStore()
+const settingsStore = useSettingsStore()
 const useJst = props.source.includes('jma')
 const eqMessage = computed(()=>statusStore.eqMessage[props.source])
 
@@ -109,9 +111,11 @@ watch(eqMessage, (newVal)=>{
             }
             if(i == activeEewList.length){
                 if(statusStore.map){
-                    const newEvent = reactive(new EewEvent(statusStore.map, Object.assign({}, newVal), activeEewList))
-                    activeEewList.unshift(newEvent)
-                    newEvent.update(Object.assign({}, newVal), time, true)
+                    if(props.source != 'gqEew' || (newVal.magnitude >= settingsStore.mainSettings.gqActionMag || newVal.maxIntensity >= settingsStore.mainSettings.gqActionCsis)) {
+                        const newEvent = reactive(new EewEvent(statusStore.map, Object.assign({}, newVal), activeEewList))
+                        activeEewList.unshift(newEvent)
+                        newEvent.update(Object.assign({}, newVal), time, true)
+                    }
                 }
             }
         }

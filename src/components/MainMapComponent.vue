@@ -20,7 +20,8 @@
                                     <div class="bottom">
                                         <div class="magnitude">{{ event.eqMessage.isAssumption?'仮定震源要素':'M' + event.eqMessage.magnitude.toFixed(1) }}</div>
                                         <div class="depth">{{ event.eqMessage.isAssumption?'':event.eqMessage.depthText }}</div>
-                                        <div class="type" v-if="settingsStore.advancedSettings.multiApi">type: {{ event.eqMessage.type }}</div>
+                                        <div class="type" v-if="settingsStore.advancedSettings.multiApi && event.eqMessage.source != 'gqEew'">type: {{ event.eqMessage.type }}</div>
+                                        <div class="type" v-if="event.eqMessage.source == 'gqEew'">quality: {{ event.eqMessage.type }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -197,6 +198,7 @@
 
 <script setup>
 import L from 'leaflet';
+import 'leaflet.vectorgrid'
 import 'leaflet/dist/leaflet.css';
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, watchEffect, provide } from 'vue';
 import '@/assets/background.css'
@@ -510,29 +512,27 @@ const loadMaps = async () => {
         clearTimeout(msgTimer)
         loadBaseMap(global, 'globalBasePane')
         loadBaseMap(cn, 'cnBasePane')
-        cnEewBaseMap = loadBaseMap(cn_eew, 'cnEewBasePane', {
+        cnEewBaseMap = loadBaseMap(cn_eew, 'cnEewBasePane', false, {
             color: '#bbbbbb00',
             opacity: 1,
             fillColor: '#55555500',
             fillOpacity: 1,
             weight: 1,
         })
-        loadBaseMap(cn_fault, 'cnFaultBasePane', {
+        loadBaseMap(cn_fault, 'cnFaultBasePane', true, {
             color: 'red',
             opacity: 0.5,
-            fillColor: 'red',
-            fillOpacity: 0,
             weight: 1,
         })
         loadBaseMap(jp, 'jpBasePane')
-        jpEewBaseMap = loadBaseMap(jp_eew, 'jpEewBasePane', {
+        jpEewBaseMap = loadBaseMap(jp_eew, 'jpEewBasePane', false, {
             color: '#bbbbbb00',
             opacity: 1,
             fillColor: '#55555500',
             fillOpacity: 1,
             weight: 1,
         })
-        jpTsunamiBaseMap = loadBaseMap(jp_tsunami, 'jpTsunamiBasePane', {
+        jpTsunamiBaseMap = loadBaseMap(jp_tsunami, 'jpTsunamiBasePane', false, {
             color: '#ffffff00',
             opacity: 1,
             weight: 6,
@@ -745,24 +745,39 @@ const setView = ()=>{
 }
 provide('setView', setView)
 provide('isAutoZoom', isAutoZoom)
-const loadBaseMap = (geojson, pane, style = {
+const loadBaseMap = (geojson, pane, useVector = true, style = {
         color: '#ccc',
-        fillColor: '#555',
+        fillColor: '#333',
         fillOpacity: 1,
         weight: 1,
+        fill: true
     })=>{
     if(Object.keys(geojson).length != 0){
-        const baseMap = L.geoJson(geojson, {
-            pane,
-            style,
-            onEachFeature: pane == 'globalBasePane'?onEachFeature('name_zh'):onEachFeature('name'),
-        })
-        baseMap.addTo(map)
-        return baseMap
+        if(useVector) {
+            const vectorGrid = L.vectorGrid.slicer(geojson, {
+                pane,
+                rendererFactory: L.canvas.tile,
+                vectorTileLayerStyles: {
+                    sliced: style
+                },
+                interactive: false
+            });
+            vectorGrid.addTo(map);
+            return vectorGrid;
+        }
+        else {
+            const baseMap = L.geoJson(geojson, {
+                pane,
+                style,
+                onEachFeature
+            })
+            baseMap.addTo(map)
+            return baseMap
+        }
     }
 }
-const onEachFeature = (name)=>(feature, layer)=>{
-    layer.bindTooltip(feature.properties[name], {
+const onEachFeature = (feature, layer)=>{
+    layer.bindTooltip(feature.properties.name, {
         permanent: false,
         direction: 'top'
     })
@@ -902,7 +917,7 @@ onBeforeUnmount(()=>{
         .mapContainer{
             height: 100%;
             position: relative;
-            background-color: #333;
+            background-color: #222;
             #mainMap{
                 width: 100%;
                 height: 100%;
@@ -915,7 +930,7 @@ onBeforeUnmount(()=>{
                 border: none;
             }
             .leaflet-container{
-                background-color: #333;
+                background-color: #222;
             }
             .leaflet-grab{
                 cursor: default;

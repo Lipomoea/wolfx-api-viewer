@@ -272,7 +272,7 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.lat = data.latitude
                         eqMessage.lng = data.longitude
                         eqMessage.depth = data.depth
-                        eqMessage.depthText = '深度: ' + data.depth.toFixed(1) + 'km'
+                        eqMessage.depthText = '深度: ' + data.depth.toFixed(0) + 'km'
                         eqMessage.originTime = stampToTime(data.startAt, 8)
                         eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
                         eqMessage.magnitude = data.magnitude
@@ -329,6 +329,7 @@ export const useStatusStore = defineStore('statusStore', {
                     case 'gqEew':{
                         const isNewEvent = eqMessage.id != data.Id
                         eqMessage.id = data.Id
+                        eqMessage.type = data.Quality.QualityLevel
                         eqMessage.isEew = true
                         eqMessage.isCanceled = data.RevisionId < 0
                         if(!eqMessage.isCanceled || isNewEvent) {
@@ -339,19 +340,19 @@ export const useStatusStore = defineStore('statusStore', {
                             eqMessage.reportTime = date.toISOString().replace('T', ' ').slice(0, -5)
                             eqMessage.isFinal = data.isFinal
                             eqMessage.titleText = 'GlobalQuake地震预警'
-                            eqMessage.hypocenter = data.Region.split(',')[0] ?? '未知区域'
+                            eqMessage.hypocenter = data.Region.split(',')[0] || '未知区域'
                             eqMessage.hypocenterText = '震源: ' + eqMessage.hypocenter
                             eqMessage.lat = data.Latitude
                             eqMessage.lng = data.Longitude
                             eqMessage.depth = data.Depth
-                            eqMessage.depthText = '深度: ' + data.Depth + 'km'
+                            eqMessage.depthText = '深度: ' + data.Depth.toFixed(0) + 'km'
                             date = new Date(data.OriginTime)
                             date.setHours(date.getHours() + 8)
                             eqMessage.originTime = date.toISOString().replace('T', ' ').slice(0, -5)
                             eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
                             eqMessage.magnitude = data.Magnitude
                             eqMessage.magnitudeText = '震级: ' + eqMessage.magnitude.toFixed(1)
-                            eqMessage.maxIntensity = this.forceCalcInt?calcCsisLevel(data.Magunitude, 10, 0):'不明'
+                            eqMessage.maxIntensity = this.forceCalcInt?calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0):'不明'
                             eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity    
                         }
                         break

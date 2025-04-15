@@ -153,6 +153,28 @@
                                 style="width: 200px; margin-left: 10px;"></el-slider>
                                 <div class="csis" :class="setClassName(settingsStore.mainSettings.actionCsis, false)">{{ settingsStore.mainSettings.actionCsis }}</div>
                             </div>
+                            <div class="switch" v-if="settingsStore.advancedSettings.enableGqEew">
+                                <span>GQ预警震级阈值</span>
+                                <el-slider
+                                v-model="settingsStore.mainSettings.gqActionMag"
+                                :min="0" :max="9"
+                                :step="0.1"
+                                size="small"
+                                style="width: 200px; margin-left: 10px;"></el-slider>
+                                <div class="mag" :class="setClassName(settingsStore.mainSettings.gqActionMag * 4/3, false)">{{ settingsStore.mainSettings.gqActionMag.toFixed(1) }}</div>
+                            </div>
+                            <div class="switch" v-if="settingsStore.advancedSettings.enableGqEew">
+                                <span>GQ预警烈度阈值</span>
+                                <el-slider
+                                v-model="settingsStore.mainSettings.gqActionCsis"
+                                :disabled="!settingsStore.advancedSettings.forceCalcInt"
+                                :min="0" :max="12"
+                                :step="1"
+                                size="small"
+                                show-stops
+                                style="width: 200px; margin-left: 10px;"></el-slider>
+                                <div class="csis" :class="setClassName(settingsStore.mainSettings.gqActionCsis, false)">{{ settingsStore.mainSettings.gqActionCsis }}</div>
+                            </div>
                         </div>
                     </div>
                     <div class="row">
@@ -625,9 +647,10 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60vw" :show-close="false">
-            <div class="header">要石 v2.0.0-rc.9.4</div>
+            <div class="header">要石 v2.0.0-rc.9.5</div>
             <div class="title">最近更新</div>
             <div class="about">
+                <p>v2.0.0-rc.9.5 变更：调整部分图层渲染方式，实现地图循环显示，但中国、日本以外地区地图不再支持地名提示；优化：地图配色。</p>
                 <p>v2.0.0-rc.9.4 优化：根据Wolfx Open API最新修改，现已回退对福建地震局地震预警的反篡改（实际并未篡改）并同步中国地震台网地震信息的最新接口。</p>
                 <p>v2.0.0-rc.9.3 优化：对福建地震局地震预警地名应用反篡改；优化：过时数据的激活逻辑。</p>
                 <p>v2.0.0-rc.9.2 优化：各菜单下地图元素显示逻辑；优化：规范了时间和震度显示格式；优化：強震モニタ测站的更新逻辑；优化：更新报的更新逻辑；修复：強震モニタ测站列表可能加载失败的bug。</p>
@@ -1298,6 +1321,18 @@ onBeforeUnmount(() => {
 }
 .csis {
     width: 22px;
+    height: 22px;
+    margin-left: 6px;
+    border: #cfcfcf 1px solid;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    user-select: none;
+}
+.mag {
+    width: 28px;
     height: 22px;
     margin-left: 6px;
     border: #cfcfcf 1px solid;

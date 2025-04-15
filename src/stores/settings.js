@@ -29,6 +29,8 @@ export const useSettingsStore = defineStore('settingsStore', {
                 displayTremShindo: false
             },
             actionCsis: 0,
+            gqActionMag: 5.0,
+            gqActionCsis: 7,
             onEew: {
                 notification: false,
                 sound: false,
