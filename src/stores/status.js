@@ -335,14 +335,11 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.isCanceled = data.RevisionId < 0
                         if(!eqMessage.isCanceled || isNewEvent) {
                             eqMessage.reportNum = data.RevisionId
-                            eqMessage.reportNumText = '第' + data.RevisionId + '报'
                             let date = new Date(data.LastUpdatedTime)
                             date.setHours(date.getHours() + 8)
                             eqMessage.reportTime = date.toISOString().replace('T', ' ').slice(0, -5)
                             eqMessage.isFinal = data.isFinal
                             eqMessage.titleText = 'GlobalQuake地震预警'
-                            eqMessage.hypocenter = data.Region.split(',')[0] || '未知区域'
-                            eqMessage.hypocenterText = '震源: ' + eqMessage.hypocenter
                             eqMessage.lat = data.Latitude
                             eqMessage.lng = data.Longitude
                             eqMessage.depth = data.Depth
@@ -354,8 +351,19 @@ export const useStatusStore = defineStore('statusStore', {
                             eqMessage.magnitude = data.Magnitude
                             eqMessage.magnitudeText = '震级: ' + eqMessage.magnitude.toFixed(1)
                             eqMessage.maxIntensity = this.forceCalcInt?calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0):'不明'
-                            eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                             eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 7.5
+                        }
+                        if(eqMessage.isCanceled) {
+                            eqMessage.reportNumText = '取消报'
+                            eqMessage.hypocenter = '已取消'
+                            eqMessage.hypocenterText = '震源: 已取消'
+                            eqMessage.maxIntensityText = '估计最大烈度: 无'
+                        }
+                        else{
+                            eqMessage.reportNumText = '第' + data.RevisionId + '报'
+                            eqMessage.hypocenter = data.Region.split(',')[0] || '未知区域'
+                            eqMessage.hypocenterText = '震源: ' + eqMessage.hypocenter
+                            eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                         }
                         break
                     }
