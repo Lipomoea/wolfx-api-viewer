@@ -324,6 +324,7 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.magnitudeText = '震级: ' + data.Magunitude.toFixed(1)
                         eqMessage.maxIntensity = this.forceCalcInt?calcCsisLevel(data.Magunitude, 10, 0):'不明'
                         eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
+                        eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 7.5
                         break
                     }
                     case 'gqEew':{
@@ -353,7 +354,8 @@ export const useStatusStore = defineStore('statusStore', {
                             eqMessage.magnitude = data.Magnitude
                             eqMessage.magnitudeText = '震级: ' + eqMessage.magnitude.toFixed(1)
                             eqMessage.maxIntensity = this.forceCalcInt?calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0):'不明'
-                            eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity    
+                            eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
+                            eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 7.5
                         }
                         break
                     }
