@@ -580,7 +580,7 @@ onMounted(async ()=>{
         setTimeout(() => {
             const data = {
                 "ID": 1130793,
-                "ReportTime": "2024-04-03 07:58:24",
+                "ReportTime": timeStr,
                 "ReportNum": 1,
                 "OriginTime": timeStr,
                 "HypoCenter": "花蓮縣壽豐鄉",
@@ -592,7 +592,7 @@ onMounted(async ()=>{
                 "isCancel": false
             }
             statusStore.setEqMessage(source, data)
-        }, 6000);
+        }, 2000);
     }
     if(testIclEew){
         setTimeout(() => {

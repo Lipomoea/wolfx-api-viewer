@@ -245,13 +245,13 @@ const viewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.map(val=>N
 const zoomLevel = computed(()=>settingsStore.mainSettings.defaultZoom)
 const tempEqlists = ref(false)
 let tempEqlistsTimer
-const handleTempEqlists = (isEqlists) => {
-    if(isEqlists) {
+const handleTempEqlists = (time) => {
+    if(time) {
         tempEqlists.value = true
         clearTimeout(tempEqlistsTimer)
         tempEqlistsTimer = setTimeout(() => {
             tempEqlists.value = false
-        }, 6000);
+        }, time);
     }
     else {
         clearTimeout(tempEqlistsTimer)
@@ -468,7 +468,12 @@ onMounted(()=>{
             if(!key.includes('Tsunami')) {
                 watch(() => statusStore.eqMessage[key], () => {
                     if(isLoad) isLoad = false
-                    else handleTempEqlists(key.includes('Eqlist'))
+                    else handleTempEqlists(key.includes('Eqlist') ? 6500 : 0)
+                }, { deep: true })
+            }
+            else {
+                watch(() => statusStore.tsunamiMessage[key], () => {
+                    handleTempEqlists(15000)
                 }, { deep: true })
             }
         })
