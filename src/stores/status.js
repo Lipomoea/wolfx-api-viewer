@@ -334,7 +334,7 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.isEew = true
                         eqMessage.isCanceled = data.RevisionId < 0
                         if(!eqMessage.isCanceled || isNewEvent) {
-                            eqMessage.reportNum = data.RevisionId
+                            eqMessage.reportNum = eqMessage.isCanceled ? Infinity : data.RevisionId
                             let date = new Date(data.LastUpdatedTime)
                             date.setHours(date.getHours() + 8)
                             eqMessage.reportTime = date.toISOString().replace('T', ' ').slice(0, -5)
