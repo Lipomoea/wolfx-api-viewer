@@ -250,7 +250,7 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.lat = data.latitude
                         eqMessage.lng = data.longitude
                         eqMessage.depth = data.depth ?? 10
-                        eqMessage.depthText = '深度: ' + (data.depth === null ? '不明' : data.depth + 'km')
+                        eqMessage.depthText = '深度: ' + (data.depth == null ? '不明' : data.depth + 'km')
                         eqMessage.originTime = data.shockTime
                         eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
                         eqMessage.magnitude = Number(data.magnitude)
@@ -295,7 +295,7 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.lat = data.Latitude
                         eqMessage.lng = data.Longitude
                         eqMessage.depth = data.Depth ?? 10
-                        eqMessage.depthText = '深度: ' + (data.Depth === null ? '不明' : data.Depth + 'km')
+                        eqMessage.depthText = '深度: ' + (data.Depth == null ? '不明' : data.Depth + 'km')
                         eqMessage.originTime = data.OriginTime
                         eqMessage.originTimeText = '发震时间: ' + data.OriginTime
                         eqMessage.magnitude = data.Magunitude
@@ -330,7 +330,7 @@ export const useStatusStore = defineStore('statusStore', {
                     case 'gqEew':{
                         const isNewEvent = eqMessage.id != data.Id
                         eqMessage.id = data.Id
-                        eqMessage.type = data?.Quality.QualityLevel
+                        eqMessage.type = data.Quality?.QualityLevel ?? 9
                         eqMessage.isEew = true
                         eqMessage.isCanceled = data.RevisionId < 0
                         if(!eqMessage.isCanceled || isNewEvent) {
@@ -338,19 +338,18 @@ export const useStatusStore = defineStore('statusStore', {
                             let date = new Date(data.LastUpdatedTime)
                             date.setHours(date.getHours() + 8)
                             eqMessage.reportTime = date.toISOString().replace('T', ' ').slice(0, -5)
-                            eqMessage.isFinal = data.isFinal
                             eqMessage.titleText = 'GlobalQuake地震预警'
                             eqMessage.lat = data.Latitude
                             eqMessage.lng = data.Longitude
                             eqMessage.depth = data.Depth
-                            eqMessage.depthText = '深度: ' + data.Depth.toFixed(0) + 'km'
+                            eqMessage.depthText = '深度: ' + (eqMessage.depth == null ? '不明' : eqMessage.depth.toFixed(0) + 'km')
                             date = new Date(data.OriginTime)
                             date.setHours(date.getHours() + 8)
                             eqMessage.originTime = date.toISOString().replace('T', ' ').slice(0, -5)
                             eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
                             eqMessage.magnitude = data.Magnitude
-                            eqMessage.magnitudeText = '震级: ' + eqMessage.magnitude.toFixed(1)
-                            eqMessage.maxIntensity = this.forceCalcInt?calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0):'不明'
+                            eqMessage.magnitudeText = '震级: ' + (eqMessage.magnitude == null ? '不明' : eqMessage.magnitude.toFixed(1))
+                            eqMessage.maxIntensity = this.forceCalcInt ? calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0) : '不明'
                             eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 7.5
                         }
                         if(eqMessage.isCanceled) {
