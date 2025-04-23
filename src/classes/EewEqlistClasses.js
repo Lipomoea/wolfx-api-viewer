@@ -189,8 +189,8 @@ class EewEvent {
         eqMessage.reportNum == this.eqMessage.reportNum && eqMessage.isCanceled == this.eqMessage.isCanceled && eqMessage.type < this.eqMessage.type) {
             const isAddition = eqMessage.reportNum == this.eqMessage.reportNum && eqMessage.isCanceled == this.eqMessage.isCanceled && eqMessage.type < this.eqMessage.type
             if(eqMessage.isCanceled) {
-                const { isCanceled, title, titleText, reportNum, reportNumText } = eqMessage
-                Object.assign(this.eqMessage, { isCanceled, title, titleText, reportNum, reportNumText })
+                const { isCanceled, title, titleText, reportNum, reportNumText, reportTime } = eqMessage
+                Object.assign(this.eqMessage, { isCanceled, title, titleText, reportNum, reportNumText, reportTime })
                 this.renderStop()
             }
             else {
