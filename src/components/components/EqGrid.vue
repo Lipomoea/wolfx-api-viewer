@@ -82,7 +82,26 @@ watch(eqMessage, (newVal)=>{
         }
     }
     time -= passedTime
-    if(!newVal.isEew){
+    if(newVal.isEew){
+        let i = 0
+        while(i < activeEewList.length){
+            if(judgeSameEvent(newVal, activeEewList[i].eqMessage)){
+                activeEewList[i].update(Object.assign({}, newVal), time)
+                break
+            }
+            i++
+        }
+        if(i == activeEewList.length){
+            if(statusStore.map){
+                if(time > 0 && (props.source != 'gqEew' || (newVal.magnitude >= settingsStore.mainSettings.gqActionMag || newVal.maxIntensity >= settingsStore.mainSettings.gqActionCsis))) {
+                    const newEvent = reactive(new EewEvent(statusStore.map, Object.assign({}, newVal), activeEewList))
+                    activeEewList.unshift(newEvent)
+                    newEvent.update(Object.assign({}, newVal), time, true)
+                }
+            }
+        }
+    }
+    else {
         let i = 0
         while(i < eqlistList.length){
             if(newVal.source == eqlistList[i].eqMessage.source){
@@ -99,26 +118,7 @@ watch(eqMessage, (newVal)=>{
             }
         }
     }
-    if(time > 0){
-        if(newVal.isEew){
-            let i = 0
-            while(i < activeEewList.length){
-                if(judgeSameEvent(newVal, activeEewList[i].eqMessage)){
-                    activeEewList[i].update(Object.assign({}, newVal), time)
-                    break
-                }
-                i++
-            }
-            if(i == activeEewList.length){
-                if(statusStore.map){
-                    if(props.source != 'gqEew' || (newVal.magnitude >= settingsStore.mainSettings.gqActionMag || newVal.maxIntensity >= settingsStore.mainSettings.gqActionCsis)) {
-                        const newEvent = reactive(new EewEvent(statusStore.map, Object.assign({}, newVal), activeEewList))
-                        activeEewList.unshift(newEvent)
-                        newEvent.update(Object.assign({}, newVal), time, true)
-                    }
-                }
-            }
-        }
+    if(time > 0) {
         if(isAutoZoom.value) {
             setTimeout(() => {
                 setView()
