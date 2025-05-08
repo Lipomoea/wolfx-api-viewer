@@ -114,6 +114,7 @@
                                 size="small">
                                     <el-option label="NIED" value="nied"></el-option>
                                     <el-option label="SREV" value="srev"></el-option>
+                                    <el-option label="混合" value="mix"></el-option>
                                 </el-select>
                             </div>
                             <div class="switch" v-show="settingsStore.mainSettings.displaySeisNet.style == 'nied'">

@@ -14,7 +14,14 @@ const colorBand = {
     ],
     srev: [
         '#ffffff00', 
-        '#ffffff33', '#ffffff66', '#ffffff99', '#ffffffcc', '#ffffffff', 
+        '#ffffff11', '#ffffff33', '#ffffff66', '#ffffffaa', '#ffffffff', 
+        '#31f049', '#64fb2a', '#9dfe17', '#ccff09', '#ebff03', 
+        '#fff500', '#ffe500', '#ffca00', '#ffa600', '#ff7e00', 
+        '#ff5900', '#fd3500', '#f81100', '#e50000', '#bd0000'
+    ],
+    mix: [
+        '#0003cf00', 
+        '#0014da11', '#0037f033', '#006cdc66', '#00b3a2aa', '#12dc72ff', 
         '#31f049', '#64fb2a', '#9dfe17', '#ccff09', '#ebff03', 
         '#fff500', '#ffe500', '#ffca00', '#ffa600', '#ff7e00', 
         '#ff5900', '#fd3500', '#f81100', '#e50000', '#bd0000'
@@ -143,6 +150,15 @@ class NiedStation {
                 }
                 this.radius = 2.5 * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
                 break
+            case 'mix':
+                if(this.level < 0 || this.level >= colorBand.mix.length){
+                    this.color = colorBand.mix[0]
+                }
+                else{
+                    this.color = colorBand.mix[this.level]
+                }
+                this.radius = 2.5 * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+                break
         }
     }
     setActive(){
@@ -226,6 +242,15 @@ class TremStation {
                 }
                 else{
                     this.color = colorBand.srev[this.level]
+                }
+                this.radius = 2.5 * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+                break
+            case 'mix':
+                if(this.level < 0 || this.level >= colorBand.mix.length){
+                    this.color = colorBand.mix[0]
+                }
+                else{
+                    this.color = colorBand.mix[this.level]
                 }
                 this.radius = 2.5 * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
                 break
