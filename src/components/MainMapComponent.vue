@@ -918,7 +918,7 @@ const csisList = ref([])
 const shindoList = computed(() => {
     const shindoList = {}
     for(let name in jmaWarnArea.value) {
-        const intensity = jmaWarnArea.value[name].intensity.replace('強', '+').replace('弱', '-')
+        const intensity = formatIntensity(jmaWarnArea.value[name].intensity)
         if(!(intensity in shindoList)) shindoList[intensity] = []
         shindoList[intensity].push(name)
     }
