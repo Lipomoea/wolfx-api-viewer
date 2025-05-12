@@ -72,7 +72,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             eqlistsAsDefault: false,
             minimizeOnLaunch: false,
             autoCheckNewVersion: false,
-            checkPrerelease: true,
+            checkPrerelease: false,
             autoRefresh: false
         },
         advancedSettings: {
