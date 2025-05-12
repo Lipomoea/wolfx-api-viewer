@@ -8,6 +8,7 @@ icon是《铃芽之旅》的草太さん（椅子形态）。
 * [Web版](http://124.70.142.213:8081/)
 * [Web版备用](https://kanameishi.pages.dev/)（使用CloudFlare，速度更快，但国内可能需要代理访问。）
 * [Windows应用程序下载](https://github.com/Lipomoea/kanameishi/releases)
+* [Windows应用程序下载（备用）](https://gitee.com/lipomoea/kanameishi/releases)
 ## 主要功能  
 * 接收日本气象厅、台湾省中央气象署、四川省地震局、福建省地震局地震预警信息。
 * 接收日本气象厅、中国地震台网地震信息。
