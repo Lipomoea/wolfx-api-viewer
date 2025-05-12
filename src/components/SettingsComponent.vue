@@ -286,7 +286,7 @@
                 <div class="sub-title">显示</div>
                 <div class="group">
                     <div class="row">
-                        <span class="group-title">所在地设置</span>
+                        <span class="group-title">本地预警设置</span>
                         <div class="switch-group">
                             <div class="switch force-wrap">
                                 <span class="full-width">
@@ -327,15 +327,13 @@
                                 size="small"
                                 @click="clearUserLatLng">清除经纬度</el-button>
                             </div>
+                        </div>
+                        <div class="switch-group">
                             <div class="switch">
                                 <span>显示所在地</span>
                                 <el-switch v-model="settingsStore.mainSettings.displayUser"></el-switch>
                             </div>
                             <div class="switch">
-                                <span>显示地图烈度图例</span>
-                                <el-switch v-model="settingsStore.mainSettings.displayLegend"></el-switch>
-                            </div>
-                            <div class="switch full-width">
                                 <span>显示本地烈度和倒计时</span>
                                 <el-switch v-model="settingsStore.mainSettings.displayCountdown"></el-switch>
                             </div>
@@ -344,6 +342,16 @@
                             </div>
                             <div class="switch">
                                 <el-checkbox v-model="settingsStore.mainSettings.playCountdownSound" :disabled="!settingsStore.mainSettings.displayCountdown">播放倒计时音效</el-checkbox>
+                            </div>
+                        </div>
+                        <div class="switch-group">
+                            <div class="switch">
+                                <span>显示地图烈度图例</span>
+                                <el-switch v-model="settingsStore.mainSettings.displayLegend"></el-switch>
+                            </div>
+                            <div class="switch">
+                                <span>显示区域烈度列表</span>
+                                <el-switch v-model="settingsStore.mainSettings.displayAreaIntensities"></el-switch>
                             </div>
                         </div>
                     </div>
@@ -648,9 +656,10 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60vw" :show-close="false">
-            <div class="header">要石 v2.0.0</div>
+            <div class="header">要石 v2.1.0-pre.1</div>
             <div class="title">最近更新</div>
             <div class="about">
+                <p>v2.1.0 新增：区域烈度列表显示功能。</p>
                 <p>v2.0.0 变更：版本号变更为正式版；优化：新增“混合”测站风格。</p>
                 <p>v2.0.0-rc.9.5 变更：调整部分图层渲染方式，实现地图循环显示，但中国、日本以外地区地图不再支持地名提示；优化：地图配色。</p>
                 <p>v2.0.0-rc.9.4 优化：根据Wolfx Open API最新修改，现已回退对福建地震局地震预警的反篡改（实际并未篡改）并同步中国地震台网地震信息的最新接口。</p>

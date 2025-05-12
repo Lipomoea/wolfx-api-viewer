@@ -154,6 +154,20 @@
                         TREM-Net : {{ tremUpdateTime }} (UTC+8)
                     </div>
                 </div>
+                <div class="int-list" v-if="settingsStore.mainSettings.displayAreaIntensities">
+                    <div class="csis-list">
+                        <div class="row" v-for="(item, index) of csisList" :key="index">
+                            <div class="name">{{ item.name }}</div>
+                            <div class="int" :class="setClassName(item.intensity, false)">{{ item.intensity }}</div>
+                        </div>
+                    </div>
+                    <div class="shindo-list">
+                        <div class="row" v-for="(item, index) of shindoList" :key="index">
+                            <div class="name">{{ item.name }}</div>
+                            <div class="int" :class="setClassName(item.intensity, true)">{{ item.intensity }}</div>
+                        </div>
+                    </div>
+                </div>
                 <el-button
                 class="home"
                 :icon="HomeFilled"
@@ -209,7 +223,7 @@ import EewComponent from './EewComponent.vue';
 import SeisNetComponent from './SeisNetComponent.vue';
 import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
-import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToPolygon, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, getShindoFromInstShindo } from '@/utils/Utils';
+import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToPolygon, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, getShindoFromInstShindo, shindoScale } from '@/utils/Utils';
 import { geojsonUrls } from '@/utils/Urls';
 import { booleanPointInPolygon, point } from '@turf/turf';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
@@ -565,6 +579,7 @@ const loadMaps = async () => {
         }, { deep: true, immediate: true })
         if(settingsStore.advancedSettings.forceCalcInt){
             watch(cnEewInfoList, newVal=>{
+                const newCsisList = {}
                 cnEewBaseMap.eachLayer(layer=>{
                     let maxInt = 0
                     newVal.forEach(info=>{
@@ -580,6 +595,9 @@ const loadMaps = async () => {
                                 fillColor: `var(--${className})`
                             })
                         }
+                        const layerName = layer.feature.properties.name
+                        if(!(maxInt in newCsisList)) newCsisList[maxInt] = []
+                        newCsisList[maxInt].push(layerName)
                     }
                     else{
                         if(layer.options.fillColor != '#55555500'){
@@ -590,6 +608,20 @@ const loadMaps = async () => {
                         }
                     }
                 })
+                let i = 0
+                const newNewCsisList = []
+                for(let int = 12; int > 0; int--) {
+                    if(i == 0 && !newCsisList[int]) continue
+                    i++
+                    newCsisList[int]?.forEach(name => {
+                        newNewCsisList.push({
+                            name,
+                            intensity: int
+                        })
+                    })
+                    if(i == 3) break
+                }
+                csisList.value = newNewCsisList
             }, { deep: true, immediate: true })
         }
         if(settingsStore.mainSettings.source.jmaTsunami) {
@@ -881,6 +913,30 @@ const jmaWarnArea = computed(()=>{
         })
     }
     return jmaWarnArea
+})
+const csisList = ref([])
+const shindoList = computed(() => {
+    const shindoList = {}
+    for(let name in jmaWarnArea.value) {
+        const intensity = jmaWarnArea.value[name].intensity.replace('強', '+').replace('弱', '-')
+        if(!(intensity in shindoList)) shindoList[intensity] = []
+        shindoList[intensity].push(name)
+    }
+    let i = 0
+    const newShindoList = []
+    const order = ['7', '6+', '6-', '5+', '5-', '4', '3', '2', '1']
+    for(let int of order) {
+        if(i == 0 && !shindoList[int]) continue
+        i++
+        shindoList[int]?.forEach(name => {
+            newShindoList.push({
+                name,
+                intensity: int
+            })
+        })
+        if(i == 3) break
+    }
+    return newShindoList
 })
 const jpEewInfoList = computed(()=>{
     const jpEewList = activeEewList.filter(event=>!(event.eqMessage.isCanceled || event.eqMessage.isAssumption))
@@ -1174,6 +1230,49 @@ onBeforeUnmount(()=>{
                 }
                 .replay{
                     color: yellow;
+                }
+            }
+            .int-list{
+                position: absolute;
+                right: 1px;
+                top: 60%;
+                transform: translateY(-50%);
+                z-index: 599;
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+                max-height: 60%;
+                overflow: hidden;
+                user-select: none;
+                pointer-events: none;
+                .csis-list,.shindo-list{
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2px;
+                    .row{
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        .name{
+                            color: #ffffff;
+                            width: 120px;
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            line-height: 1em;
+                        }
+                        .int{
+                            width: 22px;
+                            height: 22px;
+                            margin-left: 6px;
+                            border-radius: 5px;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            pointer-events: none;
+                            user-select: none;
+                        }
+                    }
                 }
             }
             .home{

@@ -65,6 +65,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             displayCountdown: false,
             forceDisplayCountdown: false,
             playCountdownSound: false,
+            displayAreaIntensities: true,
             viewLatLng: ['', ''],
             defaultZoom: 5,
             hideDrawer: false,
