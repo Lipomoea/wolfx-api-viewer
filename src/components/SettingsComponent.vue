@@ -659,7 +659,7 @@
             <div class="header">要石 v2.1.0-pre.1</div>
             <div class="title">最近更新</div>
             <div class="about">
-                <p>v2.1.0 新增：区域烈度列表显示功能。</p>
+                <p>v2.1.0 新增：区域烈度列表显示功能；修复：版本号检测逻辑错误。</p>
                 <p>v2.0.0 变更：版本号变更为正式版；优化：新增“混合”测站风格。</p>
                 <p>v2.0.0-rc.9.5 变更：调整部分图层渲染方式，实现地图循环显示，但中国、日本以外地区地图不再支持地名提示；优化：地图配色。</p>
                 <p>v2.0.0-rc.9.4 优化：根据Wolfx Open API最新修改，现已回退对福建地震局地震预警的反篡改（实际并未篡改）并同步中国地震台网地震信息的最新接口。</p>
@@ -1153,6 +1153,7 @@ const compareVersion = (currentVersion, checkedVersion) => {
     const splitCurrent = currentVersion.split('-')
     const splitChecked = checkedVersion.split('-')
     if(compareArray(splitChecked[0].split('.'), splitCurrent[0].split('.'))) return true
+    else if(compareArray(splitCurrent[0].split('.'), splitChecked[0].split('.'))) return false
     else if(splitChecked.length < splitCurrent.length) return true
     else if(splitChecked.length > splitCurrent.length) return false
     else if(splitChecked.length == 1) return false
