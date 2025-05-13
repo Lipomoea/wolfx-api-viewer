@@ -1252,6 +1252,7 @@ onBeforeUnmount(()=>{
                     .row{
                         display: flex;
                         justify-content: space-between;
+                        gap: 2px;
                         align-items: center;
                         .name{
                             color: #ffffff;
