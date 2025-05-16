@@ -476,9 +476,6 @@ onMounted(()=>{
     watch(()=>settingsStore.mainSettings.displayCnFault, newVal=>{
         cnFaultBasePane.style.display = newVal ? 'block' : 'none'
     }, { immediate: true })
-    watch(() => settingsStore.mainSettings.uiScale, () => {
-        map.invalidateSize()
-    })
     if(settingsStore.mainSettings.cinemaMode) {
         statusStore.enabledSource.forEach(key => {
             let isLoad = true

@@ -60,6 +60,7 @@ onMounted(() => {
     container.value.style.transform = `scale(${scale})`
     container.value.style.width = `${100 / scale}vw`
     container.value.style.height = `${100 / scale}vh`
+    statusStore.map?.invalidateSize()
   }, { immediate: true })
 })
 onBeforeUnmount(() => {
