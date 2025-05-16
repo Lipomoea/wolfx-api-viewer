@@ -412,6 +412,22 @@
                         <span class="group-title">其他</span>
                         <div class="switch-group full-width">
                             <div class="switch">
+                                <span>UI缩放比例</span>
+                                <el-select
+                                style="width: 70px;"
+                                v-model="settingsStore.mainSettings.uiScale"
+                                size="small">
+                                    <el-option label="50%" :value="0.5"></el-option>
+                                    <el-option label="75%" :value="0.75"></el-option>
+                                    <el-option label="默认" :value="1"></el-option>
+                                    <el-option label="125%" :value="1.25"></el-option>
+                                    <el-option label="150%" :value="1.5"></el-option>
+                                    <el-option label="200%" :value="2"></el-option>
+                                </el-select>
+                            </div>
+                        </div>
+                        <div class="switch-group full-width">
+                            <div class="switch">
                                 <span>显示中国断层</span>
                                 <el-switch v-model="settingsStore.mainSettings.displayCnFault"></el-switch>
                             </div>
@@ -613,21 +629,21 @@
                 </div>
             </div>
         </div>
-        <el-dialog v-model="verifyDialog" width="300px" top="40vh" :show-close="false">
+        <el-dialog v-model="verifyDialog" width="300px" top="20vh" :show-close="false">
             <el-form :model="idForm">
                 <el-form-item label="用户名" label-width="60px">
-                    <el-input v-model="idForm.username" @keyup.enter="postVerify"></el-input>
+                    <el-input v-model="idForm.username" @keyup.enter="postVerify()"></el-input>
                 </el-form-item>
                 <el-form-item label="密码" label-width="60px">
-                    <el-input type="password" v-model="idForm.password" @keyup.enter="postVerify"></el-input>
+                    <el-input type="password" v-model="idForm.password" @keyup.enter="postVerify()"></el-input>
                 </el-form-item>
             </el-form>
             <template #footer>
                 <el-button type="default" @click="verifyDialog = false">取消</el-button>
-                <el-button type="primary" @click="postVerify">确定</el-button>
+                <el-button type="primary" @click="postVerify()">确定</el-button>
             </template>
         </el-dialog>
-        <el-dialog class="customize-audio" v-model="customizeAudio" width="60vw" :show-close="false">
+        <el-dialog class="customize-audio" v-model="customizeAudio" width="60%" :show-close="false">
             <div class="explanation">
                 <div class="text">
                     <p><strong>Windows桌面应用程序版本支持自定义音效，请参考下列步骤。</strong></p>
@@ -655,11 +671,11 @@
                 <el-button type="default" @click="customizeAudio = false">关闭</el-button>
             </template>
         </el-dialog>
-        <el-dialog class="about-box" v-model="showAbout" width="60vw" :show-close="false">
-            <div class="header">要石 v2.1.0-pre.1</div>
+        <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false">
+            <div class="header">要石 v2.1.0-pre.2</div>
             <div class="title">最近更新</div>
             <div class="about">
-                <p>v2.1.0 新增：区域烈度列表显示功能；修复：版本号检测逻辑错误。</p>
+                <p>v2.1.0 新增：区域烈度列表显示功能；新增：UI缩放比例调整；优化：适当提升了Windows应用程序窗口可调整的大小范围；修复：版本号检测逻辑错误。</p>
                 <p>v2.0.0 变更：版本号变更为正式版；优化：新增“混合”测站风格。</p>
                 <p>v2.0.0-rc.9.5 变更：调整部分图层渲染方式，实现地图循环显示，但中国、日本以外地区地图不再支持地名提示；优化：地图配色。</p>
                 <p>v2.0.0-rc.9.4 优化：根据Wolfx Open API最新修改，现已回退对福建地震局地震预警的反篡改（实际并未篡改）并同步中国地震台网地震信息的最新接口。</p>
@@ -938,11 +954,16 @@ const handleAdvance = (val)=>{
             })
             break
         }
+        case 'verifyAdmin': {
+            verifyType = 'verifyAdmin'
+            verifyDialog.value = true
+            break
+        }
     }
     advancedInput.value = ''
 }
-const postVerify = async ()=>{
-    switch(verifyType){
+const postVerify = async (type = verifyType)=>{
+    switch(type){
         case 'enableCeaEew': {
             const res = await Http.post('http://124.70.142.213:8766/cea_url', idForm)
             if(res && res.success){
@@ -1037,6 +1058,13 @@ const postVerify = async ()=>{
                 })
             }
             break
+        }
+        case 'verifyAdmin': {
+            postVerify('enableCeaEew')
+            postVerify('enableIclEew')
+            postVerify('enableTremFunctions')
+            postVerify('enableGqEew')
+            postVerify('enableMultiApi')
         }
     }
 }

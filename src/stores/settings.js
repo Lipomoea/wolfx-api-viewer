@@ -68,6 +68,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             displayAreaIntensities: true,
             viewLatLng: ['', ''],
             defaultZoom: 5,
+            uiScale: 1,
             hideDrawer: false,
             cinemaMode: false,
             eqlistsAsDefault: false,

@@ -476,6 +476,9 @@ onMounted(()=>{
     watch(()=>settingsStore.mainSettings.displayCnFault, newVal=>{
         cnFaultBasePane.style.display = newVal ? 'block' : 'none'
     }, { immediate: true })
+    watch(() => settingsStore.mainSettings.uiScale, () => {
+        map.invalidateSize()
+    })
     if(settingsStore.mainSettings.cinemaMode) {
         statusStore.enabledSource.forEach(key => {
             let isLoad = true
@@ -969,7 +972,7 @@ onBeforeUnmount(()=>{
 <style lang="scss" scoped>
 .outer{
     width: 100%;
-    height: 100vh;
+    height: 100%;
     .container{
         width: 100%;
         height: 100%;

@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="outer">
         <div class="container">
             <div class="bar">
                 <el-button class="back" @click="back" 
@@ -38,39 +38,42 @@ const back = ()=>{
 </script>
 
 <style lang="scss" scoped>
-.container{
-    height: 95vh;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin: 20px 0px;
-    border: black 1px solid;
-    padding: 10px 5px 10px 20px;
-    border-radius: 20px;
-    .bar{
+.outer {
+    height: 100%;
+    .container{
+        height: calc(100% - 40px);
         display: flex;
-        align-items: center;
-        position: relative;
-        margin-right: 15px;
-        .back{
-            position: absolute;
-            font-size: 1.25em;
-            height: 36px;
+        flex-direction: column;
+        gap: 10px;
+        margin: 20px 0px;
+        border: black 1px solid;
+        padding: 10px 5px 10px 20px;
+        border-radius: 20px;
+        .bar{
+            display: flex;
+            align-items: center;
+            position: relative;
+            margin-right: 15px;
+            .back{
+                position: absolute;
+                font-size: 1.25em;
+                height: 36px;
+            }
+            .title{
+                font-size: 2em;
+                text-align: center;
+                flex: 1;
+            }
         }
-        .title{
-            font-size: 2em;
-            text-align: center;
-            flex: 1;
+        hr,.eqHistory{
+            margin-right: 15px;
         }
-    }
-    hr,.eqHistory{
-        margin-right: 15px;
-    }
-    .eqHistory{
-        display: flex;
-        justify-content: center;
-        gap: 20px;
-        flex-wrap: wrap;
+        .eqHistory{
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
     }
 }
 </style>

@@ -1,9 +1,11 @@
 <template>
-  <RouterView v-slot="{ Component }">
-    <keep-alive include="HomeView">
-      <component :is="Component"></component>
-    </keep-alive>
-  </RouterView>
+  <div class="container" ref="container">
+    <RouterView v-slot="{ Component }">
+      <keep-alive include="HomeView">
+        <component :is="Component"></component>
+      </keep-alive>
+    </RouterView>
+  </div>
 </template>
 
 <script setup>
@@ -19,6 +21,8 @@ import Http from './classes/Http';
 const timeStore = useTimeStore()
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
+
+const container = ref()
 
 async function getGeojson(){
   if('caches' in window){
@@ -51,6 +55,13 @@ onBeforeMount(async () => {
     await getCurrentWindow().hide()
   }
 })
+onMounted(() => {
+  watch(() => settingsStore.mainSettings.uiScale, scale => {
+    container.value.style.transform = `scale(${scale})`
+    container.value.style.width = `${100 / scale}vw`
+    container.value.style.height = `${100 / scale}vh`
+  }, { immediate: true })
+})
 onBeforeUnmount(() => {
   timeStore.stopUpdatingTime()
   statusStore.disconnect()
@@ -64,4 +75,11 @@ watch(() => settingsStore.advancedSettings, (newValue) => {
 
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.container {
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  transform-origin: top left;
+}
+</style>
