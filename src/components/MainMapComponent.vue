@@ -158,13 +158,17 @@
                     <div class="csis-list">
                         <div class="row" v-for="(item, index) of csisList" :key="index">
                             <div class="name">{{ item.name }}</div>
-                            <div class="int" :class="setClassName(item.intensity, false)">{{ item.intensity }}</div>
+                            <div class="int" :class="setClassName(item.intensity, false)">
+                                <div class="csis">{{ item.intensity }}</div>
+                            </div>
                         </div>
                     </div>
                     <div class="shindo-list">
                         <div class="row" v-for="(item, index) of shindoList" :key="index">
                             <div class="name">{{ item.name }}</div>
-                            <div class="int" :class="setClassName(item.intensity, true)">{{ item.intensity }}</div>
+                            <div class="int" :class="setClassName(item.intensity, true)">
+                                <div class="shindo">{{ item.intensity }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1183,7 +1187,7 @@ onBeforeUnmount(()=>{
                     justify-content: flex-start;
                     padding: 5px 0px;
                     border-radius: 5px;
-                    box-shadow: 0px 0px 2px 1px #333;
+                    box-shadow: 0px 0px 2px 1px #555;
                     backdrop-filter: blur(10px);
                     user-select: none;
                     .align-right{
@@ -1249,8 +1253,9 @@ onBeforeUnmount(()=>{
                 z-index: 599;
                 display: flex;
                 flex-direction: column;
+                justify-content: center;
                 gap: 20px;
-                max-height: 60%;
+                height: 60%;
                 overflow: hidden;
                 user-select: none;
                 pointer-events: none;
@@ -1258,10 +1263,11 @@ onBeforeUnmount(()=>{
                     display: flex;
                     flex-direction: column;
                     gap: 2px;
+                    overflow: hidden;
                     .row{
                         display: flex;
                         justify-content: space-between;
-                        gap: 2px;
+                        gap: 3px;
                         align-items: center;
                         .name{
                             color: #ffffff;
@@ -1274,13 +1280,22 @@ onBeforeUnmount(()=>{
                         .int{
                             width: 22px;
                             height: 22px;
-                            margin-left: 6px;
                             border-radius: 5px;
                             display: flex;
                             justify-content: center;
                             align-items: center;
                             pointer-events: none;
                             user-select: none;
+                        }
+                        .csis {
+                            font-size: 16px;
+                        }
+                        .shindo {
+                            font-size: 12px;
+                        }
+                        .shindo::first-letter {
+                            font-size: 16px;
+                            vertical-align: top;
                         }
                     }
                 }

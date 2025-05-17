@@ -1,9 +1,7 @@
 <template>
-  <div>
-    <div>
-      <MainMapComponent></MainMapComponent>
-      <!-- <TestComponent></TestComponent> -->
-    </div>
+  <div class="outer">
+    <MainMapComponent></MainMapComponent>
+    <!-- <TestComponent></TestComponent> -->
   </div>
 </template>
 
@@ -13,7 +11,7 @@ import MainMapComponent from '@/components/MainMapComponent.vue';
 </script>
 
 <style lang="scss" scoped>
-div{
+.outer {
   width: 100%;
   height: 100%;
 }
