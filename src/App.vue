@@ -24,14 +24,23 @@ const settingsStore = useSettingsStore()
 
 const container = ref()
 
-async function getGeojson(){
+async function getGeojson(retries = 0){
   if('caches' in window){
-    const promises = Object.keys(geojsonUrls).map(async name => {
-      const data = await Http.get(geojsonUrls[name])
-      const cache = await caches.open('geojson')
-      cache.put(geojsonUrls[name], new Response(JSON.stringify(data)))
-    })
-    await Promise.all(promises)
+    try {
+      const promises = Object.keys(geojsonUrls).map(async name => {
+        const data = await Http.get(geojsonUrls[name], { timeout: 0 })
+        const cache = await caches.open('geojson')
+        await cache.put(geojsonUrls[name], new Response(JSON.stringify(data)))
+      })
+      await Promise.all(promises)
+    } catch (err) {
+      console.log(err);
+      if(retries < 3) {
+        setTimeout(() => {
+          getGeojson(retries + 1)
+        }, 2000);
+      }
+    }
   }
 }
 

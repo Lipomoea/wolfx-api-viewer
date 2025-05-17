@@ -506,7 +506,7 @@ onMounted(()=>{
         intervalEvents()
     }, 500);
 })
-const loadMaps = async () => {
+const loadMaps = async (retries = 0) => {
     let msgTimer
     if(!firstMsg){
         msgTimer = setTimeout(() => {
@@ -648,9 +648,18 @@ const loadMaps = async () => {
         }
     }
     else{
-        setTimeout(() => {
-            loadMaps()
-        }, 2000);
+        if(retries < 50) {
+            setTimeout(() => {
+                loadMaps(retries + 1)
+            }, 2000);
+        }
+        else {
+            ElMessage({
+                message: '地图加载失败，请稍后重试！',
+                type: 'error',
+                duration: 5000
+            })
+        }
     }
 }
 const intervalEvents = ()=>{

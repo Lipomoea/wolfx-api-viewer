@@ -1,18 +1,18 @@
 import axios from "axios";
 
 class Http {
-    static async get(url) {
+    static async get(url, config = { timeout: 30000 }) {
         try {
-            const res = await axios.get(url)
+            const res = await axios.get(url, config)
             return res.data
         }
         catch (err){
             console.log(err);
         }
     }
-    static async post(url, data) {
+    static async post(url, data, config = { timeout: 30000 }) {
         try {
-            const res = await axios.post(url, data)
+            const res = await axios.post(url, data, config)
             return res.data
         }
         catch (err){
