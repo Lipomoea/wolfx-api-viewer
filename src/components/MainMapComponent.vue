@@ -623,7 +623,7 @@ const loadMaps = async (retries = 0) => {
                             intensity: int
                         })
                     })
-                    if(i == 3) break
+                    if(i == 5) break
                 }
                 csisList.value = newNewCsisList
             }, { deep: true, immediate: true })
@@ -947,7 +947,7 @@ const shindoList = computed(() => {
                 intensity: int
             })
         })
-        if(i == 3) break
+        if(i == 5) break
     }
     return newShindoList
 })
@@ -1248,14 +1248,13 @@ onBeforeUnmount(()=>{
             .int-list{
                 position: absolute;
                 right: 1px;
-                top: 60%;
-                transform: translateY(-50%);
+                top: 236px;
                 z-index: 599;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
                 gap: 20px;
-                height: 60%;
+                height: calc(100% - 280px);
                 overflow: hidden;
                 user-select: none;
                 pointer-events: none;
@@ -1307,7 +1306,9 @@ onBeforeUnmount(()=>{
                 z-index: 600;
                 border-radius: 10px;
                 overflow: hidden;
-                width: 20px;
+                width: 32px;
+                height: 32px;
+                padding: 0;
             }
             .menu{
                 position: absolute;
