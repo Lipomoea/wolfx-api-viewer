@@ -116,9 +116,18 @@ class EewEvent {
             this.switchDrawWaves(passedTime)
         }
         else{
-            if(this.pWave && this.map.hasLayer(this.pWave)) this.map.removeLayer(this.pWave)
-            if(this.sWave && this.map.hasLayer(this.sWave)) this.map.removeLayer(this.sWave)
-            if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) this.map.removeLayer(this.sWaveFill)
+            if(this.pWave && this.map.hasLayer(this.pWave)) {
+                this.map.removeLayer(this.pWave)
+                this.pWave = null
+            }
+            if(this.sWave && this.map.hasLayer(this.sWave)) {
+                this.map.removeLayer(this.sWave)
+                this.sWave = null
+            }
+            if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) {
+                this.map.removeLayer(this.sWaveFill)
+                this.sWaveFill = null
+            }
         }
     }
     switchDrawWaves(passedTime){
@@ -131,44 +140,80 @@ class EewEvent {
         const s_info = calcWaveDistance(travelTime, false, this.eqMessage.depth, passedTime)
         s_reach = s_info.reach
         s_radius = s_info.radius
-        if(this.pWave && this.map.hasLayer(this.pWave)) this.map.removeLayer(this.pWave)
-        if(p_radius > 0 && p_radius <= maxRadius){
+        if(p_radius > 0 && p_radius <= maxRadius) {
             const opacityRatio = this.calcOpacityRatio(p_radius, maxRadius)
-            this.pWave = L.circle(this.hypoLatLng, {
-                color: 'white',
-                weight: 2,
-                opacity: opacityRatio,
-                fillOpacity: 0,
-                radius: p_radius * 1000,
-                pane: 'wavePane',
-                interactive: false
-            })
-            this.pWave.addTo(this.map)
+            if(!this.pWave) {
+                this.pWave = L.circle(this.hypoLatLng, {
+                    color: 'white',
+                    weight: 2,
+                    opacity: opacityRatio,
+                    fill: false,
+                    radius: p_radius * 1000,
+                    pane: 'wavePane',
+                    interactive: false
+                }).addTo(this.map)    
+            }
+            else {
+                this.pWave.setRadius(p_radius * 1000)
+                this.pWave.setStyle({
+                    opacity: opacityRatio
+                })
+            }
         }
-        if(this.sWave && this.map.hasLayer(this.sWave)) this.map.removeLayer(this.sWave)
-        if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) this.map.removeLayer(this.sWaveFill)
-        if(s_radius > 0 && s_radius <= maxRadius){
+        else {
+            if(this.pWave && this.map.hasLayer(this.pWave)) {
+                this.map.removeLayer(this.pWave)
+                this.pWave = null
+            }
+        }
+        if(s_radius > 0 && s_radius <= maxRadius) {
             const opacityRatio = this.calcOpacityRatio(s_radius, maxRadius)
-            this.sWave = L.circle(this.hypoLatLng, {
-                color: this.eqMessage.isWarn?'red':'orange',
-                weight: 2,
-                opacity: opacityRatio,
-                fillOpacity: 0,
-                radius: s_radius * 1000,
-                pane: 'wavePane',
-                interactive: false
-            })
-            this.sWave.addTo(this.map)
-            this.sWaveFill = L.circle(this.hypoLatLng, {
-                color: this.eqMessage.isWarn?'red':'orange',
-                weight: 0,
-                opacity: 0,
-                fillOpacity: 0.3 * opacityRatio,
-                radius: s_radius * 1000,
-                pane: 'waveFillPane',
-                interactive: false
-            })
-            this.sWaveFill.addTo(this.map)
+            if(!this.sWave) {
+                this.sWave = L.circle(this.hypoLatLng, {
+                    color: this.eqMessage.isWarn ? 'red' : 'orange',
+                    weight: 2,
+                    opacity: opacityRatio,
+                    fill: false,
+                    radius: s_radius * 1000,
+                    pane: 'wavePane',
+                    interactive: false
+                }).addTo(this.map)
+            }
+            else {
+                this.sWave.setRadius(s_radius * 1000)
+                this.sWave.setStyle({
+                    color: this.eqMessage.isWarn ? 'red' : 'orange',
+                    opacity: opacityRatio
+                })
+            }
+            if(!this.sWaveFill) {
+                this.sWaveFill = L.circle(this.hypoLatLng, {
+                    fillColor: this.eqMessage.isWarn ? 'red' : 'orange',
+                    weight: 0,
+                    opacity: 0,
+                    fillOpacity: 0.3 * opacityRatio,
+                    radius: s_radius * 1000,
+                    pane: 'waveFillPane',
+                    interactive: false
+                }).addTo(this.map)    
+            }
+            else {
+                this.sWaveFill.setRadius(s_radius * 1000)
+                this.sWaveFill.setStyle({
+                    fillColor: this.eqMessage.isWarn ? 'red' : 'orange',
+                    fillOpacity: 0.3 * opacityRatio
+                })
+            }
+        }
+        else {
+            if(this.sWave && this.map.hasLayer(this.sWave)) {
+                this.map.removeLayer(this.sWave)
+                this.sWave = null
+            }
+            if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) {
+                this.map.removeLayer(this.sWaveFill)
+                this.sWaveFill = null
+            }
         }
     }
     calcOpacityRatio(radius, maxRadius){
@@ -179,9 +224,18 @@ class EewEvent {
     renderStop(){
         clearInterval(this.drawWavesInterval)
         if(this.hypoMarker && this.map.hasLayer(this.hypoMarker)) this.map.removeLayer(this.hypoMarker)
-        if(this.pWave && this.map.hasLayer(this.pWave)) this.map.removeLayer(this.pWave)
-        if(this.sWave && this.map.hasLayer(this.sWave)) this.map.removeLayer(this.sWave)
-        if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) this.map.removeLayer(this.sWaveFill)
+        if(this.pWave && this.map.hasLayer(this.pWave)) {
+            this.map.removeLayer(this.pWave)
+            this.pWave = null
+        }
+        if(this.sWave && this.map.hasLayer(this.sWave)) {
+            this.map.removeLayer(this.sWave)
+            this.sWave = null
+        }
+        if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)){
+            this.map.removeLayer(this.sWaveFill)
+            this.sWaveFill = null
+        }
     }
     update(eqMessage, time, isFirst = false){
         if(isFirst || eqMessage.reportNum > this.eqMessage.reportNum || 
