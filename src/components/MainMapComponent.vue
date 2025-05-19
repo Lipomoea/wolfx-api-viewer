@@ -612,20 +612,17 @@ const loadMaps = async (retries = 0) => {
                         }
                     }
                 })
-                let i = 0
                 const newNewCsisList = []
                 for(let int = 12; int > 0; int--) {
-                    if(i == 0 && !newCsisList[int]) continue
-                    i++
+                    if(newNewCsisList.length >= 50) break
                     newCsisList[int]?.forEach(name => {
                         newNewCsisList.push({
                             name,
                             intensity: int
                         })
                     })
-                    if(i == 5) break
                 }
-                csisList.value = newNewCsisList
+                csisList.value = newNewCsisList.slice(0, 50)
             }, { deep: true, immediate: true })
         }
         if(settingsStore.mainSettings.source.jmaTsunami) {
@@ -935,21 +932,18 @@ const shindoList = computed(() => {
         if(!(intensity in shindoList)) shindoList[intensity] = []
         shindoList[intensity].push(name)
     }
-    let i = 0
     const newShindoList = []
     const order = ['7', '6+', '6-', '5+', '5-', '4', '3', '2', '1']
     for(let int of order) {
-        if(i == 0 && !shindoList[int]) continue
-        i++
+        if(newShindoList.length >= 50) break
         shindoList[int]?.forEach(name => {
             newShindoList.push({
                 name,
                 intensity: int
             })
         })
-        if(i == 5) break
     }
-    return newShindoList
+    return newShindoList.slice(0, 50)
 })
 const jpEewInfoList = computed(()=>{
     const jpEewList = activeEewList.filter(event=>!(event.eqMessage.isCanceled || event.eqMessage.isAssumption))
