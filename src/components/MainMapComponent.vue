@@ -145,7 +145,7 @@
                         WebSocket状态: 
                         <div class="dot" :class="'s' + wolfxRS"></div>
                         <div class="dot" :class="'s' + p2pquakeRS"></div>
-                        <div v-if="settingsStore.mainSettings.source.gqEew" class="dot" :class="'s' + gqRS"></div>
+                        <div v-if="settingsStore.advancedSettings.enableGqEew" class="dot" :class="'s' + gqRS"></div>
                     </div>
                     <div class="nied-update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isNiedDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.nied">
                         強震モニタ: {{ niedUpdateTime }} (UTC+9)
@@ -675,9 +675,9 @@ const intervalEvents = ()=>{
     jpTsunamiBasePane.style.opacity = (tsunamiFlickerCounter ? 1 : 0) * (menuId.value == 'eews' ? 0.3 : 1)
     isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
     isTremDelayed.value = !verifyUpToDate(tremUpdateTime.value, 8, 10000)
-    wolfxRS.value = statusStore.wolfxSocket?.socket.readyState || 4
-    p2pquakeRS.value = statusStore.p2pquakeSocket?.socket.readyState || 4
-    gqRS.value = statusStore.gqSocket?.socket.readyState || 4
+    wolfxRS.value = statusStore.wolfxSocket?.socket.readyState ?? 4
+    p2pquakeRS.value = statusStore.p2pquakeSocket?.socket.readyState ?? 4
+    gqRS.value = statusStore.gqSocket?.socket.readyState ?? 4
 }
 const setMapHeight = (height) => {
     const mapElement = map.getContainer()
@@ -1234,8 +1234,11 @@ onBeforeUnmount(()=>{
                     .s1{
                         background-color: green;
                     }
-                    .s2,.s3,.s4{
+                    .s2,.s3{
                         background-color: red;
+                    }
+                    .s4{
+                        background-color: white;
                     }
                 }
                 .delayed{

@@ -343,6 +343,17 @@
                             <div class="switch">
                                 <el-checkbox v-model="settingsStore.mainSettings.playCountdownSound" :disabled="!settingsStore.mainSettings.displayCountdown">播放倒计时音效</el-checkbox>
                             </div>
+                            <div class="switch">
+                                <span>开始倒计时的秒数：{{ settingsStore.mainSettings.countdownStart }}</span>
+                                <el-slider
+                                v-model="settingsStore.mainSettings.countdownStart"
+                                :disabled="!settingsStore.mainSettings.playCountdownSound"
+                                :min="5" :max="60"
+                                :step="5"
+                                size="small"
+                                show-stops
+                                style="width: 200px; margin-left: 10px;"></el-slider>
+                            </div>
                         </div>
                         <div class="switch-group">
                             <div class="switch">
@@ -672,10 +683,10 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false">
-            <div class="header">要石 v2.1.0-pre.2</div>
+            <div class="header">要石 v2.1.0-pre.3</div>
             <div class="title">最近更新</div>
             <div class="about">
-                <p>v2.1.0 新增：区域烈度列表显示功能；新增：UI缩放比例调整；优化：适当提升了Windows应用程序窗口可调整的大小范围；修复：版本号检测逻辑错误。</p>
+                <p>v2.1.0 新增：区域烈度列表显示功能；新增：UI缩放比例调整；新增：可调整开始倒计时的秒数；优化：适当提升了Windows应用程序窗口可调整的大小范围；优化：地震波绘制性能；修复：版本号检测逻辑错误的bug。</p>
                 <p>v2.0.0 变更：版本号变更为正式版；优化：新增“混合”测站风格。</p>
                 <p>v2.0.0-rc.9.5 变更：调整部分图层渲染方式，实现地图循环显示，但中国、日本以外地区地图不再支持地名提示；优化：地图配色。</p>
                 <p>v2.0.0-rc.9.4 优化：根据Wolfx Open API最新修改，现已回退对福建地震局地震预警的反篡改（实际并未篡改）并同步中国地震台网地震信息的最新接口。</p>

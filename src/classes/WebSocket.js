@@ -37,8 +37,14 @@ class WebSocketObj {
         this.messageHandler = this.socket.onmessage = handler
     }
     reconnect(){
-        this.close()
-        this.shouldConnect = true
+        clearTimeout(this.timer)
+        if(this.socket){
+            this.socket.onopen = null
+            this.socket.onclose = null
+            this.socket.onerror = null
+            this.socket.onmessage = null
+            this.socket.close()
+        }
         this.socket = new WebSocket(this.url)
         this.setupWebSocket()
         if(this.messageHandler)

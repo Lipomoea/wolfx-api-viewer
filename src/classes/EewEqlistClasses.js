@@ -60,16 +60,18 @@ const eewCancelCircleDivIcon = L.divIcon({
     className: '',
 })
 
+let settingsStore
+
 class EewEvent {
     constructor(map, eqMessage, activeEewList){
         this.map = map
-        this.settingsStore = useSettingsStore()
+        if(!settingsStore) settingsStore = useSettingsStore()
         this.eqMessage = eqMessage
         this.activeEewList = activeEewList
         this.useJst = eqMessage.source.includes('jma')
         this.travelTime = travelTimes.jma2001
-        this.userLatLng = this.settingsStore.mainSettings.userLatLng.map(l=>Number(l))
-        this.isValidUserLatLng = this.settingsStore.mainSettings.userLatLng.every(l=>l !== '')
+        this.userLatLng = settingsStore.mainSettings.userLatLng.map(l=>Number(l))
+        this.isValidUserLatLng = settingsStore.mainSettings.userLatLng.every(l=>l !== '')
         this.userCsis = '?'
         this.countdown = -1
         this.shouldAction = false
@@ -78,7 +80,7 @@ class EewEvent {
             cautionSound: false,
             warnSound: false,
             focused: false,
-            lastSecondsCount: 11
+            lastSecondsCount: settingsStore.mainSettings.countdownStart + 1
         }
         this.maxRadius = 2000
     }
@@ -103,7 +105,21 @@ class EewEvent {
             this.hypoMarker.addTo(this.map)
         }
     }
-    drawWaves(){
+    clearWaves() {
+        if(this.pWave && this.map.hasLayer(this.pWave)) {
+            this.map.removeLayer(this.pWave)
+            this.pWave = null
+        }
+        if(this.sWave && this.map.hasLayer(this.sWave)) {
+            this.map.removeLayer(this.sWave)
+            this.sWave = null
+        }
+        if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) {
+            this.map.removeLayer(this.sWaveFill)
+            this.sWaveFill = null
+        }
+    }
+    drawWaves(updated = false){
         let passedTime
         if(this.useJst){
             passedTime = calcPassedTime(this.eqMessage.originTime, 9) / 1000
@@ -113,21 +129,11 @@ class EewEvent {
         }
         this.handleCountdown(passedTime)
         if(this.hypoLatLng && !this.eqMessage.isAssumption){
+            if(updated) this.clearWaves()
             this.switchDrawWaves(passedTime)
         }
         else{
-            if(this.pWave && this.map.hasLayer(this.pWave)) {
-                this.map.removeLayer(this.pWave)
-                this.pWave = null
-            }
-            if(this.sWave && this.map.hasLayer(this.sWave)) {
-                this.map.removeLayer(this.sWave)
-                this.sWave = null
-            }
-            if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) {
-                this.map.removeLayer(this.sWaveFill)
-                this.sWaveFill = null
-            }
+            this.clearWaves()
         }
     }
     switchDrawWaves(passedTime){
@@ -224,18 +230,7 @@ class EewEvent {
     renderStop(){
         clearInterval(this.drawWavesInterval)
         if(this.hypoMarker && this.map.hasLayer(this.hypoMarker)) this.map.removeLayer(this.hypoMarker)
-        if(this.pWave && this.map.hasLayer(this.pWave)) {
-            this.map.removeLayer(this.pWave)
-            this.pWave = null
-        }
-        if(this.sWave && this.map.hasLayer(this.sWave)) {
-            this.map.removeLayer(this.sWave)
-            this.sWave = null
-        }
-        if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)){
-            this.map.removeLayer(this.sWaveFill)
-            this.sWaveFill = null
-        }
+        this.clearWaves()
     }
     update(eqMessage, time, isFirst = false){
         if(isFirst || eqMessage.reportNum > this.eqMessage.reportNum || 
@@ -253,7 +248,7 @@ class EewEvent {
                 if(this.isValidUserLatLng) {
                     this.userDist = L.latLng(this.hypoLatLng).distanceTo(L.latLng(this.userLatLng)) / 1000
                     this.reachTime = calcReachTime(this.userDist <= this.maxRadius ? travelTimes.jma2001 : travelTimes.jb, false, this.eqMessage.depth, this.userDist)
-                    this.userCsis = this.settingsStore.advancedSettings.forceCalcInt && !this.eqMessage.isAssumption ? 
+                    this.userCsis = settingsStore.advancedSettings.forceCalcInt && !this.eqMessage.isAssumption ? 
                         calcCsisLevel(this.eqMessage.magnitude, this.eqMessage.depth, this.userDist) : '?'
                 }
                 else {
@@ -261,14 +256,14 @@ class EewEvent {
                     this.reachTime = -1
                     this.userCsis = '?'
                 }
-                this.drawWaves()
+                this.drawWaves(true)
                 clearInterval(this.drawWavesInterval)
                 this.drawWavesInterval = setInterval(() => {
                     this.drawWaves()
                 }, 100);
             }
             this.setMark()
-            if(this.userCsis == '?' || Number(this.userCsis) >= this.settingsStore.mainSettings.actionCsis) this.shouldAction = true
+            if(this.userCsis == '?' || Number(this.userCsis) >= settingsStore.mainSettings.actionCsis) this.shouldAction = true
             if(this.shouldAction && !isAddition) this.handleActions()
             clearTimeout(this.terminateTimer)
             this.terminateTimer = setTimeout(() => {
@@ -277,7 +272,6 @@ class EewEvent {
         }
     }
     handleActions(){
-        const settingsStore = this.settingsStore
         const eqMessage = this.eqMessage
         let icon = ''
         //是Warn
@@ -353,9 +347,9 @@ class EewEvent {
         }
     }
     handleCountdown(passedTime){
-        if(this.settingsStore.mainSettings.displayCountdown && this.isValidUserLatLng && (this.userDist <= this.maxRadius && !this.eqMessage.isAssumption || this.settingsStore.mainSettings.forceDisplayCountdown)){
+        if(settingsStore.mainSettings.displayCountdown && this.isValidUserLatLng && (this.userDist <= this.maxRadius && !this.eqMessage.isAssumption || settingsStore.mainSettings.forceDisplayCountdown)){
             this.countdown = Math.max(this.reachTime - passedTime, 0)
-            if(this.settingsStore.mainSettings.playCountdownSound && this.shouldAction) {
+            if(settingsStore.mainSettings.playCountdownSound && this.shouldAction) {
                 const secondsCount = Math.ceil(this.countdown)
                 if(secondsCount < this.flags.lastSecondsCount){
                     playSound("countdown")
@@ -379,7 +373,7 @@ class EewEvent {
 class EqlistEvent {
     constructor(map, eqMessage){
         this.map = map
-        this.settingsStore = useSettingsStore()
+        if(!settingsStore) settingsStore = useSettingsStore()
         this.eqMessage = eqMessage
         this.isActive = false
         this.useJst = eqMessage.source.includes('jma')
@@ -417,7 +411,6 @@ class EqlistEvent {
         if(this.hypoMarker && this.map.hasLayer(this.hypoMarker)) this.map.removeLayer(this.hypoMarker)
     }
     handleActions(){
-        const settingsStore = this.settingsStore
         const eqMessage = this.eqMessage
         let icon = ''
         if(settingsStore.mainSettings.onReport.notification) icon = iconUrls.info
