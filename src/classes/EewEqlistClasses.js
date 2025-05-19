@@ -188,7 +188,6 @@ class EewEvent {
             else {
                 this.sWave.setRadius(s_radius * 1000)
                 this.sWave.setStyle({
-                    color: this.eqMessage.isWarn ? 'red' : 'orange',
                     opacity: opacityRatio
                 })
             }
@@ -206,7 +205,6 @@ class EewEvent {
             else {
                 this.sWaveFill.setRadius(s_radius * 1000)
                 this.sWaveFill.setStyle({
-                    fillColor: this.eqMessage.isWarn ? 'red' : 'orange',
                     fillOpacity: 0.3 * opacityRatio
                 })
             }
