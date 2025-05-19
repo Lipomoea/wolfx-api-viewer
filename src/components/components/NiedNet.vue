@@ -240,6 +240,7 @@ watch(()=>statusStore.map, newVal=>{
                     const station = reactive(new NiedStation(map, index, latLng, 'c', expireSeconds[index]))
                     stations.push(station)
                 })
+                if(unwatchStationList) unwatchStationList()
             }
         }, { immediate: true })
         unwatchGrids = watch(grids, (newVal)=>{
