@@ -13,7 +13,7 @@ import { seisNetUrls, iconUrls } from '@/utils/Urls';
 import { playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromInstShindo, stampToTime, getShindoFromLevel } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { TremStation } from '@/classes/StationClasses';
+import { simpleShindo, TremStation } from '@/classes/StationClasses';
 import { useTimeStore } from '@/stores/time';
 
 const statusStore = useStatusStore()
@@ -29,6 +29,7 @@ const delay = computed(()=>settingsStore.mainSettings.displaySeisNet.delay * 600
 const tremMaxShindo = inject('tremMaxShindo')
 const tremUpdateTime = inject('tremUpdateTime')
 const tremPeriodMaxShindo = inject('tremPeriodMaxShindo')
+const menuId = inject('menuId')
 const periodMaxLevel = ref(-1)
 const currentMaxShindo = computed(()=>{
     const currentMaxLevel = Math.max(...Object.keys(grids.value).map(key=>grids.value[key].level), -1)
@@ -126,7 +127,7 @@ onMounted(()=>{
         }
     }, 1000);
 })
-let unwatchStationList, unwatchGrids, unwatchRender
+let unwatchStationList, unwatchGrids, unwatchRender, unwatchMenuId
 watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
@@ -190,6 +191,12 @@ watch(()=>statusStore.map, newVal=>{
             ()=>`${settingsStore.mainSettings.displaySeisNet.style}|${settingsStore.mainSettings.displaySeisNet.displayTremShindo}|${settingsStore.mainSettings.displaySeisNet.hideNoData}`, 
             renderAll
         )
+        unwatchMenuId = watch(menuId, newVal => {
+            if(simpleShindo.value != (newVal == 'eqlists')) {
+                simpleShindo.value = newVal == 'eqlists'
+                renderAll()
+            }
+        }, { immediate: true })
     }
 }, { immediate: true })
 watch(()=>(statusStore.isActive.cwaEew || statusStore.isActive.tremNet), newVal=>{
@@ -250,6 +257,7 @@ onBeforeUnmount(()=>{
     if(unwatchStationList) unwatchStationList()
     if(unwatchGrids) unwatchGrids()
     if(unwatchRender) unwatchRender()
+    if(unwatchMenuId) unwatchMenuId()
     Object.keys(stations).forEach(id=>{
         stations[id].terminate()
         delete stations[id]

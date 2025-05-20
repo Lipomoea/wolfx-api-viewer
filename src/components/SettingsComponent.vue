@@ -683,7 +683,7 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false">
-            <div class="header">要石 v2.1.0-pre.3</div>
+            <div class="header">要石 v2.1.0-pre.4</div>
             <div class="title">最近更新</div>
             <div class="about">
                 <p>v2.1.0 新增：区域烈度列表显示功能；新增：UI缩放比例调整；新增：可调整开始倒计时的秒数；优化：适当提升了Windows应用程序窗口可调整的大小范围；优化：地震波绘制性能；修复：版本号检测逻辑错误的bug。</p>

@@ -304,6 +304,7 @@ const defaultMenuId = computed(() => {
     return defaultMenuId
 })
 const menuId = ref(defaultMenuId.value)
+provide('menuId', menuId)
 let autoZoomTimer
 let firstMsg = false
 let blinkStatus = true
@@ -667,8 +668,8 @@ const intervalEvents = ()=>{
     blinkStatus = !blinkStatus
     tsunamiFlickerCounter = (tsunamiFlickerCounter + 1) % 6
     eewMarkerPane.style.opacity = (blinkStatus ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
-    niedGridPane.style.opacity = blinkStatus && !statusStore.isActive.jmaEew ? 1 : 0
-    tremGridPane.style.opacity = blinkStatus && !statusStore.isActive.cwaEew ? 1 : 0
+    niedGridPane.style.opacity = (blinkStatus && !statusStore.isActive.jmaEew ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
+    tremGridPane.style.opacity = (blinkStatus && !statusStore.isActive.cwaEew ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
     jpTsunamiBasePane.style.opacity = (tsunamiFlickerCounter ? 1 : 0) * (menuId.value == 'eews' ? 0.3 : 1)
     isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
     isTremDelayed.value = !verifyUpToDate(tremUpdateTime.value, 8, 10000)
@@ -861,11 +862,15 @@ watch(menuId, (newVal)=>{
         eewMarkerPane.style.opacity = 0.3 * (blinkStatus ? 1 : 0)
         wavePane.style.opacity = 0.3
         waveFillPane.style.opacity = 0.3
+        niedGridPane.style.opacity = 0.3 * (blinkStatus && !statusStore.isActive.jmaEew ? 1 : 0)
+        tremGridPane.style.opacity = 0.3 * (blinkStatus && !statusStore.isActive.cwaEew ? 1 : 0)
     }
     else{
         eewMarkerPane.style.opacity = 1 * (blinkStatus ? 1 : 0)
         wavePane.style.opacity = 1
         waveFillPane.style.opacity = 1
+        niedGridPane.style.opacity = 1 * (blinkStatus && !statusStore.isActive.jmaEew ? 1 : 0)
+        tremGridPane.style.opacity = 1 * (blinkStatus && !statusStore.isActive.cwaEew ? 1 : 0)
     }
 })
 let autoZoomInterval

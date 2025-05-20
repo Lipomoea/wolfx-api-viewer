@@ -3,6 +3,8 @@ import 'leaflet/dist/leaflet.css';
 import { getLevelFromInstShindo, getShindoFromChar, getShindoFromInstShindo, shindoScale } from '@/utils/Utils';
 import { useSettingsStore } from '@/stores/settings';
 import { shindoIconUrls } from '@/utils/Urls';
+import { ref } from 'vue';
+import '@/assets/background.css';
 
 const colorBand = {
     nied: [
@@ -28,6 +30,19 @@ const colorBand = {
     ]
 }
 
+const shindoColorBand = [
+    'var(--dark-gray)', 'var(--dark-gray)', 'var(--dark-gray)', 'var(--dark-gray)', 'var(--dark-gray)', 'var(--dark-gray)', 
+    'var(--dark-gray)', 'var(--dark-gray)', 
+    'var(--gray)', 'var(--gray)', 
+    'var(--blue)', 'var(--blue)', 
+    'var(--green)', 'var(--green)', 
+    'var(--yellow)', 'var(--yellow)', 
+    'var(--orange)', 'var(--dark-orange)', 
+    'var(--red)', 'var(--dark-red)', 
+    'var(--purple)'
+]
+
+export const simpleShindo = ref(false)
 
 const shindoIcons = {}
 for(let zoom = 6; zoom <= 10; zoom ++) {
@@ -45,6 +60,7 @@ for(let zoom = 6; zoom <= 10; zoom ++) {
 }
 
 let settingsStore
+
 class NiedStation {
     constructor(map, id, latLng, intensity, expireSeconds){
         if(!settingsStore) settingsStore = useSettingsStore()
@@ -57,6 +73,7 @@ class NiedStation {
         this.recentLevel = [this.level]
         this.activity = 0
         this.isActive = false
+        this.markerType = null
         this.render()
     }
     update(intensity){
@@ -103,28 +120,58 @@ class NiedStation {
         return levelActivity + ascendActivity
     }
     render(){
+        const oldMarkerType = this.markerType
+        const oldColor = this.color
+        const oldRadius = this.radius
         this.setColorRadius()
-        if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
         const zoom = this.map.getZoom()
         if(settingsStore.mainSettings.displaySeisNet.displayNiedShindo && this.level >= 6 && zoom >= 4){
-            const iconZoom = Math.min(Math.max(zoom, 6), 10)
-            const shindoIcon = shindoIcons[iconZoom][this.shindo]
-            this.marker = L.marker(this.latLng, {
-                icon: shindoIcon,
-                pane: `niedStationPane${this.level}`,
-                interactive: false
-            })
+            if(simpleShindo.value) {
+                this.markerType = 2
+            }
+            else {
+                this.markerType = 1
+            }
         }
         else{
-            this.marker = L.circleMarker(this.latLng, {
-                radius: this.radius,
-                fillOpacity: 1,
-                color: this.color,
-                fillColor: this.color,
-                weight: 0,
-                pane: `niedStationPane${this.level}`,
-                interactive: false
-            })
+            this.markerType = 0
+        }
+        if(this.markerType == oldMarkerType && this.color == oldColor && this.radius == oldRadius) return
+        if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
+        switch(this.markerType) {
+            case 2:
+                const color = shindoColorBand[this.level]
+                this.marker = L.circleMarker(this.latLng, {
+                    radius: this.radius * 1.5,
+                    opacity: 1,
+                    fillOpacity: 1,
+                    color: '#ffffff',
+                    fillColor: color,
+                    weight: this.radius * 0.6,
+                    pane: `niedStationPane${this.level}`,
+                    interactive: false
+                })
+                break
+            case 1:
+                const iconZoom = Math.min(Math.max(zoom, 6), 10)
+                const shindoIcon = shindoIcons[iconZoom][this.shindo]
+                this.marker = L.marker(this.latLng, {
+                    icon: shindoIcon,
+                    pane: `niedStationPane${this.level}`,
+                    interactive: false
+                })
+                break
+            case 0:
+                this.marker = L.circleMarker(this.latLng, {
+                    radius: this.radius,
+                    fillOpacity: 1,
+                    color: this.color,
+                    fillColor: this.color,
+                    weight: 0,
+                    pane: `niedStationPane${this.level}`,
+                    interactive: false
+                })
+                break
         }
         this.marker.addTo(this.map)
     }
@@ -139,7 +186,7 @@ class NiedStation {
                 else{
                     this.color = colorBand.nied[this.level]
                 }
-                this.radius = (2 + this.level * 0.1) * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+                this.radius = (this.level <= 5 ? 2 : 2.5) * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
                 break
             case 'srev':
                 if(this.level < 0 || this.level >= colorBand.srev.length){
@@ -185,6 +232,7 @@ class TremStation {
         this.shindo = getShindoFromInstShindo(intensity)
         this.level = getLevelFromInstShindo(intensity)
         this.isActive = isActive
+        this.markerType = null
         this.render()
     }
     update(intensity, isActive){
@@ -198,28 +246,58 @@ class TremStation {
         this.isActive = isActive
     }
     render(){
+        const oldMarkerType = this.markerType
+        const oldColor = this.color
+        const oldRadius = this.radius
         this.setColorRadius()
-        if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
         const zoom = this.map.getZoom()
         if(settingsStore.mainSettings.displaySeisNet.displayTremShindo && this.level >= 6 && zoom >= 4){
-            const iconZoom = Math.min(Math.max(zoom, 6), 10)
-            const shindoIcon = shindoIcons[iconZoom][this.shindo]
-            this.marker = L.marker(this.latLng, {
-                icon: shindoIcon,
-                pane: `tremStationPane${this.level}`,
-                interactive: false
-            })
+            if(simpleShindo.value) {
+                this.markerType = 2
+            }
+            else {
+                this.markerType = 1
+            }
         }
         else{
-            this.marker = L.circleMarker(this.latLng, {
-                radius: this.radius,
-                fillOpacity: 1,
-                color: this.color,
-                fillColor: this.color,
-                weight: 0,
-                pane: `tremStationPane${this.level}`,
-                interactive: false
-            })
+            this.markerType = 0
+        }
+        if(this.markerType == oldMarkerType && this.color == oldColor && this.radius == oldRadius) return
+        if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
+        switch(this.markerType) {
+            case 2:
+                const color = shindoColorBand[this.level]
+                this.marker = L.circleMarker(this.latLng, {
+                    radius: this.radius * 1.5,
+                    opacity: 1,
+                    fillOpacity: 1,
+                    color: '#ffffff',
+                    fillColor: color,
+                    weight: this.radius * 0.6,
+                    pane: `tremStationPane${this.level}`,
+                    interactive: false
+                })
+                break
+            case 1:
+                const iconZoom = Math.min(Math.max(zoom, 6), 10)
+                const shindoIcon = shindoIcons[iconZoom][this.shindo]
+                this.marker = L.marker(this.latLng, {
+                    icon: shindoIcon,
+                    pane: `tremStationPane${this.level}`,
+                    interactive: false
+                })
+                break
+            case 0:
+                this.marker = L.circleMarker(this.latLng, {
+                    radius: this.radius,
+                    fillOpacity: 1,
+                    color: this.color,
+                    fillColor: this.color,
+                    weight: 0,
+                    pane: `tremStationPane${this.level}`,
+                    interactive: false
+                })
+                break
         }
         this.marker.addTo(this.map)
     }
@@ -234,7 +312,7 @@ class TremStation {
                 else{
                     this.color = colorBand.nied[this.level]
                 }
-                this.radius = (2 + this.level * 0.1) * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+                this.radius = (this.level <= 5 ? 2 : 2.5) * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
                 break
             case 'srev':
                 if(this.level < 0 || this.level >= colorBand.srev.length){

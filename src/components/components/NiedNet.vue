@@ -14,7 +14,7 @@ import { seisNetUrls, iconUrls } from '@/utils/Urls';
 import { getTimeNumberString, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromLevel } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { NiedStation } from '@/classes/StationClasses';
+import { NiedStation, simpleShindo } from '@/classes/StationClasses';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
@@ -29,6 +29,7 @@ const delay = ref(defaultDelay)
 const niedMaxShindo = inject('niedMaxShindo')
 const niedUpdateTime = inject('niedUpdateTime')
 const niedPeriodMaxShindo = inject('niedPeriodMaxShindo')
+const menuId = inject('menuId')
 const periodMaxLevel = ref(-1)
 const currentMaxShindo = computed(()=>{
     const currentMaxLevel = Math.max(...Object.keys(grids.value).map(key=>grids.value[key].level), -1)
@@ -215,7 +216,7 @@ onMounted(()=>{
         }
     }, 500);
 })
-let unwatchStationList, unwatchGrids, unwatchRender
+let unwatchStationList, unwatchGrids, unwatchRender, unwatchMenuId
 watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
@@ -283,6 +284,12 @@ watch(()=>statusStore.map, newVal=>{
             ()=>`${settingsStore.mainSettings.displaySeisNet.style}|${settingsStore.mainSettings.displaySeisNet.displayNiedShindo}|${settingsStore.mainSettings.displaySeisNet.hideNoData}`, 
             renderAll
         )
+        unwatchMenuId = watch(menuId, newVal => {
+            if(simpleShindo.value != (newVal == 'eqlists')) {
+                simpleShindo.value = newVal == 'eqlists'
+                renderAll()
+            }
+        }, { immediate: true })
     }
 }, { immediate: true })
 watch(()=>(statusStore.isActive.jmaEew || statusStore.isActive.niedNet), newVal=>{
@@ -356,6 +363,7 @@ onBeforeUnmount(()=>{
     if(unwatchStationList) unwatchStationList()
     if(unwatchGrids) unwatchGrids()
     if(unwatchRender) unwatchRender()
+    if(unwatchMenuId) unwatchMenuId()
     stations.forEach((station, index)=>{
         station.terminate()
         stations[index] = null
