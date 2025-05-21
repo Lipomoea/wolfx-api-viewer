@@ -142,12 +142,12 @@ class NiedStation {
             case 2:
                 const color = shindoColorBand[this.level]
                 this.marker = L.circleMarker(this.latLng, {
-                    radius: this.radius * 1.5,
+                    radius: this.radius * 1.8,
                     opacity: 1,
                     fillOpacity: 1,
                     color: '#ffffff',
                     fillColor: color,
-                    weight: this.radius * 0.6,
+                    weight: this.radius * 0.4,
                     pane: `niedStationPane${this.level}`,
                     interactive: false
                 })
@@ -268,12 +268,12 @@ class TremStation {
             case 2:
                 const color = shindoColorBand[this.level]
                 this.marker = L.circleMarker(this.latLng, {
-                    radius: this.radius * 1.5,
+                    radius: this.radius * 1.8,
                     opacity: 1,
                     fillOpacity: 1,
                     color: '#ffffff',
                     fillColor: color,
-                    weight: this.radius * 0.6,
+                    weight: this.radius * 0.4,
                     pane: `tremStationPane${this.level}`,
                     interactive: false
                 })
