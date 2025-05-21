@@ -126,7 +126,7 @@ class NiedStation {
         this.setColorRadius()
         const zoom = this.map.getZoom()
         if(settingsStore.mainSettings.displaySeisNet.displayNiedShindo && this.level >= 6 && zoom >= 4){
-            if(simpleShindo.value && zoom <= 7) {
+            if(simpleShindo.value && zoom <= 8) {
                 this.markerType = 2
             }
             else {
@@ -252,7 +252,7 @@ class TremStation {
         this.setColorRadius()
         const zoom = this.map.getZoom()
         if(settingsStore.mainSettings.displaySeisNet.displayTremShindo && this.level >= 6 && zoom >= 4){
-            if(simpleShindo.value && zoom <= 7) {
+            if(simpleShindo.value && zoom <= 8) {
                 this.markerType = 2
             }
             else {
