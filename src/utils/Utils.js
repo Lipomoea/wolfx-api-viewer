@@ -138,18 +138,16 @@ export const playSound = (type)=>{
     }
 }
 export const calcWaveDistance = (travelTime, isPWave, depth, time)=>{
-    const { depths, distances } = travelTime
-    let data
-    if(isPWave) {
-        data = travelTime.p_times
-    }
-    else {
-        data = travelTime.s_times
-    }
+    const { depths, distances, p_times, s_times } = travelTime
+    const data = isPWave ? p_times : s_times
     let i = 1
     while(depths[i] < depth && i < depths.length - 1) i++
-    if(depth <= (depths[i - 1] + depths[i]) / 2) i--
-    const times = data[i]
+    const k1 = depths[i] - depth
+    const k2 = depth - depths[i - 1]
+    const times = []
+    for(let j = 0; j < distances.length; j++) {
+        times[j] = (k1 * data[i - 1][j] + k2 * data[i][j]) / (k1 + k2)
+    }
     if(time <= times[0]) return { reach: times[0] - time, radius: 0 }
     let j = 1
     while(times[j] < time && j < times.length - 1) j++
@@ -159,18 +157,16 @@ export const calcWaveDistance = (travelTime, isPWave, depth, time)=>{
     return { reach: 0, radius: distance }
 }
 export const calcReachTime = (travelTime, isPWave, depth, distance)=>{
-    const { depths, distances } = travelTime
-    let data
-    if(isPWave) {
-        data = travelTime.p_times
-    }
-    else {
-        data = travelTime.s_times
-    }
+    const { depths, distances, p_times, s_times } = travelTime
+    const data = isPWave ? p_times : s_times
     let i = 1
     while(depths[i] < depth && i < depths.length - 1) i++
-    if(depth <= (depths[i - 1] + depths[i]) / 2) i--
-    const times = data[i]
+    const k1 = depths[i] - depth
+    const k2 = depth - depths[i - 1]
+    const times = []
+    for(let j = 0; j < distances.length; j++) {
+        times[j] = (k1 * data[i - 1][j] + k2 * data[i][j]) / (k1 + k2)
+    }
     let j = 1
     while(distances[j] < distance && j < distances.length - 1) j++
     const k = (times[j] - times[j - 1]) / (distances[j] - distances[j - 1])
