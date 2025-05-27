@@ -24,18 +24,6 @@ export const iconUrls = {
     caution: '/icon/caution.png',
     warn: '/icon/warn.png',
 }
-export const shindoIconUrls = {
-    '0': '/icon/shindo/0.svg',
-    '1': '/icon/shindo/1.svg',
-    '2': '/icon/shindo/2.svg',
-    '3': '/icon/shindo/3.svg',
-    '4': '/icon/shindo/4.svg',
-    '5-': '/icon/shindo/5-.svg',
-    '5+': '/icon/shindo/5+.svg',
-    '6-': '/icon/shindo/6-.svg',
-    '6+': '/icon/shindo/6+.svg',
-    '7': '/icon/shindo/7.svg',
-}
 export const chimeUrls = {
     general: {
         countdown: '/sound/general/countdown.wav',
