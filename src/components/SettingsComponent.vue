@@ -727,7 +727,7 @@
                 <p>特别鸣谢：</p>
                 <p>Wolfx Open API、P2P地震情報：接口支持。</p>
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
-                <p>地牛WakeUp：中文倒计时播报素材。台湾地区欢迎下载<a href="https://eew.earthquake.tw/">地牛Wake Up！</a>获得更稳定的预警体验。</p>
+                <p>地牛WakeUp：中文倒计时播报素材。台湾地区欢迎下载<a href="https://eew.earthquake.tw/" target="_blank">地牛Wake Up！</a>获得更稳定的预警体验。</p>
             </div>
             <template #footer>
                 <el-button type="default" @click="showAbout = false">关闭</el-button>
