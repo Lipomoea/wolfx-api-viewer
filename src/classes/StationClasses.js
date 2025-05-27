@@ -9,10 +9,10 @@ import shindo1 from '@/assets/icon/shindo/1.svg';
 import shindo2 from '@/assets/icon/shindo/2.svg';
 import shindo3 from '@/assets/icon/shindo/3.svg';
 import shindo4 from '@/assets/icon/shindo/4.svg';
-import shindo5w from '@/assets/icon/shindo/5-.svg';
-import shindo5s from '@/assets/icon/shindo/5+.svg';
-import shindo6w from '@/assets/icon/shindo/6-.svg';
-import shindo6s from '@/assets/icon/shindo/6+.svg';
+import shindo5l from '@/assets/icon/shindo/5-.svg';
+import shindo5u from '@/assets/icon/shindo/5+.svg';
+import shindo6l from '@/assets/icon/shindo/6-.svg';
+import shindo6u from '@/assets/icon/shindo/6+.svg';
 import shindo7 from '@/assets/icon/shindo/7.svg';
 
 const shindoIconUrls = {
@@ -21,10 +21,10 @@ const shindoIconUrls = {
     '2': shindo2,
     '3': shindo3,
     '4': shindo4,
-    '5-': shindo5w,
-    '5+': shindo5s,
-    '6-': shindo6w,
-    '6+': shindo6s,
+    '5-': shindo5l,
+    '5+': shindo5u,
+    '6-': shindo6l,
+    '6+': shindo6u,
     '7': shindo7,
 }
 
