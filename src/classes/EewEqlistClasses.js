@@ -1,6 +1,6 @@
 import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendMyNotification, getClassLevel, focusWindow, calcCsisLevel } from '@/utils/Utils';
 import travelTimes from '@/utils/TravelTimes';
-import { iconUrls } from '@/utils/Urls';
+import { chimeUrls, iconUrls } from '@/utils/Urls';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useSettingsStore } from '@/stores/settings';
@@ -350,7 +350,7 @@ class EewEvent {
             if(settingsStore.mainSettings.playCountdownSound && this.shouldAction) {
                 const secondsCount = Math.ceil(this.countdown)
                 if(secondsCount < this.flags.lastSecondsCount){
-                    playSound("countdown")
+                    playSound(settingsStore.mainSettings.countdownSpeech && (`${secondsCount}s` in chimeUrls.general) ? `${secondsCount}s` : "countdown")
                     this.flags.lastSecondsCount = secondsCount
                 }
             }

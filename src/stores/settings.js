@@ -65,6 +65,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             displayCountdown: false,
             forceDisplayCountdown: false,
             playCountdownSound: false,
+            countdownSpeech: true,
             countdownStart: 10,
             displayAreaIntensities: true,
             viewLatLng: ['', ''],

@@ -25,6 +25,7 @@ icon是《铃芽之旅》的草太さん（椅子形态）。
 * 日本地图：[日本気象庁](https://www.data.jma.go.jp/developer/gis.html)（注意钓鱼岛地区处理）
 * 世界地图：[GeoJSON Maps of the globe](https://geojson-maps.kyd.au/)（注意甄别争议地区）
 * SREV音效：[scratch-realtime-earthquake-viewer-page](https://github.com/kotoho7/scratch-realtime-earthquake-viewer-page)
+* 中文倒计时播报素材：[地牛Wake Up！](https://eew.earthquake.tw/)
 ## 参考软件
 * [JQuake](https://jquake.net/)
 * [scratch-realtime-earthquake-viewer-page](https://github.com/kotoho7/scratch-realtime-earthquake-viewer-page)

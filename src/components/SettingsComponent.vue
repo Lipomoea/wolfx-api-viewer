@@ -338,10 +338,13 @@
                                 <el-switch v-model="settingsStore.mainSettings.displayCountdown"></el-switch>
                             </div>
                             <div class="switch">
-                                <el-checkbox v-model="settingsStore.mainSettings.forceDisplayCountdown" :disabled="!settingsStore.mainSettings.displayCountdown">强制计算倒计时（低精度）</el-checkbox>
+                                <el-checkbox v-model="settingsStore.mainSettings.forceDisplayCountdown" :disabled="!settingsStore.mainSettings.displayCountdown">强制计算倒计时</el-checkbox>
                             </div>
                             <div class="switch">
                                 <el-checkbox v-model="settingsStore.mainSettings.playCountdownSound" :disabled="!settingsStore.mainSettings.displayCountdown">播放倒计时音效</el-checkbox>
+                            </div>
+                            <div class="switch">
+                                <el-checkbox v-model="settingsStore.mainSettings.countdownSpeech" :disabled="!settingsStore.mainSettings.playCountdownSound">语音播报倒计时</el-checkbox>
                             </div>
                             <div class="switch">
                                 <span>开始倒计时的秒数：{{ settingsStore.mainSettings.countdownStart }}</span>
@@ -686,7 +689,7 @@
             <div class="header">要石 v2.1.0-pre.4</div>
             <div class="title">最近更新</div>
             <div class="about">
-                <p>v2.1.0 新增：区域烈度列表显示功能；新增：UI缩放比例调整；新增：可调整开始倒计时的秒数；优化：适当提升了Windows应用程序窗口可调整的大小范围；优化：部分走时精准度；优化：部分测站渲染性能；优化：地震波绘制性能；修复：版本号检测逻辑错误的bug。</p>
+                <p>v2.1.0 新增：区域烈度列表显示功能；新增：UI缩放比例调整；新增：中文倒计时播报；新增：可调整开始倒计时的秒数；优化：适当提升了Windows应用程序窗口可调整的大小范围；优化：部分走时精准度；优化：部分测站渲染性能；优化：地震波绘制性能；修复：版本号检测逻辑错误的bug。</p>
                 <p>v2.0.0 变更：版本号变更为正式版；优化：新增“混合”测站风格。</p>
                 <p>v2.0.0-rc.9.5 变更：调整部分图层渲染方式，实现地图循环显示，但中国、日本以外地区地图不再支持地名提示；优化：地图配色。</p>
                 <p>v2.0.0-rc.9.4 优化：根据Wolfx Open API最新修改，现已回退对福建地震局地震预警的反篡改（实际并未篡改）并同步中国地震台网地震信息的最新接口。</p>
@@ -720,10 +723,11 @@
                 <p>Windows 10及以上用户推荐使用应用程序：<a href="https://github.com/Lipomoea/kanameishi/releases" target="_blank">Windows应用程序下载</a>&nbsp;<a href="https://gitee.com/lipomoea/kanameishi/releases" target="_blank">备用链接</a></p>
                 <p>本页面未针对移动端进行适配，建议使用Windows应用程序或电脑浏览器访问本网页。</p>
                 <p>联系我：<a href="https://space.bilibili.com/316757498" target="_blank">リッポミャ</a>（哔哩哔哩）</p>
-                <p>Github: <a href="https://github.com/Lipomoea/kanameishi" target="_blank">https://github.com/Lipomoea/kanameishi</a></p>
+                <p>Github：<a href="https://github.com/Lipomoea/kanameishi" target="_blank">https://github.com/Lipomoea/kanameishi</a></p>
                 <p>特别鸣谢：</p>
                 <p>Wolfx Open API、P2P地震情報：接口支持。</p>
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
+                <p>地牛WakeUp：中文倒计时播报素材。台湾地区欢迎下载<a href="https://eew.earthquake.tw/">地牛Wake Up！</a>获得更稳定的预警体验。</p>
             </div>
             <template #footer>
                 <el-button type="default" @click="showAbout = false">关闭</el-button>
