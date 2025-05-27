@@ -344,7 +344,7 @@
                                 <el-checkbox v-model="settingsStore.mainSettings.playCountdownSound" :disabled="!settingsStore.mainSettings.displayCountdown">播放倒计时音效</el-checkbox>
                             </div>
                             <div class="switch">
-                                <el-checkbox v-model="settingsStore.mainSettings.countdownSpeech" :disabled="!settingsStore.mainSettings.playCountdownSound">语音播报倒计时</el-checkbox>
+                                <el-checkbox v-model="settingsStore.mainSettings.countdownSpeech" :disabled="!(settingsStore.mainSettings.displayCountdown && settingsStore.mainSettings.playCountdownSound)">语音播报倒计时</el-checkbox>
                             </div>
                             <div class="switch">
                                 <span>开始倒计时的秒数：{{ settingsStore.mainSettings.countdownStart }}</span>
