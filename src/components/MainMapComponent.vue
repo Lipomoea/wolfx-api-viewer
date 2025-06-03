@@ -523,7 +523,7 @@ const loadMaps = async (retries = 0) => {
         }, 1000);
     }
     let promises
-    if(!window.__TAURI_INTERNALS__ && ('caches' in window)){
+    if(!window.__TAURI__ && ('caches' in window)){
         const cache = await caches.open('geojson')
         promises = Object.keys(geojsonUrls).map(key=>cache.match(geojsonUrls[key]).then(res=>res?.json()))
     }

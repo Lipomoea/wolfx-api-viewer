@@ -1,14 +1,15 @@
 use tauri::{
     menu::{MenuBuilder, MenuItemBuilder},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    Manager, WindowEvent,
+    AppHandle, Manager, WindowEvent,
 };
-use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 use tauri_plugin_autostart::MacosLauncher;
+use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
             Some(vec!["--flag1", "--flag2"]),
@@ -57,22 +58,20 @@ pub fn run() {
                     _ => (),
                 })
                 .build(app)?;
-            let main_window = app.get_webview_window("main").unwrap();
-            let main_window_clone = main_window.clone();
-            main_window.on_window_event(move |event| {
-                if let WindowEvent::CloseRequested { api, .. } = event {
-                    api.prevent_close();
-                    fn is_macos() -> bool {
-                        std::env::consts::OS == "macos"
-                    }
-                    if is_macos() {
-                        let _ = main_window_clone.minimize();
-                    } else {
-                        let _ = main_window_clone.hide();
-                    }
-                }
-            });
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            if let WindowEvent::CloseRequested { api, .. } = event {
+                api.prevent_close();
+                #[cfg(not(target_os = "macos"))]
+                {
+                    let _ = window.hide();
+                }
+                #[cfg(target_os = "macos")]
+                {
+                    AppHandle::hide(window.app_handle()).unwrap();
+                }
+            }
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

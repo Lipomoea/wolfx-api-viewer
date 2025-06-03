@@ -599,7 +599,7 @@
                                 <span>开机自启动</span>
                                 <el-switch v-model="isAutoStart" @change="handleAutoStart"></el-switch>
                             </div>
-                            <div class="switch">
+                            <div class="switch" v-if="thisPlatform != 'macos'">
                                 <span>最小化启动</span>
                                 <el-switch v-model="settingsStore.mainSettings.minimizeOnLaunch"></el-switch>
                             </div>
@@ -749,9 +749,11 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import { exists } from "@tauri-apps/plugin-fs";
 import { open } from "@tauri-apps/plugin-shell";
 import { enable, disable, isEnabled } from '@tauri-apps/plugin-autostart';
+import { platform } from '@tauri-apps/plugin-os';
 
 const showNotifButton = 'Notification' in window
-const isTauri = !!window.__TAURI_INTERNALS__
+const isTauri = !!window.__TAURI__
+const thisPlatform = isTauri ? platform() : ''
 
 const settingsStore = useSettingsStore()
 const statusStore = useStatusStore()

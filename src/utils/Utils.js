@@ -242,7 +242,7 @@ export const judgeSameEvent = (eqMessage1, eqMessage2)=>{
     else return false
 }
 export const focusWindow = async ()=>{
-    if(window.__TAURI_INTERNALS__){
+    if(window.__TAURI__){
         await getCurrentWindow().show()
         await getCurrentWindow().unminimize()
         await getCurrentWindow().setFocus()
