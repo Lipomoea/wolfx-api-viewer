@@ -25,7 +25,7 @@ const settingsStore = useSettingsStore()
 const container = ref()
 
 async function getGeojson(retries = 0){
-  if('caches' in window){
+  if(!window.__TAURI_INTERNALS__ && ('caches' in window)){
     try {
       const promises = Object.keys(geojsonUrls).map(async name => {
         const data = await Http.get(geojsonUrls[name], { timeout: 0 })

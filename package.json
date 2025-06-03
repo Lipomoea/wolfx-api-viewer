@@ -28,6 +28,7 @@
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^2.5.0",
     "@vitejs/plugin-vue": "^5.0.4",
     "sass": "^1.77.1",
     "unplugin-auto-import": "^0.17.6",

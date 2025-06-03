@@ -980,7 +980,7 @@ const handleAdvance = (val)=>{
 const postVerify = async (type = verifyType)=>{
     switch(type){
         case 'enableCeaEew': {
-            const res = await Http.post('http://124.70.142.213:8766/cea_url', idForm)
+            const res = await Http.post('https://api.lipomoea.tech/cea_url', idForm)
             if(res && res.success){
                 settingsStore.advancedSettings.enableCeaEew = true
                 localStorage.setItem('ceaUrl', JSON.stringify(res.data))
@@ -999,7 +999,7 @@ const postVerify = async (type = verifyType)=>{
             break
         }
         case 'enableIclEew': {
-            const res = await Http.post('http://124.70.142.213:8766/icl_url', idForm)
+            const res = await Http.post('https://api.lipomoea.tech/icl_url', idForm)
             if(res && res.success){
                 settingsStore.advancedSettings.enableIclEew = true
                 localStorage.setItem('iclUrl', JSON.stringify(res.data))
@@ -1018,7 +1018,7 @@ const postVerify = async (type = verifyType)=>{
             break
         }
         case 'enableTremFunctions': {
-            const res = await Http.post('http://124.70.142.213:8766/trem_url', idForm)
+            const res = await Http.post('https://api.lipomoea.tech/trem_url', idForm)
             if(res && res.success){
                 settingsStore.advancedSettings.enableTremFunctions = true
                 localStorage.setItem('tremUrl', JSON.stringify(res.data))
@@ -1037,7 +1037,7 @@ const postVerify = async (type = verifyType)=>{
             break
         }
         case 'enableGqEew': {
-            const res = await Http.post('http://124.70.142.213:8766/gq_url', idForm)
+            const res = await Http.post('https://api.lipomoea.tech/gq_url', idForm)
             if(res && res.success){
                 settingsStore.advancedSettings.enableGqEew = true
                 localStorage.setItem('gqUrl', JSON.stringify(res.data))
@@ -1056,7 +1056,7 @@ const postVerify = async (type = verifyType)=>{
             break
         }
         case 'enableMultiApi': {
-            const res = await Http.post('http://124.70.142.213:8766/multi_api', idForm)
+            const res = await Http.post('https://api.lipomoea.tech/multi_api', idForm)
             if(res && res.success){
                 settingsStore.advancedSettings.displayMultiApi = true
                 localStorage.setItem('multiApi', JSON.stringify(res.data))
