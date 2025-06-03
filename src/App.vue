@@ -64,7 +64,7 @@ onBeforeMount(async () => {
   const isTauri = !!window.__TAURI__
   if(isTauri) {
     const thisPlatform = platform()
-    if(thisPlatform != 'macos' && settingsStore.mainSettings.minimizeOnLaunch) {
+    if(thisPlatform == 'windows' && settingsStore.mainSettings.minimizeOnLaunch) {
       await getCurrentWindow().hide()
     }
   }

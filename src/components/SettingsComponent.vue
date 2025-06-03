@@ -272,13 +272,16 @@
                                 <span>关闭默认通知音</span>
                                 <el-switch v-model="settingsStore.mainSettings.muteNotification"></el-switch>
                             </div>
-                            <div class="switch" style="width: 180px;">
+                            <div class="switch" style="width: 150px;">
                                 <span style="white-space: nowrap;">选择音效</span>
                                 <el-select 
                                 v-model="settingsStore.mainSettings.soundEffect"
                                 size="small">
                                     <el-option label="SREV" value="srev"></el-option>
                                 </el-select>
+                            </div>
+                            <div class="switch">
+                                <el-button size="small" @click="customizeAudio = true">{{ isWindows ? '自定义音效' : '试听音效' }}</el-button>
                             </div>
                         </div>
                     </div>
@@ -573,13 +576,6 @@
                     <div class="row">
                         <div class="switch-group">
                             <div class="switch">
-                                <el-button @click="customizeAudio = true">自定义音效</el-button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="switch-group">
-                            <div class="switch">
                                 <span>输入指令</span>
                                 <el-input
                                 type="password"
@@ -599,7 +595,7 @@
                                 <span>开机自启动</span>
                                 <el-switch v-model="isAutoStart" @change="handleAutoStart"></el-switch>
                             </div>
-                            <div class="switch" v-if="thisPlatform != 'macos'">
+                            <div class="switch" v-if="isWindows">
                                 <span>最小化启动</span>
                                 <el-switch v-model="settingsStore.mainSettings.minimizeOnLaunch"></el-switch>
                             </div>
@@ -658,7 +654,7 @@
             </template>
         </el-dialog>
         <el-dialog class="customize-audio" v-model="customizeAudio" width="60%" :show-close="false">
-            <div class="explanation">
+            <div class="explanation" v-if="isWindows">
                 <div class="text">
                     <p><strong>Windows桌面应用程序版本支持自定义音效，请参考下列步骤。</strong></p>
                     <p>1. 点击“打开数据文件夹”按钮，Windows资源管理器会打开该应用程序的数据文件夹。</p>
@@ -754,6 +750,7 @@ import { platform } from '@tauri-apps/plugin-os';
 const showNotifButton = 'Notification' in window
 const isTauri = !!window.__TAURI__
 const thisPlatform = isTauri ? platform() : ''
+const isWindows = thisPlatform == 'windows'
 
 const settingsStore = useSettingsStore()
 const statusStore = useStatusStore()
