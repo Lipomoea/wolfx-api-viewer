@@ -272,7 +272,7 @@
                                 <span>关闭默认通知音</span>
                                 <el-switch v-model="settingsStore.mainSettings.muteNotification"></el-switch>
                             </div>
-                            <div class="switch" style="width: 150px;">
+                            <div class="switch" style="width: 140px;">
                                 <span style="white-space: nowrap;">选择音效</span>
                                 <el-select 
                                 v-model="settingsStore.mainSettings.soundEffect"
