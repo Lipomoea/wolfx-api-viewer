@@ -1,7 +1,7 @@
 use tauri::{
     menu::{MenuBuilder, MenuItemBuilder},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Manager, WindowEvent,
+    Manager, WindowEvent,
 };
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_window_state::{AppHandleExt, StateFlags};
@@ -69,7 +69,7 @@ pub fn run() {
                 }
                 #[cfg(target_os = "macos")]
                 {
-                    AppHandle::hide(window.app_handle()).unwrap();
+                    tauri::AppHandle::hide(window.app_handle()).unwrap();
                 }
             }
         })
