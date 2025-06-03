@@ -62,7 +62,14 @@ pub fn run() {
             main_window.on_window_event(move |event| {
                 if let WindowEvent::CloseRequested { api, .. } = event {
                     api.prevent_close();
-                    let _ = main_window_clone.hide();
+                    fn is_macos() -> bool {
+                        std::env::consts::OS == "macos"
+                    }
+                    if is_macos() {
+                        let _ = main_window_clone.minimize();
+                    } else {
+                        let _ = main_window_clone.hide();
+                    }
                 }
             });
             Ok(())

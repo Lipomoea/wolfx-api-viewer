@@ -27,7 +27,7 @@
                             </div>
                         </div>
                         <div class="countdown eew realtime" v-if="settingsStore.mainSettings.displayCountdown">
-                            <div class="shindo-bar" :class="event.countdown <= 0 || event.eqMessage.isCanceled?'gray':event.countdown <= 10?'red':event.countdown <= 60?'orange':'yellow'">{{ event.countdown == -1?'-':Math.floor(event.countdown) }}秒</div>
+                            <div class="shindo-bar" :class="event.countdown <= 0 || event.eqMessage.isCanceled?'gray':event.countdown <= 10?'red':event.countdown <= 60?'orange':'yellow'">{{ event.countdown == -1?'-':Math.ceil(event.countdown) }}秒</div>
                             <div class="info" v-if="userJmaAreaName">
                                 <div class="intensity" :class="setClassName(userJmaAreaShindo, true)">
                                     <div class="intensity-title">本地震度</div>
