@@ -746,9 +746,10 @@ import { exists } from "@tauri-apps/plugin-fs";
 import { open } from "@tauri-apps/plugin-shell";
 import { enable, disable, isEnabled } from '@tauri-apps/plugin-autostart';
 import { platform } from '@tauri-apps/plugin-os';
+import { isTauri as getIsTauri } from '@tauri-apps/api/core';
 
 const showNotifButton = 'Notification' in window
-const isTauri = !!window.__TAURI__
+const isTauri = getIsTauri()
 const thisPlatform = isTauri ? platform() : ''
 const isWindows = thisPlatform == 'windows'
 

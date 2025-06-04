@@ -2,6 +2,7 @@ import { useTimeStore } from "@/stores/time";
 import { useSettingsStore } from "@/stores/settings";
 import { chimeUrls } from "./Urls";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { isTauri } from '@tauri-apps/api/core';
 import { booleanPointInPolygon, point, polygonToLine, pointToLineDistance, area, distance, centroid } from "@turf/turf";
 
 let timeStore
@@ -242,7 +243,7 @@ export const judgeSameEvent = (eqMessage1, eqMessage2)=>{
     else return false
 }
 export const focusWindow = async ()=>{
-    if(window.__TAURI__){
+    if(isTauri()){
         await getCurrentWindow().show()
         await getCurrentWindow().unminimize()
         await getCurrentWindow().setFocus()

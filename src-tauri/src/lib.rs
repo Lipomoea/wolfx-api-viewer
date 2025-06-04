@@ -8,6 +8,23 @@ use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    #[cfg(target_os = "macos")]
+    {
+        use cocoa::foundation::NSString;
+        use cocoa::base::nil;
+        use objc::runtime::{Class, Object};
+        use objc::{msg_send, sel, sel_impl};
+
+        unsafe {
+            let process_info: *mut Object = msg_send![Class::get("NSProcessInfo").unwrap(), processInfo];
+            let reason = NSString::alloc(nil).init_str("Keep app running");
+            let _activity: *mut Object = msg_send![
+                process_info,
+                beginActivityWithOptions: 0x00EFFFFFu64
+                reason: reason
+            ];
+        }
+    }
     tauri::Builder::default()
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_autostart::init(

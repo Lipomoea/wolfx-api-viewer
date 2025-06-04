@@ -231,6 +231,7 @@ import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistT
 import { geojsonUrls } from '@/utils/Urls';
 import { booleanPointInPolygon, point } from '@turf/turf';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
+import { isTauri } from '@tauri-apps/api/core';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
@@ -523,7 +524,7 @@ const loadMaps = async (retries = 0) => {
         }, 1000);
     }
     let promises
-    if(!window.__TAURI__ && ('caches' in window)){
+    if(!isTauri() && ('caches' in window)){
         const cache = await caches.open('geojson')
         promises = Object.keys(geojsonUrls).map(key=>cache.match(geojsonUrls[key]).then(res=>res?.json()))
     }

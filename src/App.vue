@@ -17,6 +17,7 @@ import { useSettingsStore } from './stores/settings';
 import { eqUrls, geojsonUrls } from './utils/Urls';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { platform } from '@tauri-apps/plugin-os';
+import { isTauri } from '@tauri-apps/api/core';
 import Http from './classes/Http';
 
 const timeStore = useTimeStore()
@@ -26,7 +27,7 @@ const settingsStore = useSettingsStore()
 const container = ref()
 
 async function getGeojson(retries = 0){
-  if(!window.__TAURI__ && ('caches' in window)){
+  if(!isTauri() && ('caches' in window)){
     try {
       const promises = Object.keys(geojsonUrls).map(async name => {
         const data = await Http.get(geojsonUrls[name], { timeout: 0 })
@@ -61,8 +62,7 @@ onBeforeMount(async () => {
       Notification.requestPermission()
     }
   }
-  const isTauri = !!window.__TAURI__
-  if(isTauri) {
+  if(isTauri()) {
     const thisPlatform = platform()
     if(thisPlatform == 'windows' && settingsStore.mainSettings.minimizeOnLaunch) {
       await getCurrentWindow().hide()

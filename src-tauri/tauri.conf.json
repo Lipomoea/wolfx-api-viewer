@@ -28,8 +28,7 @@
         "enable": true,
         "scope": ["$APPDATA/**"]
       }
-    },
-    "withGlobalTauri": true
+    }
   },
   "bundle": {
     "active": true,
