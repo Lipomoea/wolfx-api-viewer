@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
-    "@tauri-apps/api": "^2.0.2",
+    "@tauri-apps/api": "^2.5.0",
     "@tauri-apps/plugin-autostart": "~2",
     "@tauri-apps/plugin-fs": "~2",
     "@tauri-apps/plugin-notification": "~2",

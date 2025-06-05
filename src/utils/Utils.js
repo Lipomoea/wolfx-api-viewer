@@ -127,13 +127,19 @@ export const shindoScaleKanji = ['0', '1', '2', '3', '4', '5弱', '5強', '6弱'
 export const getClassLevel = (className)=>{
     return classNameArray.indexOf(className)
 }
-export const playSound = (type)=>{
+export const playSound = async (type)=>{
     if(!settingsStore) settingsStore = useSettingsStore()
     const soundEffect = settingsStore.mainSettings.soundEffect
     const url = chimeUrls.custom[type] || chimeUrls.general[type] || chimeUrls[soundEffect][type]
     try {
         const audio = new Audio(url)
-        audio.play()
+        await audio.play().catch(async _ => {
+            const response = await fetch(url)
+            const blob = await response.blob()        
+            const objectUrl = URL.createObjectURL(blob)
+            const audio = new Audio(objectUrl)
+            audio.play()
+        })
     } catch (_) {
         console.log("不受支持的音频文件");
     }
