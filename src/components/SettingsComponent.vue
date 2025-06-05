@@ -1095,15 +1095,16 @@ const checkNewVersion = async (silent = false) => {
     const currentVersion = document.title.split('v')[1]
     try {
         const versionInfo = await Http.get('https://api.github.com/repos/Lipomoea/kanameishi/releases')
-        let checkedVersion, downloadUrl
-        if(settingsStore.mainSettings.checkPrerelease || !isTauri) {
+        let checkedVersion, downloadUrl, detail
+        if(!isTauri) {
             checkedVersion = versionInfo[0].tag_name.slice(1)
-            downloadUrl = versionInfo[0].assets[0].browser_download_url
+            downloadUrl = ''
+            detail = versionInfo[0].body
         }
-        else {
+        else if(thisPlatform == 'windows') {
             let i = 0
             while(i < versionInfo.length) {
-                if(!versionInfo[i].prerelease) break
+                if(!versionInfo[i].prerelease || settingsStore.mainSettings.checkPrerelease) break
                 i++
             }
             if(i == versionInfo.length) {
@@ -1116,13 +1117,40 @@ const checkNewVersion = async (silent = false) => {
             else {
                 checkedVersion = versionInfo[i].tag_name.slice(1)
                 downloadUrl = versionInfo[i].assets[0].browser_download_url
+                detail = versionInfo[i].body
             }
+        }
+        else if(thisPlatform == 'macos') {
+            let i = 0
+            while(i < versionInfo.length) {
+                if((!versionInfo[i].prerelease || settingsStore.mainSettings.checkPrerelease) && versionInfo[i].assets[1]) break
+                i++
+            }
+            if(i == versionInfo.length) {
+                ElMessage({
+                    message: '未检测到可用版本',
+                    type: 'info'
+                })
+                return
+            }
+            else {
+                checkedVersion = versionInfo[i].tag_name.slice(1)
+                downloadUrl = versionInfo[i].assets[1].browser_download_url
+                detail = versionInfo[i].body
+            }
+        }
+        else {
+            ElMessage({
+                message: '未检测到可用版本',
+                type: 'info'
+            })
+            return
         }
         if(compareVersion(currentVersion, checkedVersion)) {
             ElMessageBox.close()
             if(isTauri) {
                 ElMessageBox.confirm(
-                    `检查到新版本v${checkedVersion}，是否下载？`,
+                    `检查到新版本v${checkedVersion}，是否下载？\r\n${detail}`,
                     '检查更新',
                     {
                         confirmButtonText: '确定',
@@ -1146,7 +1174,7 @@ const checkNewVersion = async (silent = false) => {
                 }
                 else {
                     ElMessageBox.confirm(
-                        `检查到新版本v${checkedVersion}，是否刷新页面？`,
+                        `检查到新版本v${checkedVersion}，是否刷新页面？\r\n${detail}`,
                         '检查更新',
                         {
                             confirmButtonText: '确定',

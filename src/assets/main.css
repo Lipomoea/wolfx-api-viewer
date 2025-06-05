@@ -20,3 +20,7 @@ path.leaflet-interactive:focus {
 .custom-tooltip {
   text-align: center;
 }
+
+.el-message-box__message {
+  white-space: pre-line;
+}
