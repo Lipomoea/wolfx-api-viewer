@@ -901,6 +901,7 @@ const jmaWarnArea = computed(()=>{
             for(let id in jmaSeisIntLoc) {
                 for(let eew of jpEewInfoList.value) {
                     const { magnitude, depth, lat, lng } = eew
+                    if(depth > 150) continue
                     const intensity = calcJmaShindoLevel(magnitude, depth, lat, lng, jmaSeisIntLoc[id], false)
                     if(intensity < '1') continue
                     const name = jmaSeisIntLoc[id].sect
