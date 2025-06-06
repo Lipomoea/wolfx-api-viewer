@@ -1,6 +1,6 @@
 {
   "name": "kanameishi",
-  "version": "2.1.0-pre.4",
+  "version": "2.1.0",
   "private": true,
   "type": "module",
   "scripts": {

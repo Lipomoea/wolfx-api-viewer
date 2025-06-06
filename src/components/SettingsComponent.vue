@@ -682,10 +682,10 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false" append-to-body>
-            <div class="header">要石 v2.1.0-pre.4</div>
+            <div class="header">要石 v2.1.0</div>
             <div class="title">最近更新</div>
             <div class="about">
-                <p>v2.1.0 新增：区域烈度列表显示功能；新增：UI缩放比例调整；新增：中文倒计时播报；新增：可调整开始倒计时的秒数；优化：适当提升了Windows应用程序窗口可调整的大小范围；优化：部分走时精准度；优化：部分测站渲染性能；优化：地震波绘制性能；修复：版本号检测逻辑错误的bug。</p>
+                <p>v2.1.0 新增：适配macOS应用程序；新增：区域烈度列表显示功能；新增：UI缩放比例调整；新增：中文倒计时播报；新增：可调整开始倒计时的秒数；优化：适当提升了Windows应用程序窗口可调整的大小范围；优化：部分走时精准度；优化：部分测站渲染性能；优化：地震波绘制性能；修复：版本号检测逻辑错误的bug；修复：Safari等浏览器下，部分界面显示异常的问题。</p>
                 <p>v2.0.0 变更：版本号变更为正式版；优化：新增“混合”测站风格。</p>
                 <p>v2.0.0-rc.9.5 变更：调整部分图层渲染方式，实现地图循环显示，但中国、日本以外地区地图不再支持地名提示；优化：地图配色。</p>
                 <p>v2.0.0-rc.9.4 优化：根据Wolfx Open API最新修改，现已回退对福建地震局地震预警的反篡改（实际并未篡改）并同步中国地震台网地震信息的最新接口。</p>
@@ -716,8 +716,7 @@
             </div>
             <div class="title">关于</div>
             <div class="about">
-                <p>Windows 10及以上用户推荐使用应用程序：<a href="https://github.com/Lipomoea/kanameishi/releases" target="_blank">Windows应用程序下载</a>&nbsp;<a href="https://gitee.com/lipomoea/kanameishi/releases" target="_blank">备用链接</a></p>
-                <p>本页面未针对移动端进行适配，建议使用Windows应用程序或电脑浏览器访问本网页。</p>
+                <p>Windows 10、macOS 11及以上用户推荐使用应用程序：<a href="https://github.com/Lipomoea/kanameishi/releases" target="_blank">应用程序下载</a>&nbsp;<a href="https://gitee.com/lipomoea/kanameishi/releases" target="_blank">备用链接</a></p>
                 <p>联系我：<a href="https://space.bilibili.com/316757498" target="_blank">リッポミャ</a>（哔哩哔哩）</p>
                 <p>Github：<a href="https://github.com/Lipomoea/kanameishi" target="_blank">https://github.com/Lipomoea/kanameishi</a></p>
                 <p>特别鸣谢：</p>
@@ -1360,28 +1359,6 @@ onBeforeUnmount(() => {
             }
         }
     }
-    .about-box{
-        padding: 20px;
-        .header {
-            width: 100%;
-            text-align: center;
-            font-size: 24px;
-            font-weight: 700;
-        }
-        .title{
-            font-size: 20px;
-            font-weight: 700;
-        }
-        .about {
-            font-size: 16px;
-        }
-        .about+.about{
-            margin-top: 10px;
-        }
-        a,a:visited{
-            color: blue;
-        }
-    }
 }
 .force-wrap{
     flex-wrap: wrap;
@@ -1420,6 +1397,31 @@ onBeforeUnmount(() => {
     align-items: center;
     pointer-events: none;
     user-select: none;
+}
+</style>
+
+<style lang="scss">
+.about-box {
+    padding: 20px;
+    .header {
+        width: 100%;
+        text-align: center;
+        font-size: 24px;
+        font-weight: 700;
+    }
+    .title{
+        font-size: 20px;
+        font-weight: 700;
+    }
+    .about {
+        font-size: 16px;
+    }
+    .about+.about{
+        margin-top: 10px;
+    }
+    a,a:visited{
+        color: blue;
+    }
 }
 .customize-audio {
     display: flex;
