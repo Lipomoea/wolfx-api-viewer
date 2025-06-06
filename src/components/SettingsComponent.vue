@@ -1095,15 +1095,13 @@ const checkNewVersion = async (silent = false) => {
     try {
         const versionInfo = await Http.get('https://api.github.com/repos/Lipomoea/kanameishi/releases')
         let checkedVersion, downloadUrl, detail
-        if(!isTauri) {
-            checkedVersion = versionInfo[0].tag_name.slice(1)
-            downloadUrl = ''
-            detail = versionInfo[0].body
-        }
-        else if(thisPlatform == 'windows') {
+        if(isTauri) {
+            const fileType = isWindows ? '.exe' : '.dmg'
             let i = 0
+            let asset = undefined
             while(i < versionInfo.length) {
-                if(!versionInfo[i].prerelease || settingsStore.mainSettings.checkPrerelease) break
+                asset = versionInfo[i].assets.find(asset => asset.name.endsWith(fileType))
+                if((!versionInfo[i].prerelease || settingsStore.mainSettings.checkPrerelease) && asset) break
                 i++
             }
             if(i == versionInfo.length) {
@@ -1115,35 +1113,14 @@ const checkNewVersion = async (silent = false) => {
             }
             else {
                 checkedVersion = versionInfo[i].tag_name.slice(1)
-                downloadUrl = versionInfo[i].assets[0].browser_download_url
-                detail = versionInfo[i].body
-            }
-        }
-        else if(thisPlatform == 'macos') {
-            let i = 0
-            while(i < versionInfo.length) {
-                if((!versionInfo[i].prerelease || settingsStore.mainSettings.checkPrerelease) && versionInfo[i].assets[1]) break
-                i++
-            }
-            if(i == versionInfo.length) {
-                ElMessage({
-                    message: '未检测到可用版本',
-                    type: 'info'
-                })
-                return
-            }
-            else {
-                checkedVersion = versionInfo[i].tag_name.slice(1)
-                downloadUrl = versionInfo[i].assets[1].browser_download_url
+                downloadUrl = asset.browser_download_url
                 detail = versionInfo[i].body
             }
         }
         else {
-            ElMessage({
-                message: '未检测到可用版本',
-                type: 'info'
-            })
-            return
+            checkedVersion = versionInfo[0].tag_name.slice(1)
+            downloadUrl = ''
+            detail = versionInfo[0].body
         }
         if(compareVersion(currentVersion, checkedVersion)) {
             ElMessageBox.close()
