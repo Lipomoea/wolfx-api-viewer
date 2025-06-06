@@ -3,12 +3,12 @@
 > 你正在浏览dev分支。
 ## 简介
 要石(kanameishi / 原wolfx-api-viewer)是一个基于多重API制作的地震预警和地震信息可视化Web应用，基于Vite+Vue3+Leaflet开发。  
-提供基于Tauri构建的Windows应用程序，推荐Windows 10及以上系统使用。  
+提供基于Tauri构建的Windows及macOS应用程序，推荐Windows 10、macOS 11及以上系统使用。  
 icon是《铃芽之旅》的草太さん（椅子形态）。  
 * [Web版](http://124.70.142.213:8081/)
 * [Web版备用](https://kanameishi.pages.dev/)（使用CloudFlare，速度更快，但国内可能需要代理访问。）
-* [Windows应用程序下载](https://github.com/Lipomoea/kanameishi/releases)
-* [Windows应用程序下载（备用）](https://gitee.com/lipomoea/kanameishi/releases)
+* [应用程序下载](https://github.com/Lipomoea/kanameishi/releases)
+* [应用程序下载（备用）](https://gitee.com/lipomoea/kanameishi/releases)
 ## 主要功能  
 * 接收日本气象厅、台湾省中央气象署、四川省地震局、福建省地震局地震预警信息。
 * 接收日本气象厅、中国地震台网地震信息。

@@ -281,7 +281,7 @@
                                 </el-select>
                             </div>
                             <div class="switch">
-                                <el-button size="small" @click="customizeAudio = true">{{ isWindows ? '自定义音效' : '试听音效' }}</el-button>
+                                <el-button size="small" @click="customizeAudio = true">{{ isTauri ? '自定义音效' : '试听音效' }}</el-button>
                             </div>
                         </div>
                     </div>
@@ -654,10 +654,10 @@
             </template>
         </el-dialog>
         <el-dialog class="customize-audio" v-model="customizeAudio" width="60%" :show-close="false" append-to-body>
-            <div class="explanation" v-if="isWindows">
+            <div class="explanation" v-if="isTauri">
                 <div class="text">
-                    <p><strong>Windows桌面应用程序版本支持自定义音效，请参考下列步骤。</strong></p>
-                    <p>1. 点击“打开数据文件夹”按钮，Windows资源管理器会打开该应用程序的数据文件夹。</p>
+                    <p><strong>应用程序版本支持自定义音效，请参考下列步骤。</strong></p>
+                    <p>1. 点击“打开数据文件夹”按钮，系统的文件管理器会打开该应用程序的数据文件夹。</p>
                     <p>2. 在该目录下创建一个“audio”文件夹。</p>
                     <p>3. 将你想替换的音频文件（需要为mp3格式）放入该文件夹并重命名为“xxx.mp3”，具体名称请参照下方按钮显示的名称。</p>
                     <p>4. 点击“重新加载音频”按钮，或按“F5”刷新页面即完成替换。</p>
@@ -685,7 +685,7 @@
             <div class="header">要石 v2.1.0</div>
             <div class="title">最近更新</div>
             <div class="about">
-                <p>v2.1.0 新增：适配macOS应用程序；新增：区域烈度列表显示功能；新增：UI缩放比例调整；新增：中文倒计时播报；新增：可调整开始倒计时的秒数；优化：适当提升了Windows应用程序窗口可调整的大小范围；优化：部分走时精准度；优化：部分测站渲染性能；优化：地震波绘制性能；修复：版本号检测逻辑错误的bug；修复：Safari等浏览器下，部分界面显示异常的问题。</p>
+                <p>v2.1.0 新增：适配macOS应用程序；新增：区域烈度列表显示功能；新增：UI缩放比例调整；新增：中文倒计时播报；新增：可调整开始倒计时的秒数；优化：适当提升了应用程序窗口可调整的大小范围；优化：部分走时精准度；优化：部分测站渲染性能；优化：地震波绘制性能；修复：版本号检测逻辑错误的bug；修复：Safari等浏览器下，部分界面显示异常的问题。</p>
                 <p>v2.0.0 变更：版本号变更为正式版；优化：新增“混合”测站风格。</p>
                 <p>v2.0.0-rc.9.5 变更：调整部分图层渲染方式，实现地图循环显示，但中国、日本以外地区地图不再支持地名提示；优化：地图配色。</p>
                 <p>v2.0.0-rc.9.4 优化：根据Wolfx Open API最新修改，现已回退对福建地震局地震预警的反篡改（实际并未篡改）并同步中国地震台网地震信息的最新接口。</p>
@@ -697,7 +697,7 @@
             <div class="title">使用方法</div>
             <div class="about">
                 <p>主要功能：接收日本气象厅、台湾省中央气象署、四川省地震局、福建省地震局地震预警信息，日本气象厅、中国地震台网地震信息，日本气象厅海啸信息，NIED強震モニタ测站数据。</p>
-                <p>Windows Chrome/Edge推荐设置（以Chrome为例，Edge方法类似）：</p>
+                <p>Chrome/Edge推荐设置（以Chrome为例，Edge方法类似）：</p>
                 <ul style="list-style-position: inside;">
                     <li>保持后台刷新：浏览器访问chrome://flags - Calculate window occlusion on Windows - Disabled - 右下角重新启动</li>
                     <li>去除网页“不安全”提示（同时解除网页权限设置限制，但浏览器启动时会收到横幅提示）：chrome://flags - Insecure origins treated as secure - 启用 - 输入本网页的链接 - 右下角重新启动</li>
