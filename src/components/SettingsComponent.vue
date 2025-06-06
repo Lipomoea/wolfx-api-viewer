@@ -639,7 +639,7 @@
                 </div>
             </div>
         </div>
-        <el-dialog v-model="verifyDialog" width="300px" top="20vh" :show-close="false">
+        <el-dialog v-model="verifyDialog" width="300px" top="20vh" :show-close="false" append-to-body>
             <el-form :model="idForm">
                 <el-form-item label="用户名" label-width="60px">
                     <el-input v-model="idForm.username" @keyup.enter="postVerify()"></el-input>
@@ -653,7 +653,7 @@
                 <el-button type="primary" @click="postVerify()">确定</el-button>
             </template>
         </el-dialog>
-        <el-dialog class="customize-audio" v-model="customizeAudio" width="60%" :show-close="false">
+        <el-dialog class="customize-audio" v-model="customizeAudio" width="60%" :show-close="false" append-to-body>
             <div class="explanation" v-if="isWindows">
                 <div class="text">
                     <p><strong>Windows桌面应用程序版本支持自定义音效，请参考下列步骤。</strong></p>
@@ -681,7 +681,7 @@
                 <el-button type="default" @click="customizeAudio = false">关闭</el-button>
             </template>
         </el-dialog>
-        <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false">
+        <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false" append-to-body>
             <div class="header">要石 v2.1.0-pre.4</div>
             <div class="title">最近更新</div>
             <div class="about">
