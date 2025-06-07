@@ -586,18 +586,19 @@ export const useStatusStore = defineStore('statusStore', {
             if(protocol == 'http'){
                 clearInterval(this.httpRequest)
                 this.httpRequest = setInterval(async () => {
-                    const status = Date.now() % 2000 < 1000
+                    const stamp = Date.now()
+                    const status = Math.floor(stamp / 1000) % 10
                     const promises = this.enabledSource.map(async source=>{
-                        if((this.useWolfxSocket.includes(source) && (this.wolfxSocket?.socket.readyState != 1 || !this.eqMessage[source].id)) || 
+                        if((this.useWolfxSocket.includes(source) && (this.wolfxSocket?.socket.readyState != 1 || !this.eqMessage[source].id || status == 0)) || 
                             (source == 'iclEew' && 'iclEew_http' in eqUrls)) {
                             const data = await Http.get(eqUrls[source + '_http'] + `?time=${Date.now()}`)
                             if(data && Object.keys(data).length > 0) this.setEqMessage(source, data)
                         }
-                        else if(source == 'jmaEqlist' && (this.p2pquakeSocket?.socket.readyState != 1 || !this.eqMessage[source].id) && status) {
+                        else if(source == 'jmaEqlist' && (this.p2pquakeSocket?.socket.readyState != 1 || !this.eqMessage[source].id || status == 0) && status % 2 == 0) {
                             const data = await Http.get(eqUrls[source + '_http'] + `&time=${Date.now()}`)
                             if(data && data.length > 0) this.setEqMessage(source, data[0])
                         }
-                        else if(source == 'jmaTsunami' && (this.p2pquakeSocket?.socket.readyState != 1 || !this.tsunamiMessage[source].id) && !status) {
+                        else if(source == 'jmaTsunami' && (this.p2pquakeSocket?.socket.readyState != 1 || !this.tsunamiMessage[source].id || status == 1) && status % 2 == 1) {
                             const data = await Http.get(tsunamiUrls[source + '_http'] + `&time=${Date.now()}`)
                             if(data && data.length > 0) this.setTsunamiMessage(source, data[0])
                         }
