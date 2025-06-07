@@ -17,7 +17,7 @@
 
 <script setup>
 import { onBeforeUnmount, ref, reactive, computed, watch, inject } from 'vue'
-import { formatText, msToTime, calcPassedTime, judgeSameEvent } from '@/utils/Utils';
+import { formatText, msToTime, calcPassedTime, judgeSameEvent, openUrl } from '@/utils/Utils';
 import { eqUrls } from '@/utils/Urls';
 import { EewEvent, EqlistEvent } from '@/classes/EewEqlistClasses';
 import { useTimeStore } from '@/stores/time';
@@ -41,7 +41,7 @@ const useJst = props.source.includes('jma')
 const eqMessage = computed(()=>statusStore.eqMessage[props.source])
 
 const handleClick = ()=>{
-    window.open(eqUrls[props.source + '_http'], '_blank')
+    openUrl(eqUrls[props.source + '_http'])
 }
 
 onBeforeUnmount(()=>{

@@ -3,6 +3,7 @@ import { useSettingsStore } from "@/stores/settings";
 import { chimeUrls } from "./Urls";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { isTauri } from '@tauri-apps/api/core';
+import { open } from "@tauri-apps/plugin-shell";
 import { booleanPointInPolygon, point, polygonToLine, pointToLineDistance, area, distance, centroid } from "@turf/turf";
 
 let timeStore
@@ -318,4 +319,7 @@ export const calcJmaShindoLevel = (mj, dep, hypoLat, hypoLng, loc, useSymbol = t
     const instShindo1 = Math.floor(Math.round(instShindo * 100) / 10) / 10
     if(instShindo1 < 0.5) return '0'
     else return getShindoFromInstShindo(instShindo1, useSymbol)
+}
+export const openUrl = url => {
+    isTauri() ? open(url) : window.open(url, '_blank')
 }

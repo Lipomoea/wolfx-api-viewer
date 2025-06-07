@@ -27,7 +27,7 @@
 import { reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import Http from '@/classes/Http';
 import { eqUrls } from '@/utils/Urls';
-import { setClassName, stampToTime } from '@/utils/Utils';
+import { openUrl, setClassName, stampToTime } from '@/utils/Utils';
 import '@/assets/background.css'
 import '@/assets/opacity.css'
 const props = defineProps({
@@ -108,7 +108,7 @@ const handleClick = (item)=>{
     switch(props.source){
         case 'jmaEqlist':{
             const url = `https://typhoon.yahoo.co.jp/weather/jp/earthquake/${item.id}.html?t=2`
-            window.open(url, '_blank')
+            openUrl(url)
             break
         }
     }

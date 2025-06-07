@@ -738,11 +738,10 @@ import { chimeUrls, utilUrls } from '@/utils/Urls';
 import Http from '@/classes/Http';
 import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { QuestionFilled } from '@element-plus/icons-vue';
-import { playSound, setClassName } from '@/utils/Utils';
+import { openUrl, playSound, setClassName } from '@/utils/Utils';
 import { join, appDataDir } from "@tauri-apps/api/path";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { exists } from "@tauri-apps/plugin-fs";
-import { open } from "@tauri-apps/plugin-shell";
 import { enable, disable, isEnabled } from '@tauri-apps/plugin-autostart';
 import { platform } from '@tauri-apps/plugin-os';
 import { isTauri as getIsTauri } from '@tauri-apps/api/core';
@@ -1135,7 +1134,7 @@ const checkNewVersion = async (silent = false) => {
                         showClose: false,
                     }
                 ).then(()=>{
-                    window.open(downloadUrl, '_blank')
+                    openUrl(downloadUrl)
                 })
             }
             else {
@@ -1251,7 +1250,7 @@ const loadAudio = () => {
 }
 const openDataFolder = async () => {
     const appDataPath = await appDataDir()
-    open(appDataPath)
+    openUrl(appDataPath)
 }
 const isAutoStart = ref(false)
 const handleAutoStart = async (value) => {

@@ -37,7 +37,7 @@
 import { defaultTsunamiMessage, useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { computed, watch } from 'vue';
-import { focusWindow, playSound, sendMyNotification } from '@/utils/Utils';
+import { focusWindow, openUrl, playSound, sendMyNotification } from '@/utils/Utils';
 import { iconUrls, tsunamiUrls } from '@/utils/Urls';
 
 const statusStore = useStatusStore()
@@ -72,7 +72,7 @@ const formatArrival = (condition, arrivalTime) => {
 }
 const formatDescription = description => description.replace('０', '0').replace('１', '1').replace('３', '3').replace('５', '5').replace('ｍ', 'm')
 const handleClick = ()=>{
-    window.open(tsunamiUrls.jmaTsunami_http, '_blank')
+    openUrl(tsunamiUrls.jmaTsunami_http)
 }
 
 let map
