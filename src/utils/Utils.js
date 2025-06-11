@@ -5,6 +5,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { isTauri } from '@tauri-apps/api/core';
 import { open } from "@tauri-apps/plugin-shell";
 import { booleanPointInPolygon, point, polygonToLine, pointToLineDistance, area, distance, centroid } from "@turf/turf";
+import { flatten } from "@turf/turf";
 
 let timeStore
 let settingsStore
@@ -267,8 +268,10 @@ export const pointDistToPolygon = (pointLatLng, feature)=>{
             const dist = Math.max(distToCent - radius, 0)
             return dist
         }
-        const polygonLine = features[0]
-        const dist = pointToLineDistance(turfPoint, polygonLine, { units: "kilometers" })
+        const dist = features.reduce((minDist, feature) => {
+            const dist = pointToLineDistance(turfPoint, feature.geometry.type == 'MultiLineString' ? flatten(feature).features[0] : feature, { units: "kilometers" })
+            return Math.min(dist, minDist)
+        }, Infinity)
         return dist
     }
 }
