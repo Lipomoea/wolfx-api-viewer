@@ -1,4 +1,4 @@
-import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendMyNotification, getClassLevel, focusWindow, calcCsisLevel } from '@/utils/Utils';
+import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendMyNotification, getClassLevel, focusWindow, calcCsisLevel, calcJmaShindoLevel, shindoScale } from '@/utils/Utils';
 import travelTimes from '@/utils/TravelTimes';
 import { chimeUrls, iconUrls } from '@/utils/Urls';
 import L from 'leaflet';
@@ -61,8 +61,9 @@ const eewCancelCircleDivIcon = L.divIcon({
 })
 
 let settingsStore
+export const ignoredIds = new Set()
 
-class EewEvent {
+export class EewEvent {
     constructor(map, eqMessage, activeEewList){
         this.map = map
         if(!settingsStore) settingsStore = useSettingsStore()
@@ -70,11 +71,15 @@ class EewEvent {
         this.activeEewList = activeEewList
         this.useJst = eqMessage.source.includes('jma')
         this.travelTime = travelTimes.jma2001
-        this.userLatLng = settingsStore.mainSettings.userLatLng.map(l=>Number(l))
-        this.isValidUserLatLng = settingsStore.mainSettings.userLatLng.every(l=>l !== '')
+        this.userLatLng = settingsStore.numUserLatLng
+        this.isValidUserLatLng = settingsStore.isValidUserLatLng
         this.userCsis = '?'
+        this.userShindo = '?'
+        this.nearestJmaLoc = settingsStore.nearestJmaLoc
         this.countdown = -1
         this.shouldAction = false
+        this.mute = false
+        this.showMenu = false
         this.flags = {
             firstSound: false,
             cautionSound: false,
@@ -248,11 +253,22 @@ class EewEvent {
                     this.reachTime = calcReachTime(this.userDist <= this.maxRadius ? travelTimes.jma2001 : travelTimes.jb, false, this.eqMessage.depth, this.userDist)
                     this.userCsis = settingsStore.advancedSettings.forceCalcInt && !this.eqMessage.isAssumption ? 
                         calcCsisLevel(this.eqMessage.magnitude, this.eqMessage.depth, this.userDist) : '?'
+                    this.userShindo = 
+                    this.nearestJmaLoc
+                    ?
+                        this.eqMessage.warnArea && JSON.parse(this.eqMessage.warnArea).find(item => item.name == this.nearestJmaLoc.sect)?.intensity.replace('強', '+').replace('弱', '-')
+                        ||
+                        (settingsStore.advancedSettings.forceCalcInt && !this.eqMessage.isAssumption
+                        ? calcJmaShindoLevel(this.eqMessage.magnitude, this.eqMessage.depth, this.eqMessage.lat, this.eqMessage.lng, this.nearestJmaLoc)
+                        : '?')
+                    :
+                        '?'
                 }
                 else {
                     this.userDist = undefined
                     this.reachTime = -1
                     this.userCsis = '?'
+                    this.userShindo = '?'
                 }
                 this.drawWaves(true)
                 clearInterval(this.drawWavesInterval)
@@ -261,8 +277,11 @@ class EewEvent {
                 }, 100);
             }
             this.setMark()
-            if(this.userCsis == '?' || Number(this.userCsis) >= settingsStore.mainSettings.actionCsis) this.shouldAction = true
-            if(this.shouldAction && !isAddition) this.handleActions()
+            if(this.nearestJmaLoc
+                ? (this.userShindo == '?' || shindoScale.indexOf(this.userShindo) >= settingsStore.mainSettings.actionShindo)
+                : (this.userCsis == '?' || Number(this.userCsis) >= settingsStore.mainSettings.actionCsis)
+            ) this.shouldAction = true
+            if(this.shouldAction && !isAddition && !this.mute) this.handleActions()
             clearTimeout(this.terminateTimer)
             this.terminateTimer = setTimeout(() => {
                 this.terminate()
@@ -347,7 +366,7 @@ class EewEvent {
     handleCountdown(passedTime){
         if(settingsStore.mainSettings.displayCountdown && this.isValidUserLatLng && (this.userDist <= this.maxRadius && !this.eqMessage.isAssumption || settingsStore.mainSettings.forceDisplayCountdown)){
             this.countdown = Math.max(this.reachTime - passedTime, 0)
-            if(settingsStore.mainSettings.playCountdownSound && this.shouldAction) {
+            if(settingsStore.mainSettings.playCountdownSound && this.shouldAction && !this.mute) {
                 const secondsCount = Math.ceil(this.countdown)
                 if(secondsCount < this.flags.lastSecondsCount){
                     playSound(settingsStore.mainSettings.countdownSpeech && (`${secondsCount}s` in chimeUrls.general) ? `${secondsCount}s` : "countdown")
@@ -359,7 +378,9 @@ class EewEvent {
             this.countdown = -1
         }
     }
-    terminate(){
+    terminate(force = false){
+        if(force) ignoredIds.add(`${this.eqMessage.source}|${this.eqMessage.id}`)
+        clearTimeout(this.terminateTimer)
         this.renderStop()
         const index = this.activeEewList.indexOf(this)
         if(index >= 0) this.activeEewList.splice(index, 1)
@@ -368,13 +389,14 @@ class EewEvent {
         this.activeEewList = null
     }
 }
-class EqlistEvent {
+export class EqlistEvent {
     constructor(map, eqMessage){
         this.map = map
         if(!settingsStore) settingsStore = useSettingsStore()
         this.eqMessage = eqMessage
         this.isActive = false
         this.useJst = eqMessage.source.includes('jma')
+        this.showMenu = false
     }
     update(eqMessage, time){
         Object.assign(this.eqMessage, eqMessage)
@@ -454,6 +476,8 @@ class EqlistEvent {
                 settingsStore.mainSettings.muteNotification)
         }
     }
+    deactivate() {
+        clearTimeout(this.deactivateTimer)
+        this.isActive = false
+    }
 }
-
-export { EewEvent, EqlistEvent }

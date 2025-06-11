@@ -128,7 +128,7 @@
                     <div class="row">
                         <span class="full-width group-title">预警设置</span>
                         <div class="switch-group">
-                            <div class="switch">
+                            <div class="switch" v-if="!settingsStore.nearestJmaLoc">
                                 <span>本地烈度阈值
                                     <el-popover
                                         placement="top"
@@ -140,7 +140,7 @@
                                         </template>
                                         <p><strong>需要启用“强制估算烈度/震度”。</strong></p>
                                         <p>仅在预估本地烈度达到阈值时执行下方行为。</p>
-                                        <p>对任意位置（不仅限于中国）生效。</p>
+                                        <p>对日本以外地区生效。</p>
                                         <p>设置为“0”表示接收全部预警。</p>
                                     </el-popover>
                                 </span>
@@ -152,7 +152,38 @@
                                 size="small"
                                 show-stops
                                 style="width: 200px; margin-left: 10px;"></el-slider>
-                                <div class="csis" :class="setClassName(settingsStore.mainSettings.actionCsis, false)">{{ settingsStore.mainSettings.actionCsis }}</div>
+                                <div class="int" :class="setClassName(settingsStore.mainSettings.actionCsis, false)">
+                                    <div class="csis">{{ settingsStore.mainSettings.actionCsis }}</div>
+                                </div>
+                            </div>
+                            <div class="switch" v-else>
+                                <span>本地震度阈值
+                                    <el-popover
+                                        placement="top"
+                                        :width="310"
+                                        trigger="hover"
+                                    >
+                                        <template #reference>
+                                            <question-filled width="1em" height="1em"></question-filled>
+                                        </template>
+                                        <p><strong>需要启用“强制估算烈度/震度”。</strong></p>
+                                        <p>仅在预估本地震度达到阈值时执行下方行为。</p>
+                                        <p>对附近包含震度观测点的日本地区生效。</p>
+                                        <p>设置为“0”表示接收全部预警。</p>
+                                    </el-popover>
+                                </span>
+                                <el-slider
+                                v-model="settingsStore.mainSettings.actionShindo"
+                                :disabled="!settingsStore.advancedSettings.forceCalcInt"
+                                :min="0" :max="9"
+                                :step="1"
+                                size="small"
+                                show-stops
+                                :format-tooltip="(value) => shindoScale[value]"
+                                style="width: 200px; margin-left: 10px;"></el-slider>
+                                <div class="int" :class="setClassName(shindoScale[settingsStore.mainSettings.actionShindo], true)">
+                                    <div class="shindo">{{ shindoScale[settingsStore.mainSettings.actionShindo] }}</div>
+                                </div>
                             </div>
                             <div class="switch" v-if="settingsStore.advancedSettings.enableGqEew">
                                 <span>GQ预警震级阈值</span>
@@ -174,7 +205,9 @@
                                 size="small"
                                 show-stops
                                 style="width: 200px; margin-left: 10px;"></el-slider>
-                                <div class="csis" :class="setClassName(settingsStore.mainSettings.gqActionCsis, false)">{{ settingsStore.mainSettings.gqActionCsis }}</div>
+                                <div class="int" :class="setClassName(settingsStore.mainSettings.gqActionCsis, false)">
+                                    <div class="csis">{{ settingsStore.mainSettings.gqActionCsis }}</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -314,14 +347,14 @@
                                 v-model="settingsStore.mainSettings.userLatLng[0]"
                                 size="small"
                                 maxlength="10"
-                                @change="setLat('userLatLng')"></el-input>
+                                @change="val => setLat('userLatLng')(val)"></el-input>
                                 <span style="margin-left: 8px;">经度</span>
                                 <el-input
                                 class="lat-lng"
                                 v-model="settingsStore.mainSettings.userLatLng[1]"
                                 size="small"
                                 maxlength="10"
-                                @change="setLng('userLatLng')"></el-input>
+                                @change="val => setLng('userLatLng')(val)"></el-input>
                                 <el-button
                                 style="margin-left: 8px;"
                                 size="small"
@@ -398,14 +431,14 @@
                                 v-model="settingsStore.mainSettings.viewLatLng[0]"
                                 size="small"
                                 maxlength="10"
-                                @change="setLat('viewLatLng')"></el-input>
+                                @change="val => setLat('viewLatLng')(val)"></el-input>
                                 <span style="margin-left: 8px;">经度</span>
                                 <el-input
                                 class="lat-lng"
                                 v-model="settingsStore.mainSettings.viewLatLng[1]"
                                 size="small"
                                 maxlength="10"
-                                @change="setLng('viewLatLng')"></el-input>
+                                @change="val => setLng('viewLatLng')(val)"></el-input>
                                 <span style="margin-left: 8px;">缩放</span>
                                 <el-input
                                 v-model="settingsStore.mainSettings.defaultZoom"
@@ -738,7 +771,7 @@ import { chimeUrls, utilUrls } from '@/utils/Urls';
 import Http from '@/classes/Http';
 import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { QuestionFilled } from '@element-plus/icons-vue';
-import { openUrl, playSound, setClassName } from '@/utils/Utils';
+import { openUrl, playSound, setClassName, shindoScale } from '@/utils/Utils';
 import { join, appDataDir } from "@tauri-apps/api/path";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { exists } from "@tauri-apps/plugin-fs";
@@ -1350,23 +1383,31 @@ onBeforeUnmount(() => {
     height: 24px;
     margin: 0px;
 }
-.csis {
+.int {
     width: 22px;
     height: 22px;
     margin-left: 6px;
-    border: #cfcfcf 1px solid;
     border-radius: 5px;
     display: flex;
     justify-content: center;
     align-items: center;
     pointer-events: none;
     user-select: none;
+    .csis {
+        font-size: 16px;
+    }
+    .shindo {
+        font-size: 12px;
+    }
+    .shindo::first-letter {
+        font-size: 16px;
+        vertical-align: top;
+    }
 }
 .mag {
     width: 28px;
     height: 22px;
     margin-left: 6px;
-    border: #cfcfcf 1px solid;
     border-radius: 5px;
     display: flex;
     justify-content: center;

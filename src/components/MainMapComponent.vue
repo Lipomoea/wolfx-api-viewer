@@ -7,7 +7,7 @@
                     <div class="event" v-for="(event, index) of activeEewList" :key="index" v-show="menuId != 'eqlists'">
                         <div class="eew">
                             <div class="bar" :class="getBarClass(event.eqMessage)">{{ event.eqMessage.titleText + ' ' + event.eqMessage.reportNumText }}</div>
-                            <div class="info">
+                            <div class="info" @click="event.showMenu = !event.showMenu">
                                 <div class="intensity" :class="event.eqMessage.className">
                                     <div class="intensity-title">{{ event.eqMessage.useShindo?'最大震度':'最大烈度' }}</div>
                                     <div :class="event.eqMessage.useShindo && formatIntensity(event.eqMessage.maxIntensity) != '?'?'shindo':'csis'">
@@ -24,15 +24,19 @@
                                         <div class="type" v-if="event.eqMessage.source == 'gqEew'">quality: {{ event.eqMessage.type }}</div>
                                     </div>
                                 </div>
+                                <div class="eew-buttons" v-if="event.showMenu">
+                                    <el-button class="eew-button" type="primary" plain @click="event.mute = !event.mute">{{ event.mute ? '取消静默' : '静默' }}</el-button>
+                                    <el-button class="eew-button" type="danger" plain @click.stop="event.terminate(true)">关闭预警</el-button>
+                                </div>
                             </div>
                         </div>
                         <div class="countdown eew realtime" v-if="settingsStore.mainSettings.displayCountdown">
                             <div class="shindo-bar" :class="event.countdown <= 0 || event.eqMessage.isCanceled?'gray':event.countdown <= 10?'red':event.countdown <= 60?'orange':'yellow'">{{ event.countdown == -1?'-':Math.ceil(event.countdown) }}秒</div>
-                            <div class="info" v-if="userJmaAreaName">
-                                <div class="intensity" :class="setClassName(userJmaAreaShindo, true)">
+                            <div class="info" v-if="event.nearestJmaLoc">
+                                <div class="intensity" :class="setClassName(event.userShindo, true)">
                                     <div class="intensity-title">本地震度</div>
-                                    <div :class="userJmaAreaShindo != '?'?'shindo':'csis'">
-                                        {{ userJmaAreaShindo }}
+                                    <div :class="event.userShindo != '?'?'shindo':'csis'">
+                                        {{ event.userShindo }}
                                     </div>
                                 </div>
                             </div>
@@ -49,7 +53,7 @@
                     <div class="event" v-for="(event, index) of activeEqlistList" :key="index" v-show="menuId != 'eews'">
                         <div class="eew">
                             <div class="bar" :class="getBarClass(event.eqMessage)">{{ event.eqMessage.titleText + ' ' + event.eqMessage.reportNumText }}</div>
-                            <div class="info">
+                            <div class="info" @click="event.showMenu = !event.showMenu">
                                 <div class="intensity" :class="event.eqMessage.className">
                                     <div class="intensity-title">{{ event.eqMessage.useShindo?'最大震度':'最大烈度' }}</div>
                                     <div :class="event.eqMessage.useShindo && formatIntensity(event.eqMessage.maxIntensity) != '?'?'shindo':'csis'">
@@ -63,6 +67,9 @@
                                         <div class="magnitude">{{ event.eqMessage.magnitude != -1 ? 'M' + event.eqMessage.magnitude.toFixed(1) : '規模・深さ 調査中' }}</div>
                                         <div class="depth">{{ event.eqMessage.magnitude != -1 ? event.eqMessage.depthText : '' }}</div>
                                     </div>
+                                </div>
+                                <div class="eew-buttons" v-if="event.showMenu">
+                                    <el-button class="eew-button" type="danger" plain @click.stop="event.deactivate()">关闭信息</el-button>
                                 </div>
                             </div>
                         </div>
@@ -232,32 +239,14 @@ import { geojsonUrls } from '@/utils/Urls';
 import { booleanPointInPolygon, point } from '@turf/turf';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { isTauri } from '@tauri-apps/api/core';
+import { storeToRefs } from 'pinia';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 let map, jpEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap
 let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, cnFaultBasePane, jpEewBasePane, cnEewBasePane, jpTsunamiBasePane
 const defaultLatLng = [38.1, 104.6]
-const isValidUserLatLng = computed(()=>settingsStore.mainSettings.userLatLng.every(item=>item !== ''))
-const isDisplayUser = computed(()=>isValidUserLatLng.value && settingsStore.mainSettings.displayUser)
-const userLatLng = computed(()=>settingsStore.mainSettings.userLatLng.map(val=>Number(val)))
-const userJmaAreaName = computed(()=>{
-    if(!isValidUserLatLng.value) return ''
-    let layerName = ''
-    jpEewBaseMap.eachLayer(layer=>{
-        const turfPoint = point([userLatLng.value[1], userLatLng.value[0]])
-        if(booleanPointInPolygon(turfPoint, layer.feature)){
-            layerName = layer.feature.properties.name
-            return
-        }
-    })
-    return layerName
-})
-const userJmaAreaShindo = computed(()=>{
-    if(userJmaAreaName.value in jmaWarnArea.value) return formatIntensity(jmaWarnArea.value[userJmaAreaName.value].intensity)
-    else if(userJmaAreaName.value && settingsStore.advancedSettings.forceCalcInt) return '0'
-    else return '?'
-})
+const { isValidUserLatLng, isDisplayUser, numUserLatLng: userLatLng, nearestJmaLoc } = storeToRefs(settingsStore)
 let userMarker
 const isValidViewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.every(item=>item !== ''))
 const viewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.map(val=>Number(val)))
@@ -477,6 +466,7 @@ onMounted(()=>{
             })
             userMarker.addTo(map)
         }
+        nearestJmaLoc.value
     })
     loadMaps()
     watch(()=>settingsStore.mainSettings.displayCnFault, newVal=>{
@@ -1057,6 +1047,7 @@ onBeforeUnmount(()=>{
                         align-items: center;
                         background-color: #ffffff9f;
                         backdrop-filter: blur(10px);
+                        pointer-events: auto;
                         .intensity{
                             width: 100px;
                             height: 100%;
@@ -1066,6 +1057,7 @@ onBeforeUnmount(()=>{
                             justify-content: center;
                             align-items: center;
                             position: relative;
+                            pointer-events: none;
                             .intensity-title{
                                 height: 20px;
                                 font-size: 16px;
@@ -1132,6 +1124,20 @@ onBeforeUnmount(()=>{
                                     font-size: 16px;
                                     color: #7f7f7f;
                                 }
+                            }
+                        }
+                        .eew-buttons {
+                            width: 100%;
+                            height: 100%;
+                            position: absolute;
+                            background-color: #ffffff9f;
+                            backdrop-filter: blur(10px);
+                            display: flex;
+                            justify-content: space-evenly;
+                            align-items: center;
+                            .eew-button {
+                                width: 80px;
+                                height: 40px;
                             }
                         }
                     }
@@ -1289,16 +1295,16 @@ onBeforeUnmount(()=>{
                             align-items: center;
                             pointer-events: none;
                             user-select: none;
-                        }
-                        .csis {
-                            font-size: 16px;
-                        }
-                        .shindo {
-                            font-size: 12px;
-                        }
-                        .shindo::first-letter {
-                            font-size: 16px;
-                            vertical-align: top;
+                            .csis {
+                                font-size: 16px;
+                            }
+                            .shindo {
+                                font-size: 12px;
+                            }
+                            .shindo::first-letter {
+                                font-size: 16px;
+                                vertical-align: top;
+                            }
                         }
                     }
                 }

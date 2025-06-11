@@ -19,7 +19,7 @@
 import { onBeforeUnmount, ref, reactive, computed, watch, inject } from 'vue'
 import { formatText, msToTime, calcPassedTime, judgeSameEvent, openUrl } from '@/utils/Utils';
 import { eqUrls } from '@/utils/Urls';
-import { EewEvent, EqlistEvent } from '@/classes/EewEqlistClasses';
+import { EewEvent, EqlistEvent, ignoredIds } from '@/classes/EewEqlistClasses';
 import { useTimeStore } from '@/stores/time';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
@@ -83,20 +83,22 @@ watch(eqMessage, (newVal)=>{
     }
     time -= passedTime
     if(newVal.isEew){
-        let i = 0
-        while(i < activeEewList.length){
-            if(judgeSameEvent(newVal, activeEewList[i].eqMessage)){
-                activeEewList[i].update(Object.assign({}, newVal), time)
-                break
+        if(!ignoredIds.has(`${newVal.source}|${newVal.id}`)) {
+            let i = 0
+            while(i < activeEewList.length){
+                if(judgeSameEvent(newVal, activeEewList[i].eqMessage)){
+                    activeEewList[i].update(Object.assign({}, newVal), time)
+                    break
+                }
+                i++
             }
-            i++
-        }
-        if(i == activeEewList.length){
-            if(statusStore.map){
-                if(time > 0 && (props.source != 'gqEew' || (newVal.magnitude >= settingsStore.mainSettings.gqActionMag || newVal.maxIntensity >= settingsStore.mainSettings.gqActionCsis))) {
-                    const newEvent = reactive(new EewEvent(statusStore.map, Object.assign({}, newVal), activeEewList))
-                    activeEewList.unshift(newEvent)
-                    newEvent.update(Object.assign({}, newVal), time, true)
+            if(i == activeEewList.length){
+                if(statusStore.map){
+                    if(time > 0 && (props.source != 'gqEew' || (newVal.magnitude >= settingsStore.mainSettings.gqActionMag || newVal.maxIntensity >= settingsStore.mainSettings.gqActionCsis))) {
+                        const newEvent = reactive(new EewEvent(statusStore.map, Object.assign({}, newVal), activeEewList))
+                        activeEewList.unshift(newEvent)
+                        newEvent.update(Object.assign({}, newVal), time, true)
+                    }
                 }
             }
         }
