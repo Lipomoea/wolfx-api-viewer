@@ -71,13 +71,16 @@ const grids = computed(()=>{
 const gridRects = {}
 const setView = inject('setView')
 const isAutoZoom = inject('isAutoZoom')
+let pendingRender = false
 const update = ()=>{
     let maxInst = -3.1
     Object.keys(stations).forEach(id=>{
         if(id in stationData){
             const alert = !!stationData[id].alert
             const intensity = alert ? stationData[id].I : stationData[id].i
-            stations[id].update(intensity, alert)
+            const render = document.visibilityState === 'visible'
+            stations[id].update(intensity, alert, render)
+            if(!render) pendingRender = true
             if(intensity > maxInst) maxInst = intensity
         }
         else stations[id].update(-3.1, false)
@@ -126,8 +129,14 @@ onMounted(()=>{
             console.log(err);
         }
     }, 1000);
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && pendingRender) {
+            pendingRender = false
+            renderAll()
+        }
+    })
 })
-let unwatchStationList, unwatchGrids, unwatchRender, unwatchMenuId
+let unwatchStationList, unwatchGrids, unwatchRender, unwatchMenuId, unwatchSimpleShindo
 watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
@@ -194,9 +203,11 @@ watch(()=>statusStore.map, newVal=>{
         unwatchMenuId = watch(menuId, newVal => {
             if(simpleShindo.value != (newVal == 'eqlists')) {
                 simpleShindo.value = newVal == 'eqlists'
-                renderAll()
             }
         }, { immediate: true })
+        unwatchSimpleShindo = watch(simpleShindo, () => {
+            renderAll()
+        })
     }
 }, { immediate: true })
 watch(()=>(statusStore.isActive.cwaEew || statusStore.isActive.tremNet), newVal=>{
@@ -258,6 +269,7 @@ onBeforeUnmount(()=>{
     if(unwatchGrids) unwatchGrids()
     if(unwatchRender) unwatchRender()
     if(unwatchMenuId) unwatchMenuId()
+    if(unwatchSimpleShindo) unwatchSimpleShindo()
     Object.keys(stations).forEach(id=>{
         stations[id].terminate()
         delete stations[id]

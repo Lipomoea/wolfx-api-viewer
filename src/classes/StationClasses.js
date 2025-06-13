@@ -98,13 +98,13 @@ class NiedStation {
         this.markerType = null
         this.render()
     }
-    update(intensity){
+    update(intensity, render = true){
         const originLevel = intensity.charCodeAt(0) - 100
         const level = originLevel == -1 ? this.recentLevel.slice(0, 4).find(val => val != -1) ?? -1 : originLevel
         if(level != this.level){
             this.shindo = getShindoFromChar(intensity)
             this.level = level
-            this.render()
+            render && this.render()
         }
         const recentFilter = this.recentLevel.filter(val => val != -1)
         let ascend = 0
@@ -258,13 +258,13 @@ class TremStation {
         this.markerType = null
         this.render()
     }
-    update(intensity, isActive){
+    update(intensity, isActive, render = true){
         this.intensity = intensity
         const level = getLevelFromInstShindo(intensity)
         if(level != this.level){
             this.shindo = getShindoFromInstShindo(intensity)
             this.level = level
-            this.render()
+            render && this.render()
         }
         this.isActive = isActive
     }

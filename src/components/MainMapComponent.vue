@@ -454,6 +454,12 @@ onMounted(()=>{
         map.on('zoomstart', ()=>{setMapHeight('calc(100% - 1px)');})
         map.on('zoomend', ()=>{setMapHeight('100%');})
     }
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && pendingSetView) {
+            pendingSetView = false
+            setView(true)
+        }
+    })
     watchEffect(()=>{
         if(userMarker && map.hasLayer(userMarker)) map.removeLayer(userMarker)
         if(isDisplayUser.value){
@@ -675,111 +681,117 @@ const setMapHeight = (height) => {
         map.invalidateSize()
     }, 0);
 }
-const setView = ()=>{
-    const bounds = L.latLngBounds([])
-    //Eew和SeisNet
-    if(menuId.value != 'eqlists'){
-        map.eachLayer(layer=>{
-            if(['waveFillPane', 'eewMarkerPane'].includes(layer.options.pane)){
-                if(layer.getBounds){
-                    bounds.extend(layer.getBounds())
-                }
-                else if(layer.getLatLng){
-                    bounds.extend(layer.getLatLng())
-                }
-            }
-            if(layer.options.pane == 'niedGridPane' && !statusStore.isActive.jmaEew){
-                if(layer.getBounds){
-                    bounds.extend(layer.getBounds())
-                }
-                else if(layer.getLatLng){
-                    bounds.extend(layer.getLatLng())
-                }
-            }
-            if(layer.options.pane == 'tremGridPane' && !statusStore.isActive.cwaEew){
-                if(layer.getBounds){
-                    bounds.extend(layer.getBounds())
-                }
-                else if(layer.getLatLng){
-                    bounds.extend(layer.getLatLng())
-                }
-            }
-        })
-    }
-    //活跃的Eqlist和Tsunami
-    if(!bounds.isValid() && menuId.value != 'eews') {
-        jpTsunamiBaseMap?.eachLayer(layer => {
-            if(statusStore.isActive.jmaTsunami && layer.options.pane.includes('TsunamiBasePane') && layer.options.color && layer.options.color != '#ffffff00') {
-                if(layer.getBounds){
-                    bounds.extend(layer.getBounds())
-                }
-                else if(layer.getLatLng){
-                    bounds.extend(layer.getLatLng())
-                }
-            }
-        })
-        activeEqlistList.value.forEach(event=>{
-            if(event.eqMessage.source == 'jmaEqlist') {
-                if(event.isValidHypo){
-                    bounds.extend(event.hypoLatLng)
-                }
-                jpEewBaseMap.eachLayer(layer => {
-                    if(layer.options.fillColor && layer.options.fillColor != '#55555500') {
-                        if(layer.getBounds){
-                            bounds.extend(layer.getBounds())
-                        }
-                        else if(layer.getLatLng){
-                            bounds.extend(layer.getLatLng())
-                        }
+let pendingSetView = false
+const setView = (force = false)=>{
+    if(document.visibilityState === 'visible' || force) {
+        const bounds = L.latLngBounds([])
+        //Eew和SeisNet
+        if(menuId.value != 'eqlists'){
+            map.eachLayer(layer=>{
+                if(['waveFillPane', 'eewMarkerPane'].includes(layer.options.pane)){
+                    if(layer.getBounds){
+                        bounds.extend(layer.getBounds())
                     }
-                })
-                if(!bounds.isValid()) {
-                    bounds.extend([46, 148])
-                    bounds.extend([23.5, 122])
+                    else if(layer.getLatLng){
+                        bounds.extend(layer.getLatLng())
+                    }
                 }
-            }
-            else {
-                if(event.isValidHypo){
-                    bounds.extend(event.hypoLatLng)
+                if(layer.options.pane == 'niedGridPane' && !statusStore.isActive.jmaEew){
+                    if(layer.getBounds){
+                        bounds.extend(layer.getBounds())
+                    }
+                    else if(layer.getLatLng){
+                        bounds.extend(layer.getLatLng())
+                    }
                 }
-            }
-        })
-    }
-    //不活跃的Eqlist
-    if(!bounds.isValid() && menuId.value == 'eqlists') {
-        map.eachLayer(layer => {
-            if(layer.options.pane == 'eqlistMarkerPane' || 
-            layer.options.pane.includes('EewBasePane') && layer.options.fillColor && layer.options.fillColor != '#55555500'){
-                if(layer.getBounds){
-                    bounds.extend(layer.getBounds())
+                if(layer.options.pane == 'tremGridPane' && !statusStore.isActive.cwaEew){
+                    if(layer.getBounds){
+                        bounds.extend(layer.getBounds())
+                    }
+                    else if(layer.getLatLng){
+                        bounds.extend(layer.getLatLng())
+                    }
                 }
-                else if(layer.getLatLng){
-                    bounds.extend(layer.getLatLng())
-                }
-            }
-        })
-    }
-    //应用bounds
-    if(bounds.isValid()){
-        map.fitBounds(bounds, {
-            padding: [50, 50],
-            maxZoom: 8,
-            animate: true
-        })
-    }
-    //默认视野
-    else{
-        let targetCenter
-        if(isValidViewLatLng.value){
-            targetCenter = viewLatLng.value
+            })
         }
-        else if(isValidUserLatLng.value){
-            targetCenter = userLatLng.value
+        //活跃的Eqlist和Tsunami
+        if(!bounds.isValid() && menuId.value != 'eews') {
+            jpTsunamiBaseMap?.eachLayer(layer => {
+                if(statusStore.isActive.jmaTsunami && layer.options.pane.includes('TsunamiBasePane') && layer.options.color && layer.options.color != '#ffffff00') {
+                    if(layer.getBounds){
+                        bounds.extend(layer.getBounds())
+                    }
+                    else if(layer.getLatLng){
+                        bounds.extend(layer.getLatLng())
+                    }
+                }
+            })
+            activeEqlistList.value.forEach(event=>{
+                if(event.eqMessage.source == 'jmaEqlist') {
+                    if(event.isValidHypo){
+                        bounds.extend(event.hypoLatLng)
+                    }
+                    jpEewBaseMap.eachLayer(layer => {
+                        if(layer.options.fillColor && layer.options.fillColor != '#55555500') {
+                            if(layer.getBounds){
+                                bounds.extend(layer.getBounds())
+                            }
+                            else if(layer.getLatLng){
+                                bounds.extend(layer.getLatLng())
+                            }
+                        }
+                    })
+                    if(!bounds.isValid()) {
+                        bounds.extend([46, 148])
+                        bounds.extend([23.5, 122])
+                    }
+                }
+                else {
+                    if(event.isValidHypo){
+                        bounds.extend(event.hypoLatLng)
+                    }
+                }
+            })
         }
+        //不活跃的Eqlist
+        if(!bounds.isValid() && menuId.value == 'eqlists') {
+            map.eachLayer(layer => {
+                if(layer.options.pane == 'eqlistMarkerPane' || 
+                layer.options.pane.includes('EewBasePane') && layer.options.fillColor && layer.options.fillColor != '#55555500'){
+                    if(layer.getBounds){
+                        bounds.extend(layer.getBounds())
+                    }
+                    else if(layer.getLatLng){
+                        bounds.extend(layer.getLatLng())
+                    }
+                }
+            })
+        }
+        //应用bounds
+        if(bounds.isValid()){
+            map.fitBounds(bounds, {
+                padding: [50, 50],
+                maxZoom: 8,
+                animate: true
+            })
+        }
+        //默认视野
         else{
-            targetCenter = defaultLatLng
+            let targetCenter
+            if(isValidViewLatLng.value){
+                targetCenter = viewLatLng.value
+            }
+            else if(isValidUserLatLng.value){
+                targetCenter = userLatLng.value
+            }
+            else{
+                targetCenter = defaultLatLng
+            }
+            map.setView(targetCenter, zoomLevel.value, { animate: true })
         }
-        map.setView(targetCenter, zoomLevel.value, { animate: true })
+    }
+    else {
+        pendingSetView = true
     }
 }
 provide('setView', setView)

@@ -82,11 +82,14 @@ const getData = async (url)=>{
         if(delay.value <= maxDelay - 100) delay.value += 100
     }
 }
+let pendingRender = false
 const update = ()=>{
     if(stationList.value.length == stations.length && stations.length == stationData.value.length){
         let maxLevel = -1
         for(let i = 0; i < stationList.value.length; i++){
-            stations[i].update(stationData.value[i])
+            const render = document.visibilityState === 'visible'
+            stations[i].update(stationData.value[i], render)
+            if(!render) pendingRender = true
             if(stations[i].level > maxLevel) maxLevel = stations[i].level
         }
         niedMaxShindo.value = getShindoFromLevel(maxLevel)
@@ -215,8 +218,14 @@ onMounted(()=>{
             console.log(err);
         }
     }, 500);
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && pendingRender) {
+            pendingRender = false
+            renderAll()
+        }
+    })
 })
-let unwatchStationList, unwatchGrids, unwatchRender, unwatchMenuId
+let unwatchStationList, unwatchGrids, unwatchRender, unwatchMenuId, unwatchSimpleShindo
 watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
@@ -287,9 +296,11 @@ watch(()=>statusStore.map, newVal=>{
         unwatchMenuId = watch(menuId, newVal => {
             if(simpleShindo.value != (newVal == 'eqlists')) {
                 simpleShindo.value = newVal == 'eqlists'
-                renderAll()
             }
         }, { immediate: true })
+        unwatchSimpleShindo = watch(simpleShindo, () => {
+            renderAll()
+        })
     }
 }, { immediate: true })
 watch(()=>(statusStore.isActive.jmaEew || statusStore.isActive.niedNet), newVal=>{
@@ -364,6 +375,7 @@ onBeforeUnmount(()=>{
     if(unwatchGrids) unwatchGrids()
     if(unwatchRender) unwatchRender()
     if(unwatchMenuId) unwatchMenuId()
+    if(unwatchSimpleShindo) unwatchSimpleShindo()
     stations.forEach((station, index)=>{
         station.terminate()
         stations[index] = null
