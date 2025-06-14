@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, inject } from 'vue'
+import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, inject } from 'vue';
 import Http from '@/classes/Http';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
@@ -29,7 +29,6 @@ const delay = computed(()=>settingsStore.mainSettings.displaySeisNet.delay * 600
 const tremMaxShindo = inject('tremMaxShindo')
 const tremUpdateTime = inject('tremUpdateTime')
 const tremPeriodMaxShindo = inject('tremPeriodMaxShindo')
-const menuId = inject('menuId')
 const periodMaxLevel = ref(-1)
 const currentMaxShindo = computed(()=>{
     const currentMaxLevel = Math.max(...Object.keys(grids.value).map(key=>grids.value[key].level), -1)
@@ -136,7 +135,7 @@ onMounted(()=>{
         }
     })
 })
-let unwatchStationList, unwatchGrids, unwatchRender, unwatchMenuId, unwatchSimpleShindo
+let unwatchStationList, unwatchGrids, unwatchRender
 watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
@@ -197,17 +196,9 @@ watch(()=>statusStore.map, newVal=>{
             }
         }, { immediate: true })
         unwatchRender = watch(
-            ()=>`${settingsStore.mainSettings.displaySeisNet.style}|${settingsStore.mainSettings.displaySeisNet.displayTremShindo}|${settingsStore.mainSettings.displaySeisNet.hideNoData}`, 
+            ()=>`${settingsStore.mainSettings.displaySeisNet.style}|${settingsStore.mainSettings.displaySeisNet.displayTremShindo}|${settingsStore.mainSettings.displaySeisNet.hideNoData}|${simpleShindo.value}`, 
             renderAll
         )
-        unwatchMenuId = watch(menuId, newVal => {
-            if(simpleShindo.value != (newVal == 'eqlists')) {
-                simpleShindo.value = newVal == 'eqlists'
-            }
-        }, { immediate: true })
-        unwatchSimpleShindo = watch(simpleShindo, () => {
-            renderAll()
-        })
     }
 }, { immediate: true })
 watch(()=>(statusStore.isActive.cwaEew || statusStore.isActive.tremNet), newVal=>{
@@ -268,8 +259,6 @@ onBeforeUnmount(()=>{
     if(unwatchStationList) unwatchStationList()
     if(unwatchGrids) unwatchGrids()
     if(unwatchRender) unwatchRender()
-    if(unwatchMenuId) unwatchMenuId()
-    if(unwatchSimpleShindo) unwatchSimpleShindo()
     Object.keys(stations).forEach(id=>{
         stations[id].terminate()
         delete stations[id]

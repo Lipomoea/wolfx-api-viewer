@@ -236,10 +236,10 @@ import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
 import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToPolygon, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel } from '@/utils/Utils';
 import { geojsonUrls } from '@/utils/Urls';
-import { booleanPointInPolygon, point } from '@turf/turf';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { isTauri } from '@tauri-apps/api/core';
 import { storeToRefs } from 'pinia';
+import { simpleShindo } from '@/classes/StationClasses';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
@@ -503,6 +503,39 @@ onMounted(()=>{
             }
         }, { immediate: true })
     }
+    watch(menuId, (newVal)=>{
+        document.removeEventListener('mousemove', resetDefaultMenuTimer)
+        if(newVal == defaultMenuId.value){
+            clearTimeout(defaultMenuTimer)
+        }
+        else{
+            resetDefaultMenuTimer()
+            document.addEventListener('mousemove', resetDefaultMenuTimer)
+        }
+        if(newVal == 'eews'){
+            eqlistMarkerPane.style.opacity = 0.3
+            jpTsunamiBasePane.style.opacity = 0.3 * (tsunamiFlickerCounter ? 1 : 0)
+        }
+        else{
+            eqlistMarkerPane.style.opacity = 1
+            jpTsunamiBasePane.style.opacity = 1 * (tsunamiFlickerCounter ? 1 : 0)
+        }
+        if(newVal == 'eqlists'){
+            eewMarkerPane.style.opacity = 0.3 * (blinkStatus ? 1 : 0)
+            wavePane.style.opacity = 0.3
+            waveFillPane.style.opacity = 0.3
+            niedGridPane.style.opacity = 0.3 * (blinkStatus && !statusStore.isActive.jmaEew ? 1 : 0)
+            tremGridPane.style.opacity = 0.3 * (blinkStatus && !statusStore.isActive.cwaEew ? 1 : 0)
+        }
+        else{
+            eewMarkerPane.style.opacity = 1 * (blinkStatus ? 1 : 0)
+            wavePane.style.opacity = 1
+            waveFillPane.style.opacity = 1
+            niedGridPane.style.opacity = 1 * (blinkStatus && !statusStore.isActive.jmaEew ? 1 : 0)
+            tremGridPane.style.opacity = 1 * (blinkStatus && !statusStore.isActive.cwaEew ? 1 : 0)
+        }
+        simpleShindo.value = newVal == 'eqlists'
+    }, { immediate: true })
     intervalEvents()
     mainInterval = setInterval(() => {
         intervalEvents()
@@ -844,38 +877,6 @@ const resetDefaultMenuTimer = ()=>{
         }, 0);
     }, 60 * 1000);
 }
-watch(menuId, (newVal)=>{
-    document.removeEventListener('mousemove', resetDefaultMenuTimer)
-    if(newVal == defaultMenuId.value){
-        clearTimeout(defaultMenuTimer)
-    }
-    else{
-        resetDefaultMenuTimer()
-        document.addEventListener('mousemove', resetDefaultMenuTimer)
-    }
-    if(newVal == 'eews'){
-        eqlistMarkerPane.style.opacity = 0.3
-        jpTsunamiBasePane.style.opacity = 0.3 * (tsunamiFlickerCounter ? 1 : 0)
-    }
-    else{
-        eqlistMarkerPane.style.opacity = 1
-        jpTsunamiBasePane.style.opacity = 1 * (tsunamiFlickerCounter ? 1 : 0)
-    }
-    if(newVal == 'eqlists'){
-        eewMarkerPane.style.opacity = 0.3 * (blinkStatus ? 1 : 0)
-        wavePane.style.opacity = 0.3
-        waveFillPane.style.opacity = 0.3
-        niedGridPane.style.opacity = 0.3 * (blinkStatus && !statusStore.isActive.jmaEew ? 1 : 0)
-        tremGridPane.style.opacity = 0.3 * (blinkStatus && !statusStore.isActive.cwaEew ? 1 : 0)
-    }
-    else{
-        eewMarkerPane.style.opacity = 1 * (blinkStatus ? 1 : 0)
-        wavePane.style.opacity = 1
-        waveFillPane.style.opacity = 1
-        niedGridPane.style.opacity = 1 * (blinkStatus && !statusStore.isActive.jmaEew ? 1 : 0)
-        tremGridPane.style.opacity = 1 * (blinkStatus && !statusStore.isActive.cwaEew ? 1 : 0)
-    }
-})
 let autoZoomInterval
 watch(isAutoZoom, (newVal)=>{
     if(newVal){

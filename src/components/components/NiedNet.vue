@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, inject } from 'vue'
+import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, inject } from 'vue';
 import Http from '@/classes/Http';
 import axios from 'axios';
 import { useStatusStore } from '@/stores/status';
@@ -29,7 +29,6 @@ const delay = ref(defaultDelay)
 const niedMaxShindo = inject('niedMaxShindo')
 const niedUpdateTime = inject('niedUpdateTime')
 const niedPeriodMaxShindo = inject('niedPeriodMaxShindo')
-const menuId = inject('menuId')
 const periodMaxLevel = ref(-1)
 const currentMaxShindo = computed(()=>{
     const currentMaxLevel = Math.max(...Object.keys(grids.value).map(key=>grids.value[key].level), -1)
@@ -225,7 +224,7 @@ onMounted(()=>{
         }
     })
 })
-let unwatchStationList, unwatchGrids, unwatchRender, unwatchMenuId, unwatchSimpleShindo
+let unwatchStationList, unwatchGrids, unwatchRender
 watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
@@ -290,17 +289,9 @@ watch(()=>statusStore.map, newVal=>{
             }
         }, { immediate: true })
         unwatchRender = watch(
-            ()=>`${settingsStore.mainSettings.displaySeisNet.style}|${settingsStore.mainSettings.displaySeisNet.displayNiedShindo}|${settingsStore.mainSettings.displaySeisNet.hideNoData}`, 
+            ()=>`${settingsStore.mainSettings.displaySeisNet.style}|${settingsStore.mainSettings.displaySeisNet.displayNiedShindo}|${settingsStore.mainSettings.displaySeisNet.hideNoData}|${simpleShindo.value}`, 
             renderAll
         )
-        unwatchMenuId = watch(menuId, newVal => {
-            if(simpleShindo.value != (newVal == 'eqlists')) {
-                simpleShindo.value = newVal == 'eqlists'
-            }
-        }, { immediate: true })
-        unwatchSimpleShindo = watch(simpleShindo, () => {
-            renderAll()
-        })
     }
 }, { immediate: true })
 watch(()=>(statusStore.isActive.jmaEew || statusStore.isActive.niedNet), newVal=>{
@@ -374,8 +365,6 @@ onBeforeUnmount(()=>{
     if(unwatchStationList) unwatchStationList()
     if(unwatchGrids) unwatchGrids()
     if(unwatchRender) unwatchRender()
-    if(unwatchMenuId) unwatchMenuId()
-    if(unwatchSimpleShindo) unwatchSimpleShindo()
     stations.forEach((station, index)=>{
         station.terminate()
         stations[index] = null
