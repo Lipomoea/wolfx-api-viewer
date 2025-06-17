@@ -409,6 +409,7 @@ export class EqlistEvent {
             clearTimeout(this.deactivateTimer)
             this.deactivateTimer = setTimeout(() => {
                 this.isActive = false
+                this.showMenu = false
             }, time);
         }
     }
@@ -479,5 +480,6 @@ export class EqlistEvent {
     deactivate() {
         clearTimeout(this.deactivateTimer)
         this.isActive = false
+        this.showMenu = false
     }
 }

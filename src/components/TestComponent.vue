@@ -851,6 +851,9 @@ onMounted(async ()=>{
             i++
             if(i < limit) {
                 const data = res[i]
+                const time = new Date()
+                time.setHours(time.getHours() + 1)
+                data.issue.time = time.toLocaleString()
                 statusStore.setEqMessage(source, data)
             }
         }, 10000);
