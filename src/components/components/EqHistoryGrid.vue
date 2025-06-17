@@ -181,7 +181,6 @@ onBeforeUnmount(()=>{
                 display: flex;
                 justify-content: space-between;
                 .timeDepth{
-                    width: 100%;
                     .time,.depth{
                         width: 100%;
                         font-size: 1.1em;
