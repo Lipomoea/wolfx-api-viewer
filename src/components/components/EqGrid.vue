@@ -34,6 +34,7 @@ const activeEewList = inject('activeEewList')
 const eqlistList = inject('eqlistList')
 const isAutoZoom = inject('isAutoZoom')
 const setView = inject('setView')
+const handleTempEqlists = inject('handleTempEqlists')
 const timeStore = useTimeStore()
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
@@ -95,7 +96,7 @@ watch(eqMessage, (newVal)=>{
             if(i == activeEewList.length){
                 if(statusStore.map){
                     if(time > 0 && (props.source != 'gqEew' || (newVal.magnitude >= settingsStore.mainSettings.gqActionMag || newVal.maxIntensity >= settingsStore.mainSettings.gqActionCsis))) {
-                        const newEvent = reactive(new EewEvent(statusStore.map, Object.assign({}, newVal), activeEewList))
+                        const newEvent = reactive(new EewEvent(statusStore.map, Object.assign({}, newVal), activeEewList, handleTempEqlists))
                         activeEewList.unshift(newEvent)
                         newEvent.update(Object.assign({}, newVal), time, true)
                     }
@@ -114,7 +115,7 @@ watch(eqMessage, (newVal)=>{
         }
         if(i == eqlistList.length){
             if(statusStore.map){
-                const newEvent = reactive(new EqlistEvent(statusStore.map, Object.assign({}, newVal)))
+                const newEvent = reactive(new EqlistEvent(statusStore.map, Object.assign({}, newVal), handleTempEqlists))
                 eqlistList.unshift(newEvent)
                 newEvent.update(Object.assign({}, newVal), time)
             }

@@ -856,7 +856,7 @@ onMounted(async ()=>{
                 data.issue.time = time.toLocaleString()
                 statusStore.setEqMessage(source, data)
             }
-        }, 10000);
+        }, 8000);
     }
     if(testJmaTsunami){
         const source = 'jmaTsunami'

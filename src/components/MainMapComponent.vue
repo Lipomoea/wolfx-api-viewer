@@ -266,6 +266,7 @@ const handleTempEqlists = (time) => {
         tempEqlists.value = false
     }
 }
+provide('handleTempEqlists', handleTempEqlists)
 const defaultMenuId = computed(() => {
     let defaultMenuId = 'main'
     if(settingsStore.mainSettings.cinemaMode) {
@@ -479,26 +480,12 @@ onMounted(()=>{
         cnFaultBasePane.style.display = newVal ? 'block' : 'none'
     }, { immediate: true })
     if(settingsStore.mainSettings.cinemaMode) {
-        statusStore.enabledSource.forEach(key => {
-            let isLoad = true
-            if(!key.includes('Tsunami')) {
-                watch(() => statusStore.eqMessage[key], () => {
-                    if(isLoad) isLoad = false
-                    else handleTempEqlists(key.includes('Eqlist') ? 6500 : 0)
-                }, { deep: true })
-            }
-            else {
-                watch(() => statusStore.tsunamiMessage[key], () => {
-                    handleTempEqlists(15000)
-                }, { deep: true })
-            }
-        })
         watch(defaultMenuId, newVal => {
-            if(menuId.value != 'settings') {
+            if(menuId.value != 'settings' && isAutoZoom.value) {
                 menuId.value = newVal
                 setTimeout(() => {
                     map.invalidateSize()
-                    if(isAutoZoom.value) setView()
+                    setView()
                 }, 0);
             }
         }, { immediate: true })

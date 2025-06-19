@@ -36,12 +36,13 @@
 <script setup>
 import { defaultTsunamiMessage, useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
-import { computed, watch } from 'vue';
+import { computed, watch, inject } from 'vue';
 import { focusWindow, openUrl, playSound, sendMyNotification } from '@/utils/Utils';
 import { iconUrls, tsunamiUrls } from '@/utils/Urls';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
+const handleTempEqlists = inject('handleTempEqlists')
 const warnAreaByGrade = computed(() => {
     const warnAreaByGrade = {}
     const warnArea = JSON.parse(statusStore.tsunamiMessage.jmaTsunami.warnArea)
@@ -140,6 +141,7 @@ watch(() => statusStore.map, newVal => {
             if(focus && shouldFocus) {
                 focusWindow()
             }
+            if(shouldFocus) handleTempEqlists(15000)
             Object.assign(oldMessage, newMessage)
         }, { immediate: true, deep: true })
     }

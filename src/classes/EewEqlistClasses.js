@@ -64,7 +64,7 @@ let settingsStore
 export const ignoredIds = new Set()
 
 export class EewEvent {
-    constructor(map, eqMessage, activeEewList){
+    constructor(map, eqMessage, activeEewList, handleTempEqlists){
         this.map = map
         if(!settingsStore) settingsStore = useSettingsStore()
         this.eqMessage = eqMessage
@@ -88,6 +88,7 @@ export class EewEvent {
             lastSecondsCount: settingsStore.mainSettings.countdownStart + 1
         }
         this.maxRadius = 2000
+        this.handleTempEqlists = handleTempEqlists
     }
     setMark(){
         if(this.hypoMarker && this.map.hasLayer(this.hypoMarker)) this.map.removeLayer(this.hypoMarker)
@@ -362,6 +363,7 @@ export class EewEvent {
                 icon, 
                 settingsStore.mainSettings.muteNotification)
         }
+        this.handleTempEqlists(0)
     }
     handleCountdown(passedTime){
         if(settingsStore.mainSettings.displayCountdown && this.isValidUserLatLng && (this.userDist <= this.maxRadius && !this.eqMessage.isAssumption || settingsStore.mainSettings.forceDisplayCountdown)){
@@ -390,13 +392,14 @@ export class EewEvent {
     }
 }
 export class EqlistEvent {
-    constructor(map, eqMessage){
+    constructor(map, eqMessage, handleTempEqlists){
         this.map = map
         if(!settingsStore) settingsStore = useSettingsStore()
         this.eqMessage = eqMessage
         this.isActive = false
         this.useJst = eqMessage.source.includes('jma')
         this.showMenu = false
+        this.handleTempEqlists = handleTempEqlists
     }
     update(eqMessage, time){
         Object.assign(this.eqMessage, eqMessage)
@@ -476,6 +479,7 @@ export class EqlistEvent {
                 icon, 
                 settingsStore.mainSettings.muteNotification)
         }
+        this.handleTempEqlists(6500)
     }
     deactivate() {
         clearTimeout(this.deactivateTimer)
