@@ -20,8 +20,7 @@
                                     <div class="bottom">
                                         <div class="magnitude">{{ event.eqMessage.isAssumption?'仮定震源要素':'M' + event.eqMessage.magnitude.toFixed(1) }}</div>
                                         <div class="depth">{{ event.eqMessage.isAssumption?'':event.eqMessage.depthText }}</div>
-                                        <div class="type" v-if="settingsStore.advancedSettings.multiApi && event.eqMessage.source != 'gqEew'">type: {{ event.eqMessage.type }}</div>
-                                        <div class="type" v-if="event.eqMessage.source == 'gqEew'">quality: {{ event.eqMessage.type }}</div>
+                                        <div class="type">{{ event.eqMessage.source == 'gqEew' ? 'q' : 't' }}: {{ event.eqMessage.type }}</div>
                                     </div>
                                 </div>
                                 <div class="eew-buttons" v-if="event.showMenu">
@@ -151,6 +150,7 @@
                     <div class="ws-status">
                         WebSocket状态: 
                         <div class="dot" :class="'s' + wolfxRS"></div>
+                        <div class="dot" :class="'s' + fanRS"></div>
                         <div class="dot" :class="'s' + p2pquakeRS"></div>
                         <div v-if="settingsStore.advancedSettings.enableGqEew" class="dot" :class="'s' + gqRS"></div>
                     </div>
@@ -322,6 +322,7 @@ const handleMenu = (index)=>{
 }
 provide('handleHome', handleHome)
 const wolfxRS = ref(4)
+const fanRS = ref(4)
 const p2pquakeRS = ref(4)
 const gqRS = ref(4)
 const niedUpdateTime = ref('1970-01-01 09:00:00')
@@ -691,6 +692,7 @@ const intervalEvents = ()=>{
     isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
     isTremDelayed.value = !verifyUpToDate(tremUpdateTime.value, 8, 10000)
     wolfxRS.value = statusStore.wolfxSocket?.socket.readyState ?? 4
+    fanRS.value = statusStore.fanSocket?.socket.readyState ?? 4
     p2pquakeRS.value = statusStore.p2pquakeSocket?.socket.readyState ?? 4
     gqRS.value = statusStore.gqSocket?.socket.readyState ?? 4
 }
@@ -707,7 +709,7 @@ const setView = (force = false)=>{
         const bounds = L.latLngBounds([])
         //Eew和SeisNet
         if(menuId.value != 'eqlists'){
-            map.eachLayer(layer=>{
+            map?.eachLayer(layer=>{
                 if(['waveFillPane', 'eewMarkerPane'].includes(layer.options.pane)){
                     if(layer.getBounds){
                         bounds.extend(layer.getBounds())
@@ -751,7 +753,7 @@ const setView = (force = false)=>{
                     if(event.isValidHypo){
                         bounds.extend(event.hypoLatLng)
                     }
-                    jpEewBaseMap.eachLayer(layer => {
+                    jpEewBaseMap?.eachLayer(layer => {
                         if(layer.options.fillColor && layer.options.fillColor != '#55555500') {
                             if(layer.getBounds){
                                 bounds.extend(layer.getBounds())
@@ -775,7 +777,7 @@ const setView = (force = false)=>{
         }
         //不活跃的Eqlist
         if(!bounds.isValid() && menuId.value == 'eqlists') {
-            map.eachLayer(layer => {
+            map?.eachLayer(layer => {
                 if(layer.options.pane == 'eqlistMarkerPane' || 
                 layer.options.pane.includes('EewBasePane') && layer.options.fillColor && layer.options.fillColor != '#55555500'){
                     if(layer.getBounds){

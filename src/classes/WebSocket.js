@@ -10,7 +10,7 @@ class WebSocketObj {
         this.pingTimer = null
         if(isAutoPing) {
             this.pingTimer = setInterval(() => {
-                this.ping()
+                this.send('ping')
             }, 60000);
         }
     }
@@ -62,9 +62,9 @@ class WebSocketObj {
             this.socket.close()
         }
     }
-    ping(){
+    send(msg){
         if(this.socket.readyState == 1){
-            this.socket.send('ping')
+            this.socket.send(msg)
         }
     }
 }

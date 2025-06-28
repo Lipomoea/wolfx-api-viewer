@@ -1,13 +1,9 @@
 export const eqUrls = {
-    scEew_http: 'https://api.wolfx.jp/sc_eew.json',
-    jmaEew_http: 'https://api.wolfx.jp/jma_eew.json',
-    fjEew_http: 'https://api.wolfx.jp/fj_eew.json',
-    cwaEew_http: 'https://api.wolfx.jp/cwa_eew.json',
-    cencEqlist_http: 'https://api.wolfx.jp/cenc_eqlist.json',
     jmaEqlist_http: 'https://api.p2pquake.net/v2/history?codes=551&limit=1',
     cencEqlistHistory: 'https://api.wolfx.jp/cenc_eqlist.json',
     jmaEqlistHistory: 'https://api.wolfx.jp/jma_eqlist.json',
     wolfx_ws: 'wss://ws-api.wolfx.jp/all_eew',
+    fan_ws: 'wss://ws.fanstudio.tech/all',
     p2pquake_ws: 'wss://api.p2pquake.net/v2/ws'
 }
 export const tsunamiUrls = {

@@ -532,7 +532,7 @@
                     <div class="row" v-if="settingsStore.advancedSettings.displayMultiApi">
                         <div class="switch-group">
                             <div class="switch">
-                                <span>融合数据源（实验性）</span>
+                                <span>更多数据源</span>
                                 <el-popover
                                     placement="top"
                                     :width="300"
@@ -541,11 +541,11 @@
                                     <template #reference>
                                         <question-filled width="1em" height="1em"></question-filled>
                                     </template>
-                                    <p>使得部分数据源支持同时接入多个API。</p>
+                                    <p>使得部分数据源支持从更多API获取数据。</p>
                                     <strong>
                                         <p>能够在部分情况下降低数据延迟，但部分信息可能缺失。</p>
                                         <p>会轻微增加流量消耗。</p>
-                                        <p>当前为实验性功能，可能导致意外的bug。</p>
+                                        <p>可能导致意外的bug。</p>
                                         <p>需重新加载页面后生效。</p>
                                     </strong>
                                 </el-popover>
@@ -715,10 +715,10 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false" append-to-body>
-            <div class="header">要石 v2.2.0-pre.1</div>
+            <div class="header">要石 v2.2.0-pre.2</div>
             <div class="title">最近更新</div>
             <div class="about">
-                <p>v2.2.0 新增：单击信息框可静默或关闭正在生效的地震预警或地震信息。优化：使用更精细的台湾地图；降低部分平台下应用处于后台的功耗。修复：WebSocket连接时小概率数据丢失的问题；macOS客户端无法打开网页的问题；特定情况下macOS客户端从后台切回前台时卡住的问题。</p>
+                <p>v2.2.0 变更：引入Fan Studio API；弃用部分HTTP接口。新增：单击信息框可静默或关闭正在生效的地震预警或地震信息。优化：使用更精细的中国地图；降低部分平台下应用处于后台的功耗。修复：WebSocket连接时小概率数据丢失的问题；macOS客户端无法打开网页的问题；特定情况下macOS客户端从后台切回前台时卡住的问题。</p>
                 <p>v2.1.0 新增：适配macOS应用程序；新增：区域烈度列表显示功能；新增：UI缩放比例调整；新增：中文倒计时播报；新增：可调整开始倒计时的秒数；优化：适当提升了应用程序窗口可调整的大小范围；优化：部分走时精准度；优化：部分测站渲染性能；优化：地震波绘制性能；修复：版本号检测逻辑错误的bug；修复：Safari等浏览器下，部分界面显示异常的问题。</p>
                 <p>v2.0.0 变更：版本号变更为正式版；优化：新增“混合”测站风格。</p>
             </div>

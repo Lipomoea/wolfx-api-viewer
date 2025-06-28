@@ -42,7 +42,7 @@ const useJst = props.source.includes('jma')
 const eqMessage = computed(()=>statusStore.eqMessage[props.source])
 
 const handleClick = ()=>{
-    openUrl(eqUrls[props.source + '_http'])
+    // openUrl(eqUrls[props.source + '_http'])
 }
 
 onBeforeUnmount(()=>{

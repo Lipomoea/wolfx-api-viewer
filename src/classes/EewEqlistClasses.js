@@ -462,7 +462,7 @@ export class EqlistEvent {
                     break
                 }
                 case 'cencEqlist':{
-                    if(eqMessage.title != 'reviewed'){
+                    if(eqMessage.title == '中国地震台网自动测定'){
                         playSound("hypocenter")
                     }
                     else{
