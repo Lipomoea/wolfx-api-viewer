@@ -532,7 +532,7 @@
                     <div class="row" v-if="settingsStore.advancedSettings.displayMultiApi">
                         <div class="switch-group">
                             <div class="switch">
-                                <span>更多数据源</span>
+                                <span>更多API</span>
                                 <el-popover
                                     placement="top"
                                     :width="300"
