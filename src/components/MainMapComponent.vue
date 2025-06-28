@@ -20,7 +20,7 @@
                                     <div class="bottom">
                                         <div class="magnitude">{{ event.eqMessage.isAssumption?'仮定震源要素':'M' + event.eqMessage.magnitude.toFixed(1) }}</div>
                                         <div class="depth">{{ event.eqMessage.isAssumption?'':event.eqMessage.depthText }}</div>
-                                        <div class="type">{{ event.eqMessage.source == 'gqEew' ? 'q' : 't' }}: {{ event.eqMessage.type }}</div>
+                                        <div class="type">{{ event.eqMessage.source == 'gqEew' ? 'q' : 't' }}{{ event.eqMessage.type }}</div>
                                     </div>
                                 </div>
                                 <div class="eew-buttons" v-if="event.showMenu">
