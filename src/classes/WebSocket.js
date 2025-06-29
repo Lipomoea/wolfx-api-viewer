@@ -9,6 +9,11 @@ class WebSocketObj {
         this.timer = null
         this.msgTimer = null
         if(autoMessages.length > 0) {
+            this.socket.onopen = () => {
+                autoMessages.forEach(msg => {
+                    this.send(msg)
+                })
+            }
             this.msgTimer = setInterval(() => {
                 autoMessages.forEach(msg => {
                     this.send(msg)
@@ -17,9 +22,7 @@ class WebSocketObj {
         }
     }
     setupWebSocket(){
-        this.socket.onopen = ()=>{
-            // console.log(`${this.url} 连接成功`)
-        }
+        this.socket.onopen = null
         this.socket.onerror = ()=>{
             // console.log(`${this.url} 连接失败`)
             clearTimeout(this.timer)
