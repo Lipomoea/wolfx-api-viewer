@@ -154,10 +154,10 @@
                         <div class="dot" :class="'s' + p2pquakeRS"></div>
                         <div v-if="settingsStore.advancedSettings.enableGqEew" class="dot" :class="'s' + gqRS"></div>
                     </div>
-                    <div class="nied-update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isNiedDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.nied">
+                    <div class="update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isNiedDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.nied" @dblclick="resetSeisNetDelay">
                         強震モニタ: {{ niedUpdateTime }} (UTC+9)
                     </div>
-                    <div class="trem-update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isTremDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.trem">
+                    <div class="update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isTremDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.trem" @dblclick="resetSeisNetDelay">
                         TREM-Net : {{ tremUpdateTime }} (UTC+8)
                     </div>
                 </div>
@@ -253,6 +253,7 @@ const viewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.map(val=>N
 const zoomLevel = computed(()=>settingsStore.mainSettings.defaultZoom)
 const tempEqlists = ref(false)
 let tempEqlistsTimer
+const resetSeisNetDelay = () => settingsStore.mainSettings.displaySeisNet.delay = 0
 const handleTempEqlists = (time) => {
     if(time) {
         tempEqlists.value = true
@@ -1187,6 +1188,7 @@ onBeforeUnmount(()=>{
                 font-size: 18px;
                 color: #ffffff;
                 pointer-events: none;
+                user-select: none;
                 .legend{
                     width: 90px;
                     background-color: #5555553f;
@@ -1198,7 +1200,6 @@ onBeforeUnmount(()=>{
                     border-radius: 5px;
                     box-shadow: 0px 0px 2px 1px #555;
                     backdrop-filter: blur(10px);
-                    user-select: none;
                     .align-right{
                         text-align: right;
                         padding-right: 2px;
@@ -1230,7 +1231,7 @@ onBeforeUnmount(()=>{
                 .ws-status{
                     display: flex;
                     align-items: center;
-                    gap: 5px;
+                    column-gap: 5px;
                     .dot{
                         width: 10px;
                         height: 10px;
@@ -1249,6 +1250,9 @@ onBeforeUnmount(()=>{
                     .s4{
                         background-color: white;
                     }
+                }
+                .update-time{
+                    pointer-events: auto;
                 }
                 .delayed{
                     color: red;

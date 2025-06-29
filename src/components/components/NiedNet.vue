@@ -82,6 +82,7 @@ const getData = async (url)=>{
     }
 }
 let pendingRender = false
+const activityThresArr = [Infinity, 7, 11, 13, 13, 13]
 const update = ()=>{
     if(stationList.value.length == stations.length && stations.length == stationData.value.length){
         let maxLevel = -1
@@ -104,15 +105,15 @@ const update = ()=>{
                 switch(settingsStore.mainSettings.displaySeisNet.niedSensitivity) {
                     case 1:
                         numThres = 3
-                        activityThres = 12 + 0.5 * nearbyStations.length
+                        activityThres = activityThresArr[nearbyStations.length] + 2
                         break
                     case 2:
-                        numThres = nearbyStations.length <= 1 ? 1 : nearbyStations.length <= 6 ? 2 : 3
-                        activityThres = 10 + 0.5 * nearbyStations.length
+                        numThres = nearbyStations.length <= 1 ? 1 : 2
+                        activityThres = activityThresArr[nearbyStations.length]
                         break
                     case 3:
                         numThres = nearbyStations.length <= 2 ? 1 : 2
-                        activityThres = 8 + 0.5 * nearbyStations.length
+                        activityThres = activityThresArr[nearbyStations.length] - 2
                         break
                     default:
                         return
@@ -241,9 +242,10 @@ watch(()=>statusStore.map, newVal=>{
                         const distance = latLngs[i].distanceTo(latLngs[j]) / 1000
                         if(distance <= 30) distances.push({ id: j, distance })
                     }
-                    distances.sort((a, b) => a.distance - b.distance).splice(7)
+                    distances.sort((a, b) => a.distance - b.distance).splice(5)
                     adjStationIds[i] = distances.map(obj => obj.id)
-                    expireSeconds[i] = Math.max(Math.ceil(distances[distances.length - 1].distance / 3.5), 6)
+                    const avgDist = distances.length <= 1 ? 0 : distances.reduce((sum, curr) => sum + curr.distance, 0) / (distances.length - 1)
+                    expireSeconds[i] = Math.max(Math.round(avgDist / 3.5) + 3, 7)
                 }
                 newVal.forEach((latLng, index)=>{
                     const station = reactive(new NiedStation(map, index, latLng, 'c', expireSeconds[index]))

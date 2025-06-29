@@ -1,6 +1,6 @@
 <template>
     <div class="outer">
-        <div class="container" @click="handleClick">
+        <div class="container" @dblclick="handleDblClick">
             <div class="bg" :class="className"></div>
             <div class="intensity">{{ eqMessage.maxIntensity }}</div>
             <div class="text title">{{ formatText(eqMessage.titleText) }}</div>
@@ -16,9 +16,8 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, ref, reactive, computed, watch, inject } from 'vue'
+import { onBeforeUnmount, ref, reactive, computed, watch, inject } from 'vue';
 import { formatText, msToTime, calcPassedTime, judgeSameEvent, openUrl } from '@/utils/Utils';
-import { eqUrls } from '@/utils/Urls';
 import { EewEvent, EqlistEvent, ignoredIds } from '@/classes/EewEqlistClasses';
 import { useTimeStore } from '@/stores/time';
 import { useStatusStore } from '@/stores/status';
@@ -41,8 +40,8 @@ const settingsStore = useSettingsStore()
 const useJst = props.source.includes('jma')
 const eqMessage = computed(()=>statusStore.eqMessage[props.source])
 
-const handleClick = ()=>{
-    // openUrl(eqUrls[props.source + '_http'])
+const handleDblClick = ()=>{
+    settingsStore.mainSettings.displaySeisNet.delay = Math.max(Math.round(passedTimeFromOrigin.value / 6000) / 10 + 0.1, 0)
 }
 
 onBeforeUnmount(()=>{
@@ -134,7 +133,7 @@ watch(eqMessage, (newVal)=>{
         }, time);
     }
 }, { deep: true })
-const passedTimeFromOrigin = ref()
+const passedTimeFromOrigin = ref(0)
 watch(()=>timeStore.currentTime, ()=>{
     if(useJst){
         passedTimeFromOrigin.value = calcPassedTime(eqMessage.value.originTime, 9)
