@@ -750,15 +750,10 @@ export const useStatusStore = defineStore('statusStore', {
             else if(protocol == 'ws'){
                 if(this.wolfxSocket) this.wolfxSocket.close()
                 if(this.activeWolfxSource.length > 0) {
-                    this.wolfxSocket = new WebSocketObj(eqUrls.wolfx_ws)
+                    this.wolfxSocket = new WebSocketObj(eqUrls.wolfx_ws, this.activeWolfxSource.map(source => `query_${source.toLowerCase()}`))
                     this.wolfxSocket.setMessageHandler((e)=>{
                         let data = JSON.parse(e.data)
-                        if(data.type == 'heartbeat'){
-                            this.activeWolfxSource.forEach(source => {
-                                this.wolfxSocket.send(`query_${source.toLowerCase()}`)
-                            })
-                        }
-                        else {
+                        if(data.type != 'heartbeat'){
                             const source = wolfx2Source[data.type]
                             if(source && this.activeWolfxSource.includes(source)) this.setEqMessage(source, data)
                         }
@@ -766,13 +761,10 @@ export const useStatusStore = defineStore('statusStore', {
                 }
                 if(this.fanSocket) this.fanSocket.close()
                 if(this.activeFanSource.length > 0) {
-                    this.fanSocket = new WebSocketObj(eqUrls.fan_ws)
+                    this.fanSocket = new WebSocketObj(eqUrls.fan_ws, ['query'])
                     this.fanSocket.setMessageHandler((e)=>{
                         let data = JSON.parse(e.data)
-                        if(data.type == 'heartbeat'){
-                            this.fanSocket.send('query')
-                        }
-                        else if(data.type == 'initial_all' || data.type == 'query_response') {
+                        if(data.type == 'initial_all' || data.type == 'query_response') {
                             this.activeFanSource.forEach(source => {
                                 this.setEqMessage(source, data[source2Fan[source]].Data, 1)
                             })
@@ -800,7 +792,7 @@ export const useStatusStore = defineStore('statusStore', {
                 }
                 if(this.gqSocket) this.gqSocket.close()
                 if(this.enabledSource.includes('gqEew') && 'gqEew_ws' in eqUrls) {
-                    this.gqSocket = new WebSocketObj(eqUrls.gqEew_ws, true)
+                    this.gqSocket = new WebSocketObj(eqUrls.gqEew_ws, ['ping'])
                     this.gqSocket.setMessageHandler((e)=>{
                         let data = JSON.parse(e.data)
                         if(data.RevisionId) this.setEqMessage('gqEew', data)
