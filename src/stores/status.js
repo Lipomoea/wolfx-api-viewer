@@ -777,7 +777,7 @@ export const useStatusStore = defineStore('statusStore', {
                 }
                 if(this.p2pquakeSocket) this.p2pquakeSocket.close()
                 if(this.activeP2pquakeSource.length > 0) {
-                    this.p2pquakeSocket = new WebSocketObj(eqUrls.p2pquake_ws)
+                    this.p2pquakeSocket = new WebSocketObj(eqUrls.p2pquake_ws, ['ping'])
                     this.p2pquakeSocket.setMessageHandler((e)=>{
                         let data = JSON.parse(e.data)
                         switch(data.code) {
