@@ -1253,6 +1253,7 @@ onBeforeUnmount(()=>{
                 }
                 .update-time{
                     pointer-events: auto;
+                    cursor: default;
                 }
                 .delayed{
                     color: red;
