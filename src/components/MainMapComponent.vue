@@ -20,7 +20,7 @@
                                     <div class="bottom">
                                         <div class="magnitude">{{ event.eqMessage.isAssumption?'仮定震源要素':'M' + event.eqMessage.magnitude.toFixed(1) }}</div>
                                         <div class="depth">{{ event.eqMessage.isAssumption?'':event.eqMessage.depthText }}</div>
-                                        <div class="type">{{ event.eqMessage.source == 'gqEew' ? 'q' : 't' }}{{ event.eqMessage.type }}</div>
+                                        <div class="type">{{ types[event.eqMessage.source][event.eqMessage.type] }}</div>
                                     </div>
                                 </div>
                                 <div class="eew-buttons" v-if="event.showMenu">
@@ -251,9 +251,43 @@ let userMarker
 const isValidViewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.every(item=>item !== ''))
 const viewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.map(val=>Number(val)))
 const zoomLevel = computed(()=>settingsStore.mainSettings.defaultZoom)
+const resetSeisNetDelay = () => settingsStore.mainSettings.displaySeisNet.delay = 0
+const types = {
+    jmaEew: {
+        0: 'Wolfx',
+        1: 'NIED'
+    },
+    cwaEew: {
+        0: 'Wolfx',
+        1: 'TREM'
+    },
+    ceaEew: {
+        1: 'FAN'
+    },
+    iclEew: {
+        0: 'Lipo',
+        1: 'FAN'
+    },
+    scEew: {
+        0: 'Wolfx',
+        1: 'FAN'
+    },
+    fjEew: {
+        0: 'Wolfx',
+        1: 'FAN'
+    },
+    gqEew: {
+        0: 'S',
+        1: 'A',
+        2: 'B',
+        3: 'C',
+        4: 'D',
+        5: 'E',
+        6: 'F'
+    }
+}
 const tempEqlists = ref(false)
 let tempEqlistsTimer
-const resetSeisNetDelay = () => settingsStore.mainSettings.displaySeisNet.delay = 0
 const handleTempEqlists = (time) => {
     if(time) {
         tempEqlists.value = true

@@ -710,11 +710,11 @@ export const useStatusStore = defineStore('statusStore', {
                     const stamp = Date.now()
                     const status = Math.floor(stamp / 1000) % 10
                     const promises = this.enabledSource.map(async source=>{
-                        if(source == 'jmaEqlist' && (this.p2pquakeSocket?.socket.readyState != 1 || !this.eqMessage[source].id || status == 0) && status % 2 == 0) {
+                        if(source == 'jmaEqlist' && status % 2 == 0 && (!this.eqMessage[source].id || status == 0)) {
                             const data = await Http.get(eqUrls[source + '_http'] + `&time=${Date.now()}`)
                             if(data && data.length > 0) this.setEqMessage(source, data[0])
                         }
-                        if(source == 'jmaTsunami' && (this.p2pquakeSocket?.socket.readyState != 1 || !this.tsunamiMessage[source].id || status == 1) && status % 2 == 1) {
+                        if(source == 'jmaTsunami' && status % 2 == 1 && (!this.tsunamiMessage[source].id || status == 1)) {
                             const data = await Http.get(tsunamiUrls[source + '_http'] + `&time=${Date.now()}`)
                             if(data && data.length > 0) this.setTsunamiMessage(source, data[0])
                         }
