@@ -17,8 +17,9 @@ icon是《铃芽之旅》的草太さん（椅子形态）。
 ## 注意事项
 * 使用本网页前，请详细阅读网页“设置”-“帮助&关于”中的内容。
 ## 数据来源
-* 地震预警、地震信息（除JMA地震情报）、IP定位、NTP时间：[Wolfx Open API](https://wolfx.jp/apidoc)（请注意参考接口文档）
-* 地震信息（JMA地震情报）、JMA海啸情报：[P2PQuake](https://www.p2pquake.net/develop/json_api_v2/#/P2P%E5%9C%B0%E9%9C%87%E6%83%85%E5%A0%B1%20API/get_history)
+* 地震预警、IP定位、NTP时间：[Wolfx Open API](https://wolfx.jp/apidoc)（请注意参考接口文档）
+* JMA地震情报、JMA海啸情报：[P2PQuake](https://www.p2pquake.net/develop/json_api_v2/#/P2P%E5%9C%B0%E9%9C%87%E6%83%85%E5%A0%B1%20API/get_history)
+* CENC地震信息：[FAN Studio API](https://api.fanstudio.tech/doc/wsapi/)
 * 強震モニタ震度数据：[Yahoo!天気・災害](https://typhoon.yahoo.co.jp/weather/jp/earthquake/kyoshin/)
 * 中国地图：[阿里云DataV.GeoAtlas](https://datav.aliyun.com/portal/school/atlas/area_selector)
 * 中国断层：[国家地震科学数据中心](https://data.earthquake.cn/datashare/report.shtml?PAGEID=datasourcelist&dt=ff808082845b8fd401845bf036a1000c)

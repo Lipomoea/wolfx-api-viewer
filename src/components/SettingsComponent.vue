@@ -64,7 +64,7 @@
                                     <el-option label="高" :value="3"></el-option>
                                 </el-select>
                             </div>
-                            <div class="switch" v-if="settingsStore.advancedSettings.displayNiedShindoSwitch">
+                            <div class="switch">
                                 <el-checkbox v-model="settingsStore.mainSettings.displaySeisNet.displayNiedShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.nied">解析震度阶</el-checkbox>
                             </div>
                         </div>
@@ -718,7 +718,7 @@
             <div class="header">要石 v2.2.0-pre.2</div>
             <div class="title">最近更新</div>
             <div class="about">
-                <p>v2.2.0 变更：引入Fan Studio API；弃用部分HTTP接口。新增：单击信息框可静默或关闭正在生效的地震预警或地震信息。优化：使用更精细的中国地图；降低部分平台下应用处于后台的功耗。修复：WebSocket连接时小概率数据丢失的问题；macOS客户端无法打开网页的问题；特定情况下macOS客户端从后台切回前台时卡住的问题。</p>
+                <p>v2.2.0 变更：引入FAN Studio API；弃用部分HTTP接口。新增：单击信息框可静默或关闭正在生效的地震预警或地震信息；双击侧边栏地震预警/地震信息框可快速进行测站回放，双击左下角测站时间可重置。优化：使用更精细的中国地图；降低部分平台下应用处于后台的功耗。修复：WebSocket连接时小概率数据丢失的问题；macOS客户端无法打开网页的问题；特定情况下macOS客户端从后台切回前台时卡住的问题。</p>
                 <p>v2.1.0 新增：适配macOS应用程序；新增：区域烈度列表显示功能；新增：UI缩放比例调整；新增：中文倒计时播报；新增：可调整开始倒计时的秒数；优化：适当提升了应用程序窗口可调整的大小范围；优化：部分走时精准度；优化：部分测站渲染性能；优化：地震波绘制性能；修复：版本号检测逻辑错误的bug；修复：Safari等浏览器下，部分界面显示异常的问题。</p>
                 <p>v2.0.0 变更：版本号变更为正式版；优化：新增“混合”测站风格。</p>
             </div>
@@ -748,7 +748,7 @@
                 <p>联系我：<a href="https://space.bilibili.com/316757498" target="_blank">リッポミャ</a>（哔哩哔哩）</p>
                 <p>Github：<a href="https://github.com/Lipomoea/kanameishi" target="_blank">https://github.com/Lipomoea/kanameishi</a></p>
                 <p>特别鸣谢：</p>
-                <p>Wolfx Open API、P2P地震情報：接口支持。</p>
+                <p>Wolfx Open API、FAN Studio API、P2P地震情報：接口支持。</p>
                 <p>kotoho7：SREV音效支持。音效遵循<a href="https://creativecommons.org/licenses/by-sa/2.0/deed.zh-hans" target="_blank">CC BY-SA 2.0 DEED</a>许可协议，未进行二次加工。</p>
                 <p>地牛WakeUp：中文倒计时播报素材。台湾地区欢迎下载<a href="https://eew.earthquake.tw/" target="_blank">地牛Wake Up！</a>获得更稳定的预警体验。</p>
             </div>
@@ -910,15 +910,6 @@ const idForm = reactive({
 })
 const handleAdvance = (val)=>{
     switch(val){
-        case 'displayNiedShindo': {
-            settingsStore.advancedSettings.displayNiedShindoSwitch = true
-            break
-        }
-        case 'hideNiedShindo': {
-            settingsStore.mainSettings.displaySeisNet.displayNiedShindo = false
-            settingsStore.advancedSettings.displayNiedShindoSwitch = false
-            break
-        }
         case 'enableCeaEew': {
             verifyType = 'enableCeaEew'
             verifyDialog.value = true

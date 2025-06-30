@@ -41,7 +41,7 @@ const useJst = props.source.includes('jma')
 const eqMessage = computed(()=>statusStore.eqMessage[props.source])
 
 const handleDblClick = ()=>{
-    settingsStore.mainSettings.displaySeisNet.delay = Math.max(Math.round(passedTimeFromOrigin.value / 6000) / 10 + 0.1, 0)
+    settingsStore.mainSettings.displaySeisNet.delay = Math.max(Math.round(passedTimeFromOrigin.value / 600) / 100 + 0.1, 0)
 }
 
 onBeforeUnmount(()=>{

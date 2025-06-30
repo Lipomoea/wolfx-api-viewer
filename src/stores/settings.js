@@ -83,7 +83,6 @@ export const useSettingsStore = defineStore('settingsStore', {
             autoRefresh: false
         },
         advancedSettings: {
-            displayNiedShindoSwitch: false,
             enableCeaEew: false,
             enableIclEew: false,
             enableTremFunctions: false,
