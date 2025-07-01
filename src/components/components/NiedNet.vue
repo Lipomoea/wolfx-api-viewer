@@ -44,6 +44,7 @@ const currentMaxShindo = computed(()=>{
 })
 let adjStationIds = {}
 let expireSeconds = {}
+let isDense = {}
 const activeStations = computed(()=>{
     let list = []
     stations.forEach(station=>{
@@ -104,11 +105,11 @@ const update = ()=>{
                 let numThres, activityThres
                 switch(settingsStore.mainSettings.displaySeisNet.niedSensitivity) {
                     case 1:
-                        numThres = 3
+                        numThres = isDense[station.id] ? 3 : 2
                         activityThres = activityThresArr[nearbyStations.length] + 2
                         break
                     case 2:
-                        numThres = nearbyStations.length <= 1 ? 1 : 2
+                        numThres = nearbyStations.length <= 1 ? 1 : isDense[station.id] ? 3 : 2
                         activityThres = activityThresArr[nearbyStations.length]
                         break
                     case 3:
@@ -244,6 +245,7 @@ watch(()=>statusStore.map, newVal=>{
                     }
                     distances.sort((a, b) => a.distance - b.distance).splice(5)
                     adjStationIds[i] = distances.map(obj => obj.id)
+                    isDense[i] = distances.length == 5 && distances[4].distance <= 17.5
                     const avgDist = distances.length <= 1 ? 0 : distances.reduce((sum, curr) => sum + curr.distance, 0) / (distances.length - 1)
                     expireSeconds[i] = Math.max(Math.round(avgDist / 3.5) + 3, 7)
                 }
