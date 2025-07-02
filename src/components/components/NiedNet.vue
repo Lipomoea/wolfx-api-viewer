@@ -105,11 +105,11 @@ const update = ()=>{
                 let numThres, activityThres
                 switch(settingsStore.mainSettings.displaySeisNet.niedSensitivity) {
                     case 1:
-                        numThres = isDense[station.id] ? 3 : 2
+                        numThres = nearbyStations.length >= 5 && isDense[station.id] ? 3 : 2
                         activityThres = activityThresArr[nearbyStations.length] + 2
                         break
                     case 2:
-                        numThres = nearbyStations.length <= 1 ? 1 : isDense[station.id] ? 3 : 2
+                        numThres = nearbyStations.length <= 1 ? 1 : nearbyStations.length >= 5 && isDense[station.id] ? 3 : 2
                         activityThres = activityThresArr[nearbyStations.length]
                         break
                     case 3:
