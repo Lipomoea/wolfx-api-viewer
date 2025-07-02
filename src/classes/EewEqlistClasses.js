@@ -6,8 +6,11 @@ import 'leaflet/dist/leaflet.css';
 import { useSettingsStore } from '@/stores/settings';
 
 const eewCrossIcon = `
-<svg t="1724073690966" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1465" width="40" height="40">
-<path d="M960 170.56L869.44 80 512 437.44 154.56 80 64 170.56 421.44 528 64 885.44l90.56 90.56L512 618.56 869.44 976 960 885.44 602.56 528 960 170.56z" p-id="1466" fill="#e21d1d" stroke="#ffffff" stroke-width="32"></path>
+<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+  <line x1="5" y1="5" x2="35" y2="35" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
+  <line x1="35" y1="5" x2="5" y2="35" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
+  <line x1="5" y1="5" x2="35" y2="35" stroke="#e21d1d" stroke-width="6" stroke-linecap="round"/>
+  <line x1="35" y1="5" x2="5" y2="35" stroke="#e21d1d" stroke-width="6" stroke-linecap="round"/>
 </svg>
 `
 const eewCrossDivIcon = L.divIcon({
@@ -16,8 +19,11 @@ const eewCrossDivIcon = L.divIcon({
     className: '',
 })
 const eewCancelCrossIcon = `
-<svg t="1724073690966" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1465" width="40" height="40" opacity="0.4">
-<path d="M960 170.56L869.44 80 512 437.44 154.56 80 64 170.56 421.44 528 64 885.44l90.56 90.56L512 618.56 869.44 976 960 885.44 602.56 528 960 170.56z" p-id="1466" fill="#e21d1d" stroke="#ffffff" stroke-width="32"></path>
+<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" opacity="0.5">
+  <line x1="5" y1="5" x2="35" y2="35" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
+  <line x1="35" y1="5" x2="5" y2="35" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
+  <line x1="5" y1="5" x2="35" y2="35" stroke="#7f7f7f" stroke-width="6" stroke-linecap="round"/>
+  <line x1="35" y1="5" x2="5" y2="35" stroke="#7f7f7f" stroke-width="6" stroke-linecap="round"/>
 </svg>
 `
 const eewCancelCrossDivIcon = L.divIcon({
@@ -26,8 +32,11 @@ const eewCancelCrossDivIcon = L.divIcon({
     className: '',
 })
 const eqlistCrossIcon = `
-<svg t="1724073690966" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1465" width="40" height="40">
-<path d="M960 170.56L869.44 80 512 437.44 154.56 80 64 170.56 421.44 528 64 885.44l90.56 90.56L512 618.56 869.44 976 960 885.44 602.56 528 960 170.56z" p-id="1466" fill="#e21d1d" stroke="#fff1aa" stroke-width="32"></path>
+<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+  <line x1="5" y1="5" x2="35" y2="35" stroke="#fff1aa" stroke-width="10" stroke-linecap="round"/>
+  <line x1="35" y1="5" x2="5" y2="35" stroke="#fff1aa" stroke-width="10" stroke-linecap="round"/>
+  <line x1="5" y1="5" x2="35" y2="35" stroke="#e21d1d" stroke-width="6" stroke-linecap="round"/>
+  <line x1="35" y1="5" x2="5" y2="35" stroke="#e21d1d" stroke-width="6" stroke-linecap="round"/>
 </svg>
 `
 const eqlistCrossDivIcon = L.divIcon({
@@ -37,9 +46,9 @@ const eqlistCrossDivIcon = L.divIcon({
 })
 const eewCircleIcon = `
 <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-<circle cx="20" cy="20" r="17.5" stroke="#e21d1d" stroke-width="3"/>
-<circle cx="20" cy="20" r="19.5" stroke="#ffffff" stroke-width="1"/>
-<circle cx="20" cy="20" r="15.5" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="20" cy="20" r="17.5" stroke="#e21d1d" stroke-width="3"/>
+  <circle cx="20" cy="20" r="19.5" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="20" cy="20" r="15.5" stroke="#ffffff" stroke-width="1"/>
 </svg>
 `
 const eewCircleDivIcon = L.divIcon({
@@ -48,10 +57,10 @@ const eewCircleDivIcon = L.divIcon({
     className: '',
 })
 const eewCancelCircleIcon = `
-<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" opacity="0.4">
-<circle cx="20" cy="20" r="17.5" stroke="#e21d1d" stroke-width="3"/>
-<circle cx="20" cy="20" r="19.5" stroke="#ffffff" stroke-width="1"/>
-<circle cx="20" cy="20" r="15.5" stroke="#ffffff" stroke-width="1"/>
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" opacity="0.5">
+  <circle cx="20" cy="20" r="17.5" stroke="#7f7f7f" stroke-width="3"/>
+  <circle cx="20" cy="20" r="19.5" stroke="#ffffff" stroke-width="1"/>
+  <circle cx="20" cy="20" r="15.5" stroke="#ffffff" stroke-width="1"/>
 </svg>
 `
 const eewCancelCircleDivIcon = L.divIcon({
