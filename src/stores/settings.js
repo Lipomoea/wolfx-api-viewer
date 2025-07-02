@@ -89,6 +89,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             enableGqEew: false,
             displayMultiApi: false,
             multiApi: false,
+            displayApiType: false,
             forceCalcInt: false,
             preventFlickerMode: false
         }

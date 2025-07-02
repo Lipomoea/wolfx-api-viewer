@@ -20,7 +20,7 @@
                                     <div class="bottom">
                                         <div class="magnitude">{{ event.eqMessage.isAssumption?'仮定震源要素':'M' + event.eqMessage.magnitude.toFixed(1) }}</div>
                                         <div class="depth">{{ event.eqMessage.isAssumption?'':event.eqMessage.depthText }}</div>
-                                        <div class="type">{{ types[event.eqMessage.source][event.eqMessage.type] }}</div>
+                                        <div class="type" v-if="settingsStore.advancedSettings.displayApiType">{{ types[event.eqMessage.source][event.eqMessage.type] }}</div>
                                     </div>
                                 </div>
                                 <div class="eew-buttons" v-if="event.showMenu">
@@ -65,6 +65,7 @@
                                     <div class="bottom">
                                         <div class="magnitude">{{ event.eqMessage.magnitude != -1 ? 'M' + event.eqMessage.magnitude.toFixed(1) : '規模・深さ 調査中' }}</div>
                                         <div class="depth">{{ event.eqMessage.magnitude != -1 ? event.eqMessage.depthText : '' }}</div>
+                                        <div class="type" v-if="settingsStore.advancedSettings.displayApiType">{{ types[event.eqMessage.source][event.eqMessage.type] }}</div>
                                     </div>
                                 </div>
                                 <div class="eew-buttons" v-if="event.showMenu">
@@ -284,6 +285,15 @@ const types = {
         4: 'D',
         5: 'E',
         6: 'F'
+    },
+    jmaEqlist: {
+        0: 'P2PQ'
+    },
+    cwaEqlist: {
+        0: 'TREM'
+    },
+    cencEqlist: {
+        1: 'FAN'
     }
 }
 const tempEqlists = ref(false)
