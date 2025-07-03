@@ -1167,9 +1167,10 @@ onBeforeUnmount(()=>{
                                 }
                                 .type {
                                     margin-left: auto;
-                                    margin-right: 10px;
+                                    margin-right: 4px;
                                     font-size: 16px;
                                     color: #7f7f7f;
+                                    align-self: flex-end;
                                 }
                             }
                         }
