@@ -163,7 +163,7 @@
                     </div>
                 </div>
                 <div class="int-list" v-if="settingsStore.mainSettings.displayAreaIntensities">
-                    <div class="csis-list">
+                    <div class="csis-list" v-show="csisList.length">
                         <div class="row" v-for="(item, index) of csisList" :key="index">
                             <div class="name">{{ item.name }}</div>
                             <div class="int" :class="setClassName(item.intensity, false)">
@@ -171,7 +171,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="shindo-list">
+                    <div class="shindo-list" v-show="shindoList.length">
                         <div class="row" v-for="(item, index) of shindoList" :key="index">
                             <div class="name">{{ item.name }}</div>
                             <div class="int" :class="setClassName(item.intensity, true)">
