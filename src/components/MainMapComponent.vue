@@ -1093,7 +1093,7 @@ onBeforeUnmount(()=>{
                         gap: 10px;
                         align-items: center;
                         background-color: #ffffff9f;
-                        backdrop-filter: blur(2px);
+                        backdrop-filter: blur(1px);
                         pointer-events: auto;
                         .intensity{
                             width: 100px;
@@ -1198,7 +1198,7 @@ onBeforeUnmount(()=>{
                         column-gap: 50px;
                         align-items: center;
                         background-color: #ffffff9f;
-                        backdrop-filter: blur(2px);
+                        backdrop-filter: blur(1px);
                         .text {
                             justify-self: end;
                             text-align: right;
@@ -1245,7 +1245,7 @@ onBeforeUnmount(()=>{
                     border-radius: 10px;
                     overflow: hidden;
                     box-shadow: inset 0 0 10px #ffffff3f, 0 4px 10px #0000003f;
-                    backdrop-filter: blur(2px);
+                    backdrop-filter: blur(1px);
                     .align-right{
                         text-align: right;
                         padding-right: 2px;
@@ -1329,7 +1329,7 @@ onBeforeUnmount(()=>{
                     padding: 5px;
                     border-radius: 10px;
                     box-shadow: inset 0 0 10px #ffffff3f, 0 4px 10px #0000003f;
-                    backdrop-filter: blur(2px);
+                    backdrop-filter: blur(1px);
                     .row{
                         display: flex;
                         justify-content: space-between;
