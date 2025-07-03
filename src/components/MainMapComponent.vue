@@ -16,7 +16,7 @@
                                 </div>
                                 <div class="right">
                                     <div class="location">{{ event.eqMessage.hypocenter }}</div>
-                                    <div class="time">{{ event.eqMessage.originTime + (event.useJst?' (UTC+9)':' (UTC+8)') }}</div>
+                                    <div class="time">{{ event.eqMessage.originTime + (event.useJst?' (+9)':' (+8)') }}</div>
                                     <div class="bottom">
                                         <div class="magnitude">{{ event.eqMessage.isAssumption?'仮定震源要素':'M' + event.eqMessage.magnitude.toFixed(1) }}</div>
                                         <div class="depth">{{ event.eqMessage.isAssumption?'':event.eqMessage.depthText }}</div>
@@ -61,7 +61,7 @@
                                 </div>
                                 <div class="right">
                                     <div class="location">{{ event.eqMessage.hypocenter || '震源 調査中' }}</div>
-                                    <div class="time">{{ event.eqMessage.originTime + (event.useJst?' (UTC+9)':' (UTC+8)') }}</div>
+                                    <div class="time">{{ event.eqMessage.originTime + (event.useJst?' (+9)':' (+8)') }}</div>
                                     <div class="bottom">
                                         <div class="magnitude">{{ event.eqMessage.magnitude != -1 ? 'M' + event.eqMessage.magnitude.toFixed(1) : '規模・深さ 調査中' }}</div>
                                         <div class="depth">{{ event.eqMessage.magnitude != -1 ? event.eqMessage.depthText : '' }}</div>
@@ -1062,14 +1062,14 @@ onBeforeUnmount(()=>{
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    border: black 1px solid;
+                    border: #3f3f3f 1px solid;
                     border-top: 0px;
                     border-left: 0px;
                     user-select: none;
                     .bar{
                         width: 100%;
                         height: 30px;
-                        border-bottom: black 1px solid;
+                        border-bottom: #3f3f3f 1px solid;
                         display: flex;
                         align-items: center;
                         font-size: 18px;
@@ -1079,8 +1079,8 @@ onBeforeUnmount(()=>{
                     .shindo-bar{
                         width: 100px;
                         height: 30px;
-                        border-right: black 1px solid;
-                        border-bottom: black 1px solid;
+                        border-right: #3f3f3f 1px solid;
+                        border-bottom: #3f3f3f 1px solid;
                         display: flex;
                         justify-content: center;
                         align-items: center;
@@ -1093,12 +1093,12 @@ onBeforeUnmount(()=>{
                         gap: 10px;
                         align-items: center;
                         background-color: #ffffff9f;
-                        backdrop-filter: blur(10px);
+                        backdrop-filter: blur(2px);
                         pointer-events: auto;
                         .intensity{
                             width: 100px;
                             height: 100%;
-                            border-right: black 1px solid;
+                            border-right: #3f3f3f 1px solid;
                             display: flex;
                             flex-direction: column;
                             justify-content: center;
@@ -1135,7 +1135,7 @@ onBeforeUnmount(()=>{
                             }
                         }
                         .right{
-                            width: 350px;
+                            width: 300px;
                             height: 100%;
                             display: flex;
                             flex-direction: column;
@@ -1189,22 +1189,23 @@ onBeforeUnmount(()=>{
                         }
                     }
                     .tsunami-info {
+                        width: 410px;
                         height: 100px;
                         padding: 10px 40px;
                         display: grid;
                         grid-template-columns: 1fr 1fr;
-                        column-gap: 30px;
+                        column-gap: 50px;
                         align-items: center;
                         background-color: #ffffff9f;
-                        backdrop-filter: blur(10px);
+                        backdrop-filter: blur(2px);
                         .text {
                             justify-self: end;
                             text-align: right;
-                            font-size: 18px;
+                            font-size: 20px;
                         }
                         .legend {
-                            width: 80px;
-                            height: 5px;
+                            width: 90px;
+                            height: 6px;
                         }
                         .tsunami-purple {
                             background-color: var(--tsunami-purple);
@@ -1235,15 +1236,15 @@ onBeforeUnmount(()=>{
                 user-select: none;
                 .legend{
                     width: 90px;
-                    background-color: #5555553f;
                     font-size: 16px;
                     display: flex;
                     flex-direction: column-reverse;
                     justify-content: flex-start;
                     padding: 5px 0px;
-                    border-radius: 5px;
-                    box-shadow: 0px 0px 2px 1px #555;
-                    backdrop-filter: blur(10px);
+                    border-radius: 10px;
+                    overflow: hidden;
+                    box-shadow: inset 0 0 10px #ffffff3f, 0 4px 10px #0000003f;
+                    backdrop-filter: blur(2px);
                     .align-right{
                         text-align: right;
                         padding-right: 2px;
@@ -1314,7 +1315,7 @@ onBeforeUnmount(()=>{
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
-                gap: 20px;
+                gap: 10px;
                 height: calc(100% - 280px);
                 overflow: hidden;
                 user-select: none;
@@ -1324,6 +1325,10 @@ onBeforeUnmount(()=>{
                     flex-direction: column;
                     gap: 2px;
                     overflow: hidden;
+                    padding: 5px;
+                    border-radius: 10px;
+                    box-shadow: inset 0 0 10px #ffffff3f, 0 4px 10px #0000003f;
+                    backdrop-filter: blur(2px);
                     .row{
                         display: flex;
                         justify-content: space-between;
@@ -1379,7 +1384,7 @@ onBeforeUnmount(()=>{
                 border-radius: 10px;
                 overflow: hidden;
                 background-color: #ffffff9f;
-                backdrop-filter: blur(10px);
+                backdrop-filter: blur(4px);
             }
         }
         .drawer{

@@ -71,7 +71,7 @@ onBeforeMount(async () => {
 onMounted(() => {
   watch(() => settingsStore.mainSettings.uiScale, scale => {
     container.value.style.transform = `scale(${scale})`
-    container.value.style.width = `${100 / scale}vw`
+    container.value.style.width = `${100 / scale}%`
     container.value.style.height = `${100 / scale}vh`
     statusStore.map?.invalidateSize()
   }, { immediate: true })
@@ -91,7 +91,7 @@ watch(() => settingsStore.advancedSettings, (newValue) => {
 
 <style lang="scss" scoped>
 .container {
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   position: absolute;
   transform-origin: top left;
