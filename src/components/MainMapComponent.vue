@@ -1093,7 +1093,7 @@ onBeforeUnmount(()=>{
                         gap: 10px;
                         align-items: center;
                         background-color: #ffffff9f;
-                        backdrop-filter: blur(1px);
+                        backdrop-filter: blur(2px);
                         pointer-events: auto;
                         .intensity{
                             width: 100px;
@@ -1198,7 +1198,7 @@ onBeforeUnmount(()=>{
                         column-gap: 50px;
                         align-items: center;
                         background-color: #ffffff9f;
-                        backdrop-filter: blur(1px);
+                        backdrop-filter: blur(2px);
                         .text {
                             justify-self: end;
                             text-align: right;
