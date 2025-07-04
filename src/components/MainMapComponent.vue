@@ -1244,7 +1244,7 @@ onBeforeUnmount(()=>{
                     padding: 5px 0px;
                     border-radius: 10px;
                     overflow: hidden;
-                    box-shadow: inset 0 0 10px #ffffff3f, 0 4px 10px #0000003f;
+                    box-shadow: inset 0 0 10px #ffffff3f, 0 0 10px #0000003f;
                     backdrop-filter: blur(1px);
                     .align-right{
                         text-align: right;
@@ -1318,7 +1318,6 @@ onBeforeUnmount(()=>{
                 justify-content: center;
                 gap: 10px;
                 height: calc(100% - 280px);
-                overflow: hidden;
                 user-select: none;
                 pointer-events: none;
                 .csis-list,.shindo-list{
@@ -1328,7 +1327,7 @@ onBeforeUnmount(()=>{
                     overflow: hidden;
                     padding: 5px;
                     border-radius: 10px;
-                    box-shadow: inset 0 0 10px #ffffff3f, 0 4px 10px #0000003f;
+                    box-shadow: inset 0 0 10px #ffffff3f, 0 0 10px #0000003f;
                     backdrop-filter: blur(1px);
                     .row{
                         display: flex;

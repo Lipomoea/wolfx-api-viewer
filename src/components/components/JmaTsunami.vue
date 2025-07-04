@@ -163,7 +163,7 @@ watch(() => statusStore.map, newVal => {
         align-items: center;
         gap: 3px;
         background-color: #dfdfdf;
-        border: #7f7f7f 1px solid;
+        box-shadow: 0 4px 10px #0000003f;
         border-radius: 20px;
         user-select: none;
         .title {

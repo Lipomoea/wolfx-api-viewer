@@ -2,15 +2,15 @@
     <div class="outer">
         <div class="container" @dblclick="handleDblClick">
             <div class="bg" :class="className"></div>
-            <div class="intensity">{{ eqMessage.maxIntensity }}</div>
-            <div class="text title">{{ formatText(eqMessage.titleText) }}</div>
-            <div class="text" v-if="eqMessage.isEew">{{ formatText(eqMessage.reportNumText) }}</div>
-            <div class="text">{{ formatText(eqMessage.hypocenterText) }}</div>
-            <div class="text">{{ formatText(eqMessage.depthText) }}</div>
-            <div class="text">{{ formatText(eqMessage.originTimeText) }}</div>
-            <div class="text">{{ formatText(eqMessage.magnitudeText) }}</div>
-            <div class="text">{{ formatText(eqMessage.maxIntensityText) }}</div>
-            <div class="text">经过时间: {{ formatText(msToTime(passedTimeFromOrigin)) }}</div>
+            <div class="intensity" :class="fontClass">{{ eqMessage.maxIntensity }}</div>
+            <div class="text title" :class="fontClass">{{ formatText(eqMessage.titleText) }}</div>
+            <div class="text" :class="fontClass" v-if="eqMessage.isEew">{{ formatText(eqMessage.reportNumText) }}</div>
+            <div class="text" :class="fontClass">{{ formatText(eqMessage.hypocenterText) }}</div>
+            <div class="text" :class="fontClass">{{ formatText(eqMessage.depthText) }}</div>
+            <div class="text" :class="fontClass">{{ formatText(eqMessage.originTimeText) }}</div>
+            <div class="text" :class="fontClass">{{ formatText(eqMessage.magnitudeText) }}</div>
+            <div class="text" :class="fontClass">{{ formatText(eqMessage.maxIntensityText) }}</div>
+            <div class="text" :class="fontClass">经过时间: {{ formatText(msToTime(passedTimeFromOrigin)) }}</div>
         </div>
     </div>
 </template>
@@ -49,6 +49,7 @@ onBeforeUnmount(()=>{
 })
 
 const className = ref('white midOpacity')
+const fontClass = computed(() => className.value.includes('red') || className.value.includes('purple') ? 'font-white' : 'font-black')
 let timer
 
 watch(eqMessage, (newVal)=>{
@@ -159,9 +160,14 @@ watch(()=>timeStore.currentTime, ()=>{
         flex-direction: column;
         align-items: center;
         justify-content: space-evenly;
-        border: #7f7f7f 1px solid;
         border-radius: 20px;
         user-select: none;
+        box-shadow: 0 4px 10px #0000003f;
+        transition: box-shadow 0.3s ease, transform 0.3s ease;
+        &:hover {
+            box-shadow: 0 2px 5px #0000003f;
+            transform: translateY(2px);
+        }
         *{
             z-index: 10;
             pointer-events: none;
@@ -181,7 +187,6 @@ watch(()=>timeStore.currentTime, ()=>{
             align-items: center;
             font-size: 200px;
             font-weight: 700;
-            color: #0000003f;
         }
         .text{
             text-align: center;
@@ -190,6 +195,18 @@ watch(()=>timeStore.currentTime, ()=>{
         .title{
             font-size: 18px;
             font-weight: 700;
+        }
+        .font-black {
+            color: #000000;
+        }
+        .font-white {
+            color: #ffffff;
+        }
+        .intensity.font-black {
+            color: #0000003f;
+        }
+        .intensity.font-white {
+            color: #ffffff3f;
         }
     }
 }
