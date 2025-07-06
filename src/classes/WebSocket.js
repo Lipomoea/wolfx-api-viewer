@@ -1,49 +1,46 @@
 class WebSocketObj {
-    constructor(url, autoMessages = []){
+    constructor(url, autoMessages = []) {
         this.url = url
+        this.autoMessages = autoMessages
+        this.shouldConnect = true
+        this.retryInterval = 3000
         this.socket = new WebSocket(this.url)
         this.setupWebSocket()
-        this.shouldConnect = true
-        this.retryInterval = 5000
-        this.messageHandler = null
-        this.timer = null
-        this.msgTimer = null
-        if(autoMessages.length > 0) {
-            this.socket.onopen = () => {
-                autoMessages.forEach(msg => {
-                    this.send(msg)
-                })
-            }
-            this.msgTimer = setInterval(() => {
-                autoMessages.forEach(msg => {
-                    this.send(msg)
-                })
-            }, 10000);
-        }
     }
-    setupWebSocket(){
-        this.socket.onopen = null
-        this.socket.onerror = ()=>{
+    sendMessages() {
+        this.autoMessages.forEach(msg => {
+            this.send(msg)
+        })
+    }
+    setupWebSocket() {
+        clearInterval(this.msgTimer)
+        if (this.autoMessages.length > 0) {
+            this.socket.onopen = () => this.sendMessages()
+            this.msgTimer = setInterval(() => this.sendMessages(), 10000)
+        }
+        this.socket.onerror = () => {
             // console.log(`${this.url} 连接失败`)
             clearTimeout(this.timer)
             this.timer = setTimeout(() => {
-                if(this.shouldConnect) this.reconnect()
+                if (this.shouldConnect) this.reconnect()
             }, this.retryInterval);
         }
-        this.socket.onclose = ()=>{
+        this.socket.onclose = () => {
             // console.log(`${this.url} 断开连接`)
             clearTimeout(this.timer)
             this.timer = setTimeout(() => {
-                if(this.shouldConnect) this.reconnect()
+                if (this.shouldConnect) this.reconnect()
             }, this.retryInterval);
         }
+        if (this.messageHandler)
+            this.socket.onmessage = this.messageHandler
     }
-    setMessageHandler(handler){
+    setMessageHandler(handler) {
         this.messageHandler = this.socket.onmessage = handler
     }
-    reconnect(){
+    reconnect() {
         clearTimeout(this.timer)
-        if(this.socket){
+        if (this.socket) {
             this.socket.onopen = null
             this.socket.onclose = null
             this.socket.onerror = null
@@ -52,14 +49,12 @@ class WebSocketObj {
         }
         this.socket = new WebSocket(this.url)
         this.setupWebSocket()
-        if(this.messageHandler)
-            this.socket.onmessage = this.messageHandler
     }
-    close(){
+    close() {
         this.shouldConnect = false
         clearTimeout(this.timer)
         clearInterval(this.msgTimer)
-        if(this.socket){
+        if (this.socket) {
             this.socket.onopen = null
             this.socket.onclose = null
             this.socket.onerror = null
@@ -67,8 +62,8 @@ class WebSocketObj {
             this.socket.close()
         }
     }
-    send(msg){
-        if(this.socket.readyState == 1){
+    send(msg) {
+        if (this.socket.readyState == 1) {
             this.socket.send(msg)
         }
     }
