@@ -28,6 +28,7 @@
     "core:path:allow-join",
     "fs:allow-exists",
     "fs:allow-appdata-read-recursive",
+    "fs:allow-appdata-write-recursive",
     "shell:default",
     "shell:allow-open"
   ]

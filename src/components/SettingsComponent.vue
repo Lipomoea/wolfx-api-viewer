@@ -698,15 +698,15 @@
             <div class="explanation" v-if="isTauri">
                 <div class="text">
                     <p><strong>应用程序版本支持自定义音效，请参考下列步骤。</strong></p>
-                    <p>1. 点击“打开数据文件夹”按钮，系统的文件管理器会打开该应用程序的数据文件夹。</p>
-                    <p>2. 在该目录下创建一个“audio”文件夹。</p>
-                    <p>3. 将你想替换的音频文件（需要为mp3格式）放入该文件夹并重命名为“xxx.mp3”，具体名称请参照下方按钮显示的名称。</p>
-                    <p>4. 点击“重新加载音频”按钮，或按“F5”刷新页面即完成替换。</p>
+                    <p>1. 点击“打开数据文件夹”按钮，系统的文件管理器会打开该应用程序的音频文件夹。</p>
+                    <p>2. 将你想替换的音频文件（需要为mp3格式）放入该文件夹并重命名为“xxx.mp3”，具体名称请参照下方按钮显示的名称。</p>
+                    <p>3. 点击“重新加载音频”按钮，或右键刷新页面即完成替换。</p>
                     <p>替换完成后可点击下方按钮进行音效测试。如需恢复默认，删除对应的mp3文件并重载音频即可。</p>
+                    <p>Tips. 如需关闭某个音效，可以创建一个空白文本文件并重命名为“xxx.mp3”即可。</p>
                     <p><strong>如因此功能产生任何侵权行为将由您自行承担，开发者不承担任何责任。</strong></p>
                 </div>
                 <div class="buttons">
-                    <el-button @click="openDataFolder">打开数据文件夹</el-button>
+                    <el-button @click="openDataFolder">打开音频文件夹</el-button>
                     <el-button @click="loadAudio">重新加载音频</el-button>
                 </div>
             </div>
@@ -777,7 +777,7 @@ import { QuestionFilled } from '@element-plus/icons-vue';
 import { openUrl, playSound, setClassName, shindoScale } from '@/utils/Utils';
 import { join, appDataDir } from "@tauri-apps/api/path";
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { exists } from "@tauri-apps/plugin-fs";
+import { exists, mkdir } from "@tauri-apps/plugin-fs";
 import { enable, disable, isEnabled } from '@tauri-apps/plugin-autostart';
 import { platform } from '@tauri-apps/plugin-os';
 import { isTauri as getIsTauri } from '@tauri-apps/api/core';
@@ -1276,8 +1276,15 @@ const loadAudio = () => {
     }
 }
 const openDataFolder = async () => {
-    const appDataPath = await appDataDir()
-    openUrl(appDataPath)
+    try {
+        const appDataPath = await appDataDir()
+        const audioPath = await join(appDataPath, 'audio')
+        const isExist = await exists(audioPath)
+        if(!isExist) await mkdir(audioPath, { recursive: true })
+        openUrl(audioPath)
+    } catch (e) {
+        console.error(e)
+    }
 }
 const isAutoStart = ref(false)
 const handleAutoStart = async (value) => {
