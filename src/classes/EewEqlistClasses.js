@@ -211,7 +211,7 @@ export class EewEvent {
                     fillColor: this.eqMessage.isWarn ? 'red' : 'orange',
                     weight: 0,
                     opacity: 0,
-                    fillOpacity: 0.3 * opacityRatio,
+                    fillOpacity: 0.25 * opacityRatio,
                     radius: s_radius * 1000,
                     pane: 'waveFillPane',
                     interactive: false
