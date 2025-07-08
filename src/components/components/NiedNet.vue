@@ -83,7 +83,7 @@ const getData = async (url)=>{
     }
 }
 let pendingRender = false
-const activityThresArr = [Infinity, 7, 10, 12, 13, 13]
+const activityThresArr = [Infinity, 7, 10, 12, 13, 13, 13]
 const update = ()=>{
     if(stationList.value.length == stations.length && stations.length == stationData.value.length){
         let maxLevel = -1
