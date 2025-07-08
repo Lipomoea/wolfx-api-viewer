@@ -44,7 +44,7 @@ const currentMaxShindo = computed(()=>{
 })
 let adjStationIds = {}
 let expireSeconds = {}
-let isDense = {}
+let distMatrix = [[]]
 const activeStations = computed(()=>{
     let list = []
     stations.forEach(station=>{
@@ -105,11 +105,11 @@ const update = ()=>{
                 let numThres, activityThres
                 switch(settingsStore.mainSettings.displaySeisNet.niedSensitivity) {
                     case 1:
-                        numThres = nearbyStations.length >= 5 && isDense[station.id] ? 3 : 2
+                        numThres = 3
                         activityThres = activityThresArr[nearbyStations.length] + 2
                         break
                     case 2:
-                        numThres = nearbyStations.length <= 1 ? 1 : nearbyStations.length >= 5 && isDense[station.id] ? 3 : 2
+                        numThres = nearbyStations.length <= 1 ? 1 : nearbyStations.length < 6 ? 2 : 3
                         activityThres = activityThresArr[nearbyStations.length]
                         break
                     case 3:
@@ -119,10 +119,14 @@ const update = ()=>{
                     default:
                         return
                 }
-                if(nearbyActiveNum >= numThres) {
+                if (nearbyActiveNum >= numThres) {
                     const numActivity = Math.max(nearbyActiveNum * 2 - 3, 0)
-                    const nearbyActivity = possibleNearbyStations.reduce((sum, station)=>sum + station.activity, 0) + numActivity
-                    if(nearbyActivity >= activityThres){
+                    const nearbyActivity = nearbyStations.reduce((sum, nearbyStation, index) => 
+                        index >= 3 && distMatrix[station.id][nearbyStation.id] > 15 
+                        ? sum + nearbyStation.activity / 2 
+                        : sum + nearbyStation.activity, 0
+                    ) + numActivity
+                    if (nearbyActivity >= activityThres) {
                         chainActivate(station, activeStations, checkedStations)
                     }
                 }
@@ -239,13 +243,14 @@ watch(()=>statusStore.map, newVal=>{
                 }
                 for(let i = 0; i < newVal.length; i++){
                     const distances = []
+                    distMatrix[i] = []
                     for(let j = 0; j < newVal.length; j++){
                         const distance = latLngs[i].distanceTo(latLngs[j]) / 1000
+                        distMatrix[i][j] = distance
                         if(distance <= 30) distances.push({ id: j, distance })
                     }
-                    distances.sort((a, b) => a.distance - b.distance).splice(5)
+                    distances.sort((a, b) => a.distance - b.distance).splice(6)
                     adjStationIds[i] = distances.map(obj => obj.id)
-                    isDense[i] = distances.length == 5 && distances[4].distance <= 21
                     const avgDist = distances.length <= 1 ? 0 : distances.reduce((sum, curr) => sum + curr.distance, 0) / (distances.length - 1)
                     expireSeconds[i] = Math.max(Math.round(avgDist / 3.5) + 3, 7)
                 }
