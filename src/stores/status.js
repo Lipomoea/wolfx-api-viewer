@@ -766,12 +766,14 @@ export const useStatusStore = defineStore('statusStore', {
                         let data = JSON.parse(e.data)
                         if(data.type == 'initial_all' || data.type == 'query_response') {
                             this.activeFanSource.forEach(source => {
-                                this.setEqMessage(source, data[source2Fan[source]].Data, 1)
+                                const Data = data[source2Fan[source]]?.Data
+                                if(Data) this.setEqMessage(source, Data, 1)
                             })
                         }
                         else if(data.type == 'update'){
                             const source = fan2Source[data.source]
-                            if(source && this.activeFanSource.includes(source)) this.setEqMessage(source, data.Data, 1)
+                            const Data = data?.Data
+                            if(source && this.activeFanSource.includes(source) && Data) this.setEqMessage(source, Data, 1)
                         }
                     })
                 }
