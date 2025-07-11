@@ -220,7 +220,7 @@ export class EewEvent {
             else {
                 this.sWaveFill.setRadius(s_radius * 1000)
                 this.sWaveFill.setStyle({
-                    fillOpacity: 0.3 * opacityRatio
+                    fillOpacity: 0.25 * opacityRatio
                 })
             }
         }
