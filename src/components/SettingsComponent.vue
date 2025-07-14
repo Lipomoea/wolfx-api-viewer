@@ -555,6 +555,13 @@
                             </div>
                         </div>
                     </div>
+                    <div class="row" v-if="settingsStore.displayTokenButton">
+                        <div class="switch-group">
+                            <div class="switch">
+                                <el-button size="small" @click="showTokenManager = true">Token管理</el-button>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="switch-group">
                             <div class="switch">
@@ -720,6 +727,16 @@
             </div>
             <template #footer>
                 <el-button type="default" @click="customizeAudio = false">关闭</el-button>
+            </template>
+        </el-dialog>
+        <el-dialog v-model="showTokenManager" width="300px" top="20vh" :show-close="false" append-to-body>
+            <el-form :model="idForm">
+                <el-form-item v-if="settingsStore.advancedSettings.enableIclEew" label="FAN:ICL" label-width="60px">
+                    <el-input v-model="settingsStore.advancedSettings.tokens.fan_icl" @change="handleNeedReload"></el-input>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button type="primary" @click="showTokenManager = false">完成</el-button>
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false" append-to-body>
@@ -909,6 +926,7 @@ const needReload = ref(false)
 const handleReload = () => {
     window.location.reload()
 }
+const showTokenManager = ref(false)
 const advancedInput = ref('')
 const verifyDialog = ref(false)
 let verifyType = ''

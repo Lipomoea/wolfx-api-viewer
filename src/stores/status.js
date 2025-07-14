@@ -4,6 +4,7 @@ import WebSocketObj from '@/classes/WebSocket'
 import { eqUrls, tsunamiUrls } from '@/utils/Urls'
 import { setClassName, calcCsisLevel, stampToTime, getShindoFromInstShindo, shindoScaleKanji } from '@/utils/Utils'
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc'
+import { useSettingsStore } from './settings'
 
 export const defaultEqMessage = {
     source: '',
@@ -761,7 +762,13 @@ export const useStatusStore = defineStore('statusStore', {
                 }
                 if(this.fanSocket) this.fanSocket.close()
                 if(this.activeFanSource.length > 0) {
-                    this.fanSocket = new WebSocketObj(eqUrls.fan_ws, ['query'])
+                    const settingsStore = useSettingsStore()
+                    const initMsg = []
+                    if(this.activeFanSource.includes('iclEew')) {
+                        const token = settingsStore.advancedSettings.tokens.fan_icl
+                        if(token) initMsg.push(`{"type":"auth","key":"${token}"}`)
+                    }
+                    this.fanSocket = new WebSocketObj(eqUrls.fan_ws, ['query'], initMsg)
                     this.fanSocket.setMessageHandler((e)=>{
                         let data = JSON.parse(e.data)
                         if(data.type == 'initial_all' || data.type == 'query_response') {

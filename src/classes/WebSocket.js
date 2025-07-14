@@ -1,22 +1,23 @@
 class WebSocketObj {
-    constructor(url, autoMessages = []) {
+    constructor(url, autoMessages = [], initMessages = [...autoMessages]) {
         this.url = url
         this.autoMessages = autoMessages
+        this.initMessages = initMessages
         this.shouldConnect = true
         this.retryInterval = 3000
         this.socket = new WebSocket(this.url)
         this.setupWebSocket()
     }
-    sendMessages() {
-        this.autoMessages.forEach(msg => {
+    sendMessages(messages) {
+        messages.forEach(msg => {
             this.send(msg)
         })
     }
     setupWebSocket() {
         clearInterval(this.msgTimer)
+        this.socket.onopen = () => this.sendMessages(this.initMessages)
         if (this.autoMessages.length > 0) {
-            this.socket.onopen = () => this.sendMessages()
-            this.msgTimer = setInterval(() => this.sendMessages(), 10000)
+            this.msgTimer = setInterval(() => this.sendMessages(this.autoMessages), 10000)
         }
         this.socket.onerror = () => {
             // console.log(`${this.url} 连接失败`)

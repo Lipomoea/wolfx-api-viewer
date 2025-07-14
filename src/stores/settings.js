@@ -89,6 +89,9 @@ export const useSettingsStore = defineStore('settingsStore', {
             enableGqEew: false,
             displayMultiApi: false,
             multiApi: false,
+            tokens: {
+                fan_icl: ''
+            },
             displayApiType: false,
             forceCalcInt: false,
             preventFlickerMode: false
@@ -117,7 +120,8 @@ export const useSettingsStore = defineStore('settingsStore', {
                 return nearestLoc
             }
             else return null
-        }
+        },
+        displayTokenButton: (state) => state.advancedSettings.enableIclEew
     },
     actions: {
         setMainSettings(jsonString){
