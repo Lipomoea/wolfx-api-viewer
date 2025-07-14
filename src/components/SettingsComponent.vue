@@ -529,6 +529,13 @@
                 </div>
                 <div class="sub-title">高级</div>
                 <div class="group">
+                    <div class="row" v-if="settingsStore.displayTokenButton">
+                        <div class="switch-group">
+                            <div class="switch">
+                                <el-button size="small" @click="showTokenManager = true">Token管理</el-button>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row" v-if="settingsStore.advancedSettings.displayMultiApi">
                         <div class="switch-group">
                             <div class="switch">
@@ -552,13 +559,6 @@
                                 <el-switch 
                                 v-model="settingsStore.advancedSettings.multiApi"
                                 @change="handleNeedReload"></el-switch>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row" v-if="settingsStore.displayTokenButton">
-                        <div class="switch-group">
-                            <div class="switch">
-                                <el-button size="small" @click="showTokenManager = true">Token管理</el-button>
                             </div>
                         </div>
                     </div>
