@@ -175,7 +175,6 @@ const generateEqMessage = (form, index, id) => {
     const reportNumText = `第${reportNum}报${isFinal ? '（最终）' : ''}`
     const originTime = form.originTime || dayjs().format('YYYY-MM-DD HH:mm:ss')
     const eqMessage = {
-        type: 0,
         id,
         isEew: true,
         reportNum,
