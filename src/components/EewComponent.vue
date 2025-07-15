@@ -9,7 +9,7 @@
         :source></EqGrid>
         <EqGrid v-if="settingsStore.advancedSettings.mockEew" source="mockEew"></EqGrid>
       </div>
-      <el-button class="mock" :icon="Plus" @click="mockEewRef.showMockDialog = true">新建模拟预警</el-button>
+      <el-button v-if="settingsStore.advancedSettings.mockEew" class="mock" :icon="Plus" @click="mockEewRef.showMockDialog = true">新建模拟预警</el-button>
       <MockEew v-if="settingsStore.advancedSettings.mockEew" ref="mockEewRef"></MockEew>
     </div>
   </div>
