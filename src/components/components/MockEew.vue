@@ -1,5 +1,5 @@
 <template>
-    <el-dialog v-model="showMockDialog" width="35rem" :show-close="false">
+    <el-dialog v-model="showMockDialog" width="35rem" :show-close="false" append-to-body>
         <template #header>
             <div class="flex justify-between items-center">
                 <div class="title">模拟地震预警</div>
