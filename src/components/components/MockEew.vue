@@ -108,10 +108,8 @@ const showMockDialog = ref(false)
 defineExpose({
     showMockDialog
 })
-// 当前页码
-const currentPage = ref(0)
 
-// 初始化数据
+const currentPage = ref(0)
 const forms = reactive([])
 
 const id = ref('')
