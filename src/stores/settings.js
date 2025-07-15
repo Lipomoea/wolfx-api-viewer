@@ -88,13 +88,15 @@ export const useSettingsStore = defineStore('settingsStore', {
             enableTremFunctions: false,
             enableGqEew: false,
             displayMultiApi: false,
+            displayMockEew: false,
             tokens: {
                 fan_icl: ''
             },
             multiApi: false,
             displayApiType: false,
             forceCalcInt: false,
-            preventFlickerMode: false
+            preventFlickerMode: false,
+            mockEew: false
         }
     }),
     getters: {

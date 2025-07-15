@@ -7,19 +7,27 @@
         v-for="(source, index) of eewList"
         :key="index"
         :source></EqGrid>
+        <EqGrid v-if="settingsStore.advancedSettings.mockEew" source="mockEew"></EqGrid>
       </div>
+      <el-button class="mock" :icon="Plus" @click="mockEewRef.showMockDialog = true">新建模拟预警</el-button>
+      <MockEew v-if="settingsStore.advancedSettings.mockEew" ref="mockEewRef"></MockEew>
     </div>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import EqGrid from '@/components/components/EqGrid.vue';
+import MockEew from './components/MockEew.vue';
 import { useSettingsStore } from '@/stores/settings';
 import { eqUrls } from '@/utils/Urls';
+import { Plus } from '@element-plus/icons-vue';
 
 const settingsStore = useSettingsStore()
 if(settingsStore.advancedSettings.enableGqEew) Object.assign(eqUrls, JSON.parse(localStorage.getItem('gqUrl')))
 const eewList = Object.keys(settingsStore.mainSettings.source).filter(source => source.includes('Eew') && settingsStore.mainSettings.source[source])
+
+const mockEewRef = ref(null)
 </script>
 
 <style lang="scss" scoped>
@@ -40,6 +48,13 @@ const eewList = Object.keys(settingsStore.mainSettings.source).filter(source => 
       display: flex;
       flex-direction: column;
       align-items: center;
+    }
+    .mock{
+      width: 100%;
+      height: 50px;
+      align-self: center;
+      font-size: 16px;
+      border-radius: 25px;
     }
   }
 }

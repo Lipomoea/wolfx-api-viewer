@@ -96,6 +96,7 @@ export const useStatusStore = defineStore('statusStore', {
             scEew: Object.assign({}, defaultEqMessage),
             fjEew: Object.assign({}, defaultEqMessage),
             gqEew: Object.assign({}, defaultEqMessage),
+            mockEew: Object.assign({}, defaultEqMessage),
             jmaEqlist: Object.assign({}, defaultEqMessage),
             cwaEqlist: Object.assign({}, defaultEqMessage),
             cencEqlist: Object.assign({}, defaultEqMessage)
@@ -111,6 +112,7 @@ export const useStatusStore = defineStore('statusStore', {
             scEew: false,
             fjEew: false,
             gqEew: false,
+            mockEew: false,
             jmaEqlist: false,
             cwaEqlist: false,
             cencEqlist: false,
@@ -473,6 +475,10 @@ export const useStatusStore = defineStore('statusStore', {
                             eqMessage.hypocenterText = '震源: ' + eqMessage.hypocenter
                             eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                         }
+                        break
+                    }
+                    case 'mockEew': {
+                        Object.assign(eqMessage, data)
                         break
                     }
                     case 'jmaEqlist':{

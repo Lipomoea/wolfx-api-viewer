@@ -621,6 +621,16 @@
                             </div>
                         </div>
                     </div>
+                    <div class="row" v-if="settingsStore.advancedSettings.displayMockEew">
+                        <div class="switch-group">
+                            <div class="switch">
+                                <span>模拟地震预警</span>
+                                <el-switch 
+                                v-model="settingsStore.advancedSettings.mockEew"
+                                @change="handleNeedReload"></el-switch>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="switch-group">
                             <div class="switch">
@@ -1010,6 +1020,16 @@ const handleAdvance = (val)=>{
                 message: '功能已关闭',
                 type: 'success'
             })
+            break
+        }
+        case 'displayMockEew': {
+            settingsStore.advancedSettings.displayMockEew = true
+            break
+        }
+        case 'hideMockEew': {
+            if(settingsStore.advancedSettings.mockEew) handleNeedReload()
+            settingsStore.advancedSettings.mockEew = false
+            settingsStore.advancedSettings.displayMockEew = false
             break
         }
         case 'verifyAdmin': {

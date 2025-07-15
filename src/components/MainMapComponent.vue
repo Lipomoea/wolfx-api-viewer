@@ -286,6 +286,9 @@ const types = {
         5: 'E',
         6: 'F'
     },
+    mockEew: {
+        0: 'MOCK'
+    },
     jmaEqlist: {
         0: 'P2PQ'
     },
