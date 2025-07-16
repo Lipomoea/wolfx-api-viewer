@@ -71,8 +71,7 @@ const grids = computed(()=>{
     return grids
 })
 const gridRects = {}
-const setView = inject('setView')
-const isAutoZoom = inject('isAutoZoom')
+const smartSetView = inject('smartSetView')
 const getData = async (url)=>{
     try {
         const res = await axios.get(url)
@@ -291,7 +290,7 @@ watch(()=>statusStore.map, newVal=>{
             niedPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel.value)
             if(Object.keys(newVal).length > 0){
                 statusStore.isActive.niedNet = true
-                if(isAutoZoom.value) setView()
+                smartSetView()
             }
             else{
                 statusStore.isActive.niedNet = false

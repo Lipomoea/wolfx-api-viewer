@@ -68,8 +68,7 @@ const grids = computed(()=>{
     return grids
 })
 const gridRects = {}
-const setView = inject('setView')
-const isAutoZoom = inject('isAutoZoom')
+const smartSetView = inject('smartSetView')
 let pendingRender = false
 const update = ()=>{
     let maxInst = -3.1
@@ -189,7 +188,7 @@ watch(()=>statusStore.map, newVal=>{
             tremPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel.value)
             if(Object.keys(newVal).length > 0){
                 statusStore.isActive.tremNet = true
-                if(isAutoZoom.value) setView()
+                smartSetView()
             }
             else{
                 statusStore.isActive.tremNet = false

@@ -31,8 +31,7 @@ const props = defineProps({
 
 const activeEewList = inject('activeEewList')
 const eqlistList = inject('eqlistList')
-const isAutoZoom = inject('isAutoZoom')
-const setView = inject('setView')
+const smartSetView = inject('smartSetView')
 const handleTempEqlists = inject('handleTempEqlists')
 const timeStore = useTimeStore()
 const statusStore = useStatusStore()
@@ -96,7 +95,7 @@ watch(eqMessage, (newVal)=>{
             if(i == activeEewList.length){
                 if(statusStore.map){
                     if(time > 0 && (props.source != 'gqEew' || (newVal.magnitude >= settingsStore.mainSettings.gqActionMag || newVal.maxIntensity >= settingsStore.mainSettings.gqActionCsis))) {
-                        const newEvent = reactive(new EewEvent(statusStore.map, Object.assign({}, newVal), activeEewList, handleTempEqlists))
+                        const newEvent = reactive(new EewEvent(statusStore.map, Object.assign({}, newVal), activeEewList, handleTempEqlists, smartSetView))
                         activeEewList.unshift(newEvent)
                         newEvent.update(Object.assign({}, newVal), time, true)
                     }
@@ -115,18 +114,13 @@ watch(eqMessage, (newVal)=>{
         }
         if(i == eqlistList.length){
             if(statusStore.map){
-                const newEvent = reactive(new EqlistEvent(statusStore.map, Object.assign({}, newVal), handleTempEqlists))
+                const newEvent = reactive(new EqlistEvent(statusStore.map, Object.assign({}, newVal), handleTempEqlists, smartSetView))
                 eqlistList.unshift(newEvent)
                 newEvent.update(Object.assign({}, newVal), time)
             }
         }
     }
     if(time > 0) {
-        if(isAutoZoom.value) {
-            setTimeout(() => {
-                setView()
-            }, 0);
-        }
         className.value = newVal.className + ' highOpacity'
         clearTimeout(timer)
         timer = setTimeout(() => {

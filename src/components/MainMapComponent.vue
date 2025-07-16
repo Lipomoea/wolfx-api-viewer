@@ -299,19 +299,19 @@ const types = {
         1: 'FAN'
     }
 }
-const tempEqlists = ref(false)
+const tempEqlists = ref('')
 let tempEqlistsTimer
-const handleTempEqlists = (time) => {
-    if(time) {
-        tempEqlists.value = true
+const handleTempEqlists = (time, source = '') => {
+    if(time && source) {
+        tempEqlists.value = source
         clearTimeout(tempEqlistsTimer)
         tempEqlistsTimer = setTimeout(() => {
-            tempEqlists.value = false
+            tempEqlists.value = ''
         }, time);
     }
     else {
         clearTimeout(tempEqlistsTimer)
-        tempEqlists.value = false
+        tempEqlists.value = ''
     }
 }
 provide('handleTempEqlists', handleTempEqlists)
@@ -507,7 +507,7 @@ onMounted(()=>{
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible' && pendingSetView) {
             pendingSetView = false
-            setView(true)
+            setView()
         }
     })
     watchEffect(()=>{
@@ -711,7 +711,7 @@ const loadMaps = async (retries = 0) => {
                         }
                     }
                 })
-                if(isAutoZoom.value) setView()
+                smartSetView()
             }, { deep: true, immediate: true })
         }
     }
@@ -752,90 +752,137 @@ const setMapHeight = (height) => {
     }, 0);
 }
 let pendingSetView = false
-const setView = (force = false)=>{
-    if(document.visibilityState === 'visible' || force) {
+const setView = () => {
+    if(document.visibilityState === 'visible') {
         const bounds = L.latLngBounds([])
-        //Eew和SeisNet
-        if(menuId.value != 'eqlists'){
-            map?.eachLayer(layer=>{
-                if(['waveFillPane', 'eewMarkerPane'].includes(layer.options.pane)){
-                    if(layer.getBounds){
-                        bounds.extend(layer.getBounds())
+        //临时Eqlist
+        if(settingsStore.mainSettings.cinemaMode && tempEqlists.value && menuId.value == 'eqlists') {
+            if(tempEqlists.value == 'jmaTsunami') {
+                jpTsunamiBaseMap?.eachLayer(layer => {
+                    if(statusStore.isActive.jmaTsunami && layer.options.pane.includes('TsunamiBasePane') && layer.options.color && layer.options.color != '#ffffff00') {
+                        if(layer.getBounds){
+                            bounds.extend(layer.getBounds())
+                        }
+                        else if(layer.getLatLng){
+                            bounds.extend(layer.getLatLng())
+                        }
                     }
-                    else if(layer.getLatLng){
-                        bounds.extend(layer.getLatLng())
-                    }
-                }
-                if(layer.options.pane == 'niedGridPane' && !statusStore.isActive.jmaEew){
-                    if(layer.getBounds){
-                        bounds.extend(layer.getBounds())
-                    }
-                    else if(layer.getLatLng){
-                        bounds.extend(layer.getLatLng())
-                    }
-                }
-                if(layer.options.pane == 'tremGridPane' && !statusStore.isActive.cwaEew){
-                    if(layer.getBounds){
-                        bounds.extend(layer.getBounds())
-                    }
-                    else if(layer.getLatLng){
-                        bounds.extend(layer.getLatLng())
-                    }
-                }
-            })
-        }
-        //活跃的Eqlist和Tsunami
-        if(!bounds.isValid() && menuId.value != 'eews') {
-            jpTsunamiBaseMap?.eachLayer(layer => {
-                if(statusStore.isActive.jmaTsunami && layer.options.pane.includes('TsunamiBasePane') && layer.options.color && layer.options.color != '#ffffff00') {
-                    if(layer.getBounds){
-                        bounds.extend(layer.getBounds())
-                    }
-                    else if(layer.getLatLng){
-                        bounds.extend(layer.getLatLng())
-                    }
-                }
-            })
-            activeEqlistList.value.forEach(event=>{
-                if(event.eqMessage.source == 'jmaEqlist') {
-                    if(event.isValidHypo){
-                        bounds.extend(event.hypoLatLng)
-                    }
-                    jpEewBaseMap?.eachLayer(layer => {
-                        if(layer.options.fillColor && layer.options.fillColor != '#55555500') {
-                            if(layer.getBounds){
-                                bounds.extend(layer.getBounds())
+                })
+            }
+            else {
+                activeEqlistList.value.forEach(event=>{
+                    if(event.eqMessage.source == tempEqlists.value) {
+                        if(event.eqMessage.source == 'jmaEqlist') {
+                            if(event.isValidHypo){
+                                bounds.extend(event.hypoLatLng)
                             }
-                            else if(layer.getLatLng){
-                                bounds.extend(layer.getLatLng())
+                            jpEewBaseMap?.eachLayer(layer => {
+                                if(layer.options.fillColor && layer.options.fillColor != '#55555500') {
+                                    if(layer.getBounds){
+                                        bounds.extend(layer.getBounds())
+                                    }
+                                    else if(layer.getLatLng){
+                                        bounds.extend(layer.getLatLng())
+                                    }
+                                }
+                            })
+                            if(!bounds.isValid()) {
+                                bounds.extend([46, 148])
+                                bounds.extend([23.5, 122])
                             }
                         }
-                    })
-                    if(!bounds.isValid()) {
-                        bounds.extend([46, 148])
-                        bounds.extend([23.5, 122])
+                        else {
+                            if(event.isValidHypo){
+                                bounds.extend(event.hypoLatLng)
+                            }
+                        }
                     }
-                }
-                else {
-                    if(event.isValidHypo){
-                        bounds.extend(event.hypoLatLng)
-                    }
-                }
-            })
+                })
+            }
         }
-        //不活跃的Eqlist
-        if(!bounds.isValid() && menuId.value == 'eqlists') {
-            map?.eachLayer(layer => {
-                if(layer.options.pane == 'eqlistMarkerPane' || 
-                layer.options.pane.includes('EewBasePane') && layer.options.fillColor && layer.options.fillColor != '#55555500'){
-                    if(layer.getBounds){
-                        bounds.extend(layer.getBounds())
+        else {
+            //Eew和SeisNet
+            if(menuId.value != 'eqlists'){
+                map?.eachLayer(layer=>{
+                    if(['waveFillPane', 'eewMarkerPane'].includes(layer.options.pane)){
+                        if(layer.getBounds){
+                            bounds.extend(layer.getBounds())
+                        }
+                        else if(layer.getLatLng){
+                            bounds.extend(layer.getLatLng())
+                        }
                     }
-                    else if(layer.getLatLng){
-                        bounds.extend(layer.getLatLng())
+                    if(layer.options.pane == 'niedGridPane' && !statusStore.isActive.jmaEew){
+                        if(layer.getBounds){
+                            bounds.extend(layer.getBounds())
+                        }
+                        else if(layer.getLatLng){
+                            bounds.extend(layer.getLatLng())
+                        }
                     }
-                }
-            })
+                    if(layer.options.pane == 'tremGridPane' && !statusStore.isActive.cwaEew){
+                        if(layer.getBounds){
+                            bounds.extend(layer.getBounds())
+                        }
+                        else if(layer.getLatLng){
+                            bounds.extend(layer.getLatLng())
+                        }
+                    }
+                })
+            }
+            //活跃的Eqlist和Tsunami
+            if(!bounds.isValid() && menuId.value != 'eews') {
+                jpTsunamiBaseMap?.eachLayer(layer => {
+                    if(statusStore.isActive.jmaTsunami && layer.options.pane.includes('TsunamiBasePane') && layer.options.color && layer.options.color != '#ffffff00') {
+                        if(layer.getBounds){
+                            bounds.extend(layer.getBounds())
+                        }
+                        else if(layer.getLatLng){
+                            bounds.extend(layer.getLatLng())
+                        }
+                    }
+                })
+                activeEqlistList.value.forEach(event=>{
+                    if(event.eqMessage.source == 'jmaEqlist') {
+                        if(event.isValidHypo){
+                            bounds.extend(event.hypoLatLng)
+                        }
+                        jpEewBaseMap?.eachLayer(layer => {
+                            if(layer.options.fillColor && layer.options.fillColor != '#55555500') {
+                                if(layer.getBounds){
+                                    bounds.extend(layer.getBounds())
+                                }
+                                else if(layer.getLatLng){
+                                    bounds.extend(layer.getLatLng())
+                                }
+                            }
+                        })
+                        if(!bounds.isValid()) {
+                            bounds.extend([46, 148])
+                            bounds.extend([23.5, 122])
+                        }
+                    }
+                    else {
+                        if(event.isValidHypo){
+                            bounds.extend(event.hypoLatLng)
+                        }
+                    }
+                })
+            }
+            //不活跃的Eqlist
+            if(!bounds.isValid() && menuId.value == 'eqlists') {
+                map?.eachLayer(layer => {
+                    if(layer.options.pane == 'eqlistMarkerPane' || 
+                    layer.options.pane.includes('EewBasePane') && layer.options.fillColor && layer.options.fillColor != '#55555500'){
+                        if(layer.getBounds){
+                            bounds.extend(layer.getBounds())
+                        }
+                        else if(layer.getLatLng){
+                            bounds.extend(layer.getLatLng())
+                        }
+                    }
+                })
+            }
         }
         //应用bounds
         if(bounds.isValid()){
@@ -864,8 +911,12 @@ const setView = (force = false)=>{
         pendingSetView = true
     }
 }
-provide('setView', setView)
-provide('isAutoZoom', isAutoZoom)
+const smartSetView = () => {
+    setTimeout(() => {
+        if(isAutoZoom.value) setView()
+    }, 0);
+}
+provide('smartSetView', smartSetView)
 const loadBaseMap = (geojson, pane, useVector = true, style = {
         color: '#ccc',
         fillColor: '#333',

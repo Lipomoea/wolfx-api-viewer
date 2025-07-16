@@ -141,7 +141,7 @@ watch(() => statusStore.map, newVal => {
             if(focus && shouldFocus) {
                 focusWindow()
             }
-            if(shouldFocus) handleTempEqlists(15000)
+            if(shouldFocus) handleTempEqlists(15000, 'jmaTsunami')
             Object.assign(oldMessage, newMessage)
         }, { immediate: true, deep: true })
     }

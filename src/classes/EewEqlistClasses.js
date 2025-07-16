@@ -73,7 +73,7 @@ let settingsStore
 export const ignoredIds = new Set()
 
 export class EewEvent {
-    constructor(map, eqMessage, activeEewList, handleTempEqlists){
+    constructor(map, eqMessage, activeEewList, handleTempEqlists, smartSetView){
         this.map = map
         if(!settingsStore) settingsStore = useSettingsStore()
         this.eqMessage = eqMessage
@@ -98,6 +98,7 @@ export class EewEvent {
         }
         this.maxRadius = 2000
         this.handleTempEqlists = handleTempEqlists
+        this.smartSetView = smartSetView
     }
     setMark(){
         if(this.hypoMarker && this.map.hasLayer(this.hypoMarker)) this.map.removeLayer(this.hypoMarker)
@@ -373,6 +374,7 @@ export class EewEvent {
                 settingsStore.mainSettings.muteNotification)
         }
         this.handleTempEqlists(0)
+        this.smartSetView()
     }
     handleCountdown(passedTime){
         if(settingsStore.mainSettings.displayCountdown && this.isValidUserLatLng && (this.userDist <= this.maxRadius && !this.eqMessage.isAssumption || settingsStore.mainSettings.forceDisplayCountdown)){
@@ -401,7 +403,7 @@ export class EewEvent {
     }
 }
 export class EqlistEvent {
-    constructor(map, eqMessage, handleTempEqlists){
+    constructor(map, eqMessage, handleTempEqlists, smartSetView){
         this.map = map
         if(!settingsStore) settingsStore = useSettingsStore()
         this.eqMessage = eqMessage
@@ -409,6 +411,7 @@ export class EqlistEvent {
         this.useJst = eqMessage.source.includes('jma')
         this.showMenu = false
         this.handleTempEqlists = handleTempEqlists
+        this.smartSetView = smartSetView
     }
     update(eqMessage, time){
         Object.assign(this.eqMessage, eqMessage)
@@ -488,7 +491,8 @@ export class EqlistEvent {
                 icon, 
                 settingsStore.mainSettings.muteNotification)
         }
-        this.handleTempEqlists(6500)
+        this.handleTempEqlists(6500, eqMessage.source)
+        this.smartSetView()
     }
     deactivate() {
         clearTimeout(this.deactivateTimer)
