@@ -49,7 +49,7 @@ onBeforeUnmount(()=>{
 })
 
 const className = ref('white midOpacity')
-const fontClass = computed(() => className.value.includes('red') || className.value.includes('purple') ? 'font-white' : 'font-black')
+const fontClass = computed(() => className.value.includes('dark-orange') || className.value.includes('red') || className.value.includes('purple') ? 'font-white' : 'font-black')
 let timer
 
 watch(eqMessage, (newVal)=>{
