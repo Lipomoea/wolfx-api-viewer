@@ -24,23 +24,15 @@
                     <el-form-item label="使用震度">
                         <el-switch v-model="useShindo" />
                     </el-form-item>
-
-                    <el-form-item label="延迟 (s)">
-                        <el-input-number v-model="currentForm.delay" :step="1" />
+                    
+                    <el-form-item label="发震延迟 (s)">
+                        <el-input-number v-model="currentForm.originDelay" :step="1" />
                     </el-form-item>
 
-                    <el-form-item label="假定震源">
-                        <el-switch v-model="currentForm.isAssumption" />
+                    <el-form-item label="发报延迟 (s)">
+                        <el-input-number v-model="currentForm.reportDelay" :min="0" :step="1" />
                     </el-form-item>
-
-                    <el-form-item label="警报">
-                        <el-switch v-model="currentForm.isWarn" />
-                    </el-form-item>
-
-                    <el-form-item label="取消报">
-                        <el-switch v-model="currentForm.isCancel" />
-                    </el-form-item>
-
+                    
                     <el-form-item label="震中地名">
                         <el-input v-model="currentForm.hypocenter" placeholder="选填" />
                     </el-form-item>
@@ -61,11 +53,6 @@
                         <el-input-number v-model="currentForm.depth" :step="10" :min="0" :max="700" />
                     </el-form-item>
 
-                    <el-form-item label="发震时间 (CST)">
-                        <el-date-picker v-model="currentForm.originTime" type="datetime" format="YYYY-MM-DD HH:mm:ss"
-                            value-format="YYYY-MM-DD HH:mm:ss" placeholder="留空则设为提交时间" />
-                    </el-form-item>
-
                     <el-form-item label="震级">
                         <el-input-number v-model="currentForm.magnitude" :step="0.1" :min="0" :max="10" :precision="1" />
                     </el-form-item>
@@ -75,6 +62,18 @@
                             <el-option v-for="intensity in intensities" :key="intensity" :label="intensity"
                                 :value="intensity" />
                         </el-select>
+                    </el-form-item>
+
+                    <el-form-item label="假定震源">
+                        <el-switch v-model="currentForm.isAssumption" />
+                    </el-form-item>
+
+                    <el-form-item label="警报">
+                        <el-switch v-model="currentForm.isWarn" />
+                    </el-form-item>
+
+                    <el-form-item label="取消报">
+                        <el-switch v-model="currentForm.isCancel" />
                     </el-form-item>
                 </el-form>
             </div>
@@ -117,7 +116,8 @@ const title = ref('')
 const useShindo = ref(false)
 
 const createEmptyMessage = () => ({
-    delay: 5,
+    originDelay: 0,
+    reportDelay: 5,
     isAssumption: false,
     isWarn: false,
     isCancel: false,
@@ -125,7 +125,6 @@ const createEmptyMessage = () => ({
     lat: 0,
     lng: 0,
     depth: 10,
-    originTime: '',
     magnitude: 5.0,
     maxIntensity: ''
 })
@@ -157,7 +156,7 @@ const nextPage = () => {
 }
 
 const addPage = () => {
-    forms.splice(currentPage.value + 1, 0, { ...currentForm.value, delay: currentForm.value.delay + 2 })
+    forms.splice(currentPage.value + 1, 0, { ...currentForm.value, reportDelay: currentForm.value.reportDelay + 2 })
     currentPage.value++
 }
 
@@ -173,21 +172,22 @@ const generateEqMessage = (form, index, id) => {
     const reportNum = index + 1
     const isFinal = reportNum == forms.length
     const reportNumText = `第${reportNum}报${isFinal ? '（最终）' : ''}`
-    const originTime = form.originTime || dayjs().format('YYYY-MM-DD HH:mm:ss')
+    const originTime = dayjs().add(form.originDelay, 'seconds').format('YYYY-MM-DD HH:mm:ss')
+    const reportTime = dayjs().add(form.reportDelay, 'seconds').format('YYYY-MM-DD HH:mm:ss')
     const eqMessage = {
         id,
         isEew: true,
         reportNum,
         reportNumText,
-        reportTime: dayjs().add(form.delay, 'seconds').format('YYYY-MM-DD HH:mm:ss'),
+        reportTime,
         isAssumption: form.isAssumption,
         isWarn: form.isWarn,
         isFinal,
         isCanceled: form.isCancel,
-        title: '（模拟）' + (title.value || '地震预警'),
-        titleText: '（模拟）' + (title.value || '地震预警') + (form.isCancel ? '（取消）' : ''),
-        hypocenter: '（模拟）' + (form.hypocenter || '未知地名'),
-        hypocenterText: '震源: （模拟）' + (form.hypocenter || '未知地名'),
+        title: '模拟·' + (title.value || '地震预警'),
+        titleText: '模拟·' + (title.value || '地震预警') + (form.isCancel ? '（取消）' : ''),
+        hypocenter: '模拟·' + (form.hypocenter || '未知地名'),
+        hypocenterText: '震源: 模拟·' + (form.hypocenter || '未知地名'),
         lat: form.lat,
         lng: form.lng,
         depth: form.depth,
@@ -198,8 +198,7 @@ const generateEqMessage = (form, index, id) => {
         magnitudeText: '震级: ' + form.magnitude,
         useShindo: useShindo.value,
         maxIntensity: form.maxIntensity,
-        maxIntensityText: (useShindo.value ? '最大震度: ' : '最大烈度: ') + form.maxIntensity,
-        warnArea: '[]'
+        maxIntensityText: (useShindo.value ? '最大震度: ' : '最大烈度: ') + form.maxIntensity
     }
     return eqMessage
 }
@@ -210,7 +209,7 @@ const submitScenario = () => {
         const eqMessage = generateEqMessage(form, index, staticId)
         setTimeout(() => {
             statusStore.setEqMessage('mockEew', eqMessage)
-        }, form.delay * 1000);
+        }, form.reportDelay * 1000);
     })
     showMockDialog.value = false
 }
