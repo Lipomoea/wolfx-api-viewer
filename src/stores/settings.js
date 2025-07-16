@@ -83,12 +83,11 @@ export const useSettingsStore = defineStore('settingsStore', {
             autoRefresh: false
         },
         advancedSettings: {
-            enableCeaEew: false,
             enableIclEew: false,
             enableTremFunctions: false,
             enableGqEew: false,
-            displayMultiApi: false,
-            displayMockEew: false,
+            enableMultiApi: false,
+            enableMockEew: false,
             tokens: {
                 fan_icl: ''
             },

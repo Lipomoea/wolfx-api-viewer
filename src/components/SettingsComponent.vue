@@ -23,8 +23,8 @@
                     <el-switch v-model="settingsStore.mainSettings.source.jmaEew" @change="handleNeedReload"></el-switch>
                     <div class="full-width">中央氣象署地震速報</div>
                     <el-switch v-model="settingsStore.mainSettings.source.cwaEew" @change="handleNeedReload"></el-switch>
-                    <div class="full-width" v-if="settingsStore.advancedSettings.enableCeaEew">中国地震局地震预警</div>
-                    <el-switch v-if="settingsStore.advancedSettings.enableCeaEew" v-model="settingsStore.mainSettings.source.ceaEew" @change="handleNeedReload"></el-switch>
+                    <div class="full-width">中国地震局地震预警</div>
+                    <el-switch v-model="settingsStore.mainSettings.source.ceaEew" @change="handleNeedReload"></el-switch>
                     <div class="full-width" v-if="settingsStore.advancedSettings.enableIclEew">成都高新所地震预警</div>
                     <el-switch v-if="settingsStore.advancedSettings.enableIclEew" v-model="settingsStore.mainSettings.source.iclEew" @change="handleNeedReload"></el-switch>
                     <div class="full-width">四川地震局地震预警</div>
@@ -536,7 +536,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row" v-if="settingsStore.advancedSettings.displayMultiApi">
+                    <div class="row" v-if="settingsStore.advancedSettings.enableMultiApi">
                         <div class="switch-group">
                             <div class="switch">
                                 <span>更多API</span>
@@ -621,7 +621,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row" v-if="settingsStore.advancedSettings.displayMockEew">
+                    <div class="row" v-if="settingsStore.advancedSettings.enableMockEew">
                         <div class="switch-group">
                             <div class="switch">
                                 <span>模拟地震预警</span>
@@ -750,10 +750,10 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false" append-to-body>
-            <div class="header">要石 v2.2.0-pre.2.1</div>
+            <div class="header">要石 v2.2.0-pre.3</div>
             <div class="title">最近更新</div>
             <div class="about">
-                <p>v2.2.0 变更：引入FAN Studio API；弃用部分HTTP接口。新增：单击信息框可静默或关闭正在生效的地震预警或地震信息；双击侧边栏地震预警/地震信息框可快速进行测站回放，双击左下角测站时间可重置；显示API名称功能。优化：调整了部分UI；使用更精细的中国地图；降低部分平台下应用处于后台的功耗。修复：WebSocket连接时小概率数据丢失的问题；macOS客户端无法打开网页的问题；特定情况下macOS客户端从后台切回前台时卡住的问题。</p>
+                <p>v2.2.0 变更：引入FAN Studio API；弃用部分HTTP接口。新增：中国地震局地震预警；单击信息框可静默或关闭正在生效的地震预警或地震信息；双击侧边栏地震预警/地震信息框可快速进行测站回放，双击左下角测站时间可重置；显示API名称功能。优化：调整了部分UI；使用更精细的中国地图；降低部分平台下应用处于后台的功耗。修复：WebSocket连接时小概率数据丢失的问题；macOS客户端无法打开网页的问题；特定情况下macOS客户端从后台切回前台时卡住的问题。</p>
                 <p>v2.1.0 新增：适配macOS应用程序；新增：区域烈度列表显示功能；新增：UI缩放比例调整；新增：中文倒计时播报；新增：可调整开始倒计时的秒数；优化：适当提升了应用程序窗口可调整的大小范围；优化：部分走时精准度；优化：部分测站渲染性能；优化：地震波绘制性能；修复：版本号检测逻辑错误的bug；修复：Safari等浏览器下，部分界面显示异常的问题。</p>
                 <p>v2.0.0 变更：版本号变更为正式版；优化：新增“混合”测站风格。</p>
             </div>
@@ -946,21 +946,6 @@ const idForm = reactive({
 })
 const handleAdvance = (val)=>{
     switch(val){
-        case 'enableCeaEew': {
-            verifyType = 'enableCeaEew'
-            verifyDialog.value = true
-            break
-        }
-        case 'disableCeaEew': {
-            if(settingsStore.mainSettings.source.ceaEew) handleNeedReload()
-            settingsStore.advancedSettings.enableCeaEew = false
-            settingsStore.mainSettings.source.ceaEew = false
-            ElMessage({
-                message: '功能已关闭',
-                type: 'success'
-            })
-            break
-        }
         case 'enableIclEew': {
             verifyType = 'enableIclEew'
             verifyDialog.value = true
@@ -1014,7 +999,7 @@ const handleAdvance = (val)=>{
         }
         case 'disableMultiApi': {
             if(settingsStore.advancedSettings.multiApi) handleNeedReload()
-            settingsStore.advancedSettings.displayMultiApi = false
+            settingsStore.advancedSettings.enableMultiApi = false
             settingsStore.advancedSettings.multiApi = false
             ElMessage({
                 message: '功能已关闭',
@@ -1022,14 +1007,29 @@ const handleAdvance = (val)=>{
             })
             break
         }
-        case 'displayMockEew': {
-            settingsStore.advancedSettings.displayMockEew = true
+        case 'enableMockEew': {
+            ElMessageBox.confirm(
+                '此功能意在通过重现或模拟将来可能发生的地震，起到防灾减灾教育效果。因滥用此功能造成的任何后果均由您本人承担。',
+                '启用模拟地震预警',
+                {
+                    confirmButtonText: '同意',
+                    cancelButtonText: '不同意',
+                    type: 'warning',
+                    showClose: false,
+                }
+            ).then(()=>{
+                settingsStore.advancedSettings.enableMockEew = true
+            }).catch(()=>{
+                if(settingsStore.advancedSettings.mockEew) handleNeedReload()
+                settingsStore.advancedSettings.mockEew = false
+                settingsStore.advancedSettings.enableMockEew = false
+            })
             break
         }
-        case 'hideMockEew': {
+        case 'disableMockEew': {
             if(settingsStore.advancedSettings.mockEew) handleNeedReload()
             settingsStore.advancedSettings.mockEew = false
-            settingsStore.advancedSettings.displayMockEew = false
+            settingsStore.advancedSettings.enableMockEew = false
             break
         }
         case 'verifyAdmin': {
@@ -1042,25 +1042,6 @@ const handleAdvance = (val)=>{
 }
 const postVerify = async (type = verifyType)=>{
     switch(type){
-        case 'enableCeaEew': {
-            const res = await Http.post('https://api.lipomoea.tech/cea_url', idForm)
-            if(res && res.success){
-                settingsStore.advancedSettings.enableCeaEew = true
-                localStorage.setItem('ceaUrl', JSON.stringify(res.data))
-                verifyDialog.value = false
-                ElMessage({
-                    message: '认证成功',
-                    type: 'success'
-                })
-            }
-            else{
-                ElMessage({
-                    message: '认证失败',
-                    type: 'error'
-                })
-            }
-            break
-        }
         case 'enableIclEew': {
             const res = await Http.post('https://api.lipomoea.tech/icl_url', idForm)
             if(res && res.success){
@@ -1121,7 +1102,7 @@ const postVerify = async (type = verifyType)=>{
         case 'enableMultiApi': {
             const res = await Http.post('https://api.lipomoea.tech/multi_api', idForm)
             if(res && res.success){
-                settingsStore.advancedSettings.displayMultiApi = true
+                settingsStore.advancedSettings.enableMultiApi = true
                 localStorage.setItem('multiApi', JSON.stringify(res.data))
                 verifyDialog.value = false
                 ElMessage({
@@ -1138,7 +1119,6 @@ const postVerify = async (type = verifyType)=>{
             break
         }
         case 'verifyAdmin': {
-            postVerify('enableCeaEew')
             postVerify('enableIclEew')
             postVerify('enableTremFunctions')
             postVerify('enableGqEew')
