@@ -191,11 +191,11 @@ const generateEqMessage = (form, index, id) => {
         lat: form.lat,
         lng: form.lng,
         depth: form.depth,
-        depthText: '深度: ' + form.depth + 'km',
+        depthText: '深度: ' + form.depth.toFixed(0) + 'km',
         originTime,
         originTimeText: '发震时间: ' + originTime,
         magnitude: form.magnitude,
-        magnitudeText: '震级: ' + form.magnitude,
+        magnitudeText: '震级: ' + form.magnitude.toFixed(1),
         useShindo: useShindo.value,
         maxIntensity: form.maxIntensity,
         maxIntensityText: (useShindo.value ? '最大震度: ' : '最大烈度: ') + form.maxIntensity
@@ -264,8 +264,8 @@ watch(() => statusStore.map, newVal => {
 const pickLatLng = () => {
     showMockDialog.value = false
     map?.once('click', e => {
-        currentForm.value.lat = e.latlng.lat
-        currentForm.value.lng = e.latlng.lng
+        currentForm.value.lat = Math.round(e.latlng.lat * 1000) / 1000
+        currentForm.value.lng = Math.round(e.latlng.lng * 1000) / 1000
         showMockDialog.value = true
     })
 }
