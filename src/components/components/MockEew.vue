@@ -243,13 +243,15 @@ function onFileSelected(e) {
     reader.onload = (ev) => {
         try {
             const json = JSON.parse(ev.target.result);
-            forms.splice(0)
             id.value = json?.id
             title.value = json?.title
             useShindo.value = json?.useShindo
-            json?.forms?.forEach(form => {
-                forms.push(form)
-            })
+            setTimeout(() => {
+                forms.splice(0)
+                json?.forms?.forEach(form => {
+                    forms.push(form)
+                })
+            }, 0);
         } catch (err) {
             ElMessage.error('JSON 格式错误！');
         }
