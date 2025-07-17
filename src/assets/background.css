@@ -20,112 +20,76 @@
 .white{
     background-color: #ffffff;
 }
-.white:hover{
-    background-color: #efefef;
-}
 .white:active{
-    background-color: #dfdfdf;
+    background-color: #efefef;
 }
 .dark-gray{
     background-color: #9f9f9f;
 }
-.dark-gray:hover{
-    background-color: #8f8f8f;
-}
 .dark-gray:active{
-    background-color: #7f7f7f;
+    background-color: #8f8f8f;
 }
 .gray{
     background-color: #cfcfcf;
 }
-.gray:hover{
-    background-color: #bfbfbf;
-}
 .gray:active{
-    background-color: #afafaf;
+    background-color: #bfbfbf;
 }
 .sky-blue{
     background-color: #5fcfff;
 }
-.sky-blue:hover{
-    background-color: #4fbfef;
-}
 .sky-blue:active{
-    background-color: #3fafdf;
+    background-color: #4fbfef;
 }
 .blue{
     background-color: #3fafff;
 }
-.blue:hover{
-    background-color: #2f9fef;
-}
 .blue:active{
-    background-color: #1f8fdf;
+    background-color: #2f9fef;
 }
 .green{
     background-color: #5fdf8f;
 }
-.green:hover{
-    background-color: #4fcf7f;
-}
 .green:active{
-    background-color: #3fbf6f;
+    background-color: #4fcf7f;
 }
 .yellow{
     background-color: #ffef5f;
 }
-.yellow:hover{
-    background-color: #efdf4f;
-}
 .yellow:active{
-    background-color: #dfcf3f;
+    background-color: #efdf4f;
 }
 .orange{
     background-color: #ff7f00;
 }
-.orange:hover{
-    background-color: #ef6f00;
-}
 .orange:active{
-    background-color: #df5f00;
+    background-color: #ef6f00;
 }
 .dark-orange{
     background-color: #ff4f00;
     color: #ffffff;
 }
-.dark-orange:hover{
-    background-color: #df3f00;
-}
 .dark-orange:active{
-    background-color: #bf2f00;
+    background-color: #df3f00;
 }
 .red{
     background-color: #df0f0f;
     color: #ffffff;
 }
-.red:hover{
-    background-color: #cf0000;
-}
 .red:active{
-    background-color: #bf0000;
+    background-color: #cf0000;
 }
 .dark-red{
     background-color: #af0000;
     color: #ffffff;
 }
-.dark-red:hover{
-    background-color: #9f0000;
-}
 .dark-red:active{
-    background-color: #8f0000;
+    background-color: #9f0000;
 }
 .purple{
     background-color: #7f007f;
     color: #ffffff;
 }
-.purple:hover{
-    background-color: #6f006f;
-}
 .purple:active{
-    background-color: #5f005f;
+    background-color: #6f006f;
 }

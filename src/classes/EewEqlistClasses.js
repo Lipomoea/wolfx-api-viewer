@@ -86,9 +86,11 @@ export class EewEvent {
         this.userShindo = '?'
         this.nearestJmaLoc = settingsStore.nearestJmaLoc
         this.countdown = -1
+        this.pCountdown = -1
         this.shouldAction = false
         this.mute = false
         this.showMenu = false
+        this.showPCountdown = false
         this.flags = {
             firstSound: false,
             cautionSound: false,
@@ -261,7 +263,8 @@ export class EewEvent {
                 this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
                 if(this.isValidUserLatLng) {
                     this.userDist = L.latLng(this.hypoLatLng).distanceTo(L.latLng(this.userLatLng)) / 1000
-                    this.reachTime = calcReachTime(this.userDist <= this.maxRadius ? travelTimes.jma2001 : travelTimes.jb, false, this.eqMessage.depth, this.userDist)
+                    this.pReachTime = calcReachTime(this.userDist <= this.maxRadius ? travelTimes.jma2001 : travelTimes.jb, true, this.eqMessage.depth, this.userDist)
+                    this.sReachTime = calcReachTime(this.userDist <= this.maxRadius ? travelTimes.jma2001 : travelTimes.jb, false, this.eqMessage.depth, this.userDist)
                     this.userCsis = settingsStore.advancedSettings.forceCalcInt && !this.eqMessage.isAssumption ? 
                         calcCsisLevel(this.eqMessage.magnitude, this.eqMessage.depth, this.userDist) : '?'
                     this.userShindo = 
@@ -277,7 +280,8 @@ export class EewEvent {
                 }
                 else {
                     this.userDist = undefined
-                    this.reachTime = -1
+                    this.pReachTime = -1
+                    this.sReachTime = -1
                     this.userCsis = '?'
                     this.userShindo = '?'
                 }
@@ -378,7 +382,8 @@ export class EewEvent {
     }
     handleCountdown(passedTime){
         if(settingsStore.mainSettings.displayCountdown && this.isValidUserLatLng && (this.userDist <= this.maxRadius && !this.eqMessage.isAssumption || settingsStore.mainSettings.forceDisplayCountdown)){
-            this.countdown = Math.max(this.reachTime - passedTime, 0)
+            this.countdown = Math.max(this.sReachTime - passedTime, 0)
+            this.pCountdown = Math.max(this.pReachTime - passedTime, 0)
             if(settingsStore.mainSettings.playCountdownSound && this.shouldAction && !this.mute) {
                 const secondsCount = Math.ceil(this.countdown)
                 if(secondsCount < this.flags.lastSecondsCount){
@@ -389,6 +394,7 @@ export class EewEvent {
         }
         else{
             this.countdown = -1
+            this.pCountdown = -1
         }
     }
     terminate(force = false){

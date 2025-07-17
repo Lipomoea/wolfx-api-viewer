@@ -30,7 +30,14 @@
                             </div>
                         </div>
                         <div class="countdown eew realtime" v-if="settingsStore.mainSettings.displayCountdown">
-                            <div class="shindo-bar" :class="event.countdown <= 0 || event.eqMessage.isCanceled?'gray':event.countdown <= 10?'red':event.countdown <= 60?'orange':'yellow'">{{ event.countdown == -1?'-':Math.ceil(event.countdown) }}秒</div>
+                            <div class="shindo-bar" @dblclick="event.showPCountdown = !event.showPCountdown"
+                            :class="event.showPCountdown ? 'blue' 
+                            : event.countdown <= 0 || event.eqMessage.isCanceled ? 'gray' 
+                            : event.countdown <= 10 ? 'red' 
+                            : event.countdown <= 60 ? 'orange' 
+                            : 'yellow'">
+                                {{ event.countdown == -1 ? '-' : Math.ceil(event.showPCountdown ? event.pCountdown : event.countdown) }}秒
+                            </div>
                             <div class="info" v-if="event.nearestJmaLoc">
                                 <div class="intensity" :class="setClassName(event.userShindo, true)">
                                     <div class="intensity-title">本地震度</div>
@@ -1272,6 +1279,9 @@ onBeforeUnmount(()=>{
                             background-color: var(--tsunami-yellow);
                         }
                     }
+                }
+                .countdown .shindo-bar{
+                    pointer-events: auto;
                 }
                 .realtime{
                     width: 100px;
