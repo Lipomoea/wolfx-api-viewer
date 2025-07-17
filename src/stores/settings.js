@@ -9,7 +9,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             source: {
                 jmaEew: true,
                 cwaEew: true,
-                ceaEew: false,
+                ceaEew: true,
                 iclEew: false,
                 scEew: true,
                 fjEew: true,
