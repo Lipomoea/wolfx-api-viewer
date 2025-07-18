@@ -6,6 +6,11 @@ import { isTauri } from '@tauri-apps/api/core';
 import { open } from "@tauri-apps/plugin-shell";
 import { booleanPointInPolygon, point, polygonToLine, pointToLineDistance, area, distance, centroid } from "@turf/turf";
 import { flatten } from "@turf/turf";
+import dayjs from "dayjs";
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 let timeStore
 let settingsStore
@@ -42,17 +47,7 @@ export const msToTime = (duration)=>{
 }
 export const timeToStamp = (time, timeZone)=>{
     if(!time) return 0
-    let isoTime = time.replace(' ', 'T').replace(/\//g, '-') + 'Z'
-    let splitIso = isoTime.split('-')
-    if(splitIso[1].length == 1) splitIso[1] = '0' + splitIso[1]
-    if(splitIso[2].split('T')[0].length == 1) splitIso[2] = '0' + splitIso[2]
-    isoTime = splitIso.join('-')
-    splitIso = isoTime.split('T')
-    if(splitIso[1].split(':')[0].length == 1) splitIso[1] = '0' + splitIso[1]
-    isoTime = splitIso.join('T')
-    let stamp = new Date(isoTime).getTime()
-    stamp -= timeZone * 3600 * 1000
-    return stamp
+    return dayjs.utc(time).subtract(timeZone, "hours").valueOf()
 }
 export const stampToTime = (timeStamp, timeZone) => {
     return new Date(timeStamp + timeZone * 3600 * 1000).toISOString().replace('T', ' ').slice(0, -5)
