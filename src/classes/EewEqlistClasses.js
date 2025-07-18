@@ -1,4 +1,4 @@
-import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendMyNotification, getClassLevel, focusWindow, calcCsisLevel, calcJmaShindoLevel, shindoScale } from '@/utils/Utils';
+import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendMyNotification, getClassLevel, focusWindow, calcCsisLevel, calcJmaShindoLevel, shindoScale, timeToStamp } from '@/utils/Utils';
 import travelTimes from '@/utils/TravelTimes';
 import { chimeUrls, iconUrls } from '@/utils/Urls';
 import L from 'leaflet';
@@ -420,18 +420,20 @@ export class EqlistEvent {
         this.smartSetView = smartSetView
     }
     update(eqMessage, time){
-        Object.assign(this.eqMessage, eqMessage)
-        this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
-        this.isValidHypo = this.hypoLatLng.some(item => !!item)
-        this.setMark()
-        if(time > 0){
-            this.handleActions()
-            this.isActive = true
-            clearTimeout(this.deactivateTimer)
-            this.deactivateTimer = setTimeout(() => {
-                this.isActive = false
-                this.showMenu = false
-            }, time);
+        if(timeToStamp(eqMessage.reportTime, 8) > timeToStamp(this.eqMessage.reportTime, 8)) {
+            Object.assign(this.eqMessage, eqMessage)
+            this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
+            this.isValidHypo = this.hypoLatLng.some(item => !!item)
+            this.setMark()
+            if(time > 0){
+                this.handleActions()
+                this.isActive = true
+                clearTimeout(this.deactivateTimer)
+                this.deactivateTimer = setTimeout(() => {
+                    this.isActive = false
+                    this.showMenu = false
+                }, time);
+            }
         }
     }
     setMark(){

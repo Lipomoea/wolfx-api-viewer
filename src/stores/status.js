@@ -47,17 +47,12 @@ export const defaultTsunamiMessage = {
     className: ''
 }
 
-const source2Wolfx = {
-    jmaEew: 'jma_eew',
-    cwaEew: 'cwa_eew',
-    scEew: 'sc_eew',
-    fjEew: 'fj_eew'
-}
 const wolfx2Source = {
     jma_eew: 'jmaEew',
     cwa_eew: 'cwaEew',
     sc_eew: 'scEew',
-    fj_eew: 'fjEew'
+    fj_eew: 'fjEew',
+    cenc_eqlist: 'cencEqlist'
 }
 
 const source2Fan = {
@@ -83,7 +78,7 @@ export const useStatusStore = defineStore('statusStore', {
         fanSocket: null,
         p2pquakeSocket: null,
         gqSocket: null,
-        useWolfxSocket: ['jmaEew', 'cwaEew', 'scEew', 'fjEew'],
+        useWolfxSocket: ['jmaEew', 'cwaEew', 'scEew', 'fjEew', 'cencEqlist'],
         useFanSocket: ['ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist'],
         useP2pquakeSocket: ['jmaEqlist', 'jmaTsunami'],
         enabledSource: [],
@@ -603,38 +598,44 @@ export const useStatusStore = defineStore('statusStore', {
                         break
                     }
                     case 'cencEqlist':{
-                        // eqMessage.id = data.No1.EventID
-                        // eqMessage.reportTime = data.No1.ReportTime
-                        // eqMessage.title = data.No1.type
-                        // eqMessage.titleText = '中国地震台网' + (data.No1.type == 'reviewed'?'正式':'自动') + '测定'
-                        // eqMessage.hypocenter = data.No1.placeName
-                        // eqMessage.hypocenterText = '震源: ' + data.No1.placeName
-                        // eqMessage.lat = Number(data.No1.latitude)
-                        // eqMessage.lng = Number(data.No1.longitude)
-                        // eqMessage.depth = Number(data.No1.depth)
-                        // eqMessage.depthText = '深度: ' + data.No1.depth + 'km'
-                        // eqMessage.originTime = data.No1.time
-                        // eqMessage.originTimeText = '发震时间: ' + data.No1.time
-                        // eqMessage.magnitude = Number(data.No1.magnitude)
-                        // eqMessage.magnitudeText = '震级: ' + data.No1.magnitude
-                        // eqMessage.maxIntensity = data.No1.intensity
-                        // eqMessage.maxIntensityText = '估计最大烈度: ' + data.No1.intensity
-                        eqMessage.id = data.eventId
-                        eqMessage.reportTime = data.createTime
-                        eqMessage.title = `中国地震台网${data.infoTypeName.slice(1, 3)}测定`
-                        eqMessage.titleText = `中国地震台网${data.infoTypeName.slice(1, 3)}测定`
-                        eqMessage.hypocenter = data.placeName
-                        eqMessage.hypocenterText = '震源: ' + data.placeName
-                        eqMessage.lat = data.latitude
-                        eqMessage.lng = data.longitude
-                        eqMessage.depth = data.depth
-                        eqMessage.depthText = '深度: ' + data.depth + 'km'
-                        eqMessage.originTime = data.shockTime
-                        eqMessage.originTimeText = '发震时间: ' + data.shockTime
-                        eqMessage.magnitude = data.magnitude
-                        eqMessage.magnitudeText = '震级: ' + data.magnitude.toFixed(1)
-                        eqMessage.maxIntensity = calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
-                        eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
+                        switch(type) {
+                            case 0: 
+                                eqMessage.id = data.No1.EventID
+                                eqMessage.reportTime = data.No1.ReportTime
+                                eqMessage.title = `中国地震台网${data.No1.type == 'reviewed' ? '正式' : '自动'}测定`
+                                eqMessage.titleText = eqMessage.title
+                                eqMessage.hypocenter = data.No1.placeName
+                                eqMessage.hypocenterText = '震源: ' + data.No1.placeName
+                                eqMessage.lat = Number(data.No1.latitude)
+                                eqMessage.lng = Number(data.No1.longitude)
+                                eqMessage.depth = Number(data.No1.depth)
+                                eqMessage.depthText = '深度: ' + data.No1.depth + 'km'
+                                eqMessage.originTime = data.No1.time
+                                eqMessage.originTimeText = '发震时间: ' + data.No1.time
+                                eqMessage.magnitude = Number(data.No1.magnitude)
+                                eqMessage.magnitudeText = '震级: ' + data.No1.magnitude
+                                eqMessage.maxIntensity = calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
+                                eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
+                                break
+                            case 1:
+                                eqMessage.id = data.eventId
+                                eqMessage.reportTime = data.createTime
+                                eqMessage.title = `中国地震台网${data.infoTypeName.slice(1, 3)}测定`
+                                eqMessage.titleText = eqMessage.title
+                                eqMessage.hypocenter = data.placeName
+                                eqMessage.hypocenterText = '震源: ' + data.placeName
+                                eqMessage.lat = data.latitude
+                                eqMessage.lng = data.longitude
+                                eqMessage.depth = data.depth
+                                eqMessage.depthText = '深度: ' + data.depth + 'km'
+                                eqMessage.originTime = data.shockTime
+                                eqMessage.originTimeText = '发震时间: ' + data.shockTime
+                                eqMessage.magnitude = data.magnitude
+                                eqMessage.magnitudeText = '震级: ' + data.magnitude.toFixed(1)
+                                eqMessage.maxIntensity = calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
+                                eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
+                                break
+                        }
                         break
                     }
                 }

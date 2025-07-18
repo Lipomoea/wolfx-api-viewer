@@ -41,6 +41,7 @@ export const msToTime = (duration)=>{
     return days + "d " + hours + ":" + minutes + ":" + seconds;
 }
 export const timeToStamp = (time, timeZone)=>{
+    if(!time) return 0
     let isoTime = time.replace(' ', 'T').replace(/\//g, '-') + 'Z'
     let splitIso = isoTime.split('-')
     if(splitIso[1].length == 1) splitIso[1] = '0' + splitIso[1]
