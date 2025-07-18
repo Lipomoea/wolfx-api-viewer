@@ -202,7 +202,7 @@ const generateEqMessage = (form, index, id) => {
         magnitudeText: '震级: ' + form.magnitude.toFixed(1),
         useShindo: useShindo.value,
         maxIntensity: form.maxIntensity,
-        maxIntensityText: (useShindo.value ? '最大震度: ' : '最大烈度: ') + form.maxIntensity
+        maxIntensityText: (useShindo.value ? '推定最大震度: ' : '估计最大烈度: ') + form.maxIntensity
     }
     return eqMessage
 }
