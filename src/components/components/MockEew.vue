@@ -100,8 +100,12 @@
 
 <script setup>
 import { useStatusStore } from '@/stores/status';
-import { dayjs } from 'element-plus';
+import dayjs from 'dayjs';
 import { ref, reactive, computed, watch } from 'vue';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const showMockDialog = ref(false)
 defineExpose({
@@ -172,8 +176,8 @@ const generateEqMessage = (form, index, id) => {
     const reportNum = index + 1
     const isFinal = reportNum == forms.length
     const reportNumText = `第${reportNum}报${isFinal ? '（最终）' : ''}`
-    const originTime = dayjs().add(form.originDelay, 'seconds').format('YYYY-MM-DD HH:mm:ss')
-    const reportTime = dayjs().add(form.reportDelay, 'seconds').format('YYYY-MM-DD HH:mm:ss')
+    const originTime = dayjs().add(form.originDelay, 'seconds').tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss')
+    const reportTime = dayjs().add(form.reportDelay, 'seconds').tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss')
     const eqMessage = {
         id,
         isEew: true,
