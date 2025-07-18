@@ -419,8 +419,8 @@ export class EqlistEvent {
         this.handleTempEqlists = handleTempEqlists
         this.smartSetView = smartSetView
     }
-    update(eqMessage, time){
-        if(timeToStamp(eqMessage.reportTime, 8) > timeToStamp(this.eqMessage.reportTime, 8)) {
+    update(eqMessage, time, isFirst = false){
+        if(isFirst || timeToStamp(eqMessage.reportTime, 0) > timeToStamp(this.eqMessage.reportTime, 0)) {
             Object.assign(this.eqMessage, eqMessage)
             this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
             this.isValidHypo = this.hypoLatLng.some(item => !!item)

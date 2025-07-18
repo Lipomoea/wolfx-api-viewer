@@ -116,7 +116,7 @@ watch(eqMessage, (newVal)=>{
             if(statusStore.map){
                 const newEvent = reactive(new EqlistEvent(statusStore.map, Object.assign({}, newVal), handleTempEqlists, smartSetView))
                 eqlistList.unshift(newEvent)
-                newEvent.update(Object.assign({}, newVal), time)
+                newEvent.update(Object.assign({}, newVal), time, true)
             }
         }
     }
