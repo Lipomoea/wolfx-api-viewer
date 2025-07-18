@@ -303,6 +303,7 @@ const types = {
         0: 'TREM'
     },
     cencEqlist: {
+        0: 'Wolfx',
         1: 'FAN'
     }
 }
