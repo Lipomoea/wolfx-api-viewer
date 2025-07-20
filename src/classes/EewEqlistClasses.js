@@ -1,4 +1,4 @@
-import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendMyNotification, getClassLevel, focusWindow, calcCsisLevel, calcJmaShindoLevel, shindoScale, timeToStamp } from '@/utils/Utils';
+import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendMyNotification, getClassLevel, focusWindow, calcCsisLevel, calcJmaShindoLevel, shindoScale, timeToStamp, formatTimeZone } from '@/utils/Utils';
 import travelTimes from '@/utils/TravelTimes';
 import { chimeUrls, iconUrls } from '@/utils/Urls';
 import L from 'leaflet';
@@ -78,7 +78,6 @@ export class EewEvent {
         if(!settingsStore) settingsStore = useSettingsStore()
         this.eqMessage = eqMessage
         this.activeEewList = activeEewList
-        this.useJst = eqMessage.source.includes('jma')
         this.travelTime = travelTimes.jma2001
         this.userLatLng = settingsStore.numUserLatLng
         this.isValidUserLatLng = settingsStore.isValidUserLatLng
@@ -116,7 +115,7 @@ export class EewEvent {
                 ${this.eqMessage.reportNumText}<br>
                 ${this.eqMessage.hypocenter}(${this.eqMessage.lat},${this.eqMessage.lng})<br>
                 ${this.eqMessage.depthText}<br>
-                ${this.eqMessage.originTime} (+${this.useJst ? 9 : 8})<br>
+                ${this.eqMessage.originTime} (${formatTimeZone(this.eqMessage.timeZone)})<br>
                 M${this.eqMessage.magnitude.toFixed(1)}<br>
                 ${this.eqMessage.maxIntensityText}`, 
                 { permanent: false, direction: 'top', className: 'custom-tooltip' })
@@ -138,13 +137,7 @@ export class EewEvent {
         }
     }
     drawWaves(updated = false){
-        let passedTime
-        if(this.useJst){
-            passedTime = calcPassedTime(this.eqMessage.originTime, 9) / 1000
-        }
-        else{
-            passedTime = calcPassedTime(this.eqMessage.originTime, 8) / 1000
-        }
+        const passedTime = calcPassedTime(this.eqMessage.originTime, this.eqMessage.timeZone) / 1000
         this.handleCountdown(passedTime)
         if(this.hypoLatLng && !this.eqMessage.isAssumption){
             if(updated) this.clearWaves()
@@ -414,7 +407,6 @@ export class EqlistEvent {
         if(!settingsStore) settingsStore = useSettingsStore()
         this.eqMessage = eqMessage
         this.isActive = false
-        this.useJst = eqMessage.source.includes('jma')
         this.showMenu = false
         this.handleTempEqlists = handleTempEqlists
         this.smartSetView = smartSetView
@@ -445,7 +437,7 @@ export class EqlistEvent {
                 <strong>${this.eqMessage.titleText}</strong><br>
                 ${this.eqMessage.hypocenter}(${this.eqMessage.lat},${this.eqMessage.lng})<br>
                 ${this.eqMessage.depthText}<br>
-                ${this.eqMessage.originTime} (+${this.useJst ? 9 : 8})<br>
+                ${this.eqMessage.originTime} (${formatTimeZone(this.eqMessage.timeZone)})<br>
                 M${this.eqMessage.magnitude.toFixed(1)}<br>
                 ${this.eqMessage.maxIntensityText}`, 
                 { permanent: false, direction: 'top', className: 'custom-tooltip' })

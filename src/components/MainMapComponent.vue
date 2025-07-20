@@ -16,7 +16,7 @@
                                 </div>
                                 <div class="right">
                                     <div class="location">{{ event.eqMessage.hypocenter }}</div>
-                                    <div class="time">{{ event.eqMessage.originTime + (event.useJst?' (+9)':' (+8)') }}</div>
+                                    <div class="time">{{ event.eqMessage.originTime + ` (${formatTimeZone(event.eqMessage.timeZone)})` }}</div>
                                     <div class="bottom">
                                         <div class="magnitude">{{ event.eqMessage.isAssumption?'仮定震源要素':'M' + event.eqMessage.magnitude.toFixed(1) }}</div>
                                         <div class="depth">{{ event.eqMessage.isAssumption?'':event.eqMessage.depthText }}</div>
@@ -68,7 +68,7 @@
                                 </div>
                                 <div class="right">
                                     <div class="location">{{ event.eqMessage.hypocenter || '震源 調査中' }}</div>
-                                    <div class="time">{{ event.eqMessage.originTime + (event.useJst?' (+9)':' (+8)') }}</div>
+                                    <div class="time">{{ event.eqMessage.originTime + ` (${formatTimeZone(event.eqMessage.timeZone)})` }}</div>
                                     <div class="bottom">
                                         <div class="magnitude">{{ event.eqMessage.magnitude != -1 ? 'M' + event.eqMessage.magnitude.toFixed(1) : '規模・深さ 調査中' }}</div>
                                         <div class="depth">{{ event.eqMessage.magnitude != -1 ? event.eqMessage.depthText : '' }}</div>
@@ -242,7 +242,7 @@ import EewComponent from './EewComponent.vue';
 import SeisNetComponent from './SeisNetComponent.vue';
 import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
-import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToPolygon, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel } from '@/utils/Utils';
+import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToPolygon, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone } from '@/utils/Utils';
 import { geojsonUrls } from '@/utils/Urls';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { isTauri } from '@tauri-apps/api/core';

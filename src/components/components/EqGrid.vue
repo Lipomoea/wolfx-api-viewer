@@ -36,7 +36,6 @@ const handleTempEqlists = inject('handleTempEqlists')
 const timeStore = useTimeStore()
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
-const useJst = props.source.includes('jma')
 const eqMessage = computed(()=>statusStore.eqMessage[props.source])
 
 const handleDblClick = () => {
@@ -54,14 +53,11 @@ let timer
 watch(eqMessage, (newVal)=>{
     className.value = newVal.className + ' midOpacity'
     let passedTime = 0
-    if(useJst){
-        passedTime = Math.max(calcPassedTime(newVal.reportTime, 9), 0)
-    }
-    else if(props.source == 'cwaEqlist'){
-        passedTime = Math.max(calcPassedTime(newVal.originTime, 8) - 300 * 1000, 0)
+    if(props.source == 'cwaEqlist'){
+        passedTime = Math.max(calcPassedTime(newVal.originTime, newVal.timeZone) - 300 * 1000, 0)
     }
     else{
-        passedTime = Math.max(calcPassedTime(newVal.reportTime, 8), 0)
+        passedTime = Math.max(calcPassedTime(newVal.reportTime, newVal.timeZone), 0)
     }
     let time
     if(newVal.isEew){
@@ -130,12 +126,7 @@ watch(eqMessage, (newVal)=>{
 }, { deep: true })
 const passedTimeFromOrigin = ref(0)
 watch(()=>timeStore.currentTime, ()=>{
-    if(useJst){
-        passedTimeFromOrigin.value = calcPassedTime(eqMessage.value.originTime, 9)
-    }
-    else{
-        passedTimeFromOrigin.value = calcPassedTime(eqMessage.value.originTime, 8)
-    }
+    passedTimeFromOrigin.value = calcPassedTime(eqMessage.value.originTime, eqMessage.value.timeZone)
 })
 
 </script>

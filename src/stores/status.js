@@ -11,6 +11,7 @@ export const defaultEqMessage = {
     type: 0,
     id: '',
     isEew: false,
+    timeZone: 8,
     reportNum: 0,
     reportNumText: '',
     reportTime: '',
@@ -133,6 +134,7 @@ export const useStatusStore = defineStore('statusStore', {
                             case 0:
                                 eqMessage.id = data.EventID
                                 eqMessage.isEew = true
+                                eqMessage.timeZone = 9
                                 eqMessage.isCanceled = data.isCancel
                                 eqMessage.useShindo = true
                                 eqMessage.reportNum = data.Serial
@@ -478,6 +480,7 @@ export const useStatusStore = defineStore('statusStore', {
                     }
                     case 'jmaEqlist':{
                         const isNewEvent = eqMessage.id != data.earthquake.time.replace(/\//g, '-')
+                        eqMessage.timeZone = 9
                         eqMessage.id = data.earthquake.time.replace(/\//g, '-')
                         eqMessage.useShindo = true
                         eqMessage.originTime = data.earthquake.time.replace(/\//g, '-')

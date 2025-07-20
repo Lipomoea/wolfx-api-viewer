@@ -12,7 +12,7 @@
                     <div class="location">{{ item.hypocenter || '震源 調査中' }}</div>
                     <div class="rightBottom">
                         <div class="timeDepth">
-                            <div class="time">{{ item.originTime + (useJst?' (UTC+9)':' (UTC+8)') }}</div>
+                            <div class="time">{{ item.originTime + ` (${formatTimeZone(item.timeZone)})` }}</div>
                             <div class="depth">{{ item.depth }}</div>
                         </div>
                         <div class="magnitude">M{{ item.magnitude }}</div>
@@ -27,7 +27,7 @@
 import { reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import Http from '@/classes/Http';
 import { eqUrls } from '@/utils/Urls';
-import { openUrl, setClassName, stampToTime } from '@/utils/Utils';
+import { openUrl, setClassName, stampToTime, shindoScale, formatTimeZone } from '@/utils/Utils';
 import '@/assets/background.css'
 import '@/assets/opacity.css'
 const props = defineProps({
@@ -38,7 +38,6 @@ const httpInterval = 10000
 const maxHistoryNumber = 50
 let request
 const source = props.source + 'History'
-const shindoScale = ['0', '1', '2', '3', '4', '5-', '5+', '6-', '6+', '7']
 
 const getEqList = ()=>{
     if(props.source != 'cwaEqlist') {
@@ -49,6 +48,7 @@ const getEqList = ()=>{
                     case 'jmaEqlist':{
                         eqList[i] = {
                             id: data[keys[i]].EventID,
+                            timeZone: 9,
                             originTime: data[keys[i]].time_full.replace(/\//g, '-'),
                             hypocenter: data[keys[i]].location,
                             depth: data[keys[i]].depth == '0km'?'ごく浅い':data[keys[i]].depth,
@@ -61,6 +61,7 @@ const getEqList = ()=>{
                     case 'cencEqlist':{
                         eqList[i] = {
                             id: data[keys[i]].EventID,
+                            timeZone: 8,
                             originTime: data[keys[i]].time,
                             hypocenter: data[keys[i]].placeName,
                             depth: data[keys[i]].depth + 'km',
@@ -79,6 +80,7 @@ const getEqList = ()=>{
             for(let i = 0; i < maxHistoryNumber; i++){
                 eqList[i] = {
                     id: data[i].id,
+                    timeZone: 8,
                     originTime: stampToTime(data[i].time, 8),
                     hypocenter: data[i].loc.split(' ').slice(-1)[0].slice(3, -1),
                     depth: data[i].depth + 'km',
@@ -103,7 +105,6 @@ const title = computed(()=>{
         }
     }
 })
-const useJst = props.source.includes('jma')
 const handleClick = (item)=>{
     switch(props.source){
         case 'jmaEqlist':{

@@ -322,3 +322,4 @@ export const calcJmaShindoLevel = (mj, dep, hypoLat, hypoLng, loc, useSymbol = t
 export const openUrl = url => {
     isTauri() ? open(url) : window.open(url, '_blank')
 }
+export const formatTimeZone = (timeZone) => (timeZone >= 0 ? '+' : '') + timeZone
