@@ -130,13 +130,13 @@ export const useStatusStore = defineStore('statusStore', {
                 eqMessage.type = type
                 switch(source){
                     case 'jmaEew':{
+                        eqMessage.isEew = true
+                        eqMessage.timeZone = 9
+                        eqMessage.useShindo = true
                         switch(type) {
                             case 0:
                                 eqMessage.id = data.EventID
-                                eqMessage.isEew = true
-                                eqMessage.timeZone = 9
                                 eqMessage.isCanceled = data.isCancel
-                                eqMessage.useShindo = true
                                 eqMessage.reportNum = data.Serial
                                 eqMessage.reportTime = data.AnnouncedTime.replace(/\//g, '-')
                                 eqMessage.isAssumption = data.isAssumption
@@ -177,9 +177,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 break
                             case 1:
                                 eqMessage.id = data.report_id
-                                eqMessage.isEew = true
                                 eqMessage.isCanceled = data.is_cancel
-                                eqMessage.useShindo = true
                                 eqMessage.reportNum = Number(data.report_num)
                                 eqMessage.reportTime = data.report_time.replace(/\//g, '-')
                                 eqMessage.isAssumption = false
