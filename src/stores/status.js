@@ -272,7 +272,7 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.isEew = true
                         eqMessage.reportNum = data.updates
                         eqMessage.reportNumText = '第' + data.updates + '报'
-                        eqMessage.reportTime = data.updateTime
+                        eqMessage.reportTime = data.updateTime || data.shockTime
                         eqMessage.titleText = '中国地震局地震预警'
                         eqMessage.hypocenter = data.placeName
                         eqMessage.hypocenterText = '震源: ' + data.placeName
@@ -582,6 +582,7 @@ export const useStatusStore = defineStore('statusStore', {
                     }
                     case 'cwaEqlist':{
                         eqMessage.id = data.id
+                        eqMessage.reportTime = stampToTime(data.time + 300 * 1000, 8)
                         eqMessage.titleText = '中央氣象署地震報告'
                         eqMessage.hypocenter = data.loc.split(' ').slice(-1)[0].slice(3, -1)
                         eqMessage.hypocenterText = '震央: ' + eqMessage.hypocenter

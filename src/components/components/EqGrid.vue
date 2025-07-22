@@ -52,13 +52,7 @@ let timer
 
 watch(eqMessage, (newVal)=>{
     className.value = newVal.className + ' midOpacity'
-    let passedTime = 0
-    if(props.source == 'cwaEqlist'){
-        passedTime = Math.max(calcPassedTime(newVal.originTime, newVal.timeZone) - 300 * 1000, 0)
-    }
-    else{
-        passedTime = Math.max(calcPassedTime(newVal.reportTime, newVal.timeZone), 0)
-    }
+    const passedTime = Math.max(calcPassedTime(newVal.reportTime, newVal.timeZone) ?? Infinity, 0)
     let time
     if(newVal.isEew){
         if(newVal.isCanceled) time = 20 * 1000
