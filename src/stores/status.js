@@ -80,7 +80,7 @@ export const useStatusStore = defineStore('statusStore', {
         p2pquakeSocket: null,
         gqSocket: null,
         useWolfxSocket: ['jmaEew', 'cwaEew', 'scEew', 'fjEew', 'cencEqlist'],
-        useFanSocket: ['ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist'],
+        useFanSocket: ['ceaEew', 'iclEew', 'scEew', 'fjEew'/*, 'cencEqlist'*/],
         useP2pquakeSocket: ['jmaEqlist', 'jmaTsunami'],
         enabledSource: [],
         multiApi: false,
