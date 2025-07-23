@@ -187,11 +187,14 @@
                         </div>
                     </div>
                 </div>
-                <el-button
-                class="home"
-                :icon="HomeFilled"
-                v-show="!isAutoZoom"
-                @click="handleHome"></el-button>
+                <div class="bottom-right">
+                    <div class="mocking" v-if="statusStore.isActive.mockEew" :class="blinkStatus ? 'mock-1' : 'mock-0'">模拟预警中</div>
+                    <el-button
+                    class="home"
+                    :icon="HomeFilled"
+                    v-show="!isAutoZoom"
+                    @click="handleHome"></el-button>
+                </div>
                 <el-menu
                 class="menu"
                 :default-active="menuId"
@@ -354,7 +357,7 @@ const menuId = ref(defaultMenuId.value)
 provide('menuId', menuId)
 let autoZoomTimer
 let firstMsg = false
-let blinkStatus = true
+const blinkStatus = ref(true)
 let tsunamiFlickerCounter = -1
 const handleManual = ()=>{
     isAutoZoom.value = false
@@ -565,18 +568,18 @@ onMounted(()=>{
             jpTsunamiBasePane.style.opacity = 1 * (tsunamiFlickerCounter ? 1 : 0)
         }
         if(newVal == 'eqlists'){
-            eewMarkerPane.style.opacity = 0.3 * (blinkStatus ? 1 : 0)
+            eewMarkerPane.style.opacity = 0.3 * (blinkStatus.value ? 1 : 0)
             wavePane.style.opacity = 0.3
             waveFillPane.style.opacity = 0.3
-            niedGridPane.style.opacity = 0.3 * (blinkStatus && !statusStore.isActive.jmaEew ? 1 : 0)
-            tremGridPane.style.opacity = 0.3 * (blinkStatus && !statusStore.isActive.cwaEew ? 1 : 0)
+            niedGridPane.style.opacity = 0.3 * (blinkStatus.value && !statusStore.isActive.jmaEew ? 1 : 0)
+            tremGridPane.style.opacity = 0.3 * (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0)
         }
         else{
-            eewMarkerPane.style.opacity = 1 * (blinkStatus ? 1 : 0)
+            eewMarkerPane.style.opacity = 1 * (blinkStatus.value ? 1 : 0)
             wavePane.style.opacity = 1
             waveFillPane.style.opacity = 1
-            niedGridPane.style.opacity = 1 * (blinkStatus && !statusStore.isActive.jmaEew ? 1 : 0)
-            tremGridPane.style.opacity = 1 * (blinkStatus && !statusStore.isActive.cwaEew ? 1 : 0)
+            niedGridPane.style.opacity = 1 * (blinkStatus.value && !statusStore.isActive.jmaEew ? 1 : 0)
+            tremGridPane.style.opacity = 1 * (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0)
         }
         simpleShindo.value = newVal == 'eqlists'
     }, { immediate: true })
@@ -739,11 +742,11 @@ const loadMaps = async (retries = 0) => {
     }
 }
 const intervalEvents = ()=>{
-    blinkStatus = !blinkStatus
+    blinkStatus.value = !blinkStatus.value
     tsunamiFlickerCounter = (tsunamiFlickerCounter + 1) % 6
-    eewMarkerPane.style.opacity = (blinkStatus ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
-    niedGridPane.style.opacity = (blinkStatus && !statusStore.isActive.jmaEew ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
-    tremGridPane.style.opacity = (blinkStatus && !statusStore.isActive.cwaEew ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
+    eewMarkerPane.style.opacity = (blinkStatus.value ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
+    niedGridPane.style.opacity = (blinkStatus.value && !statusStore.isActive.jmaEew ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
+    tremGridPane.style.opacity = (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
     jpTsunamiBasePane.style.opacity = (tsunamiFlickerCounter ? 1 : 0) * (menuId.value == 'eews' ? 0.3 : 1)
     isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
     isTremDelayed.value = !verifyUpToDate(tremUpdateTime.value, 8, 10000)
@@ -1430,16 +1433,31 @@ onBeforeUnmount(()=>{
                     }
                 }
             }
-            .home{
+            .bottom-right{
                 position: absolute;
                 right: 1px;
                 bottom: 1px;
                 z-index: 600;
-                border-radius: 10px;
-                overflow: hidden;
-                width: 32px;
-                height: 32px;
-                padding: 0;
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+                .mocking{
+                    font-size: 24px;
+                    color: yellow;
+                }
+                .mock-1{
+                    opacity: 1;
+                }
+                .mock-0{
+                    opacity: 0;
+                }
+                .home{
+                    border-radius: 8px;
+                    overflow: hidden;
+                    width: 32px;
+                    height: 32px;
+                    padding: 0;
+                }
             }
             .menu{
                 position: absolute;
