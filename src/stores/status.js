@@ -80,7 +80,7 @@ export const useStatusStore = defineStore('statusStore', {
         p2pquakeSocket: null,
         gqSocket: null,
         useWolfxSocket: ['jmaEew', 'cwaEew', 'scEew', 'fjEew', 'cencEqlist'],
-        useFanSocket: ['ceaEew', 'iclEew', 'scEew', 'fjEew'/*, 'cencEqlist'*/],
+        useFanSocket: ['ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist'],
         useP2pquakeSocket: ['jmaEqlist', 'jmaTsunami'],
         enabledSource: [],
         multiApi: false,
@@ -622,7 +622,7 @@ export const useStatusStore = defineStore('statusStore', {
                             case 1:
                                 eqMessage.id = data.eventId
                                 eqMessage.reportTime = data.createTime
-                                eqMessage.title = `中国地震台网${data.infoTypeName.slice(1, 3)}测定`
+                                eqMessage.title = `中国地震台网${data.infoTypeName.slice(0, 2)}测定`
                                 eqMessage.titleText = eqMessage.title
                                 eqMessage.hypocenter = data.placeName
                                 eqMessage.hypocenterText = '震源: ' + data.placeName
