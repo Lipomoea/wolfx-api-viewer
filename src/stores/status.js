@@ -652,7 +652,7 @@ export const useStatusStore = defineStore('statusStore', {
                 tsunamiMessage.source = source
                 switch(source){
                     case 'jmaTsunami': {
-                        tsunamiMessage.id = data.id
+                        tsunamiMessage.id = data.issue.time.replace(/[^0-9]/g, '')
                         tsunamiMessage.reportTime = data.issue.time.replace(/\//g, '-')
                         if(data.cancelled) {
                             tsunamiMessage.title = '津波警報・注意報なし'
