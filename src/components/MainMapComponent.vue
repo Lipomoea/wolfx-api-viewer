@@ -82,7 +82,7 @@
                         </div>
                     </div>
                     <div class="event" v-if="settingsStore.mainSettings.source.jmaTsunami && statusStore.isActive.jmaTsunami">
-                        <div class="eew">
+                        <div class="eew" v-show="menuId != 'eews'">
                             <div class="bar" :class="statusStore.tsunamiMessage.jmaTsunami.className">{{ statusStore.tsunamiMessage.jmaTsunami.titleText }}</div>
                             <div class="tsunami-info">
                                 <div v-show="statusStore.tsunamiMessage.jmaTsunami.status >= 3" class="text">大津波警報</div>
