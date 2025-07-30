@@ -73,7 +73,7 @@ const formatArrival = (condition, arrivalTime) => {
 }
 const formatDescription = description => description.replace('０', '0').replace('１', '1').replace('３', '3').replace('５', '5').replace('ｍ', 'm')
 const handleClick = ()=>{
-    openUrl(tsunamiUrls.jmaTsunami_http)
+    openUrl('https://typhoon.yahoo.co.jp/weather/jp/tsunami/')
 }
 
 let map
