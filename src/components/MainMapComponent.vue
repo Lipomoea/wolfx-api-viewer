@@ -633,11 +633,6 @@ const loadMaps = async (retries = 0) => {
             fillOpacity: 1,
             weight: 1,
         })
-        jpTsunamiBaseMap = loadBaseMap(jp_tsunami, 'jpTsunamiBasePane', false, {
-            color: '#ffffff00',
-            opacity: 1,
-            weight: 6,
-        })
         watch(jmaWarnArea, (newVal)=>{
             jpEewBaseMap.eachLayer(layer=>{
                 const layerName = layer.feature.properties.name
@@ -704,6 +699,16 @@ const loadMaps = async (retries = 0) => {
             }, { deep: true, immediate: true })
         }
         if(settingsStore.mainSettings.source.jmaTsunami) {
+            jpTsunamiBaseMap = loadBaseMap(jp_tsunami, 'jpTsunamiBasePane', false, {
+                color: '#ffffff00',
+                opacity: 1,
+                weight: map.getZoom(),
+            })
+            map.on('zoomend', () => {
+                jpTsunamiBaseMap.setStyle({
+                    weight: map.getZoom()
+                })
+            })
             watch(jmaTsunamiWarnArea, newVal => {
                 jpTsunamiBaseMap.eachLayer(layer => {
                     const layerName = layer.feature.properties.name

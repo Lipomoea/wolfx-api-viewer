@@ -48,7 +48,7 @@ pub fn run() {
             let _ = TrayIconBuilder::new()
                 .menu(&menu)
                 .icon(app.default_window_icon().unwrap().clone())
-                .tooltip("要石 v2.2.0-pre.3.3")
+                .tooltip("要石 v2.2.0-pre.3.4")
                 .on_menu_event(move |tray, event| match event.id().as_ref() {
                     "quit" => {
                         let app_handle = tray.app_handle();
