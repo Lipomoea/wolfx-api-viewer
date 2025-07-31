@@ -38,7 +38,7 @@ import { defaultTsunamiMessage, useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { computed, watch, inject } from 'vue';
 import { focusWindow, openUrl, playSound, sendMyNotification } from '@/utils/Utils';
-import { iconUrls, tsunamiUrls } from '@/utils/Urls';
+import { iconUrls } from '@/utils/Urls';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()

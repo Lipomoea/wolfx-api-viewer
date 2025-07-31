@@ -784,6 +784,10 @@ const setView = () => {
                         }
                     }
                 })
+                if(!bounds.isValid()) {
+                    bounds.extend([46, 148])
+                    bounds.extend([23.5, 122])
+                }
             }
             else {
                 activeEqlistList.value.forEach(event=>{
