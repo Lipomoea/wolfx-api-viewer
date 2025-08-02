@@ -117,8 +117,8 @@ export class EewEvent {
                 ${this.eqMessage.depthText}<br>
                 ${this.eqMessage.originTime} (${formatTimeZone(this.eqMessage.timeZone)})<br>
                 M${this.eqMessage.magnitude.toFixed(1)}<br>
-                ${this.eqMessage.maxIntensityText}`, 
-                { permanent: false, direction: 'top', className: 'custom-tooltip' })
+                ${this.eqMessage.maxIntensityText}
+                `, { permanent: false, direction: 'top', className: 'custom-tooltip' })
             this.hypoMarker.addTo(this.map)
         }
     }
@@ -438,9 +438,9 @@ export class EqlistEvent {
                 ${this.eqMessage.hypocenter}(${this.eqMessage.lat},${this.eqMessage.lng})<br>
                 ${this.eqMessage.depthText}<br>
                 ${this.eqMessage.originTime} (${formatTimeZone(this.eqMessage.timeZone)})<br>
-                M${this.eqMessage.magnitude.toFixed(1)}<br>
-                ${this.eqMessage.maxIntensityText}`, 
-                { permanent: false, direction: 'top', className: 'custom-tooltip' })
+                M${this.eqMessage.magnitude == -1 ? '不明' : this.eqMessage.magnitude.toFixed(1)}<br>
+                ${this.eqMessage.maxIntensityText}
+                `, { permanent: false, direction: 'top', className: 'custom-tooltip' })
             this.hypoMarker.addTo(this.map)    
         }
     }
