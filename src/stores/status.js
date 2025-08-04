@@ -1,10 +1,11 @@
-import { defineStore } from 'pinia'
-import Http from '@/classes/Http'
-import WebSocketObj from '@/classes/WebSocket'
-import { eqUrls, tsunamiUrls } from '@/utils/Urls'
-import { setClassName, calcCsisLevel, stampToTime, getShindoFromInstShindo, shindoScaleKanji } from '@/utils/Utils'
-import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc'
-import { useSettingsStore } from './settings'
+import { defineStore } from 'pinia';
+import Http from '@/classes/Http';
+import WebSocketObj from '@/classes/WebSocket';
+import { eqUrls, tsunamiUrls } from '@/utils/Urls';
+import { setClassName, calcCsisLevel, stampToTime, getShindoFromInstShindo, shindoScaleKanji } from '@/utils/Utils';
+import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
+import { useSettingsStore } from './settings';
+import { isTauri } from '@tauri-apps/api/core';
 
 export const defaultEqMessage = {
     source: '',
@@ -74,6 +75,7 @@ const fan2Source = {
 export const useStatusStore = defineStore('statusStore', {
     state: ()=>({
         map: null,
+        isTauri: isTauri(),
         httpRequest: null,
         wolfxSocket: null,
         fanSocket: null,
@@ -732,15 +734,15 @@ export const useStatusStore = defineStore('statusStore', {
                             const data = await Http.get(eqUrls[source + '_http'] + `&time=${Date.now()}`)
                             if(data && data.length > 0) this.setEqMessage(source, data[0])
                         }
-                        if(this.multiApi) {
-                            if(source == 'jmaEew' && 'jmaEew2_http' in eqUrls && 'niedLatest' in eqUrls) {
-                                const timeData = await Http.get(`${eqUrls.niedLatest}?time=${Date.now()}`)
-                                if(timeData && timeData.result.status == 'success') {
-                                    const timeStr = timeData.latest_time.replace(/\D/g, '')
-                                    const data = await Http.get(`${eqUrls.jmaEew2_http}?time=${timeStr}`)
-                                    if(data && data.report_id) this.setEqMessage(source, data, 1)
-                                }
+                        if(source == 'jmaEew' && this.isTauri) {
+                            const timeData = await Http.tauriGet(`${eqUrls.niedLatest}?time=${Date.now()}`)
+                            if(timeData && timeData.result.status == 'success') {
+                                const timeStr = timeData.latest_time.replace(/\D/g, '')
+                                const data = await Http.tauriGet(`${eqUrls.jmaEew2_http}/${timeStr}.json`)
+                                if(data && data.report_id) this.setEqMessage(source, data, 1)
                             }
+                        }
+                        if(this.multiApi) {
                             if(source == 'cwaEew' && 'cwaEew2_http' in eqUrls) {
                                 const arr = await Http.get(`${eqUrls.cwaEew2_http}?time=${Date.now()}`)
                                 if(arr && arr.length > 0) {

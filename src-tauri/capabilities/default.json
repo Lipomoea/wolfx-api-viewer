@@ -30,6 +30,14 @@
     "fs:allow-appdata-read-recursive",
     "fs:allow-appdata-write-recursive",
     "shell:default",
-    "shell:allow-open"
+    "shell:allow-open",
+    {
+      "identifier": "http:default",
+      "allow": [
+        { "url": "http://**" },
+        { "url": "https://**" }
+      ]
+    },
+    "http:allow-fetch"
   ]
 }

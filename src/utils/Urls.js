@@ -1,4 +1,6 @@
 export const eqUrls = {
+    niedLatest: 'http://www.kmoni.bosai.go.jp/webservice/server/pros/latest.json',
+    jmaEew2_http: 'http://www.kmoni.bosai.go.jp/webservice/hypo/eew',
     jmaEqlist_http: 'https://api.p2pquake.net/v2/history?codes=551&limit=1',
     cencEqlistHistory: 'https://api.wolfx.jp/cenc_eqlist.json',
     jmaEqlistHistory: 'https://api.wolfx.jp/jma_eqlist.json',
