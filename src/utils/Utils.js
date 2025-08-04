@@ -4,7 +4,7 @@ import { chimeUrls } from "./Urls";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { isTauri } from '@tauri-apps/api/core';
 import { open } from "@tauri-apps/plugin-shell";
-import { booleanPointInPolygon, point, polygonToLine, pointToLineDistance, area, distance, centroid } from "@turf/turf";
+import { booleanPointInPolygon, point, polygonToLine, pointToLineDistance, area, distance, centroid, simplify } from "@turf/turf";
 import { flatten } from "@turf/turf";
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
@@ -323,3 +323,4 @@ export const openUrl = url => {
     isTauri() ? open(url) : window.open(url, '_blank')
 }
 export const formatTimeZone = (timeZone) => (timeZone >= 0 ? '+' : '') + timeZone
+export const simplifyGeoJson = (geojson, tolerance) => tolerance <= 0 ? geojson : simplify(geojson, { tolerance, highQuality: true })

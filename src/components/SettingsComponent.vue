@@ -522,7 +522,39 @@
                             <div class="switch">
                                 <el-checkbox v-model="settingsStore.mainSettings.eqlistsAsDefault"
                                 :disabled="!settingsStore.mainSettings.cinemaMode"
-                                @change="handleNeedReload">将地震/海啸信息页面设为默认</el-checkbox>
+                                >将地震/海啸信息页面设为默认</el-checkbox>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sub-title">性能</div>
+                <div class="group">
+                    <div class="row">
+                        <div class="switch-group">
+                            <div class="switch">
+                                <span>预警区地图简化</span>
+                                <el-popover
+                                    placement="top"
+                                    :width="350"
+                                    trigger="hover"
+                                >
+                                    <template #reference>
+                                        <question-filled width="1em" height="1em"></question-filled>
+                                    </template>
+                                    <p>通过简化预警区（染色图层）的形状来提升性能。</p>
+                                    <p>简化程度越高，渲染压力越小，但图形失真越严重。</p>
+                                    <p><strong>需重新加载页面后生效。</strong></p>
+                                </el-popover>
+                                <el-slider
+                                v-model="settingsStore.mainSettings.mapSimplifyFactor"
+                                :min="0" :max="3"
+                                :step="1"
+                                size="small"
+                                show-stops
+                                :show-tooltip="false"
+                                :marks="simplifyMarks"
+                                @change="handleNeedReload"
+                                style="width: 200px; margin-left: 20px;"></el-slider>
                             </div>
                         </div>
                     </div>
@@ -750,12 +782,12 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false" append-to-body>
-            <div class="header">要石 v2.2.0-pre.3.4</div>
+            <div class="header">要石 v2.2.0-pre.4</div>
             <div class="title">最近更新</div>
             <div class="about">
-                <p>v2.2.0 变更：引入FAN Studio API；弃用部分HTTP接口。新增：中国地震局地震预警；单击信息框可静默或关闭正在生效的地震预警或地震信息；双击侧边栏地震预警/地震信息框可快速进行测站回放，双击左下角测站时间可重置；显示API名称功能。优化：调整了部分UI；使用更精细的中国地图；降低部分平台下应用处于后台的功耗。修复：WebSocket连接时小概率数据丢失的问题；macOS客户端无法打开网页的问题；特定情况下macOS客户端从后台切回前台时卡住的问题。</p>
+                <p>v2.2.0 变更：引入FAN Studio API；紧急地震速报加入NIED源；弃用部分HTTP接口。新增：中国地震局地震预警；单击信息框可静默或关闭正在生效的地震预警或地震信息；双击侧边栏地震预警/地震信息框可快速进行测站回放，双击左下角测站时间可重置；显示API名称功能；性能优化选项。优化：调整了部分UI；使用更精细的中国地图；降低部分平台下应用处于后台的功耗。修复：WebSocket连接时小概率数据丢失的问题；macOS客户端无法打开网页的问题；特定情况下macOS客户端从后台切回前台时卡住的问题。</p>
                 <p>v2.1.0 新增：适配macOS应用程序；新增：区域烈度列表显示功能；新增：UI缩放比例调整；新增：中文倒计时播报；新增：可调整开始倒计时的秒数；优化：适当提升了应用程序窗口可调整的大小范围；优化：部分走时精准度；优化：部分测站渲染性能；优化：地震波绘制性能；修复：版本号检测逻辑错误的bug；修复：Safari等浏览器下，部分界面显示异常的问题。</p>
-                <p>v2.0.0 变更：版本号变更为正式版；优化：新增“混合”测站风格。</p>
+                <p>v2.0.0 变更：版本号变更为正式版。</p>
             </div>
             <div class="title">使用方法</div>
             <div class="about">
@@ -813,6 +845,12 @@ const showNotifButton = 'Notification' in window
 const isTauri = getIsTauri()
 const thisPlatform = isTauri ? platform() : ''
 const isWindows = thisPlatform == 'windows'
+const simplifyMarks = {
+    0: '关闭',
+    1: '轻微',
+    2: '中等',
+    3: '显著'
+}
 
 const settingsStore = useSettingsStore()
 const statusStore = useStatusStore()

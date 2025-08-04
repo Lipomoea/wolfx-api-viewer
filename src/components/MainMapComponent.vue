@@ -245,7 +245,7 @@ import EewComponent from './EewComponent.vue';
 import SeisNetComponent from './SeisNetComponent.vue';
 import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
-import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToPolygon, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone } from '@/utils/Utils';
+import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToPolygon, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone, simplifyGeoJson } from '@/utils/Utils';
 import { geojsonUrls } from '@/utils/Urls';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { isTauri } from '@tauri-apps/api/core';
@@ -958,7 +958,9 @@ const loadBaseMap = (geojson, pane, useVector = true, style = {
             return vectorGrid;
         }
         else {
-            const baseMap = L.geoJson(geojson, {
+            const factor = settingsStore.mainSettings.mapSimplifyFactor
+            const tolerance = factor ? 0.00125 * 2 ** factor : 0
+            const baseMap = L.geoJson(simplifyGeoJson(geojson, tolerance), {
                 pane,
                 style,
                 onEachFeature
