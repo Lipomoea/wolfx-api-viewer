@@ -624,8 +624,13 @@ function handleKeydown(event) {
                 }
                 break
             case 'a':
-                isAutoZoom.value = !isAutoZoom.value
-                if(isAutoZoom.value) setView()
+                if(isAutoZoom.value) {
+                    handleManual()
+                }
+                else {
+                    isAutoZoom.value = true
+                    setView()
+                }
                 break
         }
     }
