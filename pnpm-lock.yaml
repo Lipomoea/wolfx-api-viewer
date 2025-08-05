@@ -62,6 +62,12 @@ importers:
       pinia:
         specifier: ^2.1.7
         version: 2.3.1(vue@3.5.18)
+      topojson-client:
+        specifier: ^3.1.0
+        version: 3.1.0
+      topojson-simplify:
+        specifier: ^3.0.3
+        version: 3.0.3
       vue:
         specifier: ^3.5.13
         version: 3.5.18
@@ -1451,6 +1457,10 @@ packages:
 
   topojson-server@3.0.1:
     resolution: {integrity: sha512-/VS9j/ffKr2XAOjlZ9CgyyeLmgJ9dMwq6Y0YEON8O7p/tGGk+dCWnrE03zEdu7i4L7YsFZLEPZPzCvcB7lEEXw==}
+    hasBin: true
+
+  topojson-simplify@3.0.3:
+    resolution: {integrity: sha512-V+pBjLVzSQ3+hSOxBiV01OVXgFiCmMO8ia3huxKEyIMTC1ApQHBcdXdOqcQ6U2JJJD31TZduwY6KyF15R8sUgg==}
     hasBin: true
 
   tslib@2.8.1:
@@ -3570,6 +3580,11 @@ snapshots:
   topojson-server@3.0.1:
     dependencies:
       commander: 2.20.3
+
+  topojson-simplify@3.0.3:
+    dependencies:
+      commander: 2.20.3
+      topojson-client: 3.1.0
 
   tslib@2.8.1: {}
 

@@ -245,12 +245,14 @@ import EewComponent from './EewComponent.vue';
 import SeisNetComponent from './SeisNetComponent.vue';
 import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
-import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToPolygon, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone, simplifyGeoJson } from '@/utils/Utils';
-import { geojsonUrls } from '@/utils/Urls';
+import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToPolygon, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone, simplifyTopoJson } from '@/utils/Utils';
+import { topojsonUrls } from '@/utils/Urls';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { isTauri } from '@tauri-apps/api/core';
 import { storeToRefs } from 'pinia';
 import { simpleShindo } from '@/classes/StationClasses';
+import { feature } from 'topojson-client';
+import router from '@/router';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
@@ -587,7 +589,47 @@ onMounted(()=>{
     mainInterval = setInterval(() => {
         intervalEvents()
     }, 500);
+    document.addEventListener('keydown', handleKeydown)
 })
+function handleKeydown(event) {
+    const target = event.target
+    const tag = target.tagName.toLowerCase()
+    const isInput = tag === 'input' || tag === 'textarea' || target.isContentEditable || tag === 'select'
+    if (!isInput) {
+        switch (event.key) {
+            case 'd':
+                settingsStore.mainSettings.hideDrawer = !settingsStore.mainSettings.hideDrawer
+                setTimeout(() => {
+                    map.invalidateSize()
+                }, 0);
+                break
+            case 'ArrowUp': case 'ArrowDown': case 'ArrowLeft': case 'ArrowRight':
+                isAutoZoom.value = false
+                break
+            case 'Tab':
+                event.preventDefault()
+                const menuArr = ['main', 'eews', 'eqlists']
+                const length = menuArr.length
+                const currIndex = menuArr.findIndex(id => id == menuId.value) ?? length
+                const nextIndex = event.shiftKey ? (currIndex + length - 1) % length : (currIndex + 1) % length
+                const nextMenu = menuArr[nextIndex]
+                handleMenu(nextMenu)
+                break
+            case 'h':
+                if (router.currentRoute.value.path == '/eq-history') {
+                    router.back()
+                }
+                else {
+                    router.push('/eq-history')
+                }
+                break
+            case 'a':
+                isAutoZoom.value = !isAutoZoom.value
+                if(isAutoZoom.value) setView()
+                break
+        }
+    }
+}
 const loadMaps = async (retries = 0) => {
     let msgTimer
     if(!firstMsg){
@@ -601,11 +643,11 @@ const loadMaps = async (retries = 0) => {
     }
     let promises
     if(!isTauri() && ('caches' in window)){
-        const cache = await caches.open('geojson')
-        promises = Object.keys(geojsonUrls).map(key=>cache.match(geojsonUrls[key]).then(res=>res?.json()))
+        const cache = await caches.open('topojson')
+        promises = Object.keys(topojsonUrls).map(key=>cache.match(topojsonUrls[key]).then(res=>res?.json()))
     }
     else{
-        promises = Object.keys(geojsonUrls).map(key=>fetch(geojsonUrls[key]).then(res=>res?.json()))
+        promises = Object.keys(topojsonUrls).map(key=>fetch(topojsonUrls[key]).then(res=>res?.json()))
     }
     const resps = await Promise.all(promises)
     const [global, cn, cn_eew, cn_fault, jp, jp_eew, jp_tsunami] = resps
@@ -937,36 +979,42 @@ const smartSetView = () => {
     }, 0);
 }
 provide('smartSetView', smartSetView)
-const loadBaseMap = (geojson, pane, useVector = true, style = {
+const loadBaseMap = (topojson, pane, useVector = true, style = {
         color: '#ccc',
         fillColor: '#333',
         fillOpacity: 1,
         weight: 1,
         fill: true
     })=>{
-    if(Object.keys(geojson).length != 0){
-        if(useVector) {
-            const vectorGrid = L.vectorGrid.slicer(geojson, {
-                pane,
-                rendererFactory: L.canvas.tile,
-                vectorTileLayerStyles: {
-                    sliced: style
-                },
-                interactive: false
-            });
-            vectorGrid.addTo(map);
-            return vectorGrid;
-        }
-        else {
-            const factor = settingsStore.mainSettings.mapSimplifyFactor
-            const tolerance = factor ? 0.00125 * 2 ** factor : 0
-            const baseMap = L.geoJson(simplifyGeoJson(geojson, tolerance), {
-                pane,
-                style,
-                onEachFeature
-            })
-            baseMap.addTo(map)
-            return baseMap
+    if(Object.keys(topojson).length != 0){
+        try {
+            if(useVector) {
+                const geojson = feature(topojson, topojson.objects.region)
+                const vectorGrid = L.vectorGrid.slicer(geojson, {
+                    pane,
+                    rendererFactory: L.canvas.tile,
+                    vectorTileLayerStyles: {
+                        sliced: style
+                    },
+                    interactive: false
+                });
+                vectorGrid.addTo(map);
+                return vectorGrid;
+            }
+            else {
+                const factor = settingsStore.mainSettings.mapSimplifyFactor
+                const simplified = simplifyTopoJson(topojson, factor)
+                const geojson = feature(simplified, simplified.objects.region)
+                const baseMap = L.geoJson(geojson, {
+                    pane,
+                    style,
+                    onEachFeature
+                })
+                baseMap.addTo(map)
+                return baseMap
+            }
+        } catch (e) {
+            console.log(e);
         }
     }
 }
@@ -1088,6 +1136,7 @@ onBeforeUnmount(()=>{
     clearTimeout(defaultMenuTimer)
     clearTimeout(tempEqlistsTimer)
     document.removeEventListener('mousemove', resetDefaultMenuTimer)
+    document.removeEventListener('keydown', handleKeydown)
     activeEewList.length = 0
     eqlistList.length = 0
 })

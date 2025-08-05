@@ -4,11 +4,12 @@ import { chimeUrls } from "./Urls";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { isTauri } from '@tauri-apps/api/core';
 import { open } from "@tauri-apps/plugin-shell";
-import { booleanPointInPolygon, point, polygonToLine, pointToLineDistance, area, distance, centroid, simplify } from "@turf/turf";
+import { booleanPointInPolygon, point, polygonToLine, pointToLineDistance, area, distance, centroid } from "@turf/turf";
 import { flatten } from "@turf/turf";
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import { presimplify, simplify } from "topojson-simplify";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -265,8 +266,12 @@ export const pointDistToPolygon = (pointLatLng, feature)=>{
             return dist
         }
         const dist = features.reduce((minDist, feature) => {
-            const dist = pointToLineDistance(turfPoint, feature.geometry.type == 'MultiLineString' ? flatten(feature).features[0] : feature, { units: "kilometers" })
-            return Math.min(dist, minDist)
+            try {
+                const dist = pointToLineDistance(turfPoint, feature.geometry.type == 'MultiLineString' ? flatten(feature).features[0] : feature, { units: "kilometers" })
+                return Math.min(dist, minDist)
+            } catch (_) {
+                return minDist
+            }
         }, Infinity)
         return dist
     }
@@ -323,4 +328,17 @@ export const openUrl = url => {
     isTauri() ? open(url) : window.open(url, '_blank')
 }
 export const formatTimeZone = (timeZone) => (timeZone >= 0 ? '+' : '') + timeZone
-export const simplifyGeoJson = (geojson, tolerance) => tolerance <= 0 ? geojson : simplify(geojson, { tolerance, highQuality: true })
+export const simplifyTopoJson = (topojson, factor) => {
+    if(!factor) return topojson
+    else {
+        const minWeights = {
+            1: 2e-5,
+            2: 1e-4,
+            3: 5e-4,
+            4: 2e-3
+        }
+        const presimplified = presimplify(topojson)
+        const simplified = simplify(presimplified, minWeights[factor])
+        return simplified
+    }
+}

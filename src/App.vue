@@ -14,7 +14,7 @@ import { onBeforeMount, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useTimeStore } from './stores/time';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from './stores/settings';
-import { eqUrls, geojsonUrls } from './utils/Urls';
+import { eqUrls, topojsonUrls } from './utils/Urls';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { platform } from '@tauri-apps/plugin-os';
 import { isTauri } from '@tauri-apps/api/core';
@@ -29,10 +29,10 @@ const container = ref()
 async function getGeojson(retries = 0){
   if(!isTauri() && ('caches' in window)){
     try {
-      const promises = Object.keys(geojsonUrls).map(async name => {
-        const data = await Http.get(geojsonUrls[name], { timeout: 0 })
-        const cache = await caches.open('geojson')
-        await cache.put(geojsonUrls[name], new Response(JSON.stringify(data)))
+      const promises = Object.keys(topojsonUrls).map(async name => {
+        const data = await Http.get(topojsonUrls[name], { timeout: 0 })
+        const cache = await caches.open('topojson')
+        await cache.put(topojsonUrls[name], new Response(JSON.stringify(data)))
       })
       await Promise.all(promises)
     } catch (err) {

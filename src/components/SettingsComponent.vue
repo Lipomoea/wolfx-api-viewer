@@ -547,7 +547,7 @@
                                 </el-popover>
                                 <el-slider
                                 v-model="settingsStore.mainSettings.mapSimplifyFactor"
-                                :min="0" :max="3"
+                                :min="0" :max="4"
                                 :step="1"
                                 size="small"
                                 show-stops
@@ -793,13 +793,22 @@
             <div class="about">
                 <p>主要功能：接收日本气象厅、台湾省中央气象署、中国地震局、四川省地震局、福建省地震局地震预警信息，日本气象厅、中国地震台网地震信息，日本气象厅海啸信息，NIED強震モニタ测站数据。</p>
                 <p>Chrome/Edge推荐设置（以Chrome为例，Edge方法类似）：</p>
-                <ul style="list-style-position: inside;">
+                <ul>
                     <li>保持后台刷新：浏览器访问chrome://flags - Calculate window occlusion on Windows - Disabled - 右下角重新启动</li>
                     <li>去除网页“不安全”提示（同时解除网页权限设置限制，但浏览器启动时会收到横幅提示）：chrome://flags - Insecure origins treated as secure - 启用 - 输入本网页的链接 - 右下角重新启动</li>
                     <li>作为网页应用安装：Chrome打开此页面，右上角三点 - 保存并分享 - 将网页作为应用安装。安装一次后刷新页面即可加载最新版本网页，无需重新安装。</li>
                 </ul>
                 <p>通知推送：需授予通知权限。Chrome：点击网页链接左侧按钮-网站设置-通知-允许，刷新页面。</p>
                 <p>播放声音：需开启声音权限。Chrome：点击网页链接左侧按钮-网站设置-声音-允许，刷新页面。</p>
+            </div>
+            <div class="title">快捷键</div>
+            <div class="about">
+                <ul>
+                    <li>(A)uto：打开/关闭自动视野</li>
+                    <li>(D)rawer：显示/隐藏侧边栏</li>
+                    <li>(H)istory：打开/关闭历史地震</li>
+                    <li>Tab / Enter + Tab：轮询菜单</li>
+                </ul>
             </div>
             <div class="title">注意事项</div>
             <div class="about">
@@ -849,7 +858,8 @@ const simplifyMarks = {
     0: '关闭',
     1: '轻微',
     2: '中等',
-    3: '显著'
+    3: '显著',
+    4: '极致'
 }
 
 const settingsStore = useSettingsStore()
@@ -1425,6 +1435,9 @@ onBeforeUnmount(() => {
             }
         }
     }
+}
+ul {
+    list-style-position: inside;
 }
 .force-wrap{
     flex-wrap: wrap;
