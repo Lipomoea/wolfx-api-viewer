@@ -99,12 +99,25 @@
                                 v-model="settingsStore.mainSettings.displaySeisNet.delay"
                                 size="small"
                                 type="number"
-                                style="width: 70px;"
+                                style="width: 60px;"
                                 @input="setDelay"></el-input>
                                 <el-button
                                 size="small"
                                 @click="settingsStore.mainSettings.displaySeisNet.delay = 0"
                                 :disabled="settingsStore.mainSettings.displaySeisNet.delay == 0">还原</el-button>
+                                <el-date-picker
+                                class="no-prefix-icon"
+                                v-model="replayDateTime"
+                                type="datetime"
+                                size="small"
+                                style="width: 130px;"
+                                placeholder="选择日期时间(+8)"
+                                format="YYYY-MM-DD HH:mm:ss"
+                                value-format="YYYY-MM-DD HH:mm:ss" />
+                                <el-button
+                                size="small"
+                                @click="setReplayDateTime"
+                                :disabled="!replayDateTime">回放</el-button>
                             </div>
                             <div class="switch">
                                 <span>测站风格</span>
@@ -842,7 +855,7 @@ import { chimeUrls, utilUrls } from '@/utils/Urls';
 import Http from '@/classes/Http';
 import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { QuestionFilled } from '@element-plus/icons-vue';
-import { openUrl, playSound, setClassName, shindoScale } from '@/utils/Utils';
+import { calcPassedTime, openUrl, playSound, setClassName, shindoScale } from '@/utils/Utils';
 import { join, appDataDir } from "@tauri-apps/api/path";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { exists, mkdir } from "@tauri-apps/plugin-fs";
@@ -861,9 +874,13 @@ const simplifyMarks = {
     3: '显著',
     4: '极致'
 }
-
 const settingsStore = useSettingsStore()
 const statusStore = useStatusStore()
+const replayDateTime = ref('')
+const setReplayDateTime = () => {
+    const passedTime = Math.max(Math.round(calcPassedTime(replayDateTime.value, 8) / 600) / 100, 0)
+    settingsStore.mainSettings.displaySeisNet.delay = passedTime
+}
 const setLat = (type)=>(val)=>{
     if(val === '') return
     let number = Number(val)
@@ -1539,5 +1556,8 @@ ul {
     .test {
         margin-top: 20px;
     }
+}
+.no-prefix-icon .el-input__prefix {
+  display: none;
 }
 </style>

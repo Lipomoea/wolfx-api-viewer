@@ -82,7 +82,7 @@ const getData = async (url)=>{
     }
 }
 let pendingRender = false
-const activityThresArr = [Infinity, 7, 10, 12, 13, 13, 13]
+const activityThresArr = [Infinity, 11, 13, 15, 15, 15, 15]
 const update = ()=>{
     if(stationList.value.length == stations.length && stations.length == stationData.value.length){
         let maxLevel = -1
@@ -119,7 +119,7 @@ const update = ()=>{
                         return
                 }
                 if (nearbyActiveNum >= numThres) {
-                    const numActivity = Math.max(nearbyActiveNum * 2 - 3, 0)
+                    const numActivity = nearbyActiveNum * 2
                     const nearbyActivity = nearbyStations.reduce((sum, nearbyStation, index) => 
                         index >= 3 && distMatrix[station.id][nearbyStation.id] > 15 
                         ? sum + nearbyStation.activity / 2 
@@ -242,11 +242,19 @@ watch(()=>statusStore.map, newVal=>{
                 }
                 for(let i = 0; i < newVal.length; i++){
                     const distances = []
+                    let candidate = {
+                        id: null,
+                        distance: 40
+                    }
                     distMatrix[i] = []
                     for(let j = 0; j < newVal.length; j++){
                         const distance = latLngs[i].distanceTo(latLngs[j]) / 1000
                         distMatrix[i][j] = distance
                         if(distance <= 30) distances.push({ id: j, distance })
+                        else if(distance <= candidate.distance) candidate = { id: j, distance }
+                    }
+                    if(distances.length <= 1 && candidate.id !== null) {
+                        distances.push(candidate)
                     }
                     distances.sort((a, b) => a.distance - b.distance).splice(6)
                     adjStationIds[i] = distances.map(obj => obj.id)
