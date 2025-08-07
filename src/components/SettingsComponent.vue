@@ -110,7 +110,7 @@
                                 v-model="replayDateTime"
                                 type="datetime"
                                 size="small"
-                                style="width: 130px;"
+                                style="width: 130px; margin-left: 5px;"
                                 placeholder="选择日期时间(+8)"
                                 format="YYYY-MM-DD HH:mm:ss"
                                 value-format="YYYY-MM-DD HH:mm:ss" />
