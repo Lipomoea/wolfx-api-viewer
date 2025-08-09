@@ -4,9 +4,12 @@
             <div class="mapContainer">
                 <div id="mainMap" @wheel.passive="handleManual" @dblclick="handleManual"></div>
                 <div class="eewList">
-                    <div class="event" v-for="(event, index) of activeEewList" :key="index" v-show="menuId != 'eqlists'">
+                    <div class="event" v-for="(event, index) of currentEewInfoItems" :key="index" v-show="menuId != 'eqlists'">
                         <div class="eew">
-                            <div class="bar" :class="getBarClass(event.eqMessage)">{{ event.eqMessage.titleText + ' ' + event.eqMessage.reportNumText }}</div>
+                            <div class="bar" :class="getBarClass(event.eqMessage)">
+                                <div>{{ event.eqMessage.titleText + ' ' + event.eqMessage.reportNumText }}</div>
+                                <div v-show="activeEewList.length > 1">{{ activeEewList.findIndex(e => e == event) + 1 }}/{{ activeEewList.length }}</div>
+                            </div>
                             <div class="info" @click="event.showMenu = !event.showMenu">
                                 <div class="intensity" :class="event.eqMessage.className">
                                     <div class="intensity-title">{{ event.eqMessage.useShindo?'最大震度':'最大烈度' }}</div>
@@ -56,9 +59,12 @@
                             </div>
                         </div>
                     </div>
-                    <div class="event" v-for="(event, index) of activeEqlistList" :key="index" v-show="menuId != 'eews'">
+                    <div class="event" v-for="(event, index) of currentEqlistInfoItems" :key="index" v-show="menuId != 'eews'">
                         <div class="eew">
-                            <div class="bar" :class="getBarClass(event.eqMessage)">{{ event.eqMessage.titleText + ' ' + event.eqMessage.reportNumText }}</div>
+                            <div class="bar" :class="getBarClass(event.eqMessage)">
+                                <div>{{ event.eqMessage.titleText }}</div>
+                                <div v-show="activeEqlistList.length > 1">{{ activeEqlistList.findIndex(e => e == event) + 1 }}/{{ activeEqlistList.length }}</div>
+                            </div>
                             <div class="info" @click="event.showMenu = !event.showMenu">
                                 <div class="intensity" :class="event.eqMessage.className">
                                     <div class="intensity-title">{{ event.eqMessage.useShindo?'最大震度':'最大烈度' }}</div>
@@ -359,8 +365,16 @@ const menuId = ref(defaultMenuId.value)
 provide('menuId', menuId)
 let autoZoomTimer
 let firstMsg = false
-const blinkStatus = ref(true)
-let tsunamiFlickerCounter = -1
+const blinkStatus = ref(false)
+let tsunamiFlickerCounter = 0
+const infoPageCounter = ref(0)
+const eventsPerPage = 2
+const eewInfoTotalPages = computed(() => Math.ceil(activeEewList.length / eventsPerPage))
+const currentEewInfoPage = computed(() => Math.floor(infoPageCounter.value / 10) % eewInfoTotalPages.value)
+const currentEewInfoItems = computed(() => activeEewList.slice(eventsPerPage * currentEewInfoPage.value, eventsPerPage * (currentEewInfoPage.value + 1)))
+const eqlistInfoTotalPages = computed(() => Math.ceil(activeEqlistList.value.length / eventsPerPage))
+const currentEqlistInfoPage = computed(() => Math.floor(infoPageCounter.value / 10) % eqlistInfoTotalPages.value)
+const currentEqlistInfoItems = computed(() => activeEqlistList.value.slice(eventsPerPage * currentEqlistInfoPage.value, eventsPerPage * (currentEqlistInfoPage.value + 1)))
 const handleManual = ()=>{
     isAutoZoom.value = false
     clearTimeout(autoZoomTimer)
@@ -406,6 +420,9 @@ const eqlistList = reactive([])
 const activeEqlistList = computed(()=>eqlistList.filter(event=>event.isActive))
 provide('activeEewList', activeEewList)
 provide('eqlistList', eqlistList)
+watch(() => activeEewList.length + activeEqlistList.value.length, () => {
+    infoPageCounter.value = 0
+})
 const jmaTsunamiWarnArea = computed(() => {
     const warnArea = JSON.parse(statusStore.tsunamiMessage.jmaTsunami.warnArea)
     const jmaTsunamiWarnArea = {}
@@ -632,6 +649,12 @@ function handleKeydown(event) {
                     setView()
                 }
                 break
+            case ',':
+                infoPageCounter.value = (infoPageCounter.value - infoPageCounter.value % 10 + 25200 - 10) % 25200
+                break
+            case '.':
+                infoPageCounter.value = (infoPageCounter.value - infoPageCounter.value % 10 + 10) % 25200
+                break
         }
     }
 }
@@ -660,7 +683,8 @@ const loadMaps = async (retries = 0) => {
         clearTimeout(msgTimer)
         loadBaseMap(global, 'globalBasePane')
         loadBaseMap(cn, 'cnBasePane')
-        cnEewBaseMap = loadBaseMap(cn_eew, 'cnEewBasePane', false, {
+        cnEewBaseMap = settingsStore.mainSettings.disableEewBaseMap 
+        ? null : loadBaseMap(cn_eew, 'cnEewBasePane', false, {
             color: '#bbbbbb00',
             opacity: 1,
             fillColor: '#55555500',
@@ -673,7 +697,8 @@ const loadMaps = async (retries = 0) => {
             weight: 1,
         })
         loadBaseMap(jp, 'jpBasePane')
-        jpEewBaseMap = loadBaseMap(jp_eew, 'jpEewBasePane', false, {
+        jpEewBaseMap = settingsStore.mainSettings.disableEewBaseMap 
+        ? null : loadBaseMap(jp_eew, 'jpEewBasePane', false, {
             color: '#bbbbbb00',
             opacity: 1,
             fillColor: '#55555500',
@@ -681,7 +706,7 @@ const loadMaps = async (retries = 0) => {
             weight: 1,
         })
         watch(jmaWarnArea, (newVal)=>{
-            jpEewBaseMap.eachLayer(layer=>{
+            jpEewBaseMap?.eachLayer(layer=>{
                 const layerName = layer.feature.properties.name
                 if(layerName in newVal){
                     if(layer.options.fillColor != `var(--${newVal[layerName].className})`){
@@ -704,7 +729,7 @@ const loadMaps = async (retries = 0) => {
         if(settingsStore.advancedSettings.forceCalcInt){
             watch(cnEewInfoList, newVal=>{
                 const newCsisList = {}
-                cnEewBaseMap.eachLayer(layer=>{
+                cnEewBaseMap?.eachLayer(layer=>{
                     let maxInt = 0
                     newVal.forEach(info=>{
                         const dist = pointDistToPolygon([info.lat, info.lng], layer.feature)
@@ -796,6 +821,7 @@ const loadMaps = async (retries = 0) => {
 const intervalEvents = ()=>{
     blinkStatus.value = !blinkStatus.value
     tsunamiFlickerCounter = (tsunamiFlickerCounter + 1) % 6
+    infoPageCounter.value = (infoPageCounter.value + 1) % 25200
     eewMarkerPane.style.opacity = (blinkStatus.value ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
     niedGridPane.style.opacity = (blinkStatus.value && !statusStore.isActive.jmaEew ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
     tremGridPane.style.opacity = (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
@@ -1201,10 +1227,17 @@ onBeforeUnmount(()=>{
                         height: 30px;
                         border-bottom: #3f3f3f 1px solid;
                         display: flex;
+                        justify-content: space-between;
                         align-items: center;
                         font-size: 18px;
                         font-weight: 700;
                         padding-left: 5px;
+                        padding-right: 5px;
+                        div{
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                        }
                     }
                     .shindo-bar{
                         width: 100px;

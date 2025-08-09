@@ -545,6 +545,28 @@
                     <div class="row">
                         <div class="switch-group">
                             <div class="switch">
+                                <span>禁用预警区图层</span>
+                                <el-popover
+                                    placement="top"
+                                    :width="300"
+                                    trigger="hover"
+                                >
+                                    <template #reference>
+                                        <question-filled width="1em" height="1em"></question-filled>
+                                    </template>
+                                    <p>完全移除地震预警区（染色）图层。</p>
+                                    <p>不影响本地烈度计算。</p>
+                                    <p>可大幅度提升性能。</p>
+                                    <p><strong>需重新加载页面后生效。</strong></p>
+                                </el-popover>
+                                <el-switch v-model="settingsStore.mainSettings.disableEewBaseMap"
+                                @change="handleNeedReload"></el-switch>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="switch-group">
+                            <div class="switch">
                                 <span>预警区地图简化</span>
                                 <el-popover
                                     placement="top"
@@ -618,7 +640,7 @@
                     <div class="row">
                         <div class="switch-group">
                             <div class="switch">
-                                <span>强制估算烈度/震度（低精度）</span>
+                                <span>估算烈度/震度</span>
                                 <el-popover
                                     placement="top"
                                     :width="300"
