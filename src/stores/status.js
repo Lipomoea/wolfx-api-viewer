@@ -624,7 +624,8 @@ export const useStatusStore = defineStore('statusStore', {
                             case 1:
                                 eqMessage.id = data.eventId
                                 eqMessage.reportTime = data.createTime
-                                eqMessage.title = `中国地震台网${data.infoTypeName.slice(0, 2)}测定`
+                                const cedingIndex = data.infoTypeName.indexOf('测定')
+                                eqMessage.title = `中国地震台网${data.infoTypeName.slice(cedingIndex - 2, cedingIndex)}测定`
                                 eqMessage.titleText = eqMessage.title
                                 eqMessage.hypocenter = data.placeName
                                 eqMessage.hypocenterText = '震源: ' + data.placeName
