@@ -10,7 +10,10 @@
                                 <div>{{ event.eqMessage.titleText + ' ' + event.eqMessage.reportNumText }}</div>
                                 <div v-show="activeEewList.length > 1">{{ activeEewList.findIndex(e => e == event) + 1 }}/{{ activeEewList.length }}</div>
                             </div>
-                            <div class="info" @click="event.showMenu = !event.showMenu">
+                            <div class="info" @click="() => {
+                                event.showMenu = !event.showMenu;
+                                infoPageCounter = infoPageCounter - infoPageCounter % 10;
+                            }">
                                 <div class="intensity" :class="event.eqMessage.className">
                                     <div class="intensity-title">{{ event.eqMessage.useShindo?'最大震度':'最大烈度' }}</div>
                                     <div :class="event.eqMessage.useShindo && formatIntensity(event.eqMessage.maxIntensity) != '?'?'shindo':'csis'">
@@ -65,7 +68,10 @@
                                 <div>{{ event.eqMessage.titleText }}</div>
                                 <div v-show="activeEqlistList.length > 1">{{ activeEqlistList.findIndex(e => e == event) + 1 }}/{{ activeEqlistList.length }}</div>
                             </div>
-                            <div class="info" @click="event.showMenu = !event.showMenu">
+                            <div class="info" @click="() => {
+                                event.showMenu = !event.showMenu;
+                                infoPageCounter = infoPageCounter - infoPageCounter % 10;
+                            }">
                                 <div class="intensity" :class="event.eqMessage.className">
                                     <div class="intensity-title">{{ event.eqMessage.useShindo?'最大震度':'最大烈度' }}</div>
                                     <div :class="event.eqMessage.useShindo && formatIntensity(event.eqMessage.maxIntensity) != '?'?'shindo':'csis'">
