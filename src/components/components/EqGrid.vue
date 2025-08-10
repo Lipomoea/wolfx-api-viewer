@@ -17,7 +17,7 @@
 
 <script setup>
 import { onBeforeUnmount, ref, reactive, computed, watch, inject } from 'vue';
-import { formatText, msToTime, calcPassedTime, judgeSameEvent, openUrl } from '@/utils/Utils';
+import { formatText, msToTime, calcPassedTime, judgeSameEvent, openUrl, calcTimeDiff } from '@/utils/Utils';
 import { EewEvent, EqlistEvent, ignoredIds } from '@/classes/EewEqlistClasses';
 import { useTimeStore } from '@/stores/time';
 import { useStatusStore } from '@/stores/status';
@@ -109,6 +109,7 @@ watch(eqMessage, (newVal)=>{
                 newEvent.update(Object.assign({}, newVal), time, true)
             }
         }
+        eqlistList.sort((a, b) => calcTimeDiff(b.eqMessage.reportTime, b.eqMessage.timeZone, a.eqMessage.reportTime, a.eqMessage.timeZone))
     }
     if(time > 0) {
         className.value = newVal.className + ' highOpacity'
