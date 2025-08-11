@@ -839,10 +839,11 @@
             <div class="title">快捷键</div>
             <div class="about">
                 <ul>
-                    <li>(A)uto：打开/关闭自动视野</li>
-                    <li>(D)rawer：显示/隐藏侧边栏</li>
-                    <li>(H)istory：打开/关闭历史地震</li>
+                    <li>[A]uto：打开/关闭自动视野</li>
+                    <li>[D]rawer：显示/隐藏侧边栏</li>
+                    <li>[H]istory：打开/关闭历史地震</li>
                     <li>Tab / Enter + Tab：轮询菜单</li>
+                    <li>, / . ：存在多页信息框时轮询信息框</li>
                 </ul>
             </div>
             <div class="title">注意事项</div>
