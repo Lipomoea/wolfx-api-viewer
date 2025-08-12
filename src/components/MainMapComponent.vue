@@ -257,7 +257,7 @@ import EewComponent from './EewComponent.vue';
 import SeisNetComponent from './SeisNetComponent.vue';
 import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
-import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToPolygon, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone, simplifyTopoJson } from '@/utils/Utils';
+import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToCnArea, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone, simplifyTopoJson } from '@/utils/Utils';
 import { topojsonUrls } from '@/utils/Urls';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { isTauri } from '@tauri-apps/api/core';
@@ -374,13 +374,13 @@ let firstMsg = false
 const blinkStatus = ref(false)
 let tsunamiFlickerCounter = 0
 const infoPageCounter = ref(0)
-const eventsPerPage = 2
-const eewInfoTotalPages = computed(() => Math.ceil(activeEewList.length / eventsPerPage))
+const eventsPerPage = computed(() => (menuId.value == 'main' || menuId.value == 'settings') && (activeEewList.length > 0 && activeEqlistList.value.length > 0) ? 1 : 2)
+const eewInfoTotalPages = computed(() => Math.ceil(activeEewList.length / eventsPerPage.value))
 const currentEewInfoPage = computed(() => Math.floor(infoPageCounter.value / 10) % eewInfoTotalPages.value)
-const currentEewInfoItems = computed(() => activeEewList.slice(eventsPerPage * currentEewInfoPage.value, eventsPerPage * (currentEewInfoPage.value + 1)))
-const eqlistInfoTotalPages = computed(() => Math.ceil(activeEqlistList.value.length / eventsPerPage))
+const currentEewInfoItems = computed(() => activeEewList.slice(eventsPerPage.value * currentEewInfoPage.value, eventsPerPage.value * (currentEewInfoPage.value + 1)))
+const eqlistInfoTotalPages = computed(() => Math.ceil(activeEqlistList.value.length / eventsPerPage.value))
 const currentEqlistInfoPage = computed(() => Math.floor(infoPageCounter.value / 10) % eqlistInfoTotalPages.value)
-const currentEqlistInfoItems = computed(() => activeEqlistList.value.slice(eventsPerPage * currentEqlistInfoPage.value, eventsPerPage * (currentEqlistInfoPage.value + 1)))
+const currentEqlistInfoItems = computed(() => activeEqlistList.value.slice(eventsPerPage.value * currentEqlistInfoPage.value, eventsPerPage.value * (currentEqlistInfoPage.value + 1)))
 const handleManual = ()=>{
     isAutoZoom.value = false
     clearTimeout(autoZoomTimer)
@@ -426,7 +426,7 @@ const eqlistList = reactive([])
 const activeEqlistList = computed(()=>eqlistList.filter(event=>event.isActive))
 provide('activeEewList', activeEewList)
 provide('eqlistList', eqlistList)
-watch(() => activeEewList.length + activeEqlistList.value.length, () => {
+watch(() => `${activeEewList.length}|${activeEqlistList.value.length}|${menuId.value}`, () => {
     infoPageCounter.value = 0
 })
 const jmaTsunamiWarnArea = computed(() => {
@@ -738,7 +738,7 @@ const loadMaps = async (retries = 0) => {
                 cnEewBaseMap?.eachLayer(layer=>{
                     let maxInt = 0
                     newVal.forEach(info=>{
-                        const dist = pointDistToPolygon([info.lat, info.lng], layer.feature)
+                        const dist = pointDistToCnArea([info.lng, info.lat], layer.feature)
                         const int = Number(calcCsisLevel(info.magnitude, info.depth, dist))
                         if(int > maxInt) maxInt = int
                     })

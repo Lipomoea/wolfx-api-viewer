@@ -4,12 +4,12 @@ import { chimeUrls } from "./Urls";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { isTauri } from '@tauri-apps/api/core';
 import { open } from "@tauri-apps/plugin-shell";
-import { booleanPointInPolygon, point, polygonToLine, pointToLineDistance, area, distance, centroid } from "@turf/turf";
-import { flatten } from "@turf/turf";
+import { booleanPointInPolygon, point, distance } from "@turf/turf";
 import dayjs from "dayjs";
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { presimplify, simplify } from "topojson-simplify";
+import { cnSeisIntLoc } from "./CnSeisIntLoc";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -250,30 +250,27 @@ export const focusWindow = async ()=>{
         await getCurrentWindow().setFocus()
     }
 }
-export const pointDistToPolygon = (pointLatLng, feature)=>{
-    const turfPoint = point([pointLatLng[1], pointLatLng[0]])
+export const pointDistToCnArea = (pointLngLat, feature)=>{
+    const turfPoint = point(pointLngLat)
     if(booleanPointInPolygon(turfPoint, feature)){
         return 0
     }
     else{
-        const features = polygonToLine(feature).features
-        if(!features) {
-            const turfCentroid = centroid(feature)
-            const distToCent = distance(turfPoint, turfCentroid, { units: "kilometers" })
-            const featArea = area(feature) / 10 ** 6
-            const radius = Math.sqrt(featArea / Math.PI)
-            const dist = Math.max(distToCent - radius, 0)
-            return dist
-        }
-        const dist = features.reduce((minDist, feature) => {
-            try {
-                const dist = pointToLineDistance(turfPoint, feature.geometry.type == 'MultiLineString' ? flatten(feature).features[0] : feature, { units: "kilometers" })
-                return Math.min(dist, minDist)
-            } catch (_) {
-                return minDist
+        const name = feature.properties.name
+        const targetPoints = cnSeisIntLoc[name]
+        let minDist = Infinity, minDx = Infinity, minDy = Infinity
+        targetPoints.forEach(targetPoint => {
+            const currDx = Math.abs(targetPoint[0] - pointLngLat[0])
+            const currDy = Math.abs(targetPoint[1] - pointLngLat[1])
+            if(currDx > minDx && currDy > minDy) return
+            const currDist = distance(turfPoint, point(targetPoint), { units: "kilometers" })
+            if(currDist < minDist) {
+                minDist = currDist
+                minDx = currDx
+                minDy = currDy
             }
-        }, Infinity)
-        return dist
+        })
+        return minDist
     }
 }
 const r = 6371;
