@@ -11,137 +11,187 @@
                         trigger="hover"
                     >
                         <template #reference>
-                            <question-filled width="1em" height="1em"></question-filled>
+                            <question-filled width="1em" height="1em" />
                         </template>
                         <strong>
                             <p>需重新加载页面后生效。</p>
                         </strong>
                     </el-popover>
                 </div>
-                <div class="grid-group" style="grid-template-columns: 3fr 1fr 3fr 1fr;">
-                    <div class="full-width">緊急地震速報</div>
-                    <el-switch v-model="settingsStore.mainSettings.source.jmaEew" @change="handleNeedReload"></el-switch>
-                    <div class="full-width">中央氣象署地震速報</div>
-                    <el-switch v-model="settingsStore.mainSettings.source.cwaEew" @change="handleNeedReload"></el-switch>
-                    <div class="full-width">中国地震局地震预警</div>
-                    <el-switch v-model="settingsStore.mainSettings.source.ceaEew" @change="handleNeedReload"></el-switch>
-                    <div class="full-width" v-if="settingsStore.advancedSettings.enableIclEew">成都高新所地震预警</div>
-                    <el-switch v-if="settingsStore.advancedSettings.enableIclEew" v-model="settingsStore.mainSettings.source.iclEew" @change="handleNeedReload"></el-switch>
-                    <div class="full-width">四川地震局地震预警</div>
-                    <el-switch v-model="settingsStore.mainSettings.source.scEew" @change="handleNeedReload"></el-switch>
-                    <div class="full-width">福建地震局地震预警</div>
-                    <el-switch v-model="settingsStore.mainSettings.source.fjEew" @change="handleNeedReload"></el-switch>
-                    <div class="full-width" v-if="settingsStore.advancedSettings.enableGqEew">GlobalQuake预警</div>
-                    <el-switch v-if="settingsStore.advancedSettings.enableGqEew" v-model="settingsStore.mainSettings.source.gqEew" @change="handleNeedReload"></el-switch>
-                    <div class="full-width">日本気象庁地震情報</div>
-                    <el-switch v-model="settingsStore.mainSettings.source.jmaEqlist" @change="handleNeedReload"></el-switch>
-                    <div class="full-width" v-if="settingsStore.advancedSettings.enableTremFunctions">中央氣象署地震報告</div>
-                    <el-switch v-if="settingsStore.advancedSettings.enableTremFunctions" v-model="settingsStore.mainSettings.source.cwaEqlist" @change="handleNeedReload"></el-switch>
-                    <div class="full-width">中国地震台网测定</div>
-                    <el-switch v-model="settingsStore.mainSettings.source.cencEqlist" @change="handleNeedReload"></el-switch>
-                    <div class="full-width">日本気象庁津波情報</div>
-                    <el-switch v-model="settingsStore.mainSettings.source.jmaTsunami" @change="handleNeedReload"></el-switch>
+                <div class="group">
+                    <div class="switch-group">
+                        <span class="font-bold w-full">地震预警</span>
+                        <div class="switch-full">
+                            <div>中国地震局：地震预警</div>
+                            <el-switch v-model="settingsStore.mainSettings.source.ceaEew" @change="handleNeedReload" />
+                        </div>
+                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableIclEew">
+                            <div>成都高新减灾研究所：地震预警</div>
+                            <el-switch v-model="settingsStore.mainSettings.source.iclEew" @change="handleNeedReload" />
+                        </div>
+                        <div class="switch-full">
+                            <div>四川地震局：地震预警</div>
+                            <el-switch v-model="settingsStore.mainSettings.source.scEew" @change="handleNeedReload" />
+                        </div>
+                        <div class="switch-full">
+                            <div>福建地震局：地震预警</div>
+                            <el-switch v-model="settingsStore.mainSettings.source.fjEew" @change="handleNeedReload" />
+                        </div>
+                        <div class="switch-full">
+                            <div>臺灣中央氣象署：強震即時警報</div>
+                            <el-switch v-model="settingsStore.mainSettings.source.cwaEew" @change="handleNeedReload" />
+                        </div>
+                        <div class="switch-full">
+                            <div>日本気象庁：緊急地震速報</div>
+                            <el-switch v-model="settingsStore.mainSettings.source.jmaEew" @change="handleNeedReload" />
+                        </div>
+                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableGqEew">
+                            <div>GlobalQuake：地震预警</div>
+                            <el-switch v-model="settingsStore.mainSettings.source.gqEew" @change="handleNeedReload" />
+                        </div>
+                    </div>
+                    <div class="switch-group">
+                        <span class="font-bold w-full">地震信息</span>
+                        <div class="switch-full">
+                            <div>中国地震台网：地震测定</div>
+                            <el-switch v-model="settingsStore.mainSettings.source.cencEqlist" @change="handleNeedReload" />
+                        </div>
+                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableTremFunctions">
+                            <div>臺灣中央氣象署：地震報告</div>
+                            <el-switch v-model="settingsStore.mainSettings.source.cwaEqlist" @change="handleNeedReload" />
+                        </div>
+                        <div class="switch-full">
+                            <div>日本気象庁：地震情報</div>
+                            <el-switch v-model="settingsStore.mainSettings.source.jmaEqlist" @change="handleNeedReload" />
+                        </div>
+                    </div>
+                    <div class="switch-group">
+                        <span class="font-bold w-full">海啸信息</span>
+                        <div class="switch-full">
+                            <div>日本気象庁：津波情報</div>
+                            <el-switch v-model="settingsStore.mainSettings.source.jmaTsunami" @change="handleNeedReload" />
+                        </div>
+                    </div>
                 </div>
                 <div class="sub-title">地震监测网</div>
                 <div class="group">
-                    <div class="row">
-                        <span class="group-title">数据源</span>
-                        <div class="switch-group full-width">
-                            <div class="switch">
+                    <span class="font-bold w-full">数据源</span>
+                    <div class="switch-group">
+                        <div class="w-full">
+                            <div class="switch-full">
                                 <span>強震モニタ</span>
-                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.nied"></el-switch>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.nied" />
                             </div>
-                            <div class="switch">
-                                <span>检知灵敏度: </span>
+                            <div class="switch-full pl-4">
+                                <span>检知灵敏度</span>
                                 <el-select 
                                 v-model="settingsStore.mainSettings.displaySeisNet.niedSensitivity"
                                 size="small"
                                 :disabled="!settingsStore.mainSettings.displaySeisNet.nied"
-                                style="width: 50px;">
-                                    <el-option label="关" :value="0"></el-option>
-                                    <el-option label="低" :value="1"></el-option>
-                                    <el-option label="中" :value="2"></el-option>
-                                    <el-option label="高" :value="3"></el-option>
+                                style="width: 50px;"
+                                >
+                                    <el-option label="关" :value=0 />
+                                    <el-option label="低" :value=1 />
+                                    <el-option label="中" :value=2 />
+                                    <el-option label="高" :value=3 />
                                 </el-select>
                             </div>
-                            <div class="switch">
-                                <el-checkbox v-model="settingsStore.mainSettings.displaySeisNet.displayNiedShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.nied">解析震度阶</el-checkbox>
+                            <div class="switch-full pl-4">
+                                <span>解析震度阶</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayNiedShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.nied" />
                             </div>
                         </div>
-                        <div class="switch-group full-width" v-if="settingsStore.advancedSettings.enableTremFunctions">
-                            <div class="switch">
+                        <div class="w-full" v-if="settingsStore.advancedSettings.enableTremFunctions">
+                            <div class="switch-full">
                                 <span>TREM-Net&nbsp;</span>
-                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.trem"></el-switch>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.trem" />
                             </div>
-                            <div class="switch" style="width: 100px;">
-                                <span>API: </span>
+                            <div class="switch-full pl-4">
+                                <span>API</span>
                                 <el-select 
                                 v-model="settingsStore.mainSettings.displaySeisNet.tremApi"
                                 size="small"
-                                :disabled="!settingsStore.mainSettings.displaySeisNet.trem">
-                                    <el-option label="api-1" value="api-1"></el-option>
-                                    <el-option label="api-2" value="api-2"></el-option>
-                                    <el-option label="lb-1" value="lb-1"></el-option>
-                                    <el-option label="lb-2" value="lb-2"></el-option>
-                                    <el-option label="lb-3" value="lb-3"></el-option>
-                                    <el-option label="lb-4" value="lb-4"></el-option>
+                                :disabled="!settingsStore.mainSettings.displaySeisNet.trem"
+                                style="width: 70px;"
+                                >
+                                    <el-option label="api-1" value="api-1" />
+                                    <el-option label="api-2" value="api-2" />
+                                    <el-option label="lb-1" value="lb-1" />
+                                    <el-option label="lb-2" value="lb-2" />
+                                    <el-option label="lb-3" value="lb-3" />
+                                    <el-option label="lb-4" value="lb-4" />
                                 </el-select>
                             </div>
-                            <div class="switch">
-                                <el-checkbox v-model="settingsStore.mainSettings.displaySeisNet.displayTremShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.trem">解析震度阶</el-checkbox>
+                            <div class="switch-full pl-4">
+                                <span>解析震度阶</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayTremShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.trem" />
                             </div>
                         </div>
-                        <div class="group-title">通用设置</div>
-                        <div class="switch-group full-width">
-                            <div class="switch full-width">
+                    </div>
+                    <div class="font-bold w-full">通用设置</div>
+                    <div class="switch-group">
+                        <div class="w-full">
+                            <div class="switch-full">
                                 <span>测站回放(min)</span>
-                                <el-input
-                                v-model="settingsStore.mainSettings.displaySeisNet.delay"
-                                size="small"
-                                type="number"
-                                style="width: 60px;"
-                                @input="setDelay"></el-input>
-                                <el-button
-                                size="small"
-                                @click="settingsStore.mainSettings.displaySeisNet.delay = 0"
-                                :disabled="settingsStore.mainSettings.displaySeisNet.delay == 0">还原</el-button>
-                                <el-date-picker
-                                class="no-prefix-icon"
-                                v-model="replayDateTime"
-                                type="datetime"
-                                size="small"
-                                style="width: 130px; margin-left: 5px;"
-                                placeholder="选择日期时间(+8)"
-                                format="YYYY-MM-DD HH:mm:ss"
-                                value-format="YYYY-MM-DD HH:mm:ss" />
-                                <el-button
-                                size="small"
-                                @click="setReplayDateTime"
-                                :disabled="!replayDateTime">回放</el-button>
+                                <div class="flex gap-2">
+                                    <el-input
+                                    v-model="settingsStore.mainSettings.displaySeisNet.delay"
+                                    size="small"
+                                    type="number"
+                                    style="width: 70px;"
+                                    @input="setDelay" />
+                                    <el-button
+                                    size="small"
+                                    @click="settingsStore.mainSettings.displaySeisNet.delay = 0"
+                                    :disabled="settingsStore.mainSettings.displaySeisNet.delay == 0"
+                                    >还原</el-button>
+                                </div>
                             </div>
-                            <div class="switch">
+                            <div class="switch-full pl-4">
+                                <span>选择时间回放(CST)</span>
+                                <div class="flex gap-2">
+                                    <el-date-picker
+                                    class="no-prefix-icon"
+                                    v-model="replayDateTime"
+                                    type="datetime"
+                                    size="small"
+                                    style="width: 140px;"
+                                    placeholder="选择日期时间(CST)"
+                                    format="YYYY-MM-DD HH:mm:ss"
+                                    value-format="YYYY-MM-DD HH:mm:ss" />
+                                    <el-button
+                                    size="small"
+                                    @click="setReplayDateTime"
+                                    :disabled="!replayDateTime"
+                                    >回放</el-button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full">
+                            <div class="switch-full">
                                 <span>测站风格</span>
                                 <el-select
                                 style="width: 70px;"
                                 v-model="settingsStore.mainSettings.displaySeisNet.style"
                                 size="small">
-                                    <el-option label="NIED" value="nied"></el-option>
-                                    <el-option label="SREV" value="srev"></el-option>
-                                    <el-option label="混合" value="mix"></el-option>
+                                    <el-option label="NIED" value="nied" />
+                                    <el-option label="SREV" value="srev" />
+                                    <el-option label="混合" value="mix" />
                                 </el-select>
                             </div>
-                            <div class="switch" v-show="settingsStore.mainSettings.displaySeisNet.style == 'nied'">
-                                <el-checkbox v-model="settingsStore.mainSettings.displaySeisNet.hideNoData">隐藏无数据测站</el-checkbox>
+                            <div class="switch-full pl-4" v-show="settingsStore.mainSettings.displaySeisNet.style == 'nied'">
+                                <span>隐藏无数据测站</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.hideNoData" />
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="sub-title">行为</div>
                 <div class="group">
-                    <div class="row">
-                        <span class="full-width group-title">预警设置</span>
-                        <div class="switch-group">
-                            <div class="switch" v-if="!settingsStore.nearestJmaLoc">
+                    <span class="font-bold w-full">预警设置</span>
+                    <div class="switch-group">
+                        <div class="switch-full" v-if="!settingsStore.nearestJmaLoc">
+                            <div class="justify-between" style="width: 10rem;">
                                 <span>本地烈度阈值
                                     <el-popover
                                         placement="top"
@@ -149,7 +199,7 @@
                                         trigger="hover"
                                     >
                                         <template #reference>
-                                            <question-filled width="1em" height="1em"></question-filled>
+                                            <question-filled width="1em" height="1em" />
                                         </template>
                                         <p><strong>需要启用“强制估算烈度/震度”。</strong></p>
                                         <p>仅在预估本地烈度达到阈值时执行下方行为。</p>
@@ -157,19 +207,21 @@
                                         <p>设置为“0”表示接收全部预警。</p>
                                     </el-popover>
                                 </span>
-                                <el-slider
-                                v-model="settingsStore.mainSettings.actionCsis"
-                                :disabled="!settingsStore.advancedSettings.forceCalcInt"
-                                :min="0" :max="12"
-                                :step="1"
-                                size="small"
-                                show-stops
-                                style="width: 200px; margin-left: 10px;"></el-slider>
                                 <div class="int" :class="setClassName(settingsStore.mainSettings.actionCsis, false)">
                                     <div class="csis">{{ settingsStore.mainSettings.actionCsis }}</div>
                                 </div>
                             </div>
-                            <div class="switch" v-else>
+                            <el-slider
+                            v-model="settingsStore.mainSettings.actionCsis"
+                            :disabled="!settingsStore.advancedSettings.forceCalcInt"
+                            :min="0" :max="12"
+                            :step="1"
+                            size="small"
+                            show-stops
+                            />
+                        </div>
+                        <div class="switch-full" v-else>
+                            <div class="justify-between" style="width: 10rem;">
                                 <span>本地震度阈值
                                     <el-popover
                                         placement="top"
@@ -177,7 +229,7 @@
                                         trigger="hover"
                                     >
                                         <template #reference>
-                                            <question-filled width="1em" height="1em"></question-filled>
+                                            <question-filled width="1em" height="1em" />
                                         </template>
                                         <p><strong>需要启用“强制估算烈度/震度”。</strong></p>
                                         <p>仅在预估本地震度达到阈值时执行下方行为。</p>
@@ -185,218 +237,226 @@
                                         <p>设置为“0”表示接收全部预警。</p>
                                     </el-popover>
                                 </span>
-                                <el-slider
-                                v-model="settingsStore.mainSettings.actionShindo"
-                                :disabled="!settingsStore.advancedSettings.forceCalcInt"
-                                :min="0" :max="9"
-                                :step="1"
-                                size="small"
-                                show-stops
-                                :format-tooltip="(value) => shindoScale[value]"
-                                style="width: 200px; margin-left: 10px;"></el-slider>
                                 <div class="int" :class="setClassName(shindoScale[settingsStore.mainSettings.actionShindo], true)">
                                     <div class="shindo">{{ shindoScale[settingsStore.mainSettings.actionShindo] }}</div>
                                 </div>
                             </div>
-                            <div class="switch" v-if="settingsStore.advancedSettings.enableGqEew">
+                            <el-slider
+                            v-model="settingsStore.mainSettings.actionShindo"
+                            :disabled="!settingsStore.advancedSettings.forceCalcInt"
+                            :min="0" :max="9"
+                            :step="1"
+                            size="small"
+                            show-stops
+                            :format-tooltip="(value) => shindoScale[value]"
+                            />
+                        </div>
+                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableGqEew">
+                            <div class="justify-between" style="width: 10rem;">
                                 <span>GQ预警震级阈值</span>
-                                <el-slider
-                                v-model="settingsStore.mainSettings.gqActionMag"
-                                :min="0" :max="9"
-                                :step="0.1"
-                                size="small"
-                                style="width: 200px; margin-left: 10px;"></el-slider>
-                                <div class="mag" :class="setClassName(settingsStore.mainSettings.gqActionMag * 4/3, false)">{{ settingsStore.mainSettings.gqActionMag.toFixed(1) }}</div>
+                                <div class="mag" :class="setClassName(settingsStore.mainSettings.gqActionMag * 4/3, false)">
+                                    {{ settingsStore.mainSettings.gqActionMag.toFixed(1) }}
+                                </div>
                             </div>
-                            <div class="switch" v-if="settingsStore.advancedSettings.enableGqEew">
+                            <el-slider
+                            v-model="settingsStore.mainSettings.gqActionMag"
+                            :min="0" :max="9"
+                            :step="0.1"
+                            size="small"
+                            />
+                        </div>
+                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableGqEew">
+                            <div class="justify-between" style="width: 10rem;">
                                 <span>GQ预警烈度阈值</span>
-                                <el-slider
-                                v-model="settingsStore.mainSettings.gqActionCsis"
-                                :disabled="!settingsStore.advancedSettings.forceCalcInt"
-                                :min="0" :max="12"
-                                :step="1"
-                                size="small"
-                                show-stops
-                                style="width: 200px; margin-left: 10px;"></el-slider>
                                 <div class="int" :class="setClassName(settingsStore.mainSettings.gqActionCsis, false)">
                                     <div class="csis">{{ settingsStore.mainSettings.gqActionCsis }}</div>
                                 </div>
                             </div>
+                            <el-slider
+                            v-model="settingsStore.mainSettings.gqActionCsis"
+                            :disabled="!settingsStore.advancedSettings.forceCalcInt"
+                            :min="0" :max="12"
+                            :step="1"
+                            size="small"
+                            show-stops
+                            />
                         </div>
                     </div>
-                    <div class="row">
-                        <span class="full-width group-title">收到地震预警（警报）时</span>
-                        <div class="switch-group">
-                            <div class="switch" v-if="showNotifButton">
-                                <span>发送通知</span>
-                                <el-switch v-model="settingsStore.mainSettings.onEewWarn.notification" :disabled="settingsStore.mainSettings.onEew.notification"></el-switch>
-                            </div>
-                            <div class="switch">
-                                <span>播放声音</span>
-                                <el-switch v-model="settingsStore.mainSettings.onEewWarn.sound" :disabled="settingsStore.mainSettings.onEew.sound"></el-switch>
-                            </div>
-                            <div class="switch" v-if="isTauri">
-                                <span>弹出窗口</span>
-                                <el-switch v-model="settingsStore.mainSettings.onEewWarn.focus" :disabled="settingsStore.mainSettings.onEew.focus"></el-switch>
-                            </div>
+                    <span class="font-bold w-full">收到地震预警（警报）时</span>
+                    <div class="switch-group justify-between">
+                        <div class="switch" v-if="showNotifButton">
+                            <span>发送通知</span>
+                            <el-switch v-model="settingsStore.mainSettings.onEewWarn.notification" :disabled="settingsStore.mainSettings.onEew.notification" />
+                        </div>
+                        <div class="switch">
+                            <span>播放声音</span>
+                            <el-switch v-model="settingsStore.mainSettings.onEewWarn.sound" :disabled="settingsStore.mainSettings.onEew.sound" />
+                        </div>
+                        <div class="switch" v-if="isTauri">
+                            <span>弹出窗口</span>
+                            <el-switch v-model="settingsStore.mainSettings.onEewWarn.focus" :disabled="settingsStore.mainSettings.onEew.focus" />
                         </div>
                     </div>
-                    <div class="row">
-                        <span class="full-width group-title">收到地震预警（全部）时</span>
-                        <div class="switch-group">
-                            <div class="switch" v-if="showNotifButton">
-                                <span>发送通知</span>
-                                <el-switch v-model="settingsStore.mainSettings.onEew.notification"></el-switch>
-                            </div>
-                            <div class="switch">
-                                <span>播放声音</span>
-                                <el-switch v-model="settingsStore.mainSettings.onEew.sound"></el-switch>
-                            </div>
-                            <div class="switch" v-if="isTauri">
-                                <span>弹出窗口</span>
-                                <el-switch v-model="settingsStore.mainSettings.onEew.focus"></el-switch>
-                            </div>
+                    <span class="font-bold w-full">收到地震预警（全部）时</span>
+                    <div class="switch-group justify-between">
+                        <div class="switch" v-if="showNotifButton">
+                            <span>发送通知</span>
+                            <el-switch v-model="settingsStore.mainSettings.onEew.notification" />
+                        </div>
+                        <div class="switch">
+                            <span>播放声音</span>
+                            <el-switch v-model="settingsStore.mainSettings.onEew.sound" />
+                        </div>
+                        <div class="switch" v-if="isTauri">
+                            <span>弹出窗口</span>
+                            <el-switch v-model="settingsStore.mainSettings.onEew.focus" />
                         </div>
                     </div>
-                    <div class="row">
-                        <span class="full-width group-title">收到地震信息时</span>
-                        <div class="switch-group">
-                            <div class="switch" v-if="showNotifButton">
-                                <span>发送通知</span>
-                                <el-switch v-model="settingsStore.mainSettings.onReport.notification"></el-switch>
-                            </div>
-                            <div class="switch">
-                                <span>播放声音</span>
-                                <el-switch v-model="settingsStore.mainSettings.onReport.sound"></el-switch>
-                            </div>
-                            <div class="switch" v-if="isTauri">
-                                <span>弹出窗口</span>
-                                <el-switch v-model="settingsStore.mainSettings.onReport.focus"></el-switch>
-                            </div>
+                    <span class="font-bold w-full">收到地震信息时</span>
+                    <div class="switch-group justify-between">
+                        <div class="switch" v-if="showNotifButton">
+                            <span>发送通知</span>
+                            <el-switch v-model="settingsStore.mainSettings.onReport.notification" />
+                        </div>
+                        <div class="switch">
+                            <span>播放声音</span>
+                            <el-switch v-model="settingsStore.mainSettings.onReport.sound" />
+                        </div>
+                        <div class="switch" v-if="isTauri">
+                            <span>弹出窗口</span>
+                            <el-switch v-model="settingsStore.mainSettings.onReport.focus" />
                         </div>
                     </div>
-                    <div class="row">
-                        <span class="full-width group-title">地震监测网检测到摇晃时</span>
-                        <div class="switch-group">
-                            <div class="switch" v-if="showNotifButton">
-                                <span>发送通知</span>
-                                <el-switch v-model="settingsStore.mainSettings.onShake.notification"></el-switch>
-                            </div>
-                            <div class="switch">
-                                <span>播放声音</span>
-                                <el-switch v-model="settingsStore.mainSettings.onShake.sound"></el-switch>
-                            </div>
-                            <div class="switch" v-if="isTauri">
-                                <span>弹出窗口</span>
-                                <el-switch v-model="settingsStore.mainSettings.onShake.focus"></el-switch>
-                            </div>
+                    <span class="font-bold w-full">地震监测网检测到摇晃时</span>
+                    <div class="switch-group justify-between">
+                        <div class="switch" v-if="showNotifButton">
+                            <span>发送通知</span>
+                            <el-switch v-model="settingsStore.mainSettings.onShake.notification" />
+                        </div>
+                        <div class="switch">
+                            <span>播放声音</span>
+                            <el-switch v-model="settingsStore.mainSettings.onShake.sound" />
+                        </div>
+                        <div class="switch" v-if="isTauri">
+                            <span>弹出窗口</span>
+                            <el-switch v-model="settingsStore.mainSettings.onShake.focus" />
                         </div>
                     </div>
-                    <div class="row">
-                        <span class="full-width group-title">收到海啸信息时</span>
-                        <div class="switch-group">
-                            <div class="switch" v-if="showNotifButton">
-                                <span>发送通知</span>
-                                <el-switch v-model="settingsStore.mainSettings.onTsunami.notification"></el-switch>
-                            </div>
-                            <div class="switch">
-                                <span>播放声音</span>
-                                <el-switch v-model="settingsStore.mainSettings.onTsunami.sound"></el-switch>
-                            </div>
-                            <div class="switch" v-if="isTauri">
-                                <span>弹出窗口</span>
-                                <el-switch v-model="settingsStore.mainSettings.onTsunami.focus"></el-switch>
-                            </div>
+                    <span class="font-bold w-full">收到海啸信息时</span>
+                    <div class="switch-group justify-between">
+                        <div class="switch" v-if="showNotifButton">
+                            <span>发送通知</span>
+                            <el-switch v-model="settingsStore.mainSettings.onTsunami.notification" />
+                        </div>
+                        <div class="switch">
+                            <span>播放声音</span>
+                            <el-switch v-model="settingsStore.mainSettings.onTsunami.sound" />
+                        </div>
+                        <div class="switch" v-if="isTauri">
+                            <span>弹出窗口</span>
+                            <el-switch v-model="settingsStore.mainSettings.onTsunami.focus" />
                         </div>
                     </div>
                 </div>
                 <div class="sub-title">音效</div>
                 <div class="group">
-                    <div class="row">
-                        <div class="switch-group">
-                            <div class="switch">
-                                <span>关闭默认通知音</span>
-                                <el-switch v-model="settingsStore.mainSettings.muteNotification"></el-switch>
-                            </div>
-                            <div class="switch" style="width: 140px;">
-                                <span style="white-space: nowrap;">选择音效</span>
-                                <el-select 
-                                v-model="settingsStore.mainSettings.soundEffect"
-                                size="small">
-                                    <el-option label="SREV" value="srev"></el-option>
-                                </el-select>
-                            </div>
-                            <div class="switch">
-                                <el-button size="small" @click="customizeAudio = true">{{ isTauri ? '自定义音效' : '试听音效' }}</el-button>
-                            </div>
+                    <div class="switch-group">
+                        <div class="switch-full">
+                            <span>关闭默认通知音</span>
+                            <el-switch v-model="settingsStore.mainSettings.muteNotification" />
+                        </div>
+                        <div class="switch-full">
+                            <span>选择音效</span>
+                            <el-select 
+                            v-model="settingsStore.mainSettings.soundEffect"
+                            size="small"
+                            style="width: 70px;"
+                            >
+                                <el-option label="SREV" value="srev" />
+                            </el-select>
+                        </div>
+                        <div class="switch-full">
+                            <span>{{ isTauri ? '自定义音效' : '试听音效' }}</span>
+                            <el-button size="small" @click="customizeAudio = true">{{ isTauri ? '自定义' : '试听' }}</el-button>
                         </div>
                     </div>
                 </div>
                 <div class="sub-title">显示</div>
                 <div class="group">
-                    <div class="row">
-                        <span class="group-title">本地预警设置</span>
-                        <div class="switch-group">
-                            <div class="switch force-wrap">
-                                <span class="full-width">
-                                    <span style="margin-right: 5px;">所在地位置</span>
-                                    <el-popover
-                                        placement="top"
-                                        :width="300"
-                                        trigger="hover"
-                                    >
-                                        <template #reference>
-                                            <question-filled width="1em" height="1em"></question-filled>
-                                        </template>
-                                        <strong>
-                                            <p>需要同时设置经纬度方可生效。</p>
-                                            <p>地震预警事件中更新位置不会立即生效。</p>
-                                        </strong>
-                                    </el-popover>
-                                </span>
-                                <span>纬度</span>
-                                <el-input
-                                class="lat-lng"
-                                v-model="settingsStore.mainSettings.userLatLng[0]"
-                                size="small"
-                                maxlength="10"
-                                @change="val => setLat('userLatLng')(val)"></el-input>
-                                <span style="margin-left: 8px;">经度</span>
-                                <el-input
-                                class="lat-lng"
-                                v-model="settingsStore.mainSettings.userLatLng[1]"
-                                size="small"
-                                maxlength="10"
-                                @change="val => setLng('userLatLng')(val)"></el-input>
-                                <el-button
-                                style="margin-left: 8px;"
-                                size="small"
-                                @click="autoLocate">自动定位</el-button>
-                                <el-button
-                                size="small"
-                                @click="clearUserLatLng">清除经纬度</el-button>
-                            </div>
+                    <span class="font-bold w-full">
+                        所在地设置
+                        <el-popover
+                            placement="top"
+                            :width="300"
+                            trigger="hover"
+                        >
+                            <template #reference>
+                                <question-filled width="1em" height="1em" />
+                            </template>
+                            <strong>
+                                <p>需要同时设置经纬度方可生效。</p>
+                                <p>地震预警事件中更新位置不会立即生效。</p>
+                            </strong>
+                        </el-popover>
+                    </span>
+                    <div class="switch-group">
+                        <div class="switch-full">
+                            <span>纬度</span>
+                            <el-input
+                            class="lat-lng"
+                            v-model="settingsStore.mainSettings.userLatLng[0]"
+                            size="small"
+                            maxlength="10"
+                            @change="val => setLat('userLatLng')(val)" />
                         </div>
-                        <div class="switch-group">
-                            <div class="switch">
-                                <span>显示所在地</span>
-                                <el-switch v-model="settingsStore.mainSettings.displayUser"></el-switch>
+                        <div class="switch-full">
+                            <span>经度</span>
+                            <el-input
+                            class="lat-lng"
+                            v-model="settingsStore.mainSettings.userLatLng[1]"
+                            size="small"
+                            maxlength="10"
+                            @change="val => setLng('userLatLng')(val)" />
+                        </div>
+                        <div class="switch-full">
+                            <span>使用IP地址定位</span>
+                            <el-button
+                            size="small"
+                            @click="autoLocate"
+                            >自动定位</el-button>
+                        </div>
+                        <div class="switch-full">
+                            <span>清除经纬度</span>
+                            <el-button
+                            size="small"
+                            @click="clearUserLatLng">清除</el-button>
+                        </div>
+                        <div class="switch-full">
+                            <span>显示所在地</span>
+                            <el-switch v-model="settingsStore.mainSettings.displayUser" />
+                        </div>
+                    </div>
+                    <span class="font-bold w-full">主震动倒计时</span>
+                    <div class="switch-group">
+                        <div class="w-full">
+                            <div class="switch-full">
+                                <span>显示本地预估烈度和横波抵达倒计时</span>
+                                <el-switch v-model="settingsStore.mainSettings.displayCountdown" />
                             </div>
-                            <div class="switch">
-                                <span>显示本地烈度和倒计时</span>
-                                <el-switch v-model="settingsStore.mainSettings.displayCountdown"></el-switch>
+                            <div class="switch-full pl-4">
+                                <span>强制计算倒计时</span>
+                                <el-switch v-model="settingsStore.mainSettings.forceDisplayCountdown" :disabled="!settingsStore.mainSettings.displayCountdown" />
                             </div>
-                            <div class="switch">
-                                <el-checkbox v-model="settingsStore.mainSettings.forceDisplayCountdown" :disabled="!settingsStore.mainSettings.displayCountdown">强制计算倒计时</el-checkbox>
+                            <div class="switch-full pl-4">
+                                <span>播放倒计时音效</span>
+                                <el-switch v-model="settingsStore.mainSettings.playCountdownSound" :disabled="!settingsStore.mainSettings.displayCountdown" />
                             </div>
-                            <div class="switch">
-                                <el-checkbox v-model="settingsStore.mainSettings.playCountdownSound" :disabled="!settingsStore.mainSettings.displayCountdown">播放倒计时音效</el-checkbox>
+                            <div class="switch-full pl-4">
+                                <span>语音播报倒计时</span>
+                                <el-switch v-model="settingsStore.mainSettings.countdownSpeech" :disabled="!(settingsStore.mainSettings.displayCountdown && settingsStore.mainSettings.playCountdownSound)" />
                             </div>
-                            <div class="switch">
-                                <el-checkbox v-model="settingsStore.mainSettings.countdownSpeech" :disabled="!(settingsStore.mainSettings.displayCountdown && settingsStore.mainSettings.playCountdownSound)">语音播报倒计时</el-checkbox>
-                            </div>
-                            <div class="switch">
-                                <span>开始倒计时的秒数：{{ settingsStore.mainSettings.countdownStart }}</span>
+                            <div class="switch-full pl-4">
+                                <span>剩余{{ settingsStore.mainSettings.countdownStart }}秒开始倒数</span>
                                 <el-slider
                                 v-model="settingsStore.mainSettings.countdownStart"
                                 :disabled="!settingsStore.mainSettings.playCountdownSound"
@@ -404,216 +464,229 @@
                                 :step="5"
                                 size="small"
                                 show-stops
-                                style="width: 200px; margin-left: 10px;"></el-slider>
-                            </div>
-                        </div>
-                        <div class="switch-group">
-                            <div class="switch">
-                                <span>显示地图烈度图例</span>
-                                <el-switch v-model="settingsStore.mainSettings.displayLegend"></el-switch>
-                            </div>
-                            <div class="switch">
-                                <span>显示区域烈度列表</span>
-                                <el-switch v-model="settingsStore.mainSettings.displayAreaIntensities"></el-switch>
+                                />
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <span class="group-title">默认视野设置</span>
-                        <div class="switch-group">
-                            <div class="switch force-wrap">
-                                <span class="full-width">
-                                    <span style="margin-right: 5px;">自定义视野</span>
+                    <span class="font-bold w-full">地图烈度</span>
+                    <div class="switch-group">
+                        <div class="switch-full">
+                            <span>显示地图烈度图例</span>
+                            <el-switch v-model="settingsStore.mainSettings.displayLegend" :disabled="settingsStore.mainSettings.disableEewBaseMap" />
+                        </div>
+                        <div class="switch-full">
+                            <span>显示区域烈度列表</span>
+                            <el-switch v-model="settingsStore.mainSettings.displayAreaIntensities" />
+                        </div>
+                    </div>
+                    <span class="font-bold w-full">
+                        默认视野设置
+                        <el-popover
+                            placement="top"
+                            :width="300"
+                            trigger="hover"
+                        >
+                            <template #reference>
+                                <question-filled width="1em" height="1em" />
+                            </template>
+                            <strong>
+                                <p>设置无可聚焦事件时地图的视野范围。</p>
+                                <p>需要同时设置经纬度方可生效。</p>
+                                <p>若不设置默认使用所在地经纬度。</p>
+                            </strong>
+                        </el-popover>
+                    </span>
+                    <div class="switch-group">
+                        <div class="switch-full">
+                            <span>纬度</span>
+                            <el-input
+                            class="lat-lng"
+                            v-model="settingsStore.mainSettings.viewLatLng[0]"
+                            size="small"
+                            maxlength="10"
+                            @change="val => setLat('viewLatLng')(val)" />
+                        </div>
+                        <div class="switch-full">
+                            <span>经度</span>
+                            <el-input
+                            class="lat-lng"
+                            v-model="settingsStore.mainSettings.viewLatLng[1]"
+                            size="small"
+                            maxlength="10"
+                            @change="val => setLng('viewLatLng')(val)" />
+                        </div>
+                        <div class="switch-full">
+                            <span>缩放</span>
+                            <el-input
+                            v-model="settingsStore.mainSettings.defaultZoom"
+                            type="number"
+                            size="small"
+                            maxlength="2"
+                            min="2"
+                            max="12"
+                            style="width: 48px;"
+                            @change="setDefaultZoom" />
+                        </div>
+                        <div class="switch-full">
+                            <span>设置为当前地图视野</span>
+                            <el-button
+                            size="small"
+                            @click="setCurrentViewAsDefault">设置</el-button>
+                        </div>
+                        <div class="switch-full">
+                            <span>清除经纬度</span>
+                            <el-button
+                            size="small"
+                            @click="clearViewLatLng">清除</el-button>
+                        </div>
+                    </div>
+                    <span class="font-bold w-full">其他</span>
+                    <div class="switch-group">
+                        <div class="switch-full">
+                            <span>UI缩放比例</span>
+                            <el-select
+                            style="width: 70px;"
+                            v-model="settingsStore.mainSettings.uiScale"
+                            size="small">
+                                <el-option label="50%" :value=0.5 />
+                                <el-option label="75%" :value=0.75 />
+                                <el-option label="默认" :value=1 />
+                                <el-option label="125%" :value=1.25 />
+                                <el-option label="150%" :value=1.5 />
+                                <el-option label="200%" :value=2 />
+                            </el-select>
+                        </div>
+                        <div class="switch-full">
+                            <span>显示中国断层</span>
+                            <el-switch v-model="settingsStore.mainSettings.displayCnFault" />
+                        </div>
+                        <div class="switch-full">
+                            <span>
+                                预警/信息页不展开侧边栏
+                                <el-popover
+                                    placement="top"
+                                    :width="300"
+                                    trigger="hover"
+                                >
+                                    <template #reference>
+                                        <question-filled width="1em" height="1em" />
+                                    </template>
+                                    <p>当前处于预警/信息页面且地图处于自动缩放状态时，可再次点击对应菜单快速切换状态。</p>
+                                </el-popover>
+                            </span>
+                            <el-switch v-model="settingsStore.mainSettings.hideDrawer" />
+                        </div>
+                        <div class="w-full">
+                            <div class="switch-full">
+                                <span>
+                                    放映模式
                                     <el-popover
                                         placement="top"
                                         :width="300"
                                         trigger="hover"
                                     >
                                         <template #reference>
-                                            <question-filled width="1em" height="1em"></question-filled>
+                                            <question-filled width="1em" height="1em" />
                                         </template>
+                                        <p>收到新的信息时自动切换到对应的菜单页面。适合在不频繁操作此应用时使用。</p>
+                                        <p>推荐同步启用“预警/信息页不展开侧边栏”。</p>
                                         <strong>
-                                            <p>需要同时设置经纬度方可生效。</p>
-                                            <p>若不设置默认使用所在地经纬度。</p>
+                                            <p>此模式下，收信时您的操作可能被打断。</p>
+                                            <p>需重新加载页面后生效。</p>
                                         </strong>
                                     </el-popover>
                                 </span>
-                                <span>纬度</span>
-                                <el-input
-                                class="lat-lng"
-                                v-model="settingsStore.mainSettings.viewLatLng[0]"
-                                size="small"
-                                maxlength="10"
-                                @change="val => setLat('viewLatLng')(val)"></el-input>
-                                <span style="margin-left: 8px;">经度</span>
-                                <el-input
-                                class="lat-lng"
-                                v-model="settingsStore.mainSettings.viewLatLng[1]"
-                                size="small"
-                                maxlength="10"
-                                @change="val => setLng('viewLatLng')(val)"></el-input>
-                                <span style="margin-left: 8px;">缩放</span>
-                                <el-input
-                                v-model="settingsStore.mainSettings.defaultZoom"
-                                type="number"
-                                size="small"
-                                maxlength="2"
-                                min="3"
-                                max="12"
-                                style="width: 50px;"
-                                @change="setDefaultZoom"></el-input>
-                                <el-button
-                                size="small"
-                                @click="setCurrentViewAsDefault">设为当前视野</el-button>
-                                <el-button
-                                size="small"
-                                @click="clearViewLatLng">清除经纬度</el-button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <span class="group-title">其他</span>
-                        <div class="switch-group full-width">
-                            <div class="switch">
-                                <span>UI缩放比例</span>
-                                <el-select
-                                style="width: 70px;"
-                                v-model="settingsStore.mainSettings.uiScale"
-                                size="small">
-                                    <el-option label="50%" :value="0.5"></el-option>
-                                    <el-option label="75%" :value="0.75"></el-option>
-                                    <el-option label="默认" :value="1"></el-option>
-                                    <el-option label="125%" :value="1.25"></el-option>
-                                    <el-option label="150%" :value="1.5"></el-option>
-                                    <el-option label="200%" :value="2"></el-option>
-                                </el-select>
-                            </div>
-                        </div>
-                        <div class="switch-group full-width">
-                            <div class="switch">
-                                <span>显示中国断层</span>
-                                <el-switch v-model="settingsStore.mainSettings.displayCnFault"></el-switch>
-                            </div>
-                        </div>
-                        <div class="switch-group full-width">
-                            <div class="switch">
-                                <span>预警/信息页不展开侧边栏</span>
-                                <el-popover
-                                    placement="top"
-                                    :width="300"
-                                    trigger="hover"
-                                >
-                                    <template #reference>
-                                        <question-filled width="1em" height="1em"></question-filled>
-                                    </template>
-                                    <p>当前处于预警/信息页面且地图处于自动缩放状态时，可再次点击对应菜单快速切换状态。</p>
-                                </el-popover>
-                                <el-switch v-model="settingsStore.mainSettings.hideDrawer"></el-switch>
-                            </div>
-                        </div>
-                        <div class="switch-group">
-                            <div class="switch">
-                                <span>放映模式</span>
-                                <el-popover
-                                    placement="top"
-                                    :width="300"
-                                    trigger="hover"
-                                >
-                                    <template #reference>
-                                        <question-filled width="1em" height="1em"></question-filled>
-                                    </template>
-                                    <p>收到新的信息时自动切换到对应的菜单页面。适合在不频繁操作此应用时使用。</p>
-                                    <p>推荐同步启用“预警/信息页不展开侧边栏”。</p>
-                                    <strong>
-                                        <p>此模式下，收信时您的操作可能被打断。</p>
-                                        <p>需重新加载页面后生效。</p>
-                                    </strong>
-                                </el-popover>
                                 <el-switch v-model="settingsStore.mainSettings.cinemaMode"
-                                @change="handleNeedReload"></el-switch>
+                                @change="handleNeedReload" />
                             </div>
-                            <div class="switch">
-                                <el-checkbox v-model="settingsStore.mainSettings.eqlistsAsDefault"
-                                :disabled="!settingsStore.mainSettings.cinemaMode"
-                                >将地震/海啸信息页面设为默认</el-checkbox>
+                            <div class="switch-full pl-4">
+                                <span>将地震/海啸信息页面设为默认</span>
+                                <el-switch v-model="settingsStore.mainSettings.eqlistsAsDefault"
+                                :disabled="!settingsStore.mainSettings.cinemaMode" />
                             </div>
+                        </div>
+                        <div class="switch-full">
+                            <span>地震信息显示模式</span>
+                            <el-select
+                            style="width: 200px;"
+                            v-model="settingsStore.mainSettings.eqlistsDisplayMode"
+                            size="small"
+                            @change="handleNeedReload">
+                                <el-option label="显示每个数据源的最新地震" :value=0 />
+                                <el-option label="显示全部数据源中最新的地震" :value=1 />
+                            </el-select>
                         </div>
                     </div>
                 </div>
                 <div class="sub-title">性能</div>
                 <div class="group">
-                    <div class="row">
-                        <div class="switch-group">
-                            <div class="switch">
-                                <span>禁用预警区图层</span>
+                    <div class="switch-group">
+                        <div class="switch-full">
+                            <span>
+                                禁用预警区图层
                                 <el-popover
                                     placement="top"
                                     :width="300"
                                     trigger="hover"
                                 >
                                     <template #reference>
-                                        <question-filled width="1em" height="1em"></question-filled>
+                                        <question-filled width="1em" height="1em" />
                                     </template>
                                     <p>完全移除地震预警区（染色）图层。</p>
                                     <p>不影响本地烈度计算。</p>
                                     <p>可大幅度提升性能。</p>
                                     <p><strong>需重新加载页面后生效。</strong></p>
                                 </el-popover>
-                                <el-switch v-model="settingsStore.mainSettings.disableEewBaseMap"
-                                @change="handleNeedReload"></el-switch>
-                            </div>
+                            </span>
+                            <el-switch v-model="settingsStore.mainSettings.disableEewBaseMap"
+                            @change="handleNeedReload" />
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="switch-group">
-                            <div class="switch">
-                                <span>预警区地图简化</span>
+                        <div class="switch-full">
+                            <span>
+                                预警区地图简化
                                 <el-popover
                                     placement="top"
                                     :width="350"
                                     trigger="hover"
                                 >
                                     <template #reference>
-                                        <question-filled width="1em" height="1em"></question-filled>
+                                        <question-filled width="1em" height="1em" />
                                     </template>
                                     <p>通过简化预警区（染色图层）的形状来提升性能。</p>
                                     <p>简化程度越高，渲染压力越小，但图形失真越严重。</p>
                                     <p><strong>需重新加载页面后生效。</strong></p>
                                 </el-popover>
-                                <el-slider
-                                v-model="settingsStore.mainSettings.mapSimplifyFactor"
-                                :min="0" :max="4"
-                                :step="1"
-                                size="small"
-                                show-stops
-                                :show-tooltip="false"
-                                :marks="simplifyMarks"
-                                @change="handleNeedReload"
-                                style="width: 200px; margin-left: 20px;"></el-slider>
-                            </div>
+                            </span>
+                            <el-slider
+                            v-model="settingsStore.mainSettings.mapSimplifyFactor"
+                            :min="0" :max="4"
+                            :step="1"
+                            size="small"
+                            show-stops
+                            :show-tooltip="false"
+                            :marks="simplifyMarks"
+                            @change="handleNeedReload"
+                            />
                         </div>
                     </div>
                 </div>
                 <div class="sub-title">高级</div>
                 <div class="group">
-                    <div class="row" v-if="settingsStore.displayTokenButton">
-                        <div class="switch-group">
-                            <div class="switch">
-                                <el-button size="small" @click="showTokenManager = true">Token管理</el-button>
-                            </div>
+                    <div class="switch-group">
+                        <div class="switch-full" v-if="settingsStore.displayTokenButton">
+                            <span>管理Token</span>
+                            <el-button size="small" @click="showTokenManager = true">管理</el-button>
                         </div>
-                    </div>
-                    <div class="row" v-if="settingsStore.advancedSettings.enableMultiApi">
-                        <div class="switch-group">
-                            <div class="switch">
-                                <span>更多API</span>
+                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableMultiApi">
+                            <span>
+                                更多API
                                 <el-popover
                                     placement="top"
                                     :width="300"
                                     trigger="hover"
                                 >
                                     <template #reference>
-                                        <question-filled width="1em" height="1em"></question-filled>
+                                        <question-filled width="1em" height="1em" />
                                     </template>
                                     <p>使得部分数据源支持从更多API获取数据。</p>
                                     <strong>
@@ -623,33 +696,27 @@
                                         <p>需重新加载页面后生效。</p>
                                     </strong>
                                 </el-popover>
-                                <el-switch 
-                                v-model="settingsStore.advancedSettings.multiApi"
-                                @change="handleNeedReload"></el-switch>
-                            </div>
+                            </span>
+                            <el-switch 
+                            v-model="settingsStore.advancedSettings.multiApi"
+                            @change="handleNeedReload" />
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="switch-group">
-                            <div class="switch">
-                                <span>显示API名称</span>
-                                <el-switch v-model="settingsStore.advancedSettings.displayApiType"></el-switch>
-                            </div>
+                        <div class="switch-full">
+                            <span>显示API名称</span>
+                            <el-switch v-model="settingsStore.advancedSettings.displayApiType" />
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="switch-group">
-                            <div class="switch">
-                                <span>估算烈度/震度</span>
+                        <div class="switch-full">
+                            <span>
+                                软件估算烈度/震度
                                 <el-popover
                                     placement="top"
                                     :width="300"
                                     trigger="hover"
                                 >
                                     <template #reference>
-                                        <question-filled width="1em" height="1em"></question-filled>
+                                        <question-filled width="1em" height="1em" />
                                     </template>
-                                    <p>强制估算以下数据：</p>
+                                    <p>在软件内部估算以下数据：</p>
                                     <p>-本地烈度/震度</p>
                                     <p>-中国各区划预警和信息下最大烈度</p>
                                     <p>-日本各区划预警下最大震度（融合数据源）</p>
@@ -660,105 +727,92 @@
                                         <p>部分功能需重新加载页面后生效。</p>
                                     </strong>
                                 </el-popover>
-                                <el-switch 
-                                v-model="settingsStore.advancedSettings.forceCalcInt"
-                                @change="handleNeedReload"></el-switch>
-                            </div>
+                            </span>
+                            <el-switch 
+                            v-model="settingsStore.advancedSettings.forceCalcInt"
+                            @change="handleNeedReload" />
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="switch-group">
-                            <div class="switch">
-                                <span>防闪烁模式</span>
+                        <div class="switch-full">
+                            <span>
+                                防闪烁模式
                                 <el-popover
                                     placement="top"
                                     :width="300"
                                     trigger="hover"
                                 >
                                     <template #reference>
-                                        <question-filled width="1em" height="1em"></question-filled>
+                                        <question-filled width="1em" height="1em" />
                                     </template>
                                     <p><strong>如无异常，无需开启。</strong></p>
                                     <p>解决一部分因未知原因导致的频繁闪烁问题。</p>
                                     <p><strong>此功能需重新加载页面后生效。</strong></p>
                                 </el-popover>
-                                <el-switch 
-                                v-model="settingsStore.advancedSettings.preventFlickerMode"
-                                @change="handleNeedReload"></el-switch>
-                            </div>
+                            </span>
+                            <el-switch 
+                            v-model="settingsStore.advancedSettings.preventFlickerMode"
+                            @change="handleNeedReload" />
                         </div>
-                    </div>
-                    <div class="row" v-if="settingsStore.advancedSettings.enableMockEew">
-                        <div class="switch-group">
-                            <div class="switch">
-                                <span>模拟地震预警</span>
-                                <el-switch 
-                                v-model="settingsStore.advancedSettings.mockEew"
-                                @change="handleNeedReload"></el-switch>
-                            </div>
+                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableMockEew">
+                            <span>模拟地震预警</span>
+                            <el-switch 
+                            v-model="settingsStore.advancedSettings.mockEew"
+                            @change="handleNeedReload" />
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="switch-group">
-                            <div class="switch">
-                                <span>输入指令</span>
-                                <el-input
-                                type="password"
-                                v-model="advancedInput"
-                                size="small"
-                                style="width: 300px;"
-                                @change="handleAdvance"></el-input>
-                            </div>
+                        <div class="switch-full">
+                            <span>输入指令</span>
+                            <el-input
+                            type="password"
+                            v-model="advancedInput"
+                            size="small"
+                            style="width: 200px;"
+                            @change="handleAdvance" />
                         </div>
                     </div>
                 </div>
                 <div class="sub-title">关于</div>
                 <div class="group">
-                    <div class="row full-width" v-if="isTauri">
-                        <div class="switch-group">
-                            <div class="switch">
-                                <span>开机自启动</span>
-                                <el-switch v-model="isAutoStart" @change="handleAutoStart"></el-switch>
-                            </div>
-                            <div class="switch" v-if="isWindows">
-                                <span>最小化启动</span>
-                                <el-switch v-model="settingsStore.mainSettings.minimizeOnLaunch"></el-switch>
-                            </div>
+                    <span class="font-bold w-full" v-if="isTauri">自启动</span>
+                    <div class="switch-group" v-if="isTauri">
+                        <div class="switch-full">
+                            <span>开机自启动</span>
+                            <el-switch v-model="isAutoStart" @change="handleAutoStart" />
+                        </div>
+                        <div class="switch-full" v-if="isWindows">
+                            <span>最小化启动</span>
+                            <el-switch v-model="settingsStore.mainSettings.minimizeOnLaunch" />
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="switch-group">
-                            <div class="switch">
-                                <el-checkbox v-model="settingsStore.mainSettings.autoCheckNewVersion" @change="handleAutoCheckVersion">自动检查更新</el-checkbox>
-                            </div>
-                            <div class="switch" v-if="isTauri">
-                                <el-checkbox v-model="settingsStore.mainSettings.checkPrerelease">检查预发布版本</el-checkbox>
-                            </div>
-                            <div class="switch" v-if="!isTauri">
-                                <el-checkbox v-model="settingsStore.mainSettings.autoRefresh">自动应用更新</el-checkbox>
-                            </div>
+                    <span class="font-bold w-full">更新</span>
+                    <div class="switch-group">
+                        <div class="switch-full">
+                            <span>自动检查更新</span>
+                            <el-switch v-model="settingsStore.mainSettings.autoCheckNewVersion" @change="handleAutoCheckVersion" />
+                        </div>
+                        <div class="switch-full" v-if="isTauri">
+                            <span>检查预发布版本</span>
+                            <el-switch v-model="settingsStore.mainSettings.checkPrerelease" />
+                        </div>
+                        <div class="switch-full" v-if="!isTauri">
+                            <span>自动应用更新</span>
+                            <el-switch v-model="settingsStore.mainSettings.autoRefresh" />
+                        </div>
+                        <div class="switch-full">
+                            <span>立即检查更新</span>
+                            <el-button
+                            type="primary"
+                            size="small"
+                            @click="checkNewVersion(false)">检查更新</el-button>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="switch-group">
-                            <div class="switch">
-                                <el-button
-                                style="margin-top: 5px;"
-                                @click="showAbout = true">帮助&关于</el-button>
-                            </div>
-                            <div class="switch">
-                                <el-button
-                                type="primary"
-                                style="margin-top: 5px;"
-                                @click="checkNewVersion(false)">检查更新</el-button>
-                            </div>
-                        </div>
+                    <span class="font-bold w-full">帮助&关于</span>
+                    <div class="switch-group">
+                        <el-button @click="showAbout = true">帮助&关于</el-button>
                     </div>
                 </div>
                 <div class="sub-title" v-if="needReload">需要重载</div>
                 <div class="group">
                     <el-button 
-                    type="primary"
+                    type="warning"
                     v-if="needReload"
                     @click="handleReload">重载以应用变更</el-button>
                 </div>
@@ -767,10 +821,10 @@
         <el-dialog v-model="verifyDialog" width="300px" top="20vh" :show-close="false" append-to-body>
             <el-form :model="idForm">
                 <el-form-item label="用户名" label-width="60px">
-                    <el-input v-model="idForm.username" @keyup.enter="postVerify()"></el-input>
+                    <el-input v-model="idForm.username" @keyup.enter="postVerify()" />
                 </el-form-item>
                 <el-form-item label="密码" label-width="60px">
-                    <el-input type="password" v-model="idForm.password" @keyup.enter="postVerify()"></el-input>
+                    <el-input type="password" v-model="idForm.password" @keyup.enter="postVerify()" />
                 </el-form-item>
             </el-form>
             <template #footer>
@@ -809,7 +863,7 @@
         <el-dialog v-model="showTokenManager" width="300px" top="20vh" :show-close="false" append-to-body>
             <el-form :model="idForm">
                 <el-form-item v-if="settingsStore.advancedSettings.enableIclEew" label="FAN:ICL" label-width="60px">
-                    <el-input v-model="settingsStore.advancedSettings.tokens.fan_icl" @change="handleNeedReload"></el-input>
+                    <el-input v-model="settingsStore.advancedSettings.tokens.fan_icl" @change="handleNeedReload" />
                 </el-form-item>
             </el-form>
             <template #footer>
@@ -817,7 +871,7 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false" append-to-body>
-            <div class="header">要石 v2.2.0-pre.4</div>
+            <div class="header">要石 v2.2.0-pre.5</div>
             <div class="title">最近更新</div>
             <div class="about">
                 <p>v2.2.0 变更：引入FAN Studio API；紧急地震速报加入NIED源；弃用部分HTTP接口。新增：中国地震局地震预警；单击信息框可静默或关闭正在生效的地震预警或地震信息；双击侧边栏地震预警/地震信息框可快速进行测站回放，双击左下角测站时间可重置；显示API名称功能；性能优化选项。优化：调整了部分UI；使用更精细的中国地图；降低部分平台下应用处于后台的功耗。修复：WebSocket连接时小概率数据丢失的问题；macOS客户端无法打开网页的问题；特定情况下macOS客户端从后台切回前台时卡住的问题。</p>
@@ -1415,7 +1469,7 @@ onBeforeUnmount(() => {
 .outer{
     width: 100%;
     .container{
-        min-width: 430px;
+        width: 100%;
         padding: 10px;
         display: flex;
         flex-direction: column;
@@ -1427,45 +1481,40 @@ onBeforeUnmount(() => {
         .settings{
             display: flex;
             flex-direction: column;
+            width: 100%;
             .sub-title{
                 font-size: 18px;
                 font-weight: 700;
                 display: flex;
                 align-items: center;
+                margin-bottom: 5px;
             }
             .group{
                 display: flex;
                 flex-direction: column;
+                width: 100%;
                 align-items: flex-start;
                 row-gap: 5px;
                 margin-bottom: 5px;
             }
-            .grid-group{
-                display: grid;
+            .switch-group{
+                width: 100%;
+                display: flex;
+                flex-wrap: wrap;
                 align-items: center;
                 row-gap: 5px;
-                margin-bottom: 5px;
-            }
-            .row{
-                display: flex;
-                flex-wrap: wrap;
-                align-items: center;
-                column-gap: 10px;
-            }
-            .group-title{
-                width: 100%;
-                font-weight: 700;
-            }
-            .switch-group{
-                display: flex;
-                flex-wrap: wrap;
-                align-items: center;
                 column-gap: 15px;
             }
             .switch{
                 display: flex;
                 align-items: center;
                 column-gap: 5px;
+            }
+            .switch-full {
+                display: flex;
+                width: 100%;
+                justify-content: space-between;
+                align-items: center;
             }
             .el-switch{
                 height: 24px;
@@ -1483,11 +1532,8 @@ ul {
     flex-wrap: wrap;
     row-gap: 5px;
 }
-.full-width{
+.w-full{
     width: 100%;
-}
-.el-button+.el-button{
-    margin-left: 8px;
 }
 .el-checkbox{
     height: 24px;
@@ -1524,6 +1570,37 @@ ul {
     align-items: center;
     pointer-events: none;
     user-select: none;
+}
+.el-slider {
+    flex: 1;
+    margin: 0 0.5rem 0 1rem;
+}
+.justify-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.flex {
+    display: flex;
+    align-items: center;
+}
+.ml-4 {
+    margin-left: 1rem;
+}
+.mr-4 {
+    margin-right: 1rem;
+}
+.pl-4 {
+    padding-left: 1rem;
+}
+.pr-4 {
+    padding-right: 1rem;
+}
+.gap-2 {
+    gap: 0.5rem;
+}
+.font-bold {
+    font-weight: 700;
 }
 </style>
 

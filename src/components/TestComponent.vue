@@ -16,6 +16,7 @@ const testCwaEew = true
 const testIclEew = true
 const testScEew = false
 const testJmaEqlist = true
+const testCencEqlist = true
 const testJmaTsunami = true
 
 onMounted(async ()=>{
@@ -857,6 +858,29 @@ onMounted(async ()=>{
                 statusStore.setEqMessage(source, data)
             }
         }, 8000);
+    }
+    if(testCencEqlist) {
+        const source = 'cencEqlist'
+        setInterval(() => {
+            const time = new Date()
+            const timeStr = time.toLocaleString()
+            const data =  {
+                No1: {
+                    "type": "reviewed",
+                    "EventID": "CD.20250814115755.000_I",
+                    "time": timeStr,
+                    "ReportTime": timeStr,
+                    "location": "西藏那曲市巴青县",
+                    "placeName": "西藏那曲市巴青县",
+                    "magnitude": "3.2",
+                    "depth": "10",
+                    "latitude": "32.53",
+                    "longitude": "93.67",
+                    "intensity": "4"
+                }
+            }
+            statusStore.setEqMessage(source, data)
+        }, 10000)
     }
     if(testJmaTsunami){
         const source = 'jmaTsunami'

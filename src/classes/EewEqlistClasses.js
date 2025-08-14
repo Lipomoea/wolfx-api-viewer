@@ -97,12 +97,17 @@ export class EewEvent {
             focused: false,
             lastSecondsCount: settingsStore.mainSettings.countdownStart + 1
         }
+        this.hypoMarker = null
         this.maxRadius = 2000
         this.handleTempEqlists = handleTempEqlists
         this.smartSetView = smartSetView
     }
-    setMark(){
+    removeMark(){
         if(this.hypoMarker && this.map.hasLayer(this.hypoMarker)) this.map.removeLayer(this.hypoMarker)
+        this.hypoMarker = null
+    }
+    setMark(){
+        this.removeMark()
         if(this.hypoLatLng) {
             if(this.eqMessage.isCanceled){
                 this.hypoMarker = L.marker(this.hypoLatLng, { icon: this.eqMessage.isAssumption?eewCancelCircleDivIcon:eewCancelCrossDivIcon, pane: 'eewMarkerPane' })
@@ -238,7 +243,7 @@ export class EewEvent {
     }
     renderStop(){
         clearInterval(this.drawWavesInterval)
-        if(this.hypoMarker && this.map.hasLayer(this.hypoMarker)) this.map.removeLayer(this.hypoMarker)
+        this.removeMark()
         this.clearWaves()
     }
     update(eqMessage, time, isFirst = false){
@@ -407,7 +412,9 @@ export class EqlistEvent {
         if(!settingsStore) settingsStore = useSettingsStore()
         this.eqMessage = eqMessage
         this.isActive = false
+        this.isLatest = false
         this.showMenu = false
+        this.hypoMarker = null
         this.handleTempEqlists = handleTempEqlists
         this.smartSetView = smartSetView
     }
@@ -423,8 +430,7 @@ export class EqlistEvent {
                 this.isActive = true
                 clearTimeout(this.deactivateTimer)
                 this.deactivateTimer = setTimeout(() => {
-                    this.isActive = false
-                    this.showMenu = false
+                    this.deactivate()
                 }, time);
             }
         }
@@ -446,6 +452,7 @@ export class EqlistEvent {
     }
     removeMark(){
         if(this.hypoMarker && this.map.hasLayer(this.hypoMarker)) this.map.removeLayer(this.hypoMarker)
+        this.hypoMarker = null
     }
     handleActions(){
         const eqMessage = this.eqMessage
@@ -499,5 +506,6 @@ export class EqlistEvent {
         clearTimeout(this.deactivateTimer)
         this.isActive = false
         this.showMenu = false
+        if(settingsStore.mainSettings.eqlistsDisplayMode == 1 && !this.isLatest) this.removeMark()
     }
 }

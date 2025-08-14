@@ -110,6 +110,17 @@ watch(eqMessage, (newVal)=>{
             }
         }
         eqlistList.sort((a, b) => calcTimeDiff(b.eqMessage.reportTime, b.eqMessage.timeZone, a.eqMessage.reportTime, a.eqMessage.timeZone))
+        if(settingsStore.mainSettings.eqlistsDisplayMode == 1) {
+            eqlistList.forEach((event, index) => {
+                if(index == 0) {
+                    event.isLatest = true
+                }
+                else {
+                    event.isLatest = false
+                    if(!event.isActive) event.removeMark()
+                }
+            })
+        }
     }
     if(time > 0) {
         className.value = newVal.className + ' highOpacity'
@@ -133,8 +144,7 @@ watch(()=>timeStore.currentTime, ()=>{
         position: relative;
         overflow: hidden;
         width: 100%;
-        min-width: 410px;
-        height: 300px;
+        height: 270px;
         margin-bottom: 10px;
         display: flex;
         flex-direction: column;
@@ -165,7 +175,7 @@ watch(()=>timeStore.currentTime, ()=>{
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 200px;
+            font-size: 180px;
             font-weight: 700;
         }
         .text{

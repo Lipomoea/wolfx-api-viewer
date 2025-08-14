@@ -154,7 +154,7 @@
                     </div>
                 </div>
                 <div class="left-bottom">
-                    <div class="legend" v-if="settingsStore.mainSettings.displayLegend && (activeSources.some(source=>source.includes('Eew')) || menuId == 'eqlists')">
+                    <div class="legend" v-if="settingsStore.mainSettings.displayLegend && !settingsStore.mainSettings.disableEewBaseMap && (activeSources.some(source=>source.includes('Eew')) || menuId == 'eqlists')">
                         <div class="single-legend" v-for="(className, index) of classNameArray" :key="index">
                             <div class="align-right">{{ csisArray[index] }}</div>
                             <div class="color" :class="className"></div>
@@ -1118,6 +1118,7 @@ const jmaWarnArea = computed(()=>{
     else {
         const jmaEqlistEvent = eqlistList.find(event => event.eqMessage.source == 'jmaEqlist')
         if(!jmaEqlistEvent) return {}
+        if(settingsStore.mainSettings.eqlistsDisplayMode == 1 && !jmaEqlistEvent.isLatest && !jmaEqlistEvent.isActive) return {}
         const warnArea = JSON.parse(jmaEqlistEvent.eqMessage.warnArea)
         warnArea.forEach(point => {
             const { name, className } = point
@@ -1159,7 +1160,9 @@ const jpEewInfoList = computed(()=>{
     return jpEewInfoList
 })
 const cnEewInfoList = computed(()=>{
-    const cnEewList = menuId.value == 'eqlists'?eqlistList.filter(event=>!(isNaN(event.eqMessage.magnitude) || isNaN(event.eqMessage.depth) || !event.eqMessage.lat && !event.eqMessage.lng)):activeEewList.filter(event=>!(event.eqMessage.isCanceled || event.eqMessage.isAssumption))
+    const cnEewList = menuId.value == 'eqlists'
+        ? eqlistList.filter(event=>event.hypoMarker)
+        : activeEewList.filter(event=>!(event.eqMessage.isCanceled || event.eqMessage.isAssumption))
     const cnEewInfoList = cnEewList.map(event=>{
         const { magnitude, depth, lat, lng } = event.eqMessage
         return { magnitude, depth, lat, lng }
@@ -1576,7 +1579,7 @@ onBeforeUnmount(()=>{
         }
         .drawer{
             height: 100%;
-            width: 450px;
+            width: 400px;
             overflow: auto;
             z-index: 600;
             background-color: #fff;

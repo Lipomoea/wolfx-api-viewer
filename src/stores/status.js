@@ -228,7 +228,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.reportTime = data.ReportTime
                                 eqMessage.isWarn = data.MaxIntensity >= '5'
                                 eqMessage.isCanceled = data.isCancel
-                                eqMessage.titleText = '中央氣象署地震速報' + (data.isCancel?'（取消）':'')
+                                eqMessage.titleText = '中央氣象署強震即時警報' + (data.isCancel?'（取消）':'')
                                 eqMessage.hypocenter = data.HypoCenter
                                 eqMessage.hypocenterText = '震央: ' + data.HypoCenter
                                 eqMessage.lat = data.Latitude
@@ -251,7 +251,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.reportTime = stampToTime(data.time, 8)
                                 eqMessage.isWarn = data.eq.max >= 5
                                 eqMessage.isCanceled = false
-                                eqMessage.titleText = '中央氣象署地震速報'
+                                eqMessage.titleText = '中央氣象署強震即時警報'
                                 eqMessage.hypocenter = data.eq.loc
                                 eqMessage.hypocenterText = '震央: ' + data.eq.loc
                                 eqMessage.lat = data.eq.lat
