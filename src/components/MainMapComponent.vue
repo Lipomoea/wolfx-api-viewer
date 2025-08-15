@@ -160,7 +160,7 @@
                     </div>
                 </div>
                 <div class="left-bottom">
-                    <div class="legend" v-if="settingsStore.mainSettings.displayLegend && !settingsStore.mainSettings.disableEewBaseMap && (activeSources.some(source=>source.includes('Eew')) || menuId == 'eqlists')">
+                    <div class="legend" v-if="settingsStore.mainSettings.displayLegend && !settingsStore.mainSettings.disableEewBaseMap && (activeEewList.length > 0 || menuId == 'eqlists')">
                         <div class="single-legend" v-for="(className, index) of classNameArray" :key="index">
                             <div class="align-right">{{ csisArray[index] }}</div>
                             <div class="color" :class="className"></div>
@@ -445,13 +445,13 @@ const jmaTsunamiWarnArea = computed(() => {
     return jmaTsunamiWarnArea
 })
 provide('jmaTsunamiWarnArea', jmaTsunamiWarnArea)
-const activeSources = computed(()=>
-    [...new Set(activeEewList.map(event=>event.eqMessage.source)), ...new Set(activeEqlistList.value.map(event=>event.eqMessage.source))]
+const activeSources = computed(() =>
+    new Set([...activeEewList.map(event => event.eqMessage.source), ...activeEqlistList.value.map(event => event.eqMessage.source)])
 )
-watch(activeSources, newVal=>{
+watch(activeSources, newVal => {
     for(let source in statusStore.isActive){
         if(source.includes('Eew') || source.includes('Eqlist')){
-            statusStore.isActive[source] = newVal.includes(source)
+            statusStore.isActive[source] = newVal.has(source)
         }
     }
 })
