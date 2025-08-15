@@ -6,7 +6,7 @@
                 <div class="eewList">
                     <div class="event" v-for="(event, index) of currentEewInfoItems" :key="index" v-show="menuId != 'eqlists'">
                         <div class="eew">
-                            <div class="bar" :class="getBarClass(event.eqMessage)">
+                            <div class="bar" :class="getBarClass(event)">
                                 <div>{{ event.eqMessage.titleText + ' ' + event.eqMessage.reportNumText }}</div>
                                 <div v-show="activeEewList.length > 1">{{ activeEewList.findIndex(e => e == event) + 1 }}/{{ activeEewList.length }}</div>
                             </div>
@@ -64,9 +64,9 @@
                     </div>
                     <div class="event" v-for="(event, index) of currentEqlistInfoItems" :key="index" v-show="menuId != 'eews'">
                         <div class="eew">
-                            <div class="bar" :class="getBarClass(event.eqMessage)">
+                            <div class="bar" :class="getBarClass(event)">
                                 <div>{{ event.eqMessage.titleText }}</div>
-                                <div v-show="activeEqlistList.length > 1">{{ activeEqlistList.findIndex(e => e == event) + 1 }}/{{ activeEqlistList.length }}</div>
+                                <div v-show="displayEqlistList.length > 1">{{ displayEqlistList.findIndex(e => e == event) + 1 }}/{{ displayEqlistList.length }}</div>
                             </div>
                             <div class="info" @click="() => {
                                 event.showMenu = !event.showMenu;
@@ -88,7 +88,13 @@
                                     </div>
                                 </div>
                                 <div class="eew-buttons" v-if="event.showMenu">
-                                    <el-button class="eew-button" type="danger" plain @click.stop="event.deactivate()">关闭信息</el-button>
+                                    <el-button 
+                                    class="eew-button" 
+                                    type="danger" 
+                                    plain 
+                                    :disabled="!event.isActive"
+                                    @click.stop="event.deactivate()"
+                                    >关闭信息</el-button>
                                 </div>
                             </div>
                         </div>
@@ -374,13 +380,13 @@ let firstMsg = false
 const blinkStatus = ref(false)
 let tsunamiFlickerCounter = 0
 const infoPageCounter = ref(0)
-const eventsPerPage = computed(() => (menuId.value == 'main' || menuId.value == 'settings') && (activeEewList.length > 0 && activeEqlistList.value.length > 0) ? 1 : 2)
+const eventsPerPage = computed(() => (menuId.value == 'main' || menuId.value == 'settings') && (activeEewList.length > 0 && displayEqlistList.value.length > 0) ? 1 : 2)
 const eewInfoTotalPages = computed(() => Math.ceil(activeEewList.length / eventsPerPage.value))
 const currentEewInfoPage = computed(() => Math.floor(infoPageCounter.value / 10) % eewInfoTotalPages.value)
 const currentEewInfoItems = computed(() => activeEewList.slice(eventsPerPage.value * currentEewInfoPage.value, eventsPerPage.value * (currentEewInfoPage.value + 1)))
-const eqlistInfoTotalPages = computed(() => Math.ceil(activeEqlistList.value.length / eventsPerPage.value))
+const eqlistInfoTotalPages = computed(() => Math.ceil(displayEqlistList.value.length / eventsPerPage.value))
 const currentEqlistInfoPage = computed(() => Math.floor(infoPageCounter.value / 10) % eqlistInfoTotalPages.value)
-const currentEqlistInfoItems = computed(() => activeEqlistList.value.slice(eventsPerPage.value * currentEqlistInfoPage.value, eventsPerPage.value * (currentEqlistInfoPage.value + 1)))
+const currentEqlistInfoItems = computed(() => displayEqlistList.value.slice(eventsPerPage.value * currentEqlistInfoPage.value, eventsPerPage.value * (currentEqlistInfoPage.value + 1)))
 const handleManual = ()=>{
     isAutoZoom.value = false
     clearTimeout(autoZoomTimer)
@@ -423,10 +429,11 @@ const isTremDelayed = ref(true)
 const isAutoZoom = ref(true)
 const activeEewList = reactive([])
 const eqlistList = reactive([])
-const activeEqlistList = computed(()=>eqlistList.filter(event=>event.isActive))
+const activeEqlistList = computed(() => eqlistList.filter(event => event.isActive))
+const displayEqlistList = computed(() => eqlistList.filter(event => settingsStore.mainSettings.alwaysDisplayLatestInfo ? event.isActive || event.isLatest : event.isActive))
 provide('activeEewList', activeEewList)
 provide('eqlistList', eqlistList)
-watch(() => `${activeEewList.length}|${activeEqlistList.value.length}|${menuId.value}`, () => {
+watch(() => `${activeEewList.length}|${displayEqlistList.value.length}|${menuId.value}`, () => {
     infoPageCounter.value = 0
 })
 const jmaTsunamiWarnArea = computed(() => {
@@ -449,13 +456,17 @@ watch(activeSources, newVal=>{
     }
 })
 const formatIntensity = (intensity)=>intensity.replace('強', '+').replace('弱', '-').replace('不明', '?')
-const getBarClass = (eqMessage)=>{
+const getBarClass = (event)=>{
+    const eqMessage = event.eqMessage
     if(eqMessage.isEew){
-        if(eqMessage.isCanceled) return 'gray'
+        if(eqMessage.isCanceled) return 'dark-gray'
         else if(eqMessage.isWarn) return 'red'
         else return 'orange'
     }
-    return 'gray'
+    else {
+        if(event.isActive) return 'gray'
+        else return 'dark-gray'
+    }
 }
 let mainInterval
 onMounted(()=>{

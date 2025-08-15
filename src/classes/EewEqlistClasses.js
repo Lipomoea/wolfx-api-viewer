@@ -99,6 +99,7 @@ export class EewEvent {
         }
         this.hypoMarker = null
         this.maxRadius = 2000
+        this.maxCountdownRadius = 10000
         this.handleTempEqlists = handleTempEqlists
         this.smartSetView = smartSetView
     }
@@ -379,7 +380,7 @@ export class EewEvent {
         this.smartSetView()
     }
     handleCountdown(passedTime){
-        if(settingsStore.mainSettings.displayCountdown && this.isValidUserLatLng && (this.userDist <= this.maxRadius && !this.eqMessage.isAssumption || settingsStore.mainSettings.forceDisplayCountdown)){
+        if(settingsStore.mainSettings.displayCountdown && this.isValidUserLatLng && (this.userDist <= this.maxCountdownRadius && !this.eqMessage.isAssumption || settingsStore.mainSettings.forceDisplayCountdown)){
             this.countdown = Math.max(this.sReachTime - passedTime, 0)
             this.pCountdown = Math.max(this.pReachTime - passedTime, 0)
             if(settingsStore.mainSettings.playCountdownSound && this.shouldAction && !this.mute) {

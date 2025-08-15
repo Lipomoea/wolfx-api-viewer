@@ -110,17 +110,15 @@ watch(eqMessage, (newVal)=>{
             }
         }
         eqlistList.sort((a, b) => calcTimeDiff(b.eqMessage.reportTime, b.eqMessage.timeZone, a.eqMessage.reportTime, a.eqMessage.timeZone))
-        if(settingsStore.mainSettings.eqlistsDisplayMode == 1) {
-            eqlistList.forEach((event, index) => {
-                if(index == 0) {
-                    event.isLatest = true
-                }
-                else {
-                    event.isLatest = false
-                    if(!event.isActive) event.removeMark()
-                }
-            })
-        }
+        eqlistList.forEach((event, index) => {
+            if(index == 0) {
+                event.isLatest = true
+            }
+            else {
+                event.isLatest = false
+                if(settingsStore.mainSettings.eqlistsDisplayMode == 1 && !event.isActive) event.removeMark()
+            }
+        })
     }
     if(time > 0) {
         className.value = newVal.className + ' highOpacity'

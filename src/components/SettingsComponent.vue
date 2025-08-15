@@ -3,8 +3,8 @@
         <div class="container">
             <div class="title">设置</div>
             <div class="settings">
-                <div class="sub-title">
-                    预警/信息数据源&nbsp;
+                <span class="sub-title">
+                    预警/信息数据源
                     <el-popover
                         placement="top"
                         :width="300"
@@ -17,7 +17,7 @@
                             <p>需重新加载页面后生效。</p>
                         </strong>
                     </el-popover>
-                </div>
+                </span>
                 <div class="group">
                     <div class="switch-group">
                         <span class="font-bold w-full">地震预警</span>
@@ -73,7 +73,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="sub-title">地震监测网</div>
+                <span class="sub-title">地震监测网</span>
                 <div class="group">
                     <span class="font-bold w-full">数据源</span>
                     <div class="switch-group">
@@ -88,7 +88,7 @@
                                 v-model="settingsStore.mainSettings.displaySeisNet.niedSensitivity"
                                 size="small"
                                 :disabled="!settingsStore.mainSettings.displaySeisNet.nied"
-                                style="width: 50px;"
+                                style="width: 48px;"
                                 >
                                     <el-option label="关" :value=0 />
                                     <el-option label="低" :value=1 />
@@ -103,7 +103,7 @@
                         </div>
                         <div class="w-full" v-if="settingsStore.advancedSettings.enableTremFunctions">
                             <div class="switch-full">
-                                <span>TREM-Net&nbsp;</span>
+                                <span>TREM-Net</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.trem" />
                             </div>
                             <div class="switch-full pl-4">
@@ -112,7 +112,7 @@
                                 v-model="settingsStore.mainSettings.displaySeisNet.tremApi"
                                 size="small"
                                 :disabled="!settingsStore.mainSettings.displaySeisNet.trem"
-                                style="width: 70px;"
+                                style="width: 72px;"
                                 >
                                     <el-option label="api-1" value="api-1" />
                                     <el-option label="api-2" value="api-2" />
@@ -138,7 +138,7 @@
                                     v-model="settingsStore.mainSettings.displaySeisNet.delay"
                                     size="small"
                                     type="number"
-                                    style="width: 70px;"
+                                    style="width: 72px;"
                                     @input="setDelay" />
                                     <el-button
                                     size="small"
@@ -148,17 +148,17 @@
                                 </div>
                             </div>
                             <div class="switch-full pl-4">
-                                <span>选择时间回放(CST)</span>
+                                <span>选择时间回放</span>
                                 <div class="flex gap-2">
                                     <el-date-picker
-                                    class="no-prefix-icon"
                                     v-model="replayDateTime"
                                     type="datetime"
                                     size="small"
-                                    style="width: 140px;"
+                                    style="width: 156px;"
                                     placeholder="选择日期时间(CST)"
                                     format="YYYY-MM-DD HH:mm:ss"
-                                    value-format="YYYY-MM-DD HH:mm:ss" />
+                                    value-format="YYYY-MM-DD HH:mm:ss"
+                                    />
                                     <el-button
                                     size="small"
                                     @click="setReplayDateTime"
@@ -171,7 +171,7 @@
                             <div class="switch-full">
                                 <span>测站风格</span>
                                 <el-select
-                                style="width: 70px;"
+                                style="width: 72px;"
                                 v-model="settingsStore.mainSettings.displaySeisNet.style"
                                 size="small">
                                     <el-option label="NIED" value="nied" />
@@ -186,13 +186,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="sub-title">行为</div>
+                <span class="sub-title">行为</span>
                 <div class="group">
                     <span class="font-bold w-full">预警设置</span>
                     <div class="switch-group">
                         <div class="switch-full" v-if="!settingsStore.nearestJmaLoc">
                             <div class="justify-between" style="width: 10rem;">
-                                <span>本地烈度阈值
+                                <span>
+                                    本地烈度阈值
                                     <el-popover
                                         placement="top"
                                         :width="310"
@@ -205,6 +206,13 @@
                                         <p>仅在预估本地烈度达到阈值时执行下方行为。</p>
                                         <p>对日本以外地区生效。</p>
                                         <p>设置为“0”表示接收全部预警。</p>
+                                        <p>参考：</p>
+                                        <p> - 1度及以下：基本无感</p>
+                                        <p> - 2~3度：敏感或位于高层的人群静止下有感；悬挂物轻微晃动</p>
+                                        <p> - 4~5度：绝大部分人群静止时有感，少部分人从睡梦中被唤醒；悬挂物显著晃动</p>
+                                        <p> - 6~7度：所有人有感，大部分人从睡梦中被唤醒；稳定性差的摆件倾倒；抗震性差的房屋可能出现破坏</p>
+                                        <p> - 8~9度：行走困难；家具倾倒；抗震性差的房屋可能倒塌，抗震性好的房屋可能损坏</p>
+                                        <p> - 10度及以上：无法行走，有抛起感；房屋大规模倒塌；山崩地裂</p>
                                     </el-popover>
                                 </span>
                                 <div class="int" :class="setClassName(settingsStore.mainSettings.actionCsis, false)">
@@ -222,7 +230,8 @@
                         </div>
                         <div class="switch-full" v-else>
                             <div class="justify-between" style="width: 10rem;">
-                                <span>本地震度阈值
+                                <span>
+                                    本地震度阈值
                                     <el-popover
                                         placement="top"
                                         :width="310"
@@ -235,6 +244,15 @@
                                         <p>仅在预估本地震度达到阈值时执行下方行为。</p>
                                         <p>对附近包含震度观测点的日本地区生效。</p>
                                         <p>设置为“0”表示接收全部预警。</p>
+                                        <p>参考：</p>
+                                        <p> - 震度0：基本无感</p>
+                                        <p> - 震度1：敏感人群静止时有感</p>
+                                        <p> - 震度2：大部分人群静止时有感；悬挂物轻微晃动</p>
+                                        <p> - 震度3：绝大部分人群静止时有感；一部分人从睡梦中被唤醒；悬挂物显著晃动</p>
+                                        <p> - 震度4：所有人有感，大部分人从睡梦中被唤醒；稳定性差的摆件倾倒</p>
+                                        <p> - 震度5弱~5强：大多数人有恐惧感；部分家具倾倒</p>
+                                        <p> - 震度6弱~6强：行走困难；家具大规模倾倒；抗震性差的房屋出现损坏甚至倒塌</p>
+                                        <p> - 震度7：无法行走，有抛起感；房屋大规模倒塌；山崩地裂</p>
                                     </el-popover>
                                 </span>
                                 <div class="int" :class="setClassName(shindoScale[settingsStore.mainSettings.actionShindo], true)">
@@ -358,7 +376,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="sub-title">音效</div>
+                <span class="sub-title">音效</span>
                 <div class="group">
                     <div class="switch-group">
                         <div class="switch-full">
@@ -370,7 +388,7 @@
                             <el-select 
                             v-model="settingsStore.mainSettings.soundEffect"
                             size="small"
-                            style="width: 70px;"
+                            style="width: 72px;"
                             >
                                 <el-option label="SREV" value="srev" />
                             </el-select>
@@ -381,7 +399,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="sub-title">显示</div>
+                <span class="sub-title">显示</span>
                 <div class="group">
                     <span class="font-bold w-full">
                         所在地设置
@@ -459,7 +477,7 @@
                                 <span>剩余{{ settingsStore.mainSettings.countdownStart }}秒开始倒数</span>
                                 <el-slider
                                 v-model="settingsStore.mainSettings.countdownStart"
-                                :disabled="!settingsStore.mainSettings.playCountdownSound"
+                                :disabled="!(settingsStore.mainSettings.displayCountdown && settingsStore.mainSettings.playCountdownSound)"
                                 :min="5" :max="60"
                                 :step="5"
                                 size="small"
@@ -545,7 +563,7 @@
                         <div class="switch-full">
                             <span>UI缩放比例</span>
                             <el-select
-                            style="width: 70px;"
+                            style="width: 72px;"
                             v-model="settingsStore.mainSettings.uiScale"
                             size="small">
                                 <el-option label="50%" :value=0.5 />
@@ -608,17 +626,21 @@
                         <div class="switch-full">
                             <span>地震信息显示模式</span>
                             <el-select
-                            style="width: 200px;"
+                            style="width: 192px;"
                             v-model="settingsStore.mainSettings.eqlistsDisplayMode"
                             size="small"
                             @change="handleNeedReload">
                                 <el-option label="显示每个数据源的最新地震" :value=0 />
-                                <el-option label="显示全部数据源中最新的地震" :value=1 />
+                                <el-option label="显示全部数据源中的最新地震" :value=1 />
                             </el-select>
+                        </div>
+                        <div class="switch-full">
+                            <span>总是显示最新的地震信息框</span>
+                            <el-switch v-model="settingsStore.mainSettings.alwaysDisplayLatestInfo" />
                         </div>
                     </div>
                 </div>
-                <div class="sub-title">性能</div>
+                <span class="sub-title">性能</span>
                 <div class="group">
                     <div class="switch-group">
                         <div class="switch-full">
@@ -670,7 +692,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="sub-title">高级</div>
+                <span class="sub-title">高级</span>
                 <div class="group">
                     <div class="switch-group">
                         <div class="switch-full" v-if="settingsStore.displayTokenButton">
@@ -678,25 +700,7 @@
                             <el-button size="small" @click="showTokenManager = true">管理</el-button>
                         </div>
                         <div class="switch-full" v-if="settingsStore.advancedSettings.enableMultiApi">
-                            <span>
-                                更多API
-                                <el-popover
-                                    placement="top"
-                                    :width="300"
-                                    trigger="hover"
-                                >
-                                    <template #reference>
-                                        <question-filled width="1em" height="1em" />
-                                    </template>
-                                    <p>使得部分数据源支持从更多API获取数据。</p>
-                                    <strong>
-                                        <p>能够在部分情况下降低数据延迟，但部分信息可能缺失。</p>
-                                        <p>会轻微增加流量消耗。</p>
-                                        <p>可能导致意外的bug。</p>
-                                        <p>需重新加载页面后生效。</p>
-                                    </strong>
-                                </el-popover>
-                            </span>
+                            <span>同时接入更多API</span>
                             <el-switch 
                             v-model="settingsStore.advancedSettings.multiApi"
                             @change="handleNeedReload" />
@@ -717,9 +721,9 @@
                                         <question-filled width="1em" height="1em" />
                                     </template>
                                     <p>在软件内部估算以下数据：</p>
-                                    <p>-本地烈度/震度</p>
-                                    <p>-中国各区划预警和信息下最大烈度</p>
-                                    <p>-日本各区划预警下最大震度（融合数据源）</p>
+                                    <p> - 本地烈度/震度</p>
+                                    <p> - 中国各区划预警和信息下最大烈度</p>
+                                    <p> - 日本各区划预警下最大震度（融合数据源）</p>
                                     <p>估算结果与数据源显示可能有差异。</p>
                                     <strong>
                                         <p>低精度（尤其是深源地震）。</p>
@@ -764,12 +768,12 @@
                             type="password"
                             v-model="advancedInput"
                             size="small"
-                            style="width: 200px;"
+                            style="width: 192px;"
                             @change="handleAdvance" />
                         </div>
                     </div>
                 </div>
-                <div class="sub-title">关于</div>
+                <span class="sub-title">关于</span>
                 <div class="group">
                     <span class="font-bold w-full" v-if="isTauri">自启动</span>
                     <div class="switch-group" v-if="isTauri">
@@ -809,7 +813,7 @@
                         <el-button @click="showAbout = true">帮助&关于</el-button>
                     </div>
                 </div>
-                <div class="sub-title" v-if="needReload">需要重载</div>
+                <span class="sub-title" v-if="needReload">需要重载</span>
                 <div class="group">
                     <el-button 
                     type="warning"
@@ -1485,8 +1489,6 @@ onBeforeUnmount(() => {
             .sub-title{
                 font-size: 18px;
                 font-weight: 700;
-                display: flex;
-                align-items: center;
                 margin-bottom: 5px;
             }
             .group{
@@ -1520,7 +1522,11 @@ onBeforeUnmount(() => {
                 height: 24px;
             }
             .lat-lng{
-                width: 70px;
+                width: 72px;
+            }
+            span{
+                display: flex;
+                align-items: center;
             }
         }
     }
@@ -1656,8 +1662,5 @@ ul {
     .test {
         margin-top: 20px;
     }
-}
-.no-prefix-icon .el-input__prefix {
-  display: none;
 }
 </style>
