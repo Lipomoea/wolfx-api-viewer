@@ -7,7 +7,7 @@
                     <div class="event" v-for="(event, index) of currentEewInfoItems" :key="index" v-show="menuId != 'eqlists'">
                         <div class="eew">
                             <div class="bar" :class="getBarClass(event)">
-                                <div>{{ event.eqMessage.titleText + ' ' + event.eqMessage.reportNumText }}</div>
+                                <div><WarnTriangleFilled style="width: 1em; height: 1em; margin-right: 0.25em;" />{{ event.eqMessage.titleText + ' ' + event.eqMessage.reportNumText }}</div>
                                 <div v-show="activeEewList.length > 1">{{ activeEewList.findIndex(e => e == event) + 1 }}/{{ activeEewList.length }}</div>
                             </div>
                             <div class="info" @click="() => {
@@ -65,7 +65,7 @@
                     <div class="event" v-for="(event, index) of currentEqlistInfoItems" :key="index" v-show="menuId != 'eews'">
                         <div class="eew">
                             <div class="bar" :class="getBarClass(event)">
-                                <div>{{ event.eqMessage.titleText }}</div>
+                                <div><InfoFilled style="width: 1em; height: 1em; margin-right: 0.25em;" />{{ event.eqMessage.titleText }}</div>
                                 <div v-show="displayEqlistList.length > 1">{{ displayEqlistList.findIndex(e => e == event) + 1 }}/{{ displayEqlistList.length }}</div>
                             </div>
                             <div class="info" @click="() => {
@@ -101,7 +101,7 @@
                     </div>
                     <div class="event" v-if="settingsStore.mainSettings.source.jmaTsunami && statusStore.isActive.jmaTsunami">
                         <div class="eew" v-show="menuId != 'eews'">
-                            <div class="bar" :class="statusStore.tsunamiMessage.jmaTsunami.className">{{ statusStore.tsunamiMessage.jmaTsunami.titleText }}</div>
+                            <div class="bar" :class="statusStore.tsunamiMessage.jmaTsunami.className"><WarnTriangleFilled style="width: 1em; height: 1em; margin-right: 0.25em;" />{{ statusStore.tsunamiMessage.jmaTsunami.titleText }}</div>
                             <div class="tsunami-info">
                                 <div v-show="statusStore.tsunamiMessage.jmaTsunami.status >= 3" class="text">大津波警報</div>
                                 <div v-show="statusStore.tsunamiMessage.jmaTsunami.status >= 3" class="legend tsunami-purple"></div>
@@ -1251,8 +1251,7 @@ onBeforeUnmount(()=>{
                         align-items: center;
                         font-size: 18px;
                         font-weight: 700;
-                        padding-left: 5px;
-                        padding-right: 5px;
+                        padding: 0 0.25em;
                         div{
                             display: flex;
                             justify-content: center;
