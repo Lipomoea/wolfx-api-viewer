@@ -101,7 +101,9 @@
                     </div>
                     <div class="event" v-if="settingsStore.mainSettings.source.jmaTsunami && statusStore.isActive.jmaTsunami">
                         <div class="eew" v-show="menuId != 'eews'">
-                            <div class="bar" :class="statusStore.tsunamiMessage.jmaTsunami.className"><WarnTriangleFilled style="width: 1em; height: 1em; margin-right: 0.25em;" />{{ statusStore.tsunamiMessage.jmaTsunami.titleText }}</div>
+                            <div class="bar" :class="statusStore.tsunamiMessage.jmaTsunami.className">
+                                <div><WarnTriangleFilled style="width: 1em; height: 1em; margin-right: 0.25em;" />{{ statusStore.tsunamiMessage.jmaTsunami.titleText }}</div>
+                            </div>
                             <div class="tsunami-info">
                                 <div v-show="statusStore.tsunamiMessage.jmaTsunami.status >= 3" class="text">大津波警報</div>
                                 <div v-show="statusStore.tsunamiMessage.jmaTsunami.status >= 3" class="legend tsunami-purple"></div>
@@ -220,22 +222,22 @@
                 @select="handleMenu">
                     <el-menu-item index="main">
                         <el-icon>
-                            <FullScreen></FullScreen>
+                            <FullScreen />
                         </el-icon>
                     </el-menu-item>
                     <el-menu-item index="eews">
                         <el-icon>
-                            <WarnTriangleFilled></WarnTriangleFilled>
+                            <WarnTriangleFilled />
                         </el-icon>
                     </el-menu-item>
                     <el-menu-item index="eqlists">
                         <el-icon>
-                            <InfoFilled></InfoFilled>
+                            <InfoFilled />
                         </el-icon>
                     </el-menu-item>
                     <el-menu-item index="settings">
                         <el-icon>
-                            <Setting></Setting>
+                            <Setting />
                         </el-icon>
                     </el-menu-item>
                 </el-menu>
@@ -1374,21 +1376,22 @@ onBeforeUnmount(()=>{
                     .tsunami-info {
                         width: 410px;
                         height: 100px;
-                        padding: 10px 40px;
+                        padding: 1px 0;
                         display: grid;
                         grid-template-columns: 1fr 1fr;
                         column-gap: 50px;
+                        align-content: space-evenly;
                         align-items: center;
                         background-color: #ffffff9f;
                         backdrop-filter: blur(2px);
                         .text {
                             justify-self: end;
                             text-align: right;
-                            font-size: 20px;
+                            font-size: 18px;
                         }
                         .legend {
                             width: 90px;
-                            height: 6px;
+                            height: 5px;
                         }
                         .tsunami-purple {
                             background-color: var(--tsunami-purple);
