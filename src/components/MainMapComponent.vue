@@ -176,11 +176,11 @@
                         <div class="legend-title">地图颜色</div>
                     </div>
                     <div class="ws-status">
-                        WebSocket状态: 
-                        <div class="dot" :class="'s' + wolfxRS"></div>
-                        <div class="dot" :class="'s' + fanRS"></div>
-                        <div class="dot" :class="'s' + p2pquakeRS"></div>
-                        <div v-if="settingsStore.advancedSettings.enableGqEew" class="dot" :class="'s' + gqRS"></div>
+                        <div>WebSocket状态: </div>
+                        <div :class="'s' + wolfxRS">Wolfx</div>
+                        <div :class="'s' + fanRS">FAN</div>
+                        <div :class="'s' + p2pquakeRS">P2P</div>
+                        <div v-if="settingsStore.advancedSettings.enableGqEew" :class="'s' + gqRS">GQ</div>
                     </div>
                     <div class="update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isNiedDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.nied" @dblclick="resetSeisNetDelay">
                         強震モニタ: {{ niedUpdateTime }} (UTC+9)
@@ -1465,24 +1465,22 @@ onBeforeUnmount(()=>{
                 .ws-status{
                     display: flex;
                     align-items: center;
-                    column-gap: 5px;
-                    .dot{
-                        width: 10px;
-                        height: 10px;
-                        border-radius: 50%;
-                        overflow: hidden;
+                    column-gap: 0.5em;
+                    margin-top: 0.25rem;
+                    div{
+                        line-height: 1em;
                     }
                     .s0{
-                        background-color: yellow;
+                        color: yellow;
                     }
                     .s1{
-                        background-color: green;
+                        color: green;
                     }
                     .s2,.s3{
-                        background-color: red;
+                        color: red;
                     }
                     .s4{
-                        background-color: white;
+                        color: white;
                     }
                 }
                 .update-time{
