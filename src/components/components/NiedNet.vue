@@ -99,35 +99,40 @@ const update = ()=>{
         const checkedStations = new Set()
         possibleStations.forEach(station=>{
             if(!checkedStations.has(station)){
-                const nearbyStations = adjStationIds[station.id].map(id=>stations[id]).filter(station=>station.level > -1)
-                const possibleNearbyStations = nearbyStations.filter(station=>station.activity > 0)
-                const nearbyActiveNum = possibleNearbyStations.length
-                let numThres, activityThres
-                switch(settingsStore.mainSettings.displaySeisNet.niedSensitivity) {
-                    case 1:
-                        numThres = 3
-                        activityThres = activityThresArr[nearbyStations.length] + 2
-                        break
-                    case 2:
-                        numThres = nearbyStations.length <= 1 ? 1 : nearbyStations.length < nearbyLength ? 2 : 3
-                        activityThres = activityThresArr[nearbyStations.length]
-                        break
-                    case 3:
-                        numThres = nearbyStations.length <= 2 ? 1 : nearbyStations.length < nearbyLength ? 2 : 3
-                        activityThres = activityThresArr[nearbyStations.length] - 2
-                        break
-                    default:
-                        return
+                if(station.isAscend && station.isActive) {
+                    chainActivate(station, activeStations, checkedStations)
                 }
-                if (nearbyActiveNum >= numThres) {
-                    const numActivity = nearbyActiveNum * (nearbyActiveNum + 1) / 2
-                    const nearbyActivity = nearbyStations.reduce((sum, nearbyStation, index) => 
-                        index >= 3 && distMatrix[station.id][nearbyStation.id] > 15 
-                        ? sum + nearbyStation.activity / 2 
-                        : sum + nearbyStation.activity, 0
-                    ) + numActivity
-                    if (nearbyActivity >= activityThres) {
-                        chainActivate(station, activeStations, checkedStations)
+                else {
+                    const nearbyStations = adjStationIds[station.id].map(id=>stations[id]).filter(station=>station.level > -1)
+                    const possibleNearbyStations = nearbyStations.filter(station=>station.activity > 0)
+                    const nearbyActiveNum = possibleNearbyStations.length
+                    let numThres, activityThres
+                    switch(settingsStore.mainSettings.displaySeisNet.niedSensitivity) {
+                        case 1:
+                            numThres = 3
+                            activityThres = activityThresArr[nearbyStations.length] + 2
+                            break
+                        case 2:
+                            numThres = nearbyStations.length <= 1 ? 1 : nearbyStations.length < nearbyLength ? 2 : 3
+                            activityThres = activityThresArr[nearbyStations.length]
+                            break
+                        case 3:
+                            numThres = nearbyStations.length <= 2 ? 1 : nearbyStations.length < nearbyLength ? 2 : 3
+                            activityThres = activityThresArr[nearbyStations.length] - 2
+                            break
+                        default:
+                            return
+                    }
+                    if (nearbyActiveNum >= numThres) {
+                        const numActivity = nearbyActiveNum * (nearbyActiveNum + 1) / 2
+                        const nearbyActivity = nearbyStations.reduce((sum, nearbyStation, index) => 
+                            index >= 3 && distMatrix[station.id][nearbyStation.id] > 15 
+                            ? sum + nearbyStation.activity / 2 
+                            : sum + nearbyStation.activity, 0
+                        ) + numActivity
+                        if (nearbyActivity >= activityThres) {
+                            chainActivate(station, activeStations, checkedStations)
+                        }
                     }
                 }
             }
