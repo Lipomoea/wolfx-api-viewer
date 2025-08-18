@@ -82,7 +82,8 @@ const getData = async (url)=>{
     }
 }
 let pendingRender = false
-const activityThresArr = [Infinity, 11, 13, 15, 15, 15, 15]
+const nearbyLength = 5
+const activityThresArr = [Infinity, 10, 13, ...new Array(nearbyLength - 2).fill(15)]
 const update = ()=>{
     if(stationList.value.length == stations.length && stations.length == stationData.value.length){
         let maxLevel = -1
@@ -108,18 +109,18 @@ const update = ()=>{
                         activityThres = activityThresArr[nearbyStations.length] + 2
                         break
                     case 2:
-                        numThres = nearbyStations.length <= 1 ? 1 : nearbyStations.length < 6 ? 2 : 3
+                        numThres = nearbyStations.length <= 1 ? 1 : nearbyStations.length < nearbyLength ? 2 : 3
                         activityThres = activityThresArr[nearbyStations.length]
                         break
                     case 3:
-                        numThres = nearbyStations.length <= 2 ? 1 : 2
+                        numThres = nearbyStations.length <= 2 ? 1 : nearbyStations.length < nearbyLength ? 2 : 3
                         activityThres = activityThresArr[nearbyStations.length] - 2
                         break
                     default:
                         return
                 }
                 if (nearbyActiveNum >= numThres) {
-                    const numActivity = nearbyActiveNum * 2
+                    const numActivity = nearbyActiveNum * (nearbyActiveNum + 1) / 2
                     const nearbyActivity = nearbyStations.reduce((sum, nearbyStation, index) => 
                         index >= 3 && distMatrix[station.id][nearbyStation.id] > 15 
                         ? sum + nearbyStation.activity / 2 
@@ -256,7 +257,7 @@ watch(()=>statusStore.map, newVal=>{
                     if(distances.length <= 1 && candidate.id !== null) {
                         distances.push(candidate)
                     }
-                    distances.sort((a, b) => a.distance - b.distance).splice(6)
+                    distances.sort((a, b) => a.distance - b.distance).splice(nearbyLength)
                     adjStationIds[i] = distances.map(obj => obj.id)
                     const avgDist = distances.length <= 1 ? 0 : distances.reduce((sum, curr) => sum + curr.distance, 0) / (distances.length - 1)
                     expireSeconds[i] = Math.max(Math.round(avgDist / 3.5) + 3, 7)

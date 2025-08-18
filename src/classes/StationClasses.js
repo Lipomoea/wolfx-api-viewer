@@ -121,21 +121,19 @@ class NiedStation {
         if(ascend > 0 || this.isActive) {
             if(level <= 5) levelActivity = 0
             else if(level <= 7) {
-                if(this.isActive) levelActivity = 0.5
+                if(this.isActive) levelActivity = 0.5 * (level - 5)
                 else levelActivity = 0
             }
-            else if(level <= 11) levelActivity = 2 ** (level - 8)
+            else if(level <= 11) levelActivity = 2 * (level - 7)
             else levelActivity = 6 * (level - 10)
         }
-        else{
-            if(level <= 7) levelActivity = 0
-            else if(level <= 8) levelActivity = 1
-            else levelActivity = 2
+        else {
+            levelActivity = 0
         }
         if(ascend <= 0) ascendActivity = 0
         else if(ascend <= 1) {
             if(this.isActive) ascendActivity = 0.5
-            else ascendActivity = 0
+            else ascendActivity = 0.2
         }
         else if(ascend <= 6) ascendActivity = 2 * (ascend - 2) + 1
         else ascendActivity = 6 * (ascend - 5)
