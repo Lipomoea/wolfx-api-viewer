@@ -135,7 +135,7 @@ class NiedStation {
         if(ascend <= 0) ascendActivity = 0
         else if(ascend <= 1) {
             if(this.isActive) ascendActivity = 0.5
-            else ascendActivity = 0.2
+            else ascendActivity = 0.25
         }
         else if(ascend <= 6) ascendActivity = 2 * (ascend - 2) + 1
         else ascendActivity = 6 * (ascend - 5)
