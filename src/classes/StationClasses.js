@@ -92,9 +92,9 @@ class NiedStation {
         this.expireSeconds = expireSeconds
         this.shindo = getShindoFromChar(intensity)
         this.level = intensity.charCodeAt(0) - 100
+        this.ascend = 0
         this.recentLevel = [this.level]
         this.activity = 0
-        this.isAscend = false
         this.isActive = false
         this.markerType = null
         this.render()
@@ -113,7 +113,7 @@ class NiedStation {
             const minRecent = Math.min(...recentFilter)
             ascend = level - minRecent
         }
-        this.isAscend = ascend > 0
+        this.ascend = ascend
         this.activity = this.calcActivity(level, ascend)
         this.recentLevel.unshift(originLevel)
         if(this.recentLevel.length > this.expireSeconds) this.recentLevel.pop()

@@ -83,7 +83,7 @@ const getData = async (url)=>{
 }
 let pendingRender = false
 const nearbyLength = 5
-const activityThresArr = [Infinity, 10, 13, ...new Array(nearbyLength - 2).fill(15)]
+const activityThresArr = [Infinity, 10, 13, 15, 16, 16]
 const update = ()=>{
     if(stationList.value.length == stations.length && stations.length == stationData.value.length){
         let maxLevel = -1
@@ -99,13 +99,13 @@ const update = ()=>{
         const checkedStations = new Set()
         possibleStations.forEach(station=>{
             if(!checkedStations.has(station)){
-                if(station.isAscend && station.isActive) {
+                if(station.isActive && station.ascend > 0) {
                     chainActivate(station, activeStations, checkedStations)
                 }
                 else {
                     const nearbyStations = adjStationIds[station.id].map(id=>stations[id]).filter(station=>station.level > -1)
                     const possibleNearbyStations = nearbyStations.filter(station=>station.activity > 0)
-                    const nearbyActiveNum = possibleNearbyStations.length
+                    const nearbyActiveNum = possibleNearbyStations.length - possibleNearbyStations.filter(station => station.ascend <= 1 && !station.isActive).length / 2
                     let numThres, activityThres
                     switch(settingsStore.mainSettings.displaySeisNet.niedSensitivity) {
                         case 1:
