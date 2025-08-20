@@ -1,3 +1,5 @@
+import KDBush from "kdbush";
+
 export const cnSeisIntLoc = {
   东城区: [
     [116.4, 39.9],
@@ -104180,3 +104182,17 @@ export const cnSeisIntLoc = {
   路凼填海区: [[113.5681, 22.1434]],
   圣方济各堂区: [[113.5742, 22.1282]],
 };
+
+export const cnSeisIntLocBush = Object.fromEntries(
+  Object.entries(cnSeisIntLoc).map(([key, value]) => {
+    const kdbush = new KDBush(value.length, 16, Float32Array)
+    value.forEach(lngLat => {
+      kdbush.add(lngLat[0], lngLat[1])
+    })
+    kdbush.finish()
+    return [
+      key,
+      kdbush
+    ];
+  })
+);
