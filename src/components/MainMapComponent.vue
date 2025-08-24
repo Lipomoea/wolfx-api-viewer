@@ -14,10 +14,20 @@
                                 event.showMenu = !event.showMenu;
                                 infoPageCounter = infoPageCounter - infoPageCounter % 10;
                             }">
-                                <div class="intensity" :class="event.eqMessage.className">
-                                    <div class="intensity-title">{{ event.eqMessage.useShindo?'最大震度':'最大烈度' }}</div>
-                                    <div :class="event.eqMessage.useShindo && formatIntensity(event.eqMessage.maxIntensity) != '?'?'shindo':'csis'">
-                                        {{ formatIntensity(event.eqMessage.maxIntensity) }}
+                                <div v-if="event.eqMessage.useShindo" class="intensity" :class="event.eqMessage.className">
+                                    <div class="intensity-title">最大震度</div>
+                                    <div :class="formatShindo(event.eqMessage.maxIntensity) != '?'?'shindo':'csis'">
+                                        {{ formatShindo(event.eqMessage.maxIntensity) }}
+                                    </div>
+                                </div>
+                                <div v-else class="intensity" :class="event.eqMessage.className">
+                                    <div class="intensity-title">最大烈度</div>
+                                    <div class="csis" :class="{
+                                        'roman': settingsStore.mainSettings.useRomanCsis,
+                                        'scale-7': event.eqMessage.maxIntensity == '8',
+                                        'scale-9': event.eqMessage.maxIntensity == '7' || event.eqMessage.maxIntensity == '12'
+                                    }">
+                                        {{ formatCsis(event.eqMessage.maxIntensity, settingsStore.mainSettings.useRomanCsis) }}
                                     </div>
                                 </div>
                                 <div class="right">
@@ -55,8 +65,12 @@
                             <div class="info" v-else>
                                 <div class="intensity" :class="setClassName(event.userCsis, false)">
                                     <div class="intensity-title">本地烈度</div>
-                                    <div class="csis">
-                                        {{ event.userCsis }}
+                                    <div class="csis" :class="{
+                                        'roman': settingsStore.mainSettings.useRomanCsis,
+                                        'scale-7': event.userCsis == '8',
+                                        'scale-9': event.userCsis == '7' || event.userCsis == '12'
+                                    }">
+                                        {{ formatCsis(event.userCsis, settingsStore.mainSettings.useRomanCsis) }}
                                     </div>
                                 </div>
                             </div>
@@ -72,10 +86,20 @@
                                 event.showMenu = !event.showMenu;
                                 infoPageCounter = infoPageCounter - infoPageCounter % 10;
                             }">
-                                <div class="intensity" :class="event.eqMessage.className">
-                                    <div class="intensity-title">{{ event.eqMessage.useShindo?'最大震度':'最大烈度' }}</div>
-                                    <div :class="event.eqMessage.useShindo && formatIntensity(event.eqMessage.maxIntensity) != '?'?'shindo':'csis'">
-                                        {{ formatIntensity(event.eqMessage.maxIntensity) }}
+                                <div v-if="event.eqMessage.useShindo" class="intensity" :class="event.eqMessage.className">
+                                    <div class="intensity-title">最大震度</div>
+                                    <div :class="formatShindo(event.eqMessage.maxIntensity) != '?'?'shindo':'csis'">
+                                        {{ formatShindo(event.eqMessage.maxIntensity) }}
+                                    </div>
+                                </div>
+                                <div v-else class="intensity" :class="event.eqMessage.className">
+                                    <div class="intensity-title">最大烈度</div>
+                                    <div class="csis" :class="{
+                                        'roman': settingsStore.mainSettings.useRomanCsis,
+                                        'scale-7': event.eqMessage.maxIntensity == '8',
+                                        'scale-9': event.eqMessage.maxIntensity == '7' || event.eqMessage.maxIntensity == '12'
+                                    }">
+                                        {{ formatCsis(event.eqMessage.maxIntensity, settingsStore.mainSettings.useRomanCsis) }}
                                     </div>
                                 </div>
                                 <div class="right">
@@ -164,7 +188,7 @@
                 <div class="left-bottom">
                     <div class="legend" v-if="settingsStore.mainSettings.displayLegend && !settingsStore.mainSettings.disableEewBaseMap && (activeEewList.length > 0 || menuId == 'eqlists')">
                         <div class="single-legend" v-for="(className, index) of classNameArray" :key="index">
-                            <div class="align-right">{{ csisArray[index] }}</div>
+                            <div class="align-right">{{ settingsStore.mainSettings.useRomanCsis ? csisRomanArray[index] : csisArray[index] }}</div>
                             <div class="color" :class="className"></div>
                             <div class="align-left">{{ shindoArray[index] }}</div>
                         </div>
@@ -194,7 +218,10 @@
                         <div class="row" v-for="(item, index) of csisList" :key="index">
                             <div class="name">{{ item.name }}</div>
                             <div class="int" :class="setClassName(item.intensity, false)">
-                                <div class="csis">{{ item.intensity }}</div>
+                                <div class="csis" :class="{
+                                    'roman': settingsStore.mainSettings.useRomanCsis,
+                                    'scale-9': item.intensity == '8'
+                                }">{{ formatCsis(item.intensity, settingsStore.mainSettings.useRomanCsis) }}</div>
                             </div>
                         </div>
                     </div>
@@ -265,7 +292,7 @@ import EewComponent from './EewComponent.vue';
 import SeisNetComponent from './SeisNetComponent.vue';
 import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
-import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToCnArea, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone, simplifyTopoJson } from '@/utils/Utils';
+import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToCnArea, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone, simplifyTopoJson, formatCsis, csisRomanArray } from '@/utils/Utils';
 import { topojsonUrls } from '@/utils/Urls';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { isTauri } from '@tauri-apps/api/core';
@@ -457,7 +484,7 @@ watch(activeSources, newVal => {
         }
     }
 })
-const formatIntensity = (intensity)=>intensity.replace('強', '+').replace('弱', '-').replace('不明', '?')
+const formatShindo = (intensity)=>intensity.replace('強', '+').replace('弱', '-').replace('不明', '?')
 const getBarClass = (event)=>{
     const eqMessage = event.eqMessage
     if(eqMessage.isEew){
@@ -782,7 +809,7 @@ const loadMaps = async (retries = 0) => {
                     newCsisList[int]?.forEach(name => {
                         newNewCsisList.push({
                             name,
-                            intensity: int
+                            intensity: int.toString()
                         })
                     })
                 }
@@ -1147,7 +1174,7 @@ const csisList = ref([])
 const shindoList = computed(() => {
     const shindoList = {}
     for(let name in jmaWarnArea.value) {
-        const intensity = formatIntensity(jmaWarnArea.value[name].intensity)
+        const intensity = formatShindo(jmaWarnArea.value[name].intensity)
         if(!(intensity in shindoList)) shindoList[intensity] = []
         shindoList[intensity].push(name)
     }
@@ -1594,6 +1621,12 @@ onBeforeUnmount(()=>{
             overflow: auto;
             z-index: 600;
             background-color: #fff;
+        }
+        .roman.scale-9{
+            transform: scaleX(0.9);
+        }
+        .roman.scale-7{
+            transform: scaleX(0.7);
         }
     }
 }

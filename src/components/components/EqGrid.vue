@@ -2,7 +2,7 @@
     <div class="outer">
         <div class="container" @dblclick="handleDblClick">
             <div class="bg" :class="className"></div>
-            <div class="intensity" :class="fontClass">{{ eqMessage.maxIntensity }}</div>
+            <div class="intensity" :class="fontClass">{{ eqMessage.useShindo ? eqMessage.maxIntensity : formatCsis(eqMessage.maxIntensity, settingsStore.mainSettings.useRomanCsis) }}</div>
             <div class="text title" :class="fontClass">{{ formatText(eqMessage.titleText) }}</div>
             <div class="text" :class="fontClass" v-if="eqMessage.isEew">{{ formatText(eqMessage.reportNumText) }}</div>
             <div class="text" :class="fontClass">{{ formatText(eqMessage.hypocenterText) }}</div>
@@ -17,7 +17,7 @@
 
 <script setup>
 import { onBeforeUnmount, ref, reactive, computed, watch, inject } from 'vue';
-import { formatText, msToTime, calcPassedTime, judgeSameEvent, openUrl, calcTimeDiff } from '@/utils/Utils';
+import { formatText, msToTime, calcPassedTime, judgeSameEvent, calcTimeDiff, formatCsis } from '@/utils/Utils';
 import { EewEvent, EqlistEvent, ignoredIds } from '@/classes/EewEqlistClasses';
 import { useTimeStore } from '@/stores/time';
 import { useStatusStore } from '@/stores/status';

@@ -145,6 +145,19 @@ export const csisArray = [
   "",
   "≥10",
 ];
+export const csisRomanArray = [
+  "Ⅰ",
+  "Ⅱ",
+  "Ⅲ",
+  "Ⅳ",
+  "Ⅴ",
+  "Ⅵ",
+  "Ⅶ",
+  "Ⅷ",
+  "Ⅸ",
+  "",
+  "≥Ⅹ",
+];
 export const shindoArray = [
   "",
   "1",
@@ -413,4 +426,39 @@ export const simplifyTopoJson = (topojson, factor) => {
     const simplified = simplify(presimplified, minWeights[factor]);
     return simplified;
   }
+};
+export const formatCsis = (value, useRoman) => {
+  if (!value) return value;
+  if (useRoman) {
+    switch (value) {
+      case "0":
+        return "N";
+      case "1":
+        return "Ⅰ";
+      case "2":
+        return "Ⅱ";
+      case "3":
+        return "Ⅲ";
+      case "4":
+        return "Ⅳ";
+      case "5":
+        return "Ⅴ";
+      case "6":
+        return "Ⅵ";
+      case "7":
+        return "Ⅶ";
+      case "8":
+        return "Ⅷ";
+      case "9":
+        return "Ⅸ";
+      case "10":
+        return "Ⅹ";
+      case "11":
+        return "Ⅺ";
+      case "12":
+        return "Ⅻ";
+      default:
+        return "?";
+    }
+  } else return value;
 };

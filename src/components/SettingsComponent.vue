@@ -216,7 +216,10 @@
                                     </el-popover>
                                 </span>
                                 <div class="int" :class="setClassName(settingsStore.mainSettings.actionCsis, false)">
-                                    <div class="csis">{{ settingsStore.mainSettings.actionCsis }}</div>
+                                    <div class="csis" :class="{
+                                        'roman': settingsStore.mainSettings.useRomanCsis,
+                                        'scale-9': settingsStore.mainSettings.actionCsis == 8
+                                    }">{{ formatCsis(settingsStore.mainSettings.actionCsis.toString(), settingsStore.mainSettings.useRomanCsis) }}</div>
                                 </div>
                             </div>
                             <el-slider
@@ -287,7 +290,10 @@
                             <div class="justify-between" style="width: 10rem;">
                                 <span>GQ预警烈度阈值</span>
                                 <div class="int" :class="setClassName(settingsStore.mainSettings.gqActionCsis, false)">
-                                    <div class="csis">{{ settingsStore.mainSettings.gqActionCsis }}</div>
+                                    <div class="csis" :class="{
+                                        'roman': settingsStore.mainSettings.useRomanCsis,
+                                        'scale-9': settingsStore.mainSettings.gqActionCsis == 8
+                                    }">{{ formatCsis(settingsStore.mainSettings.gqActionCsis.toString(), settingsStore.mainSettings.useRomanCsis) }}</div>
                                 </div>
                             </div>
                             <el-slider
@@ -577,6 +583,10 @@
                         <div class="switch-full">
                             <span>显示中国断层</span>
                             <el-switch v-model="settingsStore.mainSettings.displayCnFault" />
+                        </div>
+                        <div class="switch-full">
+                            <span>中国地震烈度使用罗马数字</span>
+                            <el-switch v-model="settingsStore.mainSettings.useRomanCsis" />
                         </div>
                         <div class="switch-full">
                             <span>
@@ -936,7 +946,7 @@ import { chimeUrls, utilUrls } from '@/utils/Urls';
 import Http from '@/classes/Http';
 import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { QuestionFilled } from '@element-plus/icons-vue';
-import { calcPassedTime, openUrl, playSound, setClassName, shindoScale } from '@/utils/Utils';
+import { calcPassedTime, formatCsis, openUrl, playSound, setClassName, shindoScale } from '@/utils/Utils';
 import { join, appDataDir } from "@tauri-apps/api/path";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { exists, mkdir } from "@tauri-apps/plugin-fs";
@@ -1564,6 +1574,9 @@ ul {
     .shindo::first-letter {
         font-size: 16px;
         vertical-align: top;
+    }
+    .roman.scale-9 {
+        transform: scaleX(0.9);
     }
 }
 .mag {

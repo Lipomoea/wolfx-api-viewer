@@ -4,8 +4,15 @@
             <div class="title">{{ title }}</div>
             <div class="item white" v-for="(item, index) of eqList" :key="index" @click="handleClick(item)">
                 <div class="intensity" :class="item.className">
-                    <div :class="props.source != 'cencEqlist' && item.maxIntensity != '不明'?'shindo':'csis'">
-                        {{ item.maxIntensity == '不明'?'?':item.maxIntensity }}
+                    <div v-if="item.useShindo" :class="item.maxIntensity != '不明' ? 'shindo' : 'csis'">
+                        {{ item.maxIntensity == '不明' ? '?' : item.maxIntensity }}
+                    </div>
+                    <div v-else class="csis" :class="{
+                        'roman': settingsStore.mainSettings.useRomanCsis,
+                        'scale-7': item.maxIntensity == '8',
+                        'scale-9': item.maxIntensity == '7' || item.maxIntensity == '12'
+                    }">
+                        {{ formatCsis(item.maxIntensity, settingsStore.mainSettings.useRomanCsis) }}
                     </div>
                 </div>
                 <div class="right">
@@ -27,12 +34,14 @@
 import { reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import Http from '@/classes/Http';
 import { eqUrls } from '@/utils/Urls';
-import { openUrl, setClassName, stampToTime, shindoScale, formatTimeZone } from '@/utils/Utils';
+import { openUrl, setClassName, stampToTime, shindoScale, formatTimeZone, formatCsis } from '@/utils/Utils';
 import '@/assets/background.css'
 import '@/assets/opacity.css'
+import { useSettingsStore } from '@/stores/settings';
 const props = defineProps({
     source: String,
 })
+const settingsStore = useSettingsStore()
 const eqList = reactive([])
 const httpInterval = 10000
 const maxHistoryNumber = 50
@@ -49,6 +58,7 @@ const getEqList = ()=>{
                         eqList[i] = {
                             id: data[keys[i]].EventID,
                             timeZone: 9,
+                            useShindo: true,
                             originTime: data[keys[i]].time_full.replace(/\//g, '-'),
                             hypocenter: data[keys[i]].location,
                             depth: data[keys[i]].depth == '0km'?'ごく浅い':data[keys[i]].depth,
@@ -62,6 +72,7 @@ const getEqList = ()=>{
                         eqList[i] = {
                             id: data[keys[i]].EventID,
                             timeZone: 8,
+                            useShindo: false,
                             originTime: data[keys[i]].time,
                             hypocenter: data[keys[i]].placeName,
                             depth: data[keys[i]].depth + 'km',
@@ -81,6 +92,7 @@ const getEqList = ()=>{
                 eqList[i] = {
                     id: data[i].id,
                     timeZone: 8,
+                    useShindo: true,
                     originTime: stampToTime(data[i].time, 8),
                     hypocenter: data[i].loc.split(' ').slice(-1)[0].slice(3, -1),
                     depth: data[i].depth + 'km',
@@ -164,6 +176,12 @@ onBeforeUnmount(()=>{
             }
             .csis{
                 font-size: 70px;
+            }
+            .roman.scale-7{
+                transform: scaleX(0.7);
+            }
+            .roman.scale-9{
+                transform: scaleX(0.9);
             }
         }
         .right{
