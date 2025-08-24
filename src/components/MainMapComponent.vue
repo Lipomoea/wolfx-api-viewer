@@ -24,7 +24,7 @@
                                     <div class="intensity-title">最大烈度</div>
                                     <div class="csis" :class="{
                                         'roman': settingsStore.mainSettings.useRomanCsis,
-                                        'scale-7': event.eqMessage.maxIntensity == '8',
+                                        'scale-75': event.eqMessage.maxIntensity == '8',
                                         'scale-9': event.eqMessage.maxIntensity == '7' || event.eqMessage.maxIntensity == '12'
                                     }">
                                         {{ formatCsis(event.eqMessage.maxIntensity, settingsStore.mainSettings.useRomanCsis) }}
@@ -67,7 +67,7 @@
                                     <div class="intensity-title">本地烈度</div>
                                     <div class="csis" :class="{
                                         'roman': settingsStore.mainSettings.useRomanCsis,
-                                        'scale-7': event.userCsis == '8',
+                                        'scale-75': event.userCsis == '8',
                                         'scale-9': event.userCsis == '7' || event.userCsis == '12'
                                     }">
                                         {{ formatCsis(event.userCsis, settingsStore.mainSettings.useRomanCsis) }}
@@ -96,7 +96,7 @@
                                     <div class="intensity-title">最大烈度</div>
                                     <div class="csis" :class="{
                                         'roman': settingsStore.mainSettings.useRomanCsis,
-                                        'scale-7': event.eqMessage.maxIntensity == '8',
+                                        'scale-75': event.eqMessage.maxIntensity == '8',
                                         'scale-9': event.eqMessage.maxIntensity == '7' || event.eqMessage.maxIntensity == '12'
                                     }">
                                         {{ formatCsis(event.eqMessage.maxIntensity, settingsStore.mainSettings.useRomanCsis) }}
@@ -1625,8 +1625,8 @@ onBeforeUnmount(()=>{
         .roman.scale-9{
             transform: scaleX(0.9);
         }
-        .roman.scale-7{
-            transform: scaleX(0.7);
+        .roman.scale-75{
+            transform: scaleX(0.75);
         }
     }
 }

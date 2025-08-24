@@ -146,17 +146,17 @@ export const csisArray = [
   "≥10",
 ];
 export const csisRomanArray = [
-  "Ⅰ",
-  "Ⅱ",
-  "Ⅲ",
-  "Ⅳ",
-  "Ⅴ",
-  "Ⅵ",
-  "Ⅶ",
-  "Ⅷ",
-  "Ⅸ",
+  "I",
+  "II",
+  "III",
+  "IV",
+  "V",
+  "VI",
+  "VII",
+  "VIII",
+  "IX",
   "",
-  "≥Ⅹ",
+  "≥X",
 ];
 export const shindoArray = [
   "",
@@ -434,29 +434,29 @@ export const formatCsis = (value, useRoman) => {
       case "0":
         return "N";
       case "1":
-        return "Ⅰ";
+        return "I";
       case "2":
-        return "Ⅱ";
+        return "II";
       case "3":
-        return "Ⅲ";
+        return "III";
       case "4":
-        return "Ⅳ";
+        return "IV";
       case "5":
-        return "Ⅴ";
+        return "V";
       case "6":
-        return "Ⅵ";
+        return "VI";
       case "7":
-        return "Ⅶ";
+        return "VII";
       case "8":
-        return "Ⅷ";
+        return "VIII";
       case "9":
-        return "Ⅸ";
+        return "IX";
       case "10":
-        return "Ⅹ";
+        return "X";
       case "11":
-        return "Ⅺ";
+        return "XI";
       case "12":
-        return "Ⅻ";
+        return "XII";
       default:
         return "?";
     }

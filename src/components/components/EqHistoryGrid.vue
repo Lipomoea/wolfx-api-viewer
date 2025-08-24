@@ -9,7 +9,7 @@
                     </div>
                     <div v-else class="csis" :class="{
                         'roman': settingsStore.mainSettings.useRomanCsis,
-                        'scale-7': item.maxIntensity == '8',
+                        'scale-75': item.maxIntensity == '8',
                         'scale-9': item.maxIntensity == '7' || item.maxIntensity == '12'
                     }">
                         {{ formatCsis(item.maxIntensity, settingsStore.mainSettings.useRomanCsis) }}
@@ -177,8 +177,8 @@ onBeforeUnmount(()=>{
             .csis{
                 font-size: 70px;
             }
-            .roman.scale-7{
-                transform: scaleX(0.7);
+            .roman.scale-75{
+                transform: scaleX(0.75);
             }
             .roman.scale-9{
                 transform: scaleX(0.9);
