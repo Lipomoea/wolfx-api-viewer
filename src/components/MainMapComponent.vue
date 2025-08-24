@@ -203,7 +203,7 @@
                         <div>WebSocket状态: </div>
                         <div :class="'s' + wolfxRS">Wolfx</div>
                         <div :class="'s' + fanRS">FAN</div>
-                        <div :class="'s' + p2pquakeRS">P2P</div>
+                        <div :class="'s' + p2pquakeRS">P2PQ</div>
                         <div v-if="settingsStore.advancedSettings.enableGqEew" :class="'s' + gqRS">GQ</div>
                     </div>
                     <div class="update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isNiedDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.nied" @dblclick="resetSeisNetDelay">
