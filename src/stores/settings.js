@@ -17,6 +17,7 @@ export const useSettingsStore = defineStore('settingsStore', {
                 jmaEqlist: true,
                 cwaEqlist: false,
                 cencEqlist: true,
+                fssnEqlist: false,
                 jmaTsunami: true
             },
             displaySeisNet: {
@@ -34,6 +35,9 @@ export const useSettingsStore = defineStore('settingsStore', {
             actionShindo: 0,
             gqActionMag: 5.0,
             gqActionCsis: 7,
+            fssnActionMag: 5.0,
+            fssnActionCsis: 7,
+            fssnActionType: 0,
             onEew: {
                 notification: false,
                 sound: false,
@@ -91,6 +95,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             enableIclEew: false,
             enableTremFunctions: false,
             enableGqEew: false,
+            enableFssnEqlist: false,
             enableMultiApi: false,
             enableMockEew: false,
             tokens: {

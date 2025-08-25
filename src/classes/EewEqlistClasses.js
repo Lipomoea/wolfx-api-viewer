@@ -18,7 +18,7 @@ const eewCrossDivIcon = L.divIcon({
     iconAnchor: [20, 20],
     className: '',
 })
-const eewCancelCrossIcon = `
+const cancelCrossIcon = `
 <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" opacity="0.5">
   <line x1="5" y1="5" x2="35" y2="35" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
   <line x1="35" y1="5" x2="5" y2="35" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
@@ -26,8 +26,8 @@ const eewCancelCrossIcon = `
   <line x1="35" y1="5" x2="5" y2="35" stroke="#7f7f7f" stroke-width="6" stroke-linecap="round"/>
 </svg>
 `
-const eewCancelCrossDivIcon = L.divIcon({
-    html: eewCancelCrossIcon,
+const cancelCrossDivIcon = L.divIcon({
+    html: cancelCrossIcon,
     iconAnchor: [20, 20],
     className: '',
 })
@@ -56,15 +56,15 @@ const eewCircleDivIcon = L.divIcon({
     iconAnchor: [20, 20],
     className: '',
 })
-const eewCancelCircleIcon = `
+const cancelCircleIcon = `
 <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" opacity="0.5">
   <circle cx="20" cy="20" r="17.5" stroke="#7f7f7f" stroke-width="3"/>
   <circle cx="20" cy="20" r="19.5" stroke="#ffffff" stroke-width="1"/>
   <circle cx="20" cy="20" r="15.5" stroke="#ffffff" stroke-width="1"/>
 </svg>
 `
-const eewCancelCircleDivIcon = L.divIcon({
-    html: eewCancelCircleIcon,
+const cancelCircleDivIcon = L.divIcon({
+    html: cancelCircleIcon,
     iconAnchor: [20, 20],
     className: '',
 })
@@ -111,7 +111,7 @@ export class EewEvent {
         this.removeMark()
         if(this.hypoLatLng) {
             if(this.eqMessage.isCanceled){
-                this.hypoMarker = L.marker(this.hypoLatLng, { icon: this.eqMessage.isAssumption?eewCancelCircleDivIcon:eewCancelCrossDivIcon, pane: 'eewMarkerPane' })
+                this.hypoMarker = L.marker(this.hypoLatLng, { icon: this.eqMessage.isAssumption?cancelCircleDivIcon:cancelCrossDivIcon, pane: 'eewMarkerPane' })
             }
             else{
                 this.hypoMarker = L.marker(this.hypoLatLng, { icon: this.eqMessage.isAssumption?eewCircleDivIcon:eewCrossDivIcon, pane: 'eewMarkerPane' })
@@ -439,7 +439,7 @@ export class EqlistEvent {
     setMark(){
         this.removeMark()
         if(this.isValidHypo){
-            this.hypoMarker = L.marker(this.hypoLatLng, { icon: eqlistCrossDivIcon, pane: 'eqlistMarkerPane' })
+            this.hypoMarker = L.marker(this.hypoLatLng, { icon: this.eqMessage.isCanceled ? cancelCrossDivIcon : eqlistCrossDivIcon, pane: 'eqlistMarkerPane' })
             this.hypoMarker.bindTooltip(`
                 <strong>${this.eqMessage.titleText}</strong><br>
                 ${this.eqMessage.hypocenter}(${this.eqMessage.lat},${this.eqMessage.lng})<br>
@@ -478,10 +478,6 @@ export class EqlistEvent {
                     }
                     break
                 }
-                case 'cwaEqlist':{
-                    playSound("detail")
-                    break
-                }
                 case 'cencEqlist':{
                     if(eqMessage.title == '中国地震台网自动测定'){
                         playSound("hypocenter")
@@ -489,6 +485,25 @@ export class EqlistEvent {
                     else{
                         playSound("detail")
                     }
+                    break
+                }
+                case 'fssnEqlist': {
+                    switch(eqMessage.title) {
+                        case 'FSSN地震测定（自动）':
+                            playSound("hypocenter")
+                            break
+                        case 'FSSN地震测定（确认）': 
+                        case 'FSSN地震测定（正式）':
+                            playSound("detail")
+                            break
+                        case 'FSSN地震测定（取消）':
+                            playSound("cancel")
+                            break
+                    }
+                    break
+                }
+                default: {
+                    playSound("detail")
                     break
                 }
             }

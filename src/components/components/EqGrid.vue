@@ -70,6 +70,7 @@ watch(eqMessage, (newVal)=>{
         if(newVal.className == 'purple' || newVal.magnitude >= 7.5){
             time = 1200 * 1000
         }
+        if(newVal.isCanceled) time = 60 * 1000
     }
     time -= passedTime
     if(newVal.isEew){
@@ -95,18 +96,25 @@ watch(eqMessage, (newVal)=>{
     }
     else {
         let i = 0
+        const shouldUpdate = newVal.source != 'fssnEqlist' 
+            || (newVal.title == 'FSSN地震测定（正式）' || newVal.title == 'FSSN地震测定（确认）' && settingsStore.mainSettings.fssnActionType <= 1 || settingsStore.mainSettings.fssnActionType == 0) 
+            && (newVal.magnitude >= settingsStore.mainSettings.fssnActionMag || newVal.maxIntensity >= settingsStore.mainSettings.fssnActionCsis)
         while(i < eqlistList.length){
             if(newVal.source == eqlistList[i].eqMessage.source){
-                eqlistList[i].update(Object.assign({}, newVal), time)
+                if(shouldUpdate) {
+                    eqlistList[i].update(Object.assign({}, newVal), time)
+                }
                 break
             }
             i++
         }
         if(i == eqlistList.length){
             if(statusStore.map){
-                const newEvent = reactive(new EqlistEvent(statusStore.map, Object.assign({}, newVal), handleTempEqlists, smartSetView))
-                eqlistList.unshift(newEvent)
-                newEvent.update(Object.assign({}, newVal), time, true)
+                if(shouldUpdate) {
+                    const newEvent = reactive(new EqlistEvent(statusStore.map, Object.assign({}, newVal), handleTempEqlists, smartSetView))
+                    eqlistList.unshift(newEvent)
+                    newEvent.update(Object.assign({}, newVal), time, true)
+                }
             }
         }
         eqlistList.sort((a, b) => calcTimeDiff(b.eqMessage.reportTime, b.eqMessage.timeZone, a.eqMessage.reportTime, a.eqMessage.timeZone))

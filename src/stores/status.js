@@ -62,14 +62,16 @@ const source2Fan = {
     iclEew: 'icl',
     scEew: 'sichuan',
     fjEew: 'fujian',
-    cencEqlist: 'cenc'
+    cencEqlist: 'cenc',
+    fssnEqlist: 'fssn'
 }
 const fan2Source = {
     cea: 'ceaEew',
     icl: 'iclEew',
     sichuan: 'scEew',
     fujian: 'fjEew',
-    cenc: 'cencEqlist'
+    cenc: 'cencEqlist',
+    fssn: 'fssnEqlist'
 }
 
 export const useStatusStore = defineStore('statusStore', {
@@ -82,7 +84,7 @@ export const useStatusStore = defineStore('statusStore', {
         p2pquakeSocket: null,
         gqSocket: null,
         useWolfxSocket: ['jmaEew', 'cwaEew', 'scEew', 'fjEew', 'cencEqlist'],
-        useFanSocket: ['ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist'],
+        useFanSocket: ['ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist', 'fssnEqlist'],
         useP2pquakeSocket: ['jmaEqlist', 'jmaTsunami'],
         enabledSource: [],
         multiApi: false,
@@ -97,7 +99,8 @@ export const useStatusStore = defineStore('statusStore', {
             mockEew: Object.assign({}, defaultEqMessage),
             jmaEqlist: Object.assign({}, defaultEqMessage),
             cwaEqlist: Object.assign({}, defaultEqMessage),
-            cencEqlist: Object.assign({}, defaultEqMessage)
+            cencEqlist: Object.assign({}, defaultEqMessage),
+            fssnEqlist: Object.assign({}, defaultEqMessage),
         },
         tsunamiMessage: {
             jmaTsunami: Object.assign({}, defaultTsunamiMessage)
@@ -114,6 +117,7 @@ export const useStatusStore = defineStore('statusStore', {
             jmaEqlist: false,
             cwaEqlist: false,
             cencEqlist: false,
+            fssnEqlist: false,
             niedNet: false,
             tremNet: false,
             jmaTsunami: false
@@ -641,6 +645,44 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                                 break
                         }
+                        break
+                    }
+                    case 'fssnEqlist': {
+                        eqMessage.id = data.createTime.replace(/[^0-9]/g, '')
+                        eqMessage.reportTime = data.createTime
+                        let infoType
+                        switch(data.infoTypeName) {
+                            case '自动(未核实)':
+                                infoType = '自动'
+                                break
+                            case '已确认':
+                                infoType = '确认'
+                                break
+                            case '正式(已核实)':
+                                infoType = '正式'
+                                break
+                            case '取消':
+                                infoType = '取消'
+                                break
+                            default:
+                                infoType = data.infoTypeName
+                                break
+                        }
+                        eqMessage.isCanceled = infoType == '取消'
+                        eqMessage.title = `FSSN地震测定（${infoType}）`
+                        eqMessage.titleText = eqMessage.title
+                        eqMessage.hypocenter = data.placeName
+                        eqMessage.hypocenterText = '震源: ' + data.placeName
+                        eqMessage.lat = Number(data.latitude)
+                        eqMessage.lng = Number(data.longitude)
+                        eqMessage.depth = Number(data.depth)
+                        eqMessage.depthText = '深度: ' + data.depth + 'km'
+                        eqMessage.originTime = data.shockTime
+                        eqMessage.originTimeText = '发震时间: ' + data.shockTime
+                        eqMessage.magnitude = Math.round(Number(data.magnitude) * 10) / 10
+                        eqMessage.magnitudeText = '震级: ' + eqMessage.magnitude
+                        eqMessage.maxIntensity = calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
+                        eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                         break
                     }
                 }

@@ -64,6 +64,10 @@
                             <div>日本気象庁：地震情報</div>
                             <el-switch v-model="settingsStore.mainSettings.source.jmaEqlist" @change="handleNeedReload" />
                         </div>
+                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableFssnEqlist">
+                            <div>FSSN：地震测定</div>
+                            <el-switch v-model="settingsStore.mainSettings.source.fssnEqlist" @change="handleNeedReload" />
+                        </div>
                     </div>
                     <div class="switch-group">
                         <span class="font-bold w-full">海啸信息</span>
@@ -298,6 +302,50 @@
                             </div>
                             <el-slider
                             v-model="settingsStore.mainSettings.gqActionCsis"
+                            :disabled="!settingsStore.advancedSettings.forceCalcInt"
+                            :min="0" :max="12"
+                            :step="1"
+                            size="small"
+                            show-stops
+                            />
+                        </div>
+                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableFssnEqlist">
+                            <span>FSSN事件接收类型</span>
+                            <el-select
+                                style="width: 120px;"
+                                v-model="settingsStore.mainSettings.fssnActionType"
+                                size="small">
+                                    <el-option label="全部接收" :value=0 />
+                                    <el-option label="仅确认和正式报" :value=1 />
+                                    <el-option label="仅正式报" :value=2 />
+                            </el-select>
+                        </div>
+                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableFssnEqlist">
+                            <div class="justify-between" style="width: 10rem;">
+                                <span>FSSN震级阈值</span>
+                                <div class="mag" :class="setClassName(settingsStore.mainSettings.fssnActionMag * 4/3, false)">
+                                    {{ settingsStore.mainSettings.fssnActionMag.toFixed(1) }}
+                                </div>
+                            </div>
+                            <el-slider
+                            v-model="settingsStore.mainSettings.fssnActionMag"
+                            :min="0" :max="9"
+                            :step="0.1"
+                            size="small"
+                            />
+                        </div>
+                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableFssnEqlist">
+                            <div class="justify-between" style="width: 10rem;">
+                                <span>FSSN烈度阈值</span>
+                                <div class="int" :class="setClassName(settingsStore.mainSettings.fssnActionCsis, false)">
+                                    <div class="csis" :class="{
+                                        'roman': settingsStore.mainSettings.useRomanCsis,
+                                        'scale-9': settingsStore.mainSettings.fssnActionCsis == 8
+                                    }">{{ formatCsis(settingsStore.mainSettings.fssnActionCsis.toString(), settingsStore.mainSettings.useRomanCsis) }}</div>
+                                </div>
+                            </div>
+                            <el-slider
+                            v-model="settingsStore.mainSettings.fssnActionCsis"
                             :disabled="!settingsStore.advancedSettings.forceCalcInt"
                             :min="0" :max="12"
                             :step="1"
@@ -1186,6 +1234,35 @@ const handleAdvance = (val)=>{
             if(settingsStore.advancedSettings.mockEew) handleNeedReload()
             settingsStore.advancedSettings.mockEew = false
             settingsStore.advancedSettings.enableMockEew = false
+            break
+        }
+        case 'enableFssnEqlist': {
+            ElMessageBox.confirm(
+                `
+                FAN Studio Seismic Network (FSSN)是由FAN Studio提供支持，利用FDSN地震仪网络进行全球地震测定的项目。
+                该项目由地震学爱好者组织维护，不属于任何官方机构。
+                该数据源的信息可能存在较多错误，请确认您是否坚持使用？
+                `,
+                '启用FSSN地震测定',
+                {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning',
+                    showClose: false,
+                }
+            ).then(()=>{
+                settingsStore.advancedSettings.enableFssnEqlist = true
+            }).catch(()=>{
+                if(settingsStore.mainSettings.source.fssnEqlist) handleNeedReload()
+                settingsStore.mainSettings.source.fssnEqlist = false
+                settingsStore.advancedSettings.enableFssnEqlist = false
+            })
+            break
+        }
+        case 'disableFssnEqlist': {
+            if(settingsStore.mainSettings.source.fssnEqlist) handleNeedReload()
+            settingsStore.mainSettings.source.fssnEqlist = false
+            settingsStore.advancedSettings.enableFssnEqlist = false
             break
         }
         case 'verifyAdmin': {

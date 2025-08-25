@@ -357,6 +357,9 @@ const types = {
     cencEqlist: {
         0: 'Wolfx',
         1: 'FAN'
+    },
+    fssnEqlist: {
+        1: 'FAN'
     }
 }
 const tempEqlists = ref('')
@@ -1201,7 +1204,7 @@ const jpEewInfoList = computed(()=>{
 })
 const cnEewInfoList = computed(()=>{
     const cnEewList = menuId.value == 'eqlists'
-        ? eqlistList.filter(event=>event.hypoMarker)
+        ? eqlistList.filter(event=>event.hypoMarker && !event.eqMessage.isCanceled)
         : activeEewList.filter(event=>!(event.eqMessage.isCanceled || event.eqMessage.isAssumption))
     const cnEewInfoList = cnEewList.map(event=>{
         const { magnitude, depth, lat, lng } = event.eqMessage
