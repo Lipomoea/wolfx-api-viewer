@@ -529,7 +529,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.magnitude = data.earthquake.hypocenter.magnitude
                                 eqMessage.magnitudeText = 'マグニチュード: ' + eqMessage.magnitude.toFixed(1)
                                 if(isNewEvent){
-                                    eqMessage.maxIntensity = '?'
+                                    eqMessage.maxIntensity = '不明'
                                     eqMessage.maxIntensityText = '最大震度: 不明'
                                     eqMessage.warnArea = JSON.stringify(data.points.map(point => {
                                         const name = point.isArea ? point.addr : jmaSeisIntLoc[point.addr]?.sect
@@ -570,8 +570,8 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.depthText = '深さ: ' + (eqMessage.depth == -1 ? '不明' : eqMessage.depth == 0 ? 'ごく浅い' : eqMessage.depth + 'km')
                                 eqMessage.magnitude = data.earthquake.hypocenter.magnitude
                                 eqMessage.magnitudeText = 'マグニチュード: ' + (eqMessage.magnitude == -1 ? '不明' : eqMessage.magnitude.toFixed(1))
-                                eqMessage.maxIntensity = data.earthquake.maxScale == -1 ? '?' : getShindoFromInstShindo(data.earthquake.maxScale / 10, false)
-                                eqMessage.maxIntensityText = '最大震度: ' + (data.earthquake.maxScale == -1 ? '不明' : eqMessage.maxIntensity)
+                                eqMessage.maxIntensity = data.earthquake.maxScale == -1 ? '不明' : getShindoFromInstShindo(data.earthquake.maxScale / 10, false)
+                                eqMessage.maxIntensityText = '最大震度: ' + eqMessage.maxIntensity
                                 eqMessage.warnArea = JSON.stringify(data.points.map(point => {
                                     const name = point.isArea ? point.addr : jmaSeisIntLoc[point.addr]?.sect
                                     const intensity = getShindoFromInstShindo(point.scale / 10, false)
@@ -679,9 +679,9 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.depthText = '深度: ' + eqMessage.depth.toFixed(0) + 'km'
                         eqMessage.originTime = data.shockTime
                         eqMessage.originTimeText = '发震时间: ' + data.shockTime
-                        eqMessage.magnitude = Math.round(Number(data.magnitude) * 10) / 10
-                        eqMessage.magnitudeText = '震级: ' + eqMessage.magnitude
-                        eqMessage.maxIntensity = calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
+                        eqMessage.magnitude = Number(data.magnitude) || -1
+                        eqMessage.magnitudeText = '震级: ' + (eqMessage.magnitude == -1 ? '不明' : eqMessage.magnitude.toFixed(1))
+                        eqMessage.maxIntensity = eqMessage.magnitude == -1 ? '不明' : calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
                         eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                         break
                     }

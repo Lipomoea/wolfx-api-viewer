@@ -106,8 +106,8 @@
                                     <div class="location">{{ event.eqMessage.hypocenter || '震源 調査中' }}</div>
                                     <div class="time">{{ event.eqMessage.originTime + ` (${formatTimeZone(event.eqMessage.timeZone)})` }}</div>
                                     <div class="bottom">
-                                        <div class="magnitude">{{ event.eqMessage.magnitude != -1 ? 'M' + event.eqMessage.magnitude.toFixed(1) : '規模・深さ 調査中' }}</div>
-                                        <div class="depth">{{ event.eqMessage.magnitude != -1 ? event.eqMessage.depthText : '' }}</div>
+                                        <div class="magnitude">{{ event.eqMessage.magnitude != -1 ? 'M' + event.eqMessage.magnitude.toFixed(1) : '規模 調査中' }}</div>
+                                        <div class="depth">{{ event.eqMessage.depth != -1 ? event.eqMessage.depthText : '' }}</div>
                                         <div class="type" v-if="settingsStore.advancedSettings.displayApiType">{{ types[event.eqMessage.source][event.eqMessage.type] }}</div>
                                     </div>
                                 </div>

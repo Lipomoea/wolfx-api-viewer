@@ -428,7 +428,7 @@ export const simplifyTopoJson = (topojson, factor) => {
   }
 };
 export const formatCsis = (value, useRoman) => {
-  if (!value) return value;
+  if (!value) return;
   if (useRoman) {
     switch (value) {
       case "0":
@@ -460,5 +460,8 @@ export const formatCsis = (value, useRoman) => {
       default:
         return "?";
     }
-  } else return value;
+  } else {
+    if (isNaN(value)) return "?";
+    else return value;
+  }
 };
