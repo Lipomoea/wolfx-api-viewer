@@ -1373,6 +1373,8 @@ onBeforeUnmount(()=>{
                                 display: flex;
                                 align-items: center;
                                 gap: 15px;
+                                overflow: hidden;
+                                white-space: nowrap;
                                 .magnitude{
                                     font-size: 24px;
                                 }
