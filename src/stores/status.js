@@ -472,7 +472,7 @@ export const useStatusStore = defineStore('statusStore', {
                             date.setHours(date.getHours() + 8)
                             eqMessage.reportTime = date.toISOString().replace('T', ' ').slice(0, -5)
                             eqMessage.reportNumText = '第' + data.RevisionId + '报'
-                            eqMessage.hypocenter = data.Region.split(',')[0] || '未知区域'
+                            eqMessage.hypocenter = data.Region || '未知区域'
                             eqMessage.hypocenterText = '震源: ' + eqMessage.hypocenter
                             eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                         }
