@@ -37,7 +37,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             gqActionCsis: 7,
             fssnActionMag: 5.0,
             fssnActionCsis: 7,
-            fssnActionType: 0,
+            fssnActionType: 2,
             onEew: {
                 notification: false,
                 sound: false,
