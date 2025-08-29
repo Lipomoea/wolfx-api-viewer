@@ -40,7 +40,9 @@ import '@/assets/opacity.css'
 import { useSettingsStore } from '@/stores/settings';
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const props = defineProps({
     source: String,
@@ -123,9 +125,9 @@ const getEqList = () => {
                     const maxIntensity = data[i].magnitude ? calcCsisLevel(Number(data[i].magnitude), Number(data[i].depth), 0) : '不明'
                     eqList[i] = {
                         id: data[i].ID,
-                        timeZone: 0,
+                        timeZone: 8,
                         useShindo: false,
-                        originTime: dayjs.utc(data[i].shockTime).format("YYYY-MM-DD HH:mm:ss"),
+                        originTime: dayjs.utc(data[i].shockTime).tz('Asia/Shanghai').format("YYYY-MM-DD HH:mm:ss"),
                         hypocenter: `(${infoType})` + data[i].placeName,
                         depth: Number(data[i].depth).toFixed(0) + 'km',
                         magnitude: data[i].magnitude ? Number(data[i].magnitude).toFixed(1) : '不明',
