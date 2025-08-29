@@ -32,6 +32,9 @@ if(settingsStore.advancedSettings.enableTremFunctions) {
     Object.assign(eqUrls, JSON.parse(localStorage.getItem('tremUrl'))?.eqUrls)
     eqHistoryList.splice(1, 0, 'cwaEqlist')
 }
+if(settingsStore.advancedSettings.enableFssnEqlist) {
+    eqHistoryList.push('fssnEqlist')
+}
 const back = ()=>{
     router.back()
 }

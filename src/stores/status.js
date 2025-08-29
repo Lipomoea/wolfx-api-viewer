@@ -648,7 +648,7 @@ export const useStatusStore = defineStore('statusStore', {
                         break
                     }
                     case 'fssnEqlist': {
-                        eqMessage.id = data.createTime.replace(/[^0-9]/g, '')
+                        eqMessage.id = data.id
                         eqMessage.reportTime = data.createTime
                         let infoType
                         switch(data.infoTypeName) {
