@@ -9,8 +9,8 @@
         :source></EqGrid>
         <EqGrid v-if="settingsStore.advancedSettings.mockEew" source="mockEew"></EqGrid>
       </div>
-      <el-button v-if="settingsStore.advancedSettings.mockEew" class="mock" :icon="Plus" @click="mockEewRef.showMockDialog = true">新建模拟预警</el-button>
-      <MockEew v-if="settingsStore.advancedSettings.mockEew" ref="mockEewRef"></MockEew>
+      <el-button v-if="settingsStore.advancedSettings.mockEew" class="mock" :icon="Plus" @click="statusStore.showMockDialog = true">新建模拟预警</el-button>
+      <MockEew v-if="settingsStore.advancedSettings.mockEew"></MockEew>
     </div>
   </div>
 </template>
@@ -20,14 +20,15 @@ import { ref } from 'vue';
 import EqGrid from '@/components/components/EqGrid.vue';
 import MockEew from './components/MockEew.vue';
 import { useSettingsStore } from '@/stores/settings';
+import { useStatusStore } from '@/stores/status';
 import { eqUrls } from '@/utils/Urls';
 import { Plus } from '@element-plus/icons-vue';
 
 const settingsStore = useSettingsStore()
+const statusStore = useStatusStore()
 if(settingsStore.advancedSettings.enableGqEew) Object.assign(eqUrls, JSON.parse(localStorage.getItem('gqUrl')))
 const eewList = Object.keys(settingsStore.mainSettings.source).filter(source => source.includes('Eew') && settingsStore.mainSettings.source[source])
 
-const mockEewRef = ref(null)
 </script>
 
 <style lang="scss" scoped>

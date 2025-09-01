@@ -1,5 +1,5 @@
 <template>
-    <el-dialog v-model="showMockDialog" width="35rem" :show-close="false" append-to-body>
+    <el-dialog v-model="statusStore.showMockDialog" width="35rem" :show-close="false" append-to-body>
         <template #header>
             <div class="flex justify-between items-center">
                 <div class="title">模拟地震预警</div>
@@ -90,7 +90,7 @@
                 <div class="flex items-center">
                     <el-button type="danger" @click="removePage" :disabled="forms.length === 1">删除</el-button>
                     <el-button @click="addPage">插入</el-button>
-                    <el-button @click="showMockDialog = false">取消</el-button>
+                    <el-button @click="statusStore.showMockDialog = false">取消</el-button>
                     <el-button type="primary" @click="submitScenario">提交</el-button>
                 </div>
             </div>
@@ -107,10 +107,7 @@ import timezone from 'dayjs/plugin/timezone';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const showMockDialog = ref(false)
-defineExpose({
-    showMockDialog
-})
+const statusStore = useStatusStore()
 
 const currentPage = ref(0)
 const forms = reactive([])
@@ -206,7 +203,7 @@ const generateEqMessage = (form, index, id) => {
     }
     return eqMessage
 }
-const statusStore = useStatusStore()
+
 const submitScenario = () => {
     const staticId = id.value || Date.now().toString()
     forms.forEach((form, index) => {
@@ -215,7 +212,7 @@ const submitScenario = () => {
             statusStore.setEqMessage('mockEew', eqMessage)
         }, form.reportDelay * 1000);
     })
-    showMockDialog.value = false
+    statusStore.showMockDialog = false
 }
 const exportScenario = () => {
     const output = {
@@ -268,11 +265,11 @@ watch(() => statusStore.map, newVal => {
     map = newVal
 }, { immediate: true })
 const pickLatLng = () => {
-    showMockDialog.value = false
+    statusStore.showMockDialog = false
     map?.once('click', e => {
         currentForm.value.lat = Math.round(e.latlng.lat * 1000) / 1000
         currentForm.value.lng = Math.round(e.latlng.lng * 1000) / 1000
-        showMockDialog.value = true
+        statusStore.showMockDialog = true
     })
 }
 </script>

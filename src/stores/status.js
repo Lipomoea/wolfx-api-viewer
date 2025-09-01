@@ -78,6 +78,7 @@ export const useStatusStore = defineStore('statusStore', {
     state: ()=>({
         map: null,
         isTauri: isTauri(),
+        showMockDialog: false,
         httpRequest: null,
         wolfxSocket: null,
         fanSocket: null,

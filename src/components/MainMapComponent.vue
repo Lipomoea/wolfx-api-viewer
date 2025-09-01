@@ -698,6 +698,11 @@ function handleKeydown(event) {
                     setView()
                 }
                 break
+            case 'm':
+                if(settingsStore.advancedSettings.mockEew) {
+                    statusStore.showMockDialog = !statusStore.showMockDialog
+                }
+                break
             case ',':
                 infoPageCounter.value = (infoPageCounter.value - infoPageCounter.value % 10 + 25200 - 10) % 25200
                 break
