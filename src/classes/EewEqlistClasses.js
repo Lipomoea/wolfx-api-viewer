@@ -156,6 +156,7 @@ export class EewEvent {
     switchDrawWaves(passedTime){
         let p_reach, p_radius, s_reach, s_radius
         const maxRadius = this.maxRadius
+        const maxRadius2 = this.maxCountdownRadius
         const travelTime = this.travelTime
         const p_info = calcWaveDistance(travelTime, true, this.eqMessage.depth, passedTime)
         p_reach = p_info.reach
@@ -163,23 +164,23 @@ export class EewEvent {
         const s_info = calcWaveDistance(travelTime, false, this.eqMessage.depth, passedTime)
         s_reach = s_info.reach
         s_radius = s_info.radius
-        if(p_radius > 0 && p_radius <= maxRadius) {
-            const opacityRatio = this.calcOpacityRatio(p_radius, maxRadius)
+        if(p_radius > 0 && p_radius <= maxRadius2) {
+            const opacity = p_radius <= maxRadius ? this.calcOpacity(p_radius, 0, maxRadius, 0.25, 1) : this.calcOpacity(p_radius, maxRadius, maxRadius2, 0, 0.25)
             if(!this.pWave) {
                 this.pWave = L.circle(this.hypoLatLng, {
                     color: 'white',
                     weight: 2,
-                    opacity: opacityRatio,
+                    opacity,
                     fill: false,
                     radius: p_radius * 1000,
                     pane: 'wavePane',
                     interactive: false
-                }).addTo(this.map)    
+                }).addTo(this.map)
             }
             else {
                 this.pWave.setRadius(p_radius * 1000)
                 this.pWave.setStyle({
-                    opacity: opacityRatio
+                    opacity
                 })
             }
         }
@@ -189,13 +190,13 @@ export class EewEvent {
                 this.pWave = null
             }
         }
-        if(s_radius > 0 && s_radius <= maxRadius) {
-            const opacityRatio = this.calcOpacityRatio(s_radius, maxRadius)
+        if(s_radius > 0 && s_radius <= maxRadius2) {
+            const opacity = s_radius <= maxRadius ? this.calcOpacity(s_radius, 0, maxRadius, 0.25, 1) : this.calcOpacity(s_radius, maxRadius, maxRadius2, 0, 0.25)
             if(!this.sWave) {
                 this.sWave = L.circle(this.hypoLatLng, {
                     color: this.eqMessage.isWarn ? 'red' : 'orange',
                     weight: 2,
-                    opacity: opacityRatio,
+                    opacity,
                     fill: false,
                     radius: s_radius * 1000,
                     pane: 'wavePane',
@@ -205,24 +206,7 @@ export class EewEvent {
             else {
                 this.sWave.setRadius(s_radius * 1000)
                 this.sWave.setStyle({
-                    opacity: opacityRatio
-                })
-            }
-            if(!this.sWaveFill) {
-                this.sWaveFill = L.circle(this.hypoLatLng, {
-                    fillColor: this.eqMessage.isWarn ? 'red' : 'orange',
-                    weight: 0,
-                    opacity: 0,
-                    fillOpacity: 0.25 * opacityRatio,
-                    radius: s_radius * 1000,
-                    pane: 'waveFillPane',
-                    interactive: false
-                }).addTo(this.map)    
-            }
-            else {
-                this.sWaveFill.setRadius(s_radius * 1000)
-                this.sWaveFill.setStyle({
-                    fillOpacity: 0.25 * opacityRatio
+                    opacity
                 })
             }
         }
@@ -231,16 +215,42 @@ export class EewEvent {
                 this.map.removeLayer(this.sWave)
                 this.sWave = null
             }
+        }
+        if(s_radius > 0 && s_radius <= maxRadius) {
+            const fillOpacity = this.calcOpacity(s_radius, 0, maxRadius, 0, 0.25)
+            if(!this.sWaveFill) {
+                this.sWaveFill = L.circle(this.hypoLatLng, {
+                    fillColor: this.eqMessage.isWarn ? 'red' : 'orange',
+                    weight: 0,
+                    opacity: 0,
+                    fillOpacity,
+                    radius: s_radius * 1000,
+                    pane: 'waveFillPane',
+                    interactive: false
+                }).addTo(this.map)    
+            }
+            else {
+                this.sWaveFill.setRadius(s_radius * 1000)
+                this.sWaveFill.setStyle({
+                    fillOpacity
+                })
+            }
+        }
+        else {
             if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) {
                 this.map.removeLayer(this.sWaveFill)
                 this.sWaveFill = null
             }
         }
     }
-    calcOpacityRatio(radius, maxRadius){
-        if(radius <= maxRadius * 0.9) return 1
-        else if(radius >= maxRadius) return 0
-        else return 10 * (1 - radius / maxRadius)
+    calcOpacity(radius, minRadius, maxRadius, minOpacity = 0, maxOpacity = 1){
+        if(radius <= minRadius * 0.1 + maxRadius * 0.9) return maxOpacity
+        else if(radius >= maxRadius) return minOpacity
+        else {
+            const k = 10 * (minOpacity - maxOpacity) / (maxRadius - minRadius)
+            const b = (10 * maxOpacity * maxRadius - 9 * minOpacity * maxRadius - minOpacity * minRadius) / (maxRadius - minRadius)
+            return k * radius + b
+        }
     }
     renderStop(){
         clearInterval(this.drawWavesInterval)
