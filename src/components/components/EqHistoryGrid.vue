@@ -128,7 +128,7 @@ const getEqList = () => {
                         timeZone: 8,
                         useShindo: false,
                         originTime: dayjs.utc(data[i].shockTime).tz('Asia/Shanghai').format("YYYY-MM-DD HH:mm:ss"),
-                        hypocenter: `(${infoType})` + data[i].placeName,
+                        hypocenter: `(${infoType}) ` + data[i].placeName,
                         depth: Number(data[i].depth).toFixed(0) + 'km',
                         magnitude: data[i].magnitude ? Number(data[i].magnitude).toFixed(1) : '不明',
                         maxIntensity,
@@ -231,7 +231,7 @@ onBeforeUnmount(() => {
         }
 
         .right {
-            width: 340px;
+            width: 300px;
             display: flex;
             flex-direction: column;
             justify-content: center;
