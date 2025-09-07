@@ -21,10 +21,6 @@
                         <el-input v-model="title" placeholder="选填" />&nbsp;第{{ currentPage + 1 }}报
                     </el-form-item>
 
-                    <el-form-item label="使用震度">
-                        <el-switch v-model="useShindo" />
-                    </el-form-item>
-                    
                     <el-form-item label="发震延迟 (s)">
                         <el-input-number v-model="currentForm.originDelay" :step="1" />
                     </el-form-item>
@@ -32,13 +28,13 @@
                     <el-form-item label="发报延迟 (s)">
                         <el-input-number v-model="currentForm.reportDelay" :min="0" :step="1" />
                     </el-form-item>
-                    
+
                     <el-form-item label="震中地名">
                         <el-input v-model="currentForm.hypocenter" placeholder="选填" />
                     </el-form-item>
 
                     <el-form-item label="拾取经纬度">
-                        <el-button @click="pickLatLng">拾取经纬度</el-button>
+                        <el-button class="pick-latlng" @click="pickLatLng">拾取经纬度</el-button>
                     </el-form-item>
 
                     <el-form-item label="纬度">
@@ -54,7 +50,12 @@
                     </el-form-item>
 
                     <el-form-item label="震级">
-                        <el-input-number v-model="currentForm.magnitude" :step="0.1" :min="0" :max="10" :precision="1" />
+                        <el-input-number v-model="currentForm.magnitude" :step="0.1" :min="0" :max="10"
+                            :precision="1" />
+                    </el-form-item>
+
+                    <el-form-item label="使用震度">
+                        <el-switch v-model="useShindo" />
                     </el-form-item>
 
                     <el-form-item :label="useShindo ? '最大震度' : '最大烈度'">
@@ -297,7 +298,9 @@ const pickLatLng = () => {
 }
 
 .el-input,
-.el-select {
-    width: 12.5rem;
+.el-select,
+.el-input-number,
+.pick-latlng {
+    width: 10rem;
 }
 </style>
