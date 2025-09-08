@@ -289,11 +289,11 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.depthText = '深度: ' + (data.depth == null ? '不明' : data.depth + 'km')
                         eqMessage.originTime = data.shockTime
                         eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
-                        eqMessage.magnitude = Number(data.magnitude)
+                        eqMessage.magnitude = data.magnitude
                         eqMessage.magnitudeText = '震级: ' + eqMessage.magnitude.toFixed(1)
-                        eqMessage.maxIntensity = data.epiIntensity.toFixed(0)
-                        eqMessage.maxIntensityText = '估计最大烈度: ' + data.epiIntensity.toFixed(0)
-                        eqMessage.isWarn = data.epiIntensity >= 6.5
+                        eqMessage.maxIntensity = data.epiIntensity?.toFixed(0) || calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
+                        eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
+                        eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 6.5
                         break
                     }
                     case 'iclEew':{
@@ -315,7 +315,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
                                 eqMessage.magnitude = data.magnitude
                                 eqMessage.magnitudeText = '震级: ' + data.magnitude.toFixed(1)
-                                eqMessage.maxIntensity = data.epiIntensity ? data.epiIntensity.toFixed(0) : calcCsisLevel(data.magnitude, data.depth, 0)
+                                eqMessage.maxIntensity = data.epiIntensity?.toFixed(0) || calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
                                 eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                                 eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 6.5
                                 break
@@ -334,9 +334,9 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.depthText = '深度: ' + eqMessage.depth.toFixed(0) + 'km'
                                 eqMessage.originTime = data.shockTime
                                 eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
-                                eqMessage.magnitude = Number(data.magnitude)
+                                eqMessage.magnitude = data.magnitude
                                 eqMessage.magnitudeText = '震级: ' + eqMessage.magnitude.toFixed(1)
-                                eqMessage.maxIntensity = data.epiIntensity ? data.epiIntensity.toFixed(0) : calcCsisLevel(data.magnitude, data.depth, 0)
+                                eqMessage.maxIntensity = data.epiIntensity?.toFixed(0) || calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
                                 eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                                 eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 6.5
                                 break
@@ -351,7 +351,6 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.reportNum = data.ReportNum
                                 eqMessage.reportNumText = '第' + data.ReportNum + '报'
                                 eqMessage.reportTime = data.ReportTime
-                                eqMessage.isWarn = data.MaxIntensity >= 6.5
                                 eqMessage.titleText = '四川地震局地震预警'
                                 eqMessage.hypocenter = data.HypoCenter
                                 eqMessage.hypocenterText = '震源: ' + data.HypoCenter
@@ -363,16 +362,16 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.originTimeText = '发震时间: ' + data.OriginTime
                                 eqMessage.magnitude = data.Magunitude
                                 eqMessage.magnitudeText = '震级: ' + data.Magunitude.toFixed(1)
-                                eqMessage.maxIntensity = data.MaxIntensity.toFixed(0)
+                                eqMessage.maxIntensity = data.MaxIntensity?.toFixed(0) || calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
                                 eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
+                                eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 6.5
                                 break
                             case 1:
                                 eqMessage.id = data.eventId.split('_')[0]
                                 eqMessage.isEew = true
-                                eqMessage.reportNum = Number(data.eventId.split('_')[1])
+                                eqMessage.reportNum = data.updates
                                 eqMessage.reportNumText = '第' + eqMessage.reportNum + '报'
                                 eqMessage.reportTime = data.createTime
-                                eqMessage.isWarn = data.epiIntensity >= 6.5
                                 eqMessage.titleText = '四川地震局地震预警'
                                 eqMessage.hypocenter = data.placeName
                                 eqMessage.hypocenterText = '震源: ' + data.placeName
@@ -382,10 +381,11 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.depthText = '深度: 不明'
                                 eqMessage.originTime = data.shockTime
                                 eqMessage.originTimeText = '发震时间: ' + data.shockTime
-                                eqMessage.magnitude = Number(data.magnitude)
+                                eqMessage.magnitude = data.magnitude
                                 eqMessage.magnitudeText = '震级: ' + eqMessage.magnitude.toFixed(1)
-                                eqMessage.maxIntensity = data.epiIntensity.toFixed(0)
+                                eqMessage.maxIntensity = data.epiIntensity?.toFixed(0) || calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
                                 eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
+                                eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 6.5
                                 break
                         }
                         break
@@ -409,14 +409,14 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.originTimeText = '发震时间: ' + data.OriginTime
                                 eqMessage.magnitude = data.Magunitude
                                 eqMessage.magnitudeText = '震级: ' + data.Magunitude.toFixed(1)
-                                eqMessage.maxIntensity = calcCsisLevel(data.Magunitude, 10, 0)
+                                eqMessage.maxIntensity = calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
                                 eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                                 eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 7.5
                                 break
                             case 1:
                                 eqMessage.id = data.eventId.split('_')[0]
                                 eqMessage.isEew = true
-                                eqMessage.reportNum = Number(data.eventId.split('_')[1])
+                                eqMessage.reportNum = data.updates
                                 eqMessage.reportNumText = '第' + eqMessage.reportNum + '报'
                                 eqMessage.reportTime = data.sendtime.slice(0, 19)
                                 eqMessage.titleText = '福建地震局地震预警'
@@ -430,7 +430,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
                                 eqMessage.magnitude = data.magnitude
                                 eqMessage.magnitudeText = '震级: ' + data.magnitude.toFixed(1)
-                                eqMessage.maxIntensity = calcCsisLevel(data.magnitude, 10, 0)
+                                eqMessage.maxIntensity = calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
                                 eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                                 eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 7.5
                                 break
@@ -674,13 +674,13 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.titleText = eqMessage.title
                         eqMessage.hypocenter = data.placeName
                         eqMessage.hypocenterText = '震源: ' + data.placeName
-                        eqMessage.lat = Number(data.latitude)
-                        eqMessage.lng = Number(data.longitude)
-                        eqMessage.depth = Number(data.depth)
+                        eqMessage.lat = data.latitude
+                        eqMessage.lng = data.longitude
+                        eqMessage.depth = data.depth
                         eqMessage.depthText = '深度: ' + eqMessage.depth.toFixed(0) + 'km'
                         eqMessage.originTime = data.shockTime
                         eqMessage.originTimeText = '发震时间: ' + data.shockTime
-                        eqMessage.magnitude = Number(data.magnitude) || -1
+                        eqMessage.magnitude = data.magnitude || -1
                         eqMessage.magnitudeText = '震级: ' + (eqMessage.magnitude == -1 ? '不明' : eqMessage.magnitude.toFixed(1))
                         eqMessage.maxIntensity = eqMessage.magnitude == -1 ? '不明' : calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
                         eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
@@ -819,10 +819,8 @@ export const useStatusStore = defineStore('statusStore', {
                 if(this.activeFanSource.length > 0) {
                     const settingsStore = useSettingsStore()
                     const initMsg = []
-                    if(this.activeFanSource.includes('iclEew')) {
-                        const token = settingsStore.advancedSettings.tokens.fan_icl
-                        if(token) initMsg.push(`{"type":"auth","key":"${token}"}`)
-                    }
+                    const token = settingsStore.advancedSettings.tokens.fan_dev
+                    if(token) initMsg.push(`{"type":"auth","key":"${token}"}`)
                     this.fanSocket = new WebSocketObj(eqUrls.fan_ws, ['query'], initMsg)
                     this.fanSocket.setMessageHandler((e)=>{
                         let data = JSON.parse(e.data)

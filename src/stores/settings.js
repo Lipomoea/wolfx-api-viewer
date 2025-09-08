@@ -99,7 +99,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             enableMultiApi: false,
             enableMockEew: false,
             tokens: {
-                fan_icl: ''
+                fan_dev: ''
             },
             multiApi: false,
             displayApiType: false,
@@ -132,7 +132,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             }
             else return null
         },
-        displayTokenButton: (state) => state.advancedSettings.enableIclEew
+        displayTokenButton: (state) => state.advancedSettings.enableIclEew || state.advancedSettings.enableFssnEqlist
     },
     actions: {
         setMainSettings(jsonString){

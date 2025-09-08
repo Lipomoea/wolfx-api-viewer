@@ -924,8 +924,8 @@
         </el-dialog>
         <el-dialog v-model="showTokenManager" width="300px" top="20vh" :show-close="false" append-to-body>
             <el-form :model="idForm">
-                <el-form-item v-if="settingsStore.advancedSettings.enableIclEew" label="FAN:ICL" label-width="60px">
-                    <el-input v-model="settingsStore.advancedSettings.tokens.fan_icl" @change="handleNeedReload" />
+                <el-form-item v-if="settingsStore.advancedSettings.enableIclEew || settingsStore.advancedSettings.enableFssnEqlist" label="FAN:DEV" label-width="60px">
+                    <el-input v-model="settingsStore.advancedSettings.tokens.fan_dev" @change="handleNeedReload" />
                 </el-form-item>
             </el-form>
             <template #footer>
