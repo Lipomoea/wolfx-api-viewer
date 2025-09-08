@@ -4,7 +4,7 @@ export const eqUrls = {
     jmaEqlist_http: 'https://api.p2pquake.net/v2/history?codes=551&limit=1',
     cencEqlistHistory: 'https://api.wolfx.jp/cenc_eqlist.json',
     jmaEqlistHistory: 'https://api.wolfx.jp/jma_eqlist.json',
-    fssnEqlistHistory: 'https://api.fanstudio.tech/eq/fssn_50.php',
+    fssnEqlistHistory: 'https://api.fanstudio.tech/eq/fssn_50.php?translate=zh',
     wolfx_ws: 'wss://ws-api.wolfx.jp/all_eew',
     fan_ws: 'wss://ws.fanstudio.tech/all',
     p2pquake_ws: 'wss://api.p2pquake.net/v2/ws'

@@ -672,8 +672,8 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.isCanceled = infoType == '取消'
                         eqMessage.title = `FSSN地震测定（${infoType}）`
                         eqMessage.titleText = eqMessage.title
-                        eqMessage.hypocenter = data.placeName
-                        eqMessage.hypocenterText = '震源: ' + data.placeName
+                        eqMessage.hypocenter = data.placeName_zh || data.placeName
+                        eqMessage.hypocenterText = '震源: ' + eqMessage.hypocenter
                         eqMessage.lat = data.latitude
                         eqMessage.lng = data.longitude
                         eqMessage.depth = data.depth

@@ -53,7 +53,7 @@ const httpInterval = 10000
 const maxHistoryNumber = 50
 let request
 const source = props.source + 'History'
-const useAnd = new Set(['cwaEqlist'])
+const useAnd = new Set(['cwaEqlist', 'fssnEqlist'])
 
 const getEqList = () => {
     Http.get(eqUrls[source] + (useAnd.has(props.source) ? '&' : '?') + `time=${Date.now()}`).then(data => {
@@ -128,7 +128,7 @@ const getEqList = () => {
                         timeZone: 8,
                         useShindo: false,
                         originTime: dayjs.utc(data[i].shockTime).tz('Asia/Shanghai').format("YYYY-MM-DD HH:mm:ss"),
-                        hypocenter: `(${infoType}) ` + data[i].placeName,
+                        hypocenter: `(${infoType}) ` + (data[i].placeName_zh || data[i].placeName),
                         depth: Number(data[i].depth).toFixed(0) + 'km',
                         magnitude: data[i].magnitude ? Number(data[i].magnitude).toFixed(1) : '不明',
                         maxIntensity,
