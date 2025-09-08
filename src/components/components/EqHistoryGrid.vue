@@ -122,7 +122,7 @@ const getEqList = () => {
                             break
                     }
                     const isCanceled = infoType == '取消'
-                    const maxIntensity = data[i].magnitude ? calcCsisLevel(Number(data[i].magnitude), Number(data[i].depth), 0) : '不明'
+                    const maxIntensity = Number(data[i].magnitude) ? calcCsisLevel(Number(data[i].magnitude), Number(data[i].depth), 0) : '不明'
                     eqList[i] = {
                         id: data[i].ID,
                         timeZone: 8,
@@ -130,7 +130,7 @@ const getEqList = () => {
                         originTime: dayjs.utc(data[i].shockTime).tz('Asia/Shanghai').format("YYYY-MM-DD HH:mm:ss"),
                         hypocenter: `(${infoType}) ` + (data[i].placeName_zh || data[i].placeName),
                         depth: Number(data[i].depth).toFixed(0) + 'km',
-                        magnitude: data[i].magnitude ? Number(data[i].magnitude).toFixed(1) : '不明',
+                        magnitude: Number(data[i].magnitude) ? Number(data[i].magnitude).toFixed(1) : '不明',
                         maxIntensity,
                         className: setClassName(maxIntensity, false, isCanceled)
                     }
