@@ -78,6 +78,8 @@ export const useSettingsStore = defineStore('settingsStore', {
             viewLatLng: ['', ''],
             defaultZoom: 5,
             uiScale: 1,
+            displayPlaceName: false,
+            placeNameOnHover: false,
             useRomanCsis: false,
             hideDrawer: false,
             cinemaMode: false,
@@ -104,6 +106,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             multiApi: false,
             displayApiType: false,
             forceCalcInt: false,
+            useClassicMapLoader: false,
             preventFlickerMode: false,
             mockEew: false
         }

@@ -629,6 +629,16 @@
                             </el-select>
                         </div>
                         <div class="switch-full">
+                            <span>显示地名</span>
+                            <el-switch v-model="settingsStore.mainSettings.displayPlaceName"
+                            @change="handleNeedReload" />
+                        </div>
+                        <div class="switch-full">
+                            <span>悬浮时显示地名</span>
+                            <el-switch v-model="settingsStore.mainSettings.placeNameOnHover"
+                            @change="handleNeedReload" />
+                        </div>
+                        <div class="switch-full">
                             <span>显示中国断层</span>
                             <el-switch v-model="settingsStore.mainSettings.displayCnFault" />
                         </div>
@@ -796,6 +806,26 @@
                         </div>
                         <div class="switch-full">
                             <span>
+                                使用经典地图加载器
+                                <el-popover
+                                    placement="top"
+                                    :width="300"
+                                    trigger="hover"
+                                >
+                                    <template #reference>
+                                        <question-filled width="1em" height="1em" />
+                                    </template>
+                                    <p>开启后：使用常规GeoJSON图层渲染底图，支持鼠标悬浮底图显示地名，部分情况下图形边缘更清晰；不支持拖动时加载，不支持循环显示地图。</p>
+                                    <p>关闭后：使用VectorGrid图层渲染底图，支持拖动时加载，支持循环显示地图；不支持鼠标悬浮底图显示地名，部分情况下图形边缘可能模糊。</p>
+                                    <p><strong>此功能需重新加载页面后生效。</strong></p>
+                                </el-popover>
+                            </span>
+                            <el-switch 
+                            v-model="settingsStore.advancedSettings.useClassicMapLoader"
+                            @change="handleNeedReload" />
+                        </div>
+                        <div class="switch-full">
+                            <span>
                                 防闪烁模式
                                 <el-popover
                                     placement="top"
@@ -933,7 +963,7 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false" append-to-body>
-            <div class="header">要石 v2.2.0-pre.5</div>
+            <div class="header">要石 v2.2.0-pre.6</div>
             <div class="title">最近更新</div>
             <div class="about">
                 <p>v2.2.0 变更：引入FAN Studio API；紧急地震速报加入NIED源；弃用部分HTTP接口。新增：中国地震局地震预警；单击信息框可静默或关闭正在生效的地震预警或地震信息；双击侧边栏地震预警/地震信息框可快速进行测站回放，双击左下角测站时间可重置；显示API名称功能；性能优化选项。优化：调整了部分UI；使用更精细的中国地图；降低部分平台下应用处于后台的功耗。修复：WebSocket连接时小概率数据丢失的问题；macOS客户端无法打开网页的问题；特定情况下macOS客户端从后台切回前台时卡住的问题。</p>
@@ -1361,13 +1391,19 @@ const postVerify = async (type = verifyType)=>{
     }
 }
 const handleNeedReload = () => {
-    needReload.value = true
-    ElMessage({
-        message: '需要重载页面后生效',
-        type: 'warning'
-    })
+    if(!needReload.value) {
+        needReload.value = true
+        ElMessage({
+            message: '需要重载页面后生效！点击右侧关闭按钮立即重载',
+            type: 'warning',
+            duration: 0,
+            showClose: true,
+            onClose: handleReload
+        })
+    }
 }
 const showAbout = ref(false)
+let hasNewVersion = false
 const checkNewVersion = async (silent = false) => {
     const currentVersion = document.title.split('v')[1]
     try {
@@ -1401,20 +1437,32 @@ const checkNewVersion = async (silent = false) => {
             detail = versionInfo[0].body
         }
         if(compareVersion(currentVersion, checkedVersion)) {
+            if(!hasNewVersion) {
+                hasNewVersion = true
+                ElMessage({
+                    message: `检查到新版本v${checkedVersion}`,
+                    type: 'success',
+                    duration: 0,
+                    showClose: true,
+                    onClose: () => hasNewVersion = false
+                })
+            }
             ElMessageBox.close()
             if(isTauri) {
-                ElMessageBox.confirm(
-                    `检查到新版本v${checkedVersion}，是否下载？\r\n${detail}`,
-                    '检查更新',
-                    {
-                        confirmButtonText: '确定',
-                        cancelButtonText: '取消',
-                        type: 'info',
-                        showClose: false,
-                    }
-                ).then(()=>{
-                    openUrl(downloadUrl)
-                })
+                if(!silent) {
+                    ElMessageBox.confirm(
+                        `检查到新版本v${checkedVersion}，是否下载？\r\n${detail}`,
+                        '发现新版本',
+                        {
+                            confirmButtonText: '下载',
+                            cancelButtonText: '关闭',
+                            type: '',
+                            showClose: false
+                        }
+                    ).then(()=>{
+                        openUrl(downloadUrl)
+                    })
+                }
             }
             else {
                 if(settingsStore.mainSettings.autoRefresh) {
@@ -1427,18 +1475,20 @@ const checkNewVersion = async (silent = false) => {
                     }, 5000);
                 }
                 else {
-                    ElMessageBox.confirm(
-                        `检查到新版本v${checkedVersion}，是否刷新页面？\r\n${detail}`,
-                        '检查更新',
-                        {
-                            confirmButtonText: '确定',
-                            cancelButtonText: '取消',
-                            type: 'info',
-                            showClose: false,
-                        }
-                    ).then(()=>{
-                        handleReload()
-                    })
+                    if(!silent) {
+                        ElMessageBox.confirm(
+                            `检查到新版本v${checkedVersion}，是否刷新页面？\r\n${detail}`,
+                            '检查更新',
+                            {
+                                confirmButtonText: '确定',
+                                cancelButtonText: '取消',
+                                type: 'info',
+                                showClose: false,
+                            }
+                        ).then(()=>{
+                            handleReload()
+                        })
+                    }
                 }
             }
         }

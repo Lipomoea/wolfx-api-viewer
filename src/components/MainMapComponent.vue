@@ -281,7 +281,7 @@
 
 <script setup>
 import L from 'leaflet';
-import 'leaflet.vectorgrid'
+import 'leaflet.vectorgrid';
 import 'leaflet/dist/leaflet.css';
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, watchEffect, provide } from 'vue';
 import '@/assets/background.css'
@@ -300,17 +300,18 @@ import { storeToRefs } from 'pinia';
 import { simpleShindo } from '@/classes/StationClasses';
 import { feature } from 'topojson-client';
 import router from '@/router';
+import { cnCityLabels, cnProvinceLabels, jpPrefLabels } from '@/utils/Labels';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
-let map, jpEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap
-let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, cnFaultBasePane, jpEewBasePane, cnEewBasePane, jpTsunamiBasePane
+let map, jpEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap, labelLayer1, labelLayer2
+let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, cnFaultBasePane, jpEewBasePane, cnEewBasePane, jpTsunamiBasePane, labelPane1, labelPane2
 const defaultLatLng = [38.1, 104.6]
 const { isValidUserLatLng, isDisplayUser, numUserLatLng: userLatLng, nearestJmaLoc } = storeToRefs(settingsStore)
 let userMarker
 const isValidViewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.every(item=>item !== ''))
 const viewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.map(val=>Number(val)))
-const zoomLevel = computed(()=>settingsStore.mainSettings.defaultZoom)
+const zoomLevel = ref(settingsStore.mainSettings.defaultZoom)
 const resetSeisNetDelay = () => settingsStore.mainSettings.displaySeisNet.delay = 0
 const types = {
     jmaEew: {
@@ -561,14 +562,20 @@ onMounted(()=>{
         map.createPane(`tremStationPane${i}`)
         map.getPane(`tremStationPane${i}`).style.zIndex = i + 50
     }
-    map.createPane('userPane')
-    map.getPane('userPane').style.zIndex = 90
     map.createPane('niedGridPane')
     niedGridPane = map.getPane('niedGridPane')
     niedGridPane.style.zIndex = 100
     map.createPane('tremGridPane')
     tremGridPane = map.getPane('tremGridPane')
     tremGridPane.style.zIndex = 100
+    map.createPane('labelPane1')
+    labelPane1 = map.getPane('labelPane1')
+    labelPane1.style.zIndex = 120
+    map.createPane('labelPane2')
+    labelPane2 = map.getPane('labelPane2')
+    labelPane2.style.zIndex = 120
+    map.createPane('userPane')
+    map.getPane('userPane').style.zIndex = 140
     map.createPane('wavePane')
     wavePane = map.getPane('wavePane')
     wavePane.style.zIndex = 150
@@ -579,6 +586,7 @@ onMounted(()=>{
     eqlistMarkerPane = map.getPane('eqlistMarkerPane')
     eqlistMarkerPane.style.zIndex = 200
     map.on('dragstart', handleManual)
+    map.on('zoomend', () => zoomLevel.value = map.getZoom())
     if(settingsStore.advancedSettings.preventFlickerMode){
         map.on('zoomstart', ()=>{setMapHeight('calc(100% - 1px)');})
         map.on('zoomend', ()=>{setMapHeight('100%');})
@@ -603,6 +611,8 @@ onMounted(()=>{
         }
         nearestJmaLoc.value
     })
+    labelLayer1 = L.layerGroup().addTo(map);
+    labelLayer2 = L.layerGroup().addTo(map);
     loadMaps()
     watch(()=>settingsStore.mainSettings.displayCnFault, newVal=>{
         cnFaultBasePane.style.display = newVal ? 'block' : 'none'
@@ -759,6 +769,53 @@ const loadMaps = async (retries = 0) => {
             fillOpacity: 1,
             weight: 1,
         })
+        if(settingsStore.mainSettings.displayPlaceName) {
+            const options = {
+                className: "feature-label",
+                iconSize: [100, 14],
+                iconAnchor: [50, 7],
+            }
+            cnProvinceLabels.forEach(item => {
+                const { name, coord } = item
+                const label = L.marker(coord, {
+                    icon: L.divIcon({
+                        html: name,
+                        ...options
+                    }),
+                    pane: "labelPane1",
+                    interactive: false
+                })
+                labelLayer1.addLayer(label)
+            })
+            cnCityLabels.forEach(item => {
+                const { name, coord } = item
+                const label = L.marker(coord, {
+                    icon: L.divIcon({
+                        html: name,
+                        ...options
+                    }),
+                    pane: "labelPane2",
+                    interactive: false
+                })
+                labelLayer2.addLayer(label)
+            })
+            jpPrefLabels.forEach(item => {
+                const { name, coord } = item
+                const label = L.marker(coord, {
+                    icon: L.divIcon({
+                        html: name,
+                        ...options
+                    }),
+                    pane: "labelPane2",
+                    interactive: false
+                })
+                labelLayer2.addLayer(label)
+            })
+            watchEffect(() => {
+                labelPane1.style.display = zoomLevel.value >= 5 && zoomLevel.value < 8 ? 'block' : 'none'
+                labelPane2.style.display = zoomLevel.value >= 8 ? 'block' : 'none'
+            })
+        }
         watch(jmaWarnArea, (newVal)=>{
             jpEewBaseMap?.eachLayer(layer=>{
                 const layerName = layer.feature.properties.name
@@ -1051,7 +1108,7 @@ const setView = () => {
             else{
                 targetCenter = defaultLatLng
             }
-            map.setView(targetCenter, zoomLevel.value, { animate: true })
+            map.setView(targetCenter, settingsStore.mainSettings.defaultZoom, { animate: true })
         }
     }
     else {
@@ -1064,7 +1121,7 @@ const smartSetView = () => {
     }, 0);
 }
 provide('smartSetView', smartSetView)
-const loadBaseMap = (topojson, pane, useVector = true, style = {
+const loadBaseMap = (topojson, pane, isBaseMap = true, style = {
         color: '#ccc',
         fillColor: '#333',
         fillOpacity: 1,
@@ -1073,7 +1130,7 @@ const loadBaseMap = (topojson, pane, useVector = true, style = {
     })=>{
     if(Object.keys(topojson).length != 0){
         try {
-            if(useVector) {
+            if(isBaseMap && !settingsStore.advancedSettings.useClassicMapLoader) {
                 const geojson = feature(topojson, topojson.objects.region)
                 const vectorGrid = L.vectorGrid.slicer(geojson, {
                     pane,
@@ -1087,13 +1144,14 @@ const loadBaseMap = (topojson, pane, useVector = true, style = {
                 return vectorGrid;
             }
             else {
-                const factor = settingsStore.mainSettings.mapSimplifyFactor
+                const factor = isBaseMap ? 0 : settingsStore.mainSettings.mapSimplifyFactor
                 const simplified = simplifyTopoJson(topojson, factor)
                 const geojson = feature(simplified, simplified.objects.region)
                 const baseMap = L.geoJson(geojson, {
                     pane,
                     style,
-                    onEachFeature
+                    interactive: settingsStore.mainSettings.placeNameOnHover,
+                    onEachFeature: settingsStore.mainSettings.placeNameOnHover && onEachFeature
                 })
                 baseMap.addTo(map)
                 return baseMap
@@ -1248,6 +1306,13 @@ onBeforeUnmount(()=>{
                 height: 100%;
                 *{
                     cursor: default;
+                }
+                :deep(.feature-label) {
+                    color: white;
+                    font-size: 14px;
+                    text-align: center;
+                    line-height: 14px;
+                    opacity: 0.9;
                 }
             }
             .crossDivIcon{
