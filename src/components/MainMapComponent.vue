@@ -1319,10 +1319,6 @@ onBeforeUnmount(()=>{
                     cursor: default;
                 }
             }
-            .crossDivIcon{
-                background: none;
-                border: none;
-            }
             .leaflet-container{
                 background-color: #222;
             }
