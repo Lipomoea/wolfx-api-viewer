@@ -1,12 +1,11 @@
-# 要石 kanameishi (原wolfx-api-viewer)
-> [!TIP]
-> 你正在浏览dev分支。
+# 要石 kanameishi
+
 ## 简介
-要石(kanameishi / 原wolfx-api-viewer)是一个基于多重API制作的地震预警和地震信息可视化Web应用，基于Vite+Vue3+Leaflet开发。  
+要石(kanameishi)是一个基于多重API制作的地震预警和地震信息可视化Web应用，基于Vite+Vue3+Leaflet开发。  
 提供基于Tauri构建的Windows及macOS应用程序，推荐Windows 10、macOS 11及以上系统使用。  
 icon是《铃芽之旅》的草太さん（椅子形态）。  
-* [Web版](http://124.70.142.213:8081/)
-* [Web版备用](https://kanameishi.pages.dev/)（使用CloudFlare，速度更快，但国内可能需要代理访问。）
+* [Web版](https://kanameishi.lipomoea.tech/)
+* [Web版备用](https://kanameishi.pages.dev/)（使用CloudFlare托管，速度更快，但国内可能需要代理访问。）
 * [应用程序下载](https://github.com/Lipomoea/kanameishi/releases)
 * [应用程序下载（备用）](https://gitee.com/lipomoea/kanameishi/releases)
 ## 主要功能  
@@ -24,6 +23,7 @@ icon是《铃芽之旅》的草太さん（椅子形态）。
 * 中国大陆地图：[阿里云DataV.GeoAtlas](https://datav.aliyun.com/portal/school/atlas/area_selector)
 * 中国台湾地图：[GeoJSON](https://geojson.cn/)
 * 中国断层：[国家地震科学数据中心](https://data.earthquake.cn/datashare/report.shtml?PAGEID=datasourcelist&dt=ff808082845b8fd401845bf036a1000c)
+* 中国地图注记：[中国城市经纬度坐标点集](https://gitcode.com/Open-source-documentation-tutorial/a0d83)
 * 日本地图：[日本気象庁](https://www.data.jma.go.jp/developer/gis.html)（注意钓鱼岛地区处理）
 * 世界地图：[GeoJSON Maps of the globe](https://geojson-maps.kyd.au/)（注意甄别争议地区）
 * SREV音效：[scratch-realtime-earthquake-viewer-page](https://github.com/kotoho7/scratch-realtime-earthquake-viewer-page)

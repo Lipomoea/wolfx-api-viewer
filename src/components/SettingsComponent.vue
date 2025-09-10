@@ -964,12 +964,6 @@
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false" append-to-body>
             <div class="header">要石 v2.2.0-pre.6</div>
-            <div class="title">最近更新</div>
-            <div class="about">
-                <p>v2.2.0 变更：引入FAN Studio API；紧急地震速报加入NIED源；弃用部分HTTP接口。新增：中国地震局地震预警；单击信息框可静默或关闭正在生效的地震预警或地震信息；双击侧边栏地震预警/地震信息框可快速进行测站回放，双击左下角测站时间可重置；显示API名称功能；性能优化选项。优化：调整了部分UI；使用更精细的中国地图；降低部分平台下应用处于后台的功耗。修复：WebSocket连接时小概率数据丢失的问题；macOS客户端无法打开网页的问题；特定情况下macOS客户端从后台切回前台时卡住的问题。</p>
-                <p>v2.1.0 新增：适配macOS应用程序；新增：区域烈度列表显示功能；新增：UI缩放比例调整；新增：中文倒计时播报；新增：可调整开始倒计时的秒数；优化：适当提升了应用程序窗口可调整的大小范围；优化：部分走时精准度；优化：部分测站渲染性能；优化：地震波绘制性能；修复：版本号检测逻辑错误的bug；修复：Safari等浏览器下，部分界面显示异常的问题。</p>
-                <p>v2.0.0 变更：版本号变更为正式版。</p>
-            </div>
             <div class="title">使用方法</div>
             <div class="about">
                 <p>主要功能：接收日本气象厅、台湾省中央气象署、中国地震局、四川省地震局、福建省地震局地震预警信息，日本气象厅、中国地震台网地震信息，日本气象厅海啸信息，NIED強震モニタ测站数据。</p>
@@ -998,12 +992,11 @@
                 <p>关于烈度：日本气象厅紧急地震速报（震度），台湾中央气象署（震度），中国地震局（烈度），四川地震局（烈度），福建地震局（烈度），日本气象厅地震情报（震度），中国地震台网地震信息（烈度）。除日本气象厅地震情报外均为预估值。</p>
                 <p>关于时间：显示为发报机构当地时间。</p>
                 <p>关于延迟：受API限制，部分资料具有延迟是正常现象。</p>
-                <p>关于走时：目前所有地震波位置均采用jma2001走时表计算，对日本以外地区可能有较大误差。未知震源深度视为10km。</p>
                 <p>关于地图：由于服务器带宽限制，进入页面后需要一定时间加载地图。如长时间未加载地图，请刷新页面。</p>
             </div>
             <div class="title">关于</div>
             <div class="about">
-                <p>Windows 10、macOS 11及以上用户推荐使用应用程序：<a href="https://github.com/Lipomoea/kanameishi/releases" target="_blank">应用程序下载</a>&nbsp;<a href="https://gitee.com/lipomoea/kanameishi/releases" target="_blank">备用链接</a></p>
+                <p>Windows 10（x64）、macOS（arm64）及以上用户推荐使用应用程序：<a href="https://github.com/Lipomoea/kanameishi/releases" target="_blank">应用程序下载</a>&nbsp;<a href="https://gitee.com/lipomoea/kanameishi/releases" target="_blank">备用链接</a></p>
                 <p>联系我：<a href="https://space.bilibili.com/316757498" target="_blank">リッポミャ</a>（哔哩哔哩）</p>
                 <p>Github：<a href="https://github.com/Lipomoea/kanameishi" target="_blank">https://github.com/Lipomoea/kanameishi</a></p>
                 <p>特别鸣谢：</p>

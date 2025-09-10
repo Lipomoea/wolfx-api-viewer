@@ -771,6 +771,7 @@ const loadMaps = async (retries = 0) => {
         })
         if(settingsStore.mainSettings.displayPlaceName) {
             const createTextIcon = (text, fontSize = 14) => {
+                const dpr = settingsStore.mainSettings.uiScale * (window.devicePixelRatio || 1);
                 const tempCanvas = document.createElement('canvas');
                 const tempCtx = tempCanvas.getContext('2d');
                 tempCtx.font = `${fontSize}px Arial`;
@@ -778,19 +779,20 @@ const loadMaps = async (retries = 0) => {
                 const textHeight = fontSize;
 
                 const canvas = document.createElement('canvas');
-                canvas.width = textWidth + 4;
-                canvas.height = textHeight + 4;
+                canvas.width = (textWidth + 4) * dpr;
+                canvas.height = (textHeight + 4) * dpr;
                 const ctx = canvas.getContext('2d');
+                ctx.scale(dpr, dpr);
                 ctx.font = `${fontSize}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#ffffffdf';
-                ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+                ctx.fillText(text, canvas.width / dpr / 2, canvas.height / dpr / 2);
 
                 return L.icon({
                     iconUrl: canvas.toDataURL(),
-                    iconSize: [canvas.width, canvas.height],
-                    iconAnchor: [canvas.width / 2, canvas.height / 2]
+                    iconSize: [canvas.width / dpr, canvas.height / dpr],
+                    iconAnchor: [canvas.width / dpr / 2, canvas.height / dpr / 2]
                 });
             };
             cnProvinceLabels.forEach(item => {
