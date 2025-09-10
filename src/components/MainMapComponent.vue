@@ -770,18 +770,33 @@ const loadMaps = async (retries = 0) => {
             weight: 1,
         })
         if(settingsStore.mainSettings.displayPlaceName) {
-            const options = {
-                className: "feature-label",
-                iconSize: [100, 14],
-                iconAnchor: [50, 7],
-            }
+            const createTextIcon = (text, fontSize = 14) => {
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCtx.font = `${fontSize}px Arial`;
+                const textWidth = tempCtx.measureText(text).width;
+                const textHeight = fontSize;
+
+                const canvas = document.createElement('canvas');
+                canvas.width = textWidth + 4;
+                canvas.height = textHeight + 4;
+                const ctx = canvas.getContext('2d');
+                ctx.font = `${fontSize}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#ffffffdf';
+                ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+                return L.icon({
+                    iconUrl: canvas.toDataURL(),
+                    iconSize: [canvas.width, canvas.height],
+                    iconAnchor: [canvas.width / 2, canvas.height / 2]
+                });
+            };
             cnProvinceLabels.forEach(item => {
                 const { name, coord } = item
                 const label = L.marker(coord, {
-                    icon: L.divIcon({
-                        html: name,
-                        ...options
-                    }),
+                    icon: createTextIcon(name),
                     pane: "labelPane1",
                     interactive: false
                 })
@@ -790,10 +805,7 @@ const loadMaps = async (retries = 0) => {
             cnCityLabels.forEach(item => {
                 const { name, coord } = item
                 const label = L.marker(coord, {
-                    icon: L.divIcon({
-                        html: name,
-                        ...options
-                    }),
+                    icon: createTextIcon(name),
                     pane: "labelPane2",
                     interactive: false
                 })
@@ -802,10 +814,7 @@ const loadMaps = async (retries = 0) => {
             jpPrefLabels.forEach(item => {
                 const { name, coord } = item
                 const label = L.marker(coord, {
-                    icon: L.divIcon({
-                        html: name,
-                        ...options
-                    }),
+                    icon: createTextIcon(name),
                     pane: "labelPane2",
                     interactive: false
                 })
@@ -1306,13 +1315,6 @@ onBeforeUnmount(()=>{
                 height: 100%;
                 *{
                     cursor: default;
-                }
-                :deep(.feature-label) {
-                    color: white;
-                    font-size: 14px;
-                    text-align: center;
-                    line-height: 14px;
-                    opacity: 0.9;
                 }
             }
             .crossDivIcon{

@@ -4,69 +4,42 @@ import { chimeUrls, iconUrls } from '@/utils/Urls';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useSettingsStore } from '@/stores/settings';
+import eewCross from '@/assets/icon/hypocenter/eewCross.svg';
+import cancelCross from '@/assets/icon/hypocenter/cancelCross.svg';
+import eqlistCross from '@/assets/icon/hypocenter/eqlistCross.svg';
+import eewCircle from '@/assets/icon/hypocenter/eewCircle.svg';
+import cancelCircle from '@/assets/icon/hypocenter/cancelCircle.svg';
 
-const eewCrossIcon = `
-<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-  <line x1="5" y1="5" x2="35" y2="35" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
-  <line x1="35" y1="5" x2="5" y2="35" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
-  <line x1="5" y1="5" x2="35" y2="35" stroke="#e21d1d" stroke-width="6" stroke-linecap="round"/>
-  <line x1="35" y1="5" x2="5" y2="35" stroke="#e21d1d" stroke-width="6" stroke-linecap="round"/>
-</svg>
-`
-const eewCrossDivIcon = L.divIcon({
-    html: eewCrossIcon,
-    iconAnchor: [20, 20],
-    className: '',
+const iconRadius = 20
+
+const eewCrossIcon = L.icon({
+    iconUrl: eewCross,
+    iconSize: [iconRadius * 2, iconRadius * 2],
+    iconAnchor: [iconRadius, iconRadius]
 })
-const cancelCrossIcon = `
-<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" opacity="0.5">
-  <line x1="5" y1="5" x2="35" y2="35" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
-  <line x1="35" y1="5" x2="5" y2="35" stroke="#ffffff" stroke-width="10" stroke-linecap="round"/>
-  <line x1="5" y1="5" x2="35" y2="35" stroke="#7f7f7f" stroke-width="6" stroke-linecap="round"/>
-  <line x1="35" y1="5" x2="5" y2="35" stroke="#7f7f7f" stroke-width="6" stroke-linecap="round"/>
-</svg>
-`
-const cancelCrossDivIcon = L.divIcon({
-    html: cancelCrossIcon,
-    iconAnchor: [20, 20],
-    className: '',
+
+const cancelCrossIcon = L.icon({
+    iconUrl: cancelCross,
+    iconSize: [iconRadius * 2, iconRadius * 2],
+    iconAnchor: [iconRadius, iconRadius]
 })
-const eqlistCrossIcon = `
-<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-  <line x1="5" y1="5" x2="35" y2="35" stroke="#fff1aa" stroke-width="10" stroke-linecap="round"/>
-  <line x1="35" y1="5" x2="5" y2="35" stroke="#fff1aa" stroke-width="10" stroke-linecap="round"/>
-  <line x1="5" y1="5" x2="35" y2="35" stroke="#e21d1d" stroke-width="6" stroke-linecap="round"/>
-  <line x1="35" y1="5" x2="5" y2="35" stroke="#e21d1d" stroke-width="6" stroke-linecap="round"/>
-</svg>
-`
-const eqlistCrossDivIcon = L.divIcon({
-    html: eqlistCrossIcon,
-    iconAnchor: [20, 20],
-    className: '',
+
+const eqlistCrossIcon = L.icon({
+    iconUrl: eqlistCross,
+    iconSize: [iconRadius * 2, iconRadius * 2],
+    iconAnchor: [iconRadius, iconRadius]
 })
-const eewCircleIcon = `
-<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="20" cy="20" r="17.5" stroke="#e21d1d" stroke-width="3"/>
-  <circle cx="20" cy="20" r="19.5" stroke="#ffffff" stroke-width="1"/>
-  <circle cx="20" cy="20" r="15.5" stroke="#ffffff" stroke-width="1"/>
-</svg>
-`
-const eewCircleDivIcon = L.divIcon({
-    html: eewCircleIcon,
-    iconAnchor: [20, 20],
-    className: '',
+
+const eewCircleIcon = L.icon({
+    iconUrl: eewCircle,
+    iconSize: [iconRadius * 2, iconRadius * 2],
+    iconAnchor: [iconRadius, iconRadius]
 })
-const cancelCircleIcon = `
-<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" opacity="0.5">
-  <circle cx="20" cy="20" r="17.5" stroke="#7f7f7f" stroke-width="3"/>
-  <circle cx="20" cy="20" r="19.5" stroke="#ffffff" stroke-width="1"/>
-  <circle cx="20" cy="20" r="15.5" stroke="#ffffff" stroke-width="1"/>
-</svg>
-`
-const cancelCircleDivIcon = L.divIcon({
-    html: cancelCircleIcon,
-    iconAnchor: [20, 20],
-    className: '',
+
+const cancelCircleIcon = L.icon({
+    iconUrl: cancelCircle,
+    iconSize: [iconRadius * 2, iconRadius * 2],
+    iconAnchor: [iconRadius, iconRadius]
 })
 
 let settingsStore
@@ -111,10 +84,10 @@ export class EewEvent {
         this.removeMark()
         if(this.hypoLatLng) {
             if(this.eqMessage.isCanceled){
-                this.hypoMarker = L.marker(this.hypoLatLng, { icon: this.eqMessage.isAssumption?cancelCircleDivIcon:cancelCrossDivIcon, pane: 'eewMarkerPane' })
+                this.hypoMarker = L.marker(this.hypoLatLng, { icon: this.eqMessage.isAssumption?cancelCircleIcon:cancelCrossIcon, pane: 'eewMarkerPane' })
             }
             else{
-                this.hypoMarker = L.marker(this.hypoLatLng, { icon: this.eqMessage.isAssumption?eewCircleDivIcon:eewCrossDivIcon, pane: 'eewMarkerPane' })
+                this.hypoMarker = L.marker(this.hypoLatLng, { icon: this.eqMessage.isAssumption?eewCircleIcon:eewCrossIcon, pane: 'eewMarkerPane' })
             }
             this.hypoMarker.bindTooltip(`
                 <strong>${this.eqMessage.titleText}</strong><br>
@@ -449,7 +422,7 @@ export class EqlistEvent {
     setMark(){
         this.removeMark()
         if(this.isValidHypo){
-            this.hypoMarker = L.marker(this.hypoLatLng, { icon: this.eqMessage.isCanceled ? cancelCrossDivIcon : eqlistCrossDivIcon, pane: 'eqlistMarkerPane' })
+            this.hypoMarker = L.marker(this.hypoLatLng, { icon: this.eqMessage.isCanceled ? cancelCrossIcon : eqlistCrossIcon, pane: 'eqlistMarkerPane' })
             this.hypoMarker.bindTooltip(`
                 <strong>${this.eqMessage.titleText}</strong><br>
                 ${this.eqMessage.hypocenter}(${this.eqMessage.lat},${this.eqMessage.lng})<br>
