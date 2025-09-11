@@ -51,7 +51,7 @@ export class EewEvent {
         if(!settingsStore) settingsStore = useSettingsStore()
         this.eqMessage = eqMessage
         this.activeEewList = activeEewList
-        this.userLatLng = settingsStore.numUserLatLng
+        this.userLatLng = settingsStore.mainSettings.userLatLng
         this.isValidUserLatLng = settingsStore.isValidUserLatLng
         this.userCsis = '?'
         this.userShindo = '?'

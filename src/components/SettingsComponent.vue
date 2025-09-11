@@ -466,7 +466,7 @@
                                 <question-filled width="1em" height="1em" />
                             </template>
                             <strong>
-                                <p>需要同时设置经纬度方可生效。</p>
+                                <p>设置为(0,0)表示不生效。</p>
                                 <p>地震预警事件中更新位置不会立即生效。</p>
                             </strong>
                         </el-popover>
@@ -474,21 +474,25 @@
                     <div class="switch-group">
                         <div class="switch-full">
                             <span>纬度</span>
-                            <el-input
+                            <el-input-number
                             class="lat-lng"
                             v-model="settingsStore.mainSettings.userLatLng[0]"
                             size="small"
-                            maxlength="10"
-                            @change="val => setLat('userLatLng')(val)" />
+                            :step="0.1"
+                            :min="-90"
+                            :max="90"
+                            />
                         </div>
                         <div class="switch-full">
                             <span>经度</span>
-                            <el-input
+                            <el-input-number
                             class="lat-lng"
                             v-model="settingsStore.mainSettings.userLatLng[1]"
                             size="small"
-                            maxlength="10"
-                            @change="val => setLng('userLatLng')(val)" />
+                            :step="0.1"
+                            :min="-180"
+                            :max="180"
+                            />
                         </div>
                         <div class="switch-full">
                             <span>使用IP地址定位</span>
@@ -563,7 +567,7 @@
                             </template>
                             <strong>
                                 <p>设置无可聚焦事件时地图的视野范围。</p>
-                                <p>需要同时设置经纬度方可生效。</p>
+                                <p>设置为(0,0)表示不生效。</p>
                                 <p>若不设置默认使用所在地经纬度。</p>
                             </strong>
                         </el-popover>
@@ -571,21 +575,25 @@
                     <div class="switch-group">
                         <div class="switch-full">
                             <span>纬度</span>
-                            <el-input
+                            <el-input-number
                             class="lat-lng"
                             v-model="settingsStore.mainSettings.viewLatLng[0]"
                             size="small"
-                            maxlength="10"
-                            @change="val => setLat('viewLatLng')(val)" />
+                            :step="0.1"
+                            :min="-90"
+                            :max="90"
+                            />
                         </div>
                         <div class="switch-full">
                             <span>经度</span>
-                            <el-input
+                            <el-input-number
                             class="lat-lng"
                             v-model="settingsStore.mainSettings.viewLatLng[1]"
                             size="small"
-                            maxlength="10"
-                            @change="val => setLng('viewLatLng')(val)" />
+                            :step="0.1"
+                            :min="-180"
+                            :max="180"
+                            />
                         </div>
                         <div class="switch-full">
                             <span>缩放</span>
@@ -1049,27 +1057,27 @@ const setReplayDateTime = () => {
     settingsStore.mainSettings.displaySeisNet.delay = passedTime
 }
 const setLat = (type)=>(val)=>{
-    if(val === '') return
+    if(!val) return
     let number = Number(val)
     if(isNaN(number)){
-        settingsStore.mainSettings[type][0] = ''
+        settingsStore.mainSettings[type][0] = 0
     }
     else{
         if(number > 90) number = 90
         if(number < -90) number = -90
-        settingsStore.mainSettings[type][0] = number.toString()
+        settingsStore.mainSettings[type][0] = number
     }
 }
 const setLng = (type)=>(val)=>{
-    if(val === '') return
+    if(!val) return
     let number = Number(val)
     if(isNaN(number)){
-        settingsStore.mainSettings[type][1] = ''
+        settingsStore.mainSettings[type][1] = 0
     }
     else{
         if(number > 180) number = 180
         if(number < -180) number = -180
-        settingsStore.mainSettings[type][1] = number.toString()
+        settingsStore.mainSettings[type][1] = number
     }
 }
 const autoLocate = async ()=>{
@@ -1145,16 +1153,16 @@ const setCurrentViewAsDefault = ()=>{
     }
 }
 const clearViewLatLng = ()=>{
-    settingsStore.mainSettings.viewLatLng[0] = ''
-    settingsStore.mainSettings.viewLatLng[1] = ''
+    settingsStore.mainSettings.viewLatLng[0] = 0
+    settingsStore.mainSettings.viewLatLng[1] = 0
     ElMessage({
         message: '清除完成',
         type: 'success',
     })
 }
 const clearUserLatLng = ()=>{
-    settingsStore.mainSettings.userLatLng[0] = ''
-    settingsStore.mainSettings.userLatLng[1] = ''
+    settingsStore.mainSettings.userLatLng[0] = 0
+    settingsStore.mainSettings.userLatLng[1] = 0
     ElMessage({
         message: '清除完成',
         type: 'success',
@@ -1657,7 +1665,7 @@ onBeforeUnmount(() => {
                 height: 24px;
             }
             .lat-lng{
-                width: 72px;
+                width: 120px;
             }
             span{
                 display: flex;

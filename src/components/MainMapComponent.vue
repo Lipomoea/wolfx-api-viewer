@@ -307,13 +307,13 @@ import terminator from '@joergdietrich/leaflet.terminator';
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 const timeStore = useTimeStore()
-let map, jpEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap, labelLayer1, labelLayer2, terminatorLayer
-let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, cnFaultBasePane, jpEewBasePane, cnEewBasePane, jpTsunamiBasePane, labelPane1, labelPane2
-const defaultLatLng = [38.1, 104.6]
-const { isValidUserLatLng, isDisplayUser, numUserLatLng: userLatLng, nearestJmaLoc } = storeToRefs(settingsStore)
+let map, jpEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap, labelLayer1, labelLayer2, terminatorLayer, cnFaultBaseMap
+let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, jpEewBasePane, cnEewBasePane, jpTsunamiBasePane, labelPane1, labelPane2
 let userMarker
-const isValidViewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.every(item=>item !== ''))
-const viewLatLng = computed(()=>settingsStore.mainSettings.viewLatLng.map(val=>Number(val)))
+const defaultLatLng = [38.1, 104.6]
+const { isValidUserLatLng, isValidViewLatLng, isDisplayUser, nearestJmaLoc } = storeToRefs(settingsStore)
+const userLatLng = computed(() => settingsStore.mainSettings.userLatLng)
+const viewLatLng = computed(() => settingsStore.mainSettings.viewLatLng)
 const zoomLevel = ref(settingsStore.mainSettings.defaultZoom)
 const resetSeisNetDelay = () => settingsStore.mainSettings.displaySeisNet.delay = 0
 const types = {
@@ -556,8 +556,7 @@ onMounted(()=>{
     cnEewBasePane = map.getPane('cnEewBasePane')
     cnEewBasePane.style.zIndex = 21
     map.createPane('cnFaultBasePane')
-    cnFaultBasePane = map.getPane('cnFaultBasePane')
-    cnFaultBasePane.style.zIndex = 30
+    map.getPane('cnFaultBasePane').style.zIndex = 30
     map.createPane('jpTsunamiBasePane')
     jpTsunamiBasePane = map.getPane('jpTsunamiBasePane')
     jpTsunamiBasePane.style.zIndex = 40
@@ -611,18 +610,16 @@ onMounted(()=>{
                 weight: 2,
                 pane: 'userPane',
                 interactive: false
-            })
-            userMarker.addTo(map)
+            }).addTo(map)
         }
         nearestJmaLoc.value
     })
     labelLayer1 = L.layerGroup().addTo(map);
     labelLayer2 = L.layerGroup().addTo(map);
     loadMaps()
-    watch(()=>settingsStore.mainSettings.displayCnFault, newVal => {
-        cnFaultBasePane.style.display = newVal ? 'block' : 'none'
-    }, { immediate: true })
     watch(()=>settingsStore.mainSettings.displayTerminator, newVal => {
+        if(terminatorLayer && map.hasLayer(terminatorLayer)) map.removeLayer(terminatorLayer)
+        clearInterval(terminatorInterval)
         if(newVal) {
             terminatorLayer = terminator({
                 color: '#000',
@@ -640,10 +637,6 @@ onMounted(()=>{
             terminatorInterval = setInterval(() => {
                 terminatorLayer.setTime(new Date(timeStore.timeStamp))
             }, 30000);
-        }
-        else {
-            if(terminatorLayer && map.hasLayer(terminatorLayer)) map.removeLayer(terminatorLayer)
-            clearInterval(terminatorInterval)
         }
     }, { immediate: true })
     if(settingsStore.mainSettings.cinemaMode) {
@@ -784,11 +777,6 @@ const loadMaps = async (retries = 0) => {
             fillOpacity: 1,
             weight: 1,
         })
-        loadBaseMap(cn_fault, 'cnFaultBasePane', true, {
-            color: 'red',
-            opacity: 0.5,
-            weight: 1,
-        })
         loadBaseMap(jp, 'jpBasePane')
         jpEewBaseMap = settingsStore.mainSettings.disableEewBaseMap 
         ? null : loadBaseMap(jp_eew, 'jpEewBasePane', false, {
@@ -798,6 +786,16 @@ const loadMaps = async (retries = 0) => {
             fillOpacity: 1,
             weight: 1,
         })
+        watch(()=>settingsStore.mainSettings.displayCnFault, newVal => {
+            if(cnFaultBaseMap && map.hasLayer(cnFaultBaseMap)) map.removeLayer(cnFaultBaseMap)
+            if(newVal) {
+                cnFaultBaseMap = loadBaseMap(cn_fault, 'cnFaultBasePane', true, {
+                    color: 'red',
+                    opacity: 0.5,
+                    weight: 1,
+                })
+            }
+        }, { immediate: true })
         if(settingsStore.mainSettings.displayPlaceName) {
             const createTextIcon = (text, fontSize = 14) => {
                 const dpr = settingsStore.mainSettings.uiScale * (window.devicePixelRatio || 1);

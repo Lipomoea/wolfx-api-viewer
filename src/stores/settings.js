@@ -65,7 +65,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             },
             muteNotification: true,
             soundEffect: 'srev',
-            userLatLng: ['', ''],
+            userLatLng: [0, 0],
             displayUser: false,
             displayLegend: true,
             displayCountdown: false,
@@ -74,7 +74,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             countdownSpeech: true,
             countdownStart: 10,
             displayAreaIntensities: true,
-            viewLatLng: ['', ''],
+            viewLatLng: [0, 0],
             defaultZoom: 5,
             uiScale: 1,
             displayPlaceName: false,
@@ -113,12 +113,12 @@ export const useSettingsStore = defineStore('settingsStore', {
         }
     }),
     getters: {
-        isValidUserLatLng: (state)=>state.mainSettings.userLatLng.every(item=>item !== ''),
+        isValidUserLatLng: (state) => state.mainSettings.userLatLng.some(item => !!item),
+        isValidViewLatLng: (state) => state.mainSettings.viewLatLng.some(item => !!item),
         isDisplayUser(state) { return this.isValidUserLatLng && state.mainSettings.displayUser },
-        numUserLatLng: (state)=>state.mainSettings.userLatLng.map(val=>Number(val)),
-        nearestJmaLoc() {
+        nearestJmaLoc(state) {
             if(this.isValidUserLatLng) {
-                const userCoord = [this.numUserLatLng[1], this.numUserLatLng[0]]
+                const userCoord = [state.mainSettings.userLatLng[1], state.mainSettings.userLatLng[0]]
                 const userPoint = point(userCoord)
                 let nearestLoc = null
                 let nearestDist = 30
