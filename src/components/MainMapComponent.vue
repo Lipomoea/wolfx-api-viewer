@@ -1163,7 +1163,7 @@ const smartSetView = () => {
 provide('smartSetView', smartSetView)
 const loadBaseMap = (topojson, pane, isBaseMap = true, style = {
         color: '#ccc',
-        fillColor: '#333',
+        fillColor: '#393939',
         fillOpacity: 1,
         weight: 1,
         fill: true
@@ -1341,7 +1341,7 @@ onBeforeUnmount(()=>{
         .mapContainer{
             height: 100%;
             position: relative;
-            background-color: #222;
+            background-color: #282828;
             #mainMap{
                 width: 100%;
                 height: 100%;
@@ -1350,7 +1350,7 @@ onBeforeUnmount(()=>{
                 }
             }
             .leaflet-container{
-                background-color: #222;
+                background-color: #282828;
             }
             .leaflet-grab{
                 cursor: default;
