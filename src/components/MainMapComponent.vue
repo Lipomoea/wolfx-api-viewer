@@ -288,6 +288,7 @@ import '@/assets/background.css'
 import { HomeFilled, FullScreen, WarnTriangleFilled, InfoFilled, Setting } from '@element-plus/icons-vue';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
+import { useTimeStore } from '@/stores/time';
 import EewComponent from './EewComponent.vue';
 import SeisNetComponent from './SeisNetComponent.vue';
 import EqlistComponent from './EqlistComponent.vue';
@@ -301,10 +302,12 @@ import { simpleShindo } from '@/classes/StationClasses';
 import { feature } from 'topojson-client';
 import router from '@/router';
 import { cnCityLabels, cnProvinceLabels, jpPrefLabels } from '@/utils/Labels';
+import terminator from '@joergdietrich/leaflet.terminator';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
-let map, jpEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap, labelLayer1, labelLayer2
+const timeStore = useTimeStore()
+let map, jpEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap, labelLayer1, labelLayer2, terminatorLayer
 let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, cnFaultBasePane, jpEewBasePane, cnEewBasePane, jpTsunamiBasePane, labelPane1, labelPane2
 const defaultLatLng = [38.1, 104.6]
 const { isValidUserLatLng, isDisplayUser, numUserLatLng: userLatLng, nearestJmaLoc } = storeToRefs(settingsStore)
@@ -501,7 +504,7 @@ const getBarClass = (event)=>{
         else return 'dark-gray'
     }
 }
-let mainInterval
+let mainInterval, terminatorInterval
 onMounted(()=>{
     map = L.map('mainMap', {
         attributionControl: false,
@@ -537,10 +540,12 @@ onMounted(()=>{
     map.removeControl(map.zoomControl)
     map.createPane('globalBasePane')
     map.getPane('globalBasePane').style.zIndex = 0
-    map.createPane('cnBasePane')
-    map.getPane('cnBasePane').style.zIndex = 2
     map.createPane('jpBasePane')
     map.getPane('jpBasePane').style.zIndex = 1
+    map.createPane('cnBasePane')
+    map.getPane('cnBasePane').style.zIndex = 2
+    map.createPane('terminatorPane')
+    map.getPane('terminatorPane').style.zIndex = 5
     map.createPane('waveFillPane')
     waveFillPane = map.getPane('waveFillPane')
     waveFillPane.style.zIndex = 10
@@ -614,8 +619,32 @@ onMounted(()=>{
     labelLayer1 = L.layerGroup().addTo(map);
     labelLayer2 = L.layerGroup().addTo(map);
     loadMaps()
-    watch(()=>settingsStore.mainSettings.displayCnFault, newVal=>{
+    watch(()=>settingsStore.mainSettings.displayCnFault, newVal => {
         cnFaultBasePane.style.display = newVal ? 'block' : 'none'
+    }, { immediate: true })
+    watch(()=>settingsStore.mainSettings.displayTerminator, newVal => {
+        if(newVal) {
+            terminatorLayer = terminator({
+                color: '#000',
+                opacity: 0.5,
+                fillColor: '#000',
+                fillOpacity: 0.2,
+                weight: 2,
+                pane: 'terminatorPane',
+                interactive: false,
+                time: new Date(timeStore.timeStamp)
+            }).addTo(map)
+            setTimeout(() => {
+                terminatorLayer?.setTime(new Date(timeStore.timeStamp))
+            }, 6000);
+            terminatorInterval = setInterval(() => {
+                terminatorLayer.setTime(new Date(timeStore.timeStamp))
+            }, 30000);
+        }
+        else {
+            if(terminatorLayer && map.hasLayer(terminatorLayer)) map.removeLayer(terminatorLayer)
+            clearInterval(terminatorInterval)
+        }
     }, { immediate: true })
     if(settingsStore.mainSettings.cinemaMode) {
         watch(defaultMenuId, newVal => {
@@ -1288,6 +1317,7 @@ const cnEewInfoList = computed(()=>{
 })
 onBeforeUnmount(()=>{
     clearInterval(mainInterval)
+    clearInterval(terminatorInterval)
     clearInterval(autoZoomInterval)
     clearTimeout(autoZoomTimer)
     clearTimeout(defaultMenuTimer)

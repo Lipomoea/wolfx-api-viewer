@@ -11,6 +11,9 @@ importers:
       '@element-plus/icons-vue':
         specifier: ^2.3.1
         version: 2.3.1(vue@3.5.18)
+      '@joergdietrich/leaflet.terminator':
+        specifier: ^1.1.0
+        version: 1.1.0(leaflet@1.9.4)
       '@tauri-apps/api':
         specifier: ^2.5.0
         version: 2.7.0
@@ -292,6 +295,11 @@ packages:
 
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
+
+  '@joergdietrich/leaflet.terminator@1.1.0':
+    resolution: {integrity: sha512-Bq/dBECmVH6nf8V0zVSS7dUJA4bqe0Czl0DWzV1O1kTl5hMXGGc4EuyhTMft6KMLTU0GTLr4dvEa3YfXJWUUTQ==}
+    peerDependencies:
+      leaflet: ^1.2.0
 
   '@jridgewell/sourcemap-codec@1.5.4':
     resolution: {integrity: sha512-VT2+G1VQs/9oz078bLrYbecdZKs912zQlkelYpuf+SXF+QvZDYJlbx/LSx+meSAwdDFnF8FVXW92AVjjkVmgFw==}
@@ -1701,6 +1709,10 @@ snapshots:
       '@floating-ui/utils': 0.2.10
 
   '@floating-ui/utils@0.2.10': {}
+
+  '@joergdietrich/leaflet.terminator@1.1.0(leaflet@1.9.4)':
+    dependencies:
+      leaflet: 1.9.4
 
   '@jridgewell/sourcemap-codec@1.5.4': {}
 

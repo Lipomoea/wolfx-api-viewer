@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
+    "@joergdietrich/leaflet.terminator": "^1.1.0",
     "@tauri-apps/api": "^2.5.0",
     "@tauri-apps/plugin-autostart": "~2",
     "@tauri-apps/plugin-fs": "~2",

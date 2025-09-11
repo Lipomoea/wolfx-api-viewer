@@ -51,7 +51,6 @@ export class EewEvent {
         if(!settingsStore) settingsStore = useSettingsStore()
         this.eqMessage = eqMessage
         this.activeEewList = activeEewList
-        this.travelTime = travelTimes.jma2001
         this.userLatLng = settingsStore.numUserLatLng
         this.isValidUserLatLng = settingsStore.isValidUserLatLng
         this.userCsis = '?'
@@ -130,11 +129,12 @@ export class EewEvent {
         let p_reach, p_radius, s_reach, s_radius
         const maxRadius = this.maxRadius
         const maxRadius2 = this.maxCountdownRadius
-        const travelTime = this.travelTime
-        const p_info = calcWaveDistance(travelTime, true, this.eqMessage.depth, passedTime)
+        let p_info = calcWaveDistance(travelTimes.jma2001, true, this.eqMessage.depth, passedTime)
+        if(p_info.radius > maxRadius) p_info = calcWaveDistance(travelTimes.jb, true, this.eqMessage.depth, passedTime)
         p_reach = p_info.reach
         p_radius = p_info.radius
-        const s_info = calcWaveDistance(travelTime, false, this.eqMessage.depth, passedTime)
+        let s_info = calcWaveDistance(travelTimes.jma2001, false, this.eqMessage.depth, passedTime)
+        if(s_info.radius > maxRadius) s_info = calcWaveDistance(travelTimes.jb, false, this.eqMessage.depth, passedTime)
         s_reach = s_info.reach
         s_radius = s_info.radius
         if(p_radius > 0 && p_radius <= maxRadius2) {

@@ -643,6 +643,10 @@
                             <el-switch v-model="settingsStore.mainSettings.displayCnFault" />
                         </div>
                         <div class="switch-full">
+                            <span>显示晨昏线</span>
+                            <el-switch v-model="settingsStore.mainSettings.displayTerminator" />
+                        </div>
+                        <div class="switch-full">
                             <span>中国地震烈度使用罗马数字</span>
                             <el-switch v-model="settingsStore.mainSettings.useRomanCsis" />
                         </div>
