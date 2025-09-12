@@ -138,12 +138,12 @@
                             <div class="switch-full">
                                 <span>测站回放(min)</span>
                                 <div class="flex gap-2">
-                                    <el-input
+                                    <el-input-number
                                     v-model="settingsStore.mainSettings.displaySeisNet.delay"
                                     size="small"
-                                    type="number"
-                                    style="width: 72px;"
-                                    @input="setDelay" />
+                                    :min="0"
+                                    style="width: 108px;"
+                                    />
                                     <el-button
                                     size="small"
                                     @click="settingsStore.mainSettings.displaySeisNet.delay = 0"
@@ -597,15 +597,14 @@
                         </div>
                         <div class="switch-full">
                             <span>缩放</span>
-                            <el-input
+                            <el-input-number
                             v-model="settingsStore.mainSettings.defaultZoom"
-                            type="number"
                             size="small"
-                            maxlength="2"
-                            min="2"
-                            max="12"
-                            style="width: 48px;"
-                            @change="setDefaultZoom" />
+                            :min="2"
+                            :max="12"
+                            :precision="0"
+                            style="width: 84px;"
+                            />
                         </div>
                         <div class="switch-full">
                             <span>设置为当前地图视野</span>
@@ -1114,7 +1113,7 @@ const autoLocate = async ()=>{
     }
 }
 const setDefaultZoom = (val)=>{
-    settingsStore.mainSettings.defaultZoom = Math.min(Math.max(val, 3), 12)
+    settingsStore.mainSettings.defaultZoom = Math.min(Math.max(val, 2), 12)
 }
 const setCurrentViewAsDefault = ()=>{
     const map = statusStore.map
@@ -1167,10 +1166,6 @@ const clearUserLatLng = ()=>{
         message: '清除完成',
         type: 'success',
     })
-}
-const setDelay = (val)=>{
-    if(val < 0) val = 0
-    settingsStore.mainSettings.displaySeisNet.delay = val
 }
 const needReload = ref(false)
 const handleReload = () => {
