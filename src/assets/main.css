@@ -9,7 +9,10 @@ body{
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.leaflet-wave-pane svg g path,.leaflet-waveFill-pane svg g path{
+.leaflet-wave-pane path,
+.leaflet-waveFill-pane path,
+.leaflet-terminator-pane path,
+.leaflet-terminatorFill-pane path {
   mix-blend-mode: multiply;
 }
 

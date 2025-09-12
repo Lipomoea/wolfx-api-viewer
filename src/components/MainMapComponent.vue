@@ -307,7 +307,7 @@ import terminator from '@joergdietrich/leaflet.terminator';
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 const timeStore = useTimeStore()
-let map, jpEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap, labelLayer1, labelLayer2, terminatorLayer, cnFaultBaseMap
+let map, jpEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap, labelLayer1, labelLayer2, terminatorLayer, terminatorFillLayer, cnFaultBaseMap
 let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, jpEewBasePane, cnEewBasePane, jpTsunamiBasePane, labelPane1, labelPane2
 let userMarker
 const defaultLatLng = [38.1, 104.6]
@@ -544,8 +544,8 @@ onMounted(()=>{
     map.getPane('jpBasePane').style.zIndex = 1
     map.createPane('cnBasePane')
     map.getPane('cnBasePane').style.zIndex = 2
-    map.createPane('terminatorPane')
-    map.getPane('terminatorPane').style.zIndex = 5
+    map.createPane('terminatorFillPane')
+    map.getPane('terminatorFillPane').style.zIndex = 9
     map.createPane('waveFillPane')
     waveFillPane = map.getPane('waveFillPane')
     waveFillPane.style.zIndex = 10
@@ -580,6 +580,8 @@ onMounted(()=>{
     labelPane2.style.zIndex = 120
     map.createPane('userPane')
     map.getPane('userPane').style.zIndex = 140
+    map.createPane('terminatorPane')
+    map.getPane('terminatorPane').style.zIndex = 149
     map.createPane('wavePane')
     wavePane = map.getPane('wavePane')
     wavePane.style.zIndex = 150
@@ -619,24 +621,34 @@ onMounted(()=>{
     loadMaps()
     watch(()=>settingsStore.mainSettings.displayTerminator, newVal => {
         if(terminatorLayer && map.hasLayer(terminatorLayer)) map.removeLayer(terminatorLayer)
+        if(terminatorFillLayer && map.hasLayer(terminatorFillLayer)) map.removeLayer(terminatorFillLayer)
         clearInterval(terminatorInterval)
         if(newVal) {
+            const update = () => {
+                const time = new Date(timeStore.timeStamp)
+                terminatorLayer?.setTime(time)
+                terminatorFillLayer?.setTime(time)
+            }
+            const time = new Date(timeStore.timeStamp)
             terminatorLayer = terminator({
-                color: '#000',
+                color: 'black',
                 opacity: 0.5,
-                fillColor: '#000',
-                fillOpacity: 0.2,
                 weight: 2,
+                fill: false,
                 pane: 'terminatorPane',
                 interactive: false,
-                time: new Date(timeStore.timeStamp)
+                time
             }).addTo(map)
-            setTimeout(() => {
-                terminatorLayer?.setTime(new Date(timeStore.timeStamp))
-            }, 6000);
-            terminatorInterval = setInterval(() => {
-                terminatorLayer.setTime(new Date(timeStore.timeStamp))
-            }, 30000);
+            terminatorFillLayer = terminator({
+                fillColor: 'black',
+                fillOpacity: 0.25,
+                stroke: false,
+                pane: 'terminatorFillPane',
+                interactive: false,
+                time
+            }).addTo(map)
+            setTimeout(update, 6000);
+            terminatorInterval = setInterval(update, 30000);
         }
     }, { immediate: true })
     if(settingsStore.mainSettings.cinemaMode) {
@@ -797,7 +809,7 @@ const loadMaps = async (retries = 0) => {
             }
         }, { immediate: true })
         if(settingsStore.mainSettings.displayPlaceName) {
-            const createTextIcon = (text, fontSize = 14) => {
+            const createTextIcon = (text, fontSize = 15) => {
                 const dpr = settingsStore.mainSettings.uiScale * (window.devicePixelRatio || 1);
                 const tempCanvas = document.createElement('canvas');
                 const tempCtx = tempCanvas.getContext('2d');
@@ -806,14 +818,16 @@ const loadMaps = async (retries = 0) => {
                 const textHeight = fontSize;
 
                 const canvas = document.createElement('canvas');
-                canvas.width = (textWidth + 4) * dpr;
-                canvas.height = (textHeight + 4) * dpr;
+                canvas.width = (textWidth + 5) * dpr;
+                canvas.height = (textHeight + 5) * dpr;
                 const ctx = canvas.getContext('2d');
                 ctx.scale(dpr, dpr);
                 ctx.font = `${fontSize}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#ffffffdf';
+                ctx.shadowColor = '#0000007f';
+                ctx.shadowBlur = 5;
                 ctx.fillText(text, canvas.width / dpr / 2, canvas.height / dpr / 2);
 
                 return L.icon({

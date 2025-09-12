@@ -282,8 +282,8 @@ watch(()=>statusStore.map, newVal=>{
                     if(key in gridRects && map.hasLayer(gridRects[key].layer)) map.removeLayer(gridRects[key].layer)
                     const layer = L.rectangle([item.latLng, item.latLng.map(l=>l - 0.99)], {
                         color,
-                        fill: false,
                         weight: 2,
+                        fill: false,
                         pane: 'niedGridPane',
                         interactive: false
                     })

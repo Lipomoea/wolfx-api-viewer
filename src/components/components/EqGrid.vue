@@ -85,7 +85,10 @@ watch(eqMessage, (newVal)=>{
             }
             if(i == activeEewList.length){
                 if(statusStore.map){
-                    if(time > 0 && (props.source != 'gqEew' || (settingsStore.mainSettings.gqActionMag == 0 || settingsStore.mainSettings.gqActionCsis == 0 || newVal.magnitude >= settingsStore.mainSettings.gqActionMag || Number(newVal.maxIntensity) >= settingsStore.mainSettings.gqActionCsis))) {
+                    if(time > 0 && (props.source != 'gqEew' 
+                        || (settingsStore.mainSettings.gqActionMag == 0 || newVal.magnitude >= settingsStore.mainSettings.gqActionMag)
+                        && (settingsStore.mainSettings.gqActionCsis == 0 || Number(newVal.maxIntensity) >= settingsStore.mainSettings.gqActionCsis)
+                    )) {
                         const newEvent = reactive(new EewEvent(statusStore.map, Object.assign({}, newVal), activeEewList, handleTempEqlists, smartSetView))
                         activeEewList.unshift(newEvent)
                         newEvent.update(Object.assign({}, newVal), time, true)
@@ -98,7 +101,8 @@ watch(eqMessage, (newVal)=>{
         let i = 0
         const shouldUpdate = newVal.source != 'fssnEqlist' 
             || (newVal.title == 'FSSN地震测定（正式）' || newVal.title == 'FSSN地震测定（确认）' && settingsStore.mainSettings.fssnActionType <= 1 || settingsStore.mainSettings.fssnActionType == 0) 
-            && (settingsStore.mainSettings.fssnActionMag == 0 || settingsStore.mainSettings.fssnActionCsis == 0 || newVal.magnitude >= settingsStore.mainSettings.fssnActionMag || Number(newVal.maxIntensity) >= settingsStore.mainSettings.fssnActionCsis)
+            && (settingsStore.mainSettings.fssnActionMag == 0 || newVal.magnitude >= settingsStore.mainSettings.fssnActionMag)
+            && (settingsStore.mainSettings.fssnActionCsis == 0 || Number(newVal.maxIntensity) >= settingsStore.mainSettings.fssnActionCsis)
         while(i < eqlistList.length){
             if(newVal.source == eqlistList[i].eqMessage.source){
                 if(shouldUpdate) {

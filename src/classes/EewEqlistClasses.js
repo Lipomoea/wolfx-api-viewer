@@ -142,8 +142,8 @@ export class EewEvent {
             if(!this.pWave) {
                 this.pWave = L.circle(this.hypoLatLng, {
                     color: 'white',
-                    weight: 2,
                     opacity,
+                    weight: 2,
                     fill: false,
                     radius: p_radius * 1000,
                     pane: 'wavePane',
@@ -168,8 +168,8 @@ export class EewEvent {
             if(!this.sWave) {
                 this.sWave = L.circle(this.hypoLatLng, {
                     color: this.eqMessage.isWarn ? 'red' : 'orange',
-                    weight: 2,
                     opacity,
+                    weight: 2,
                     fill: false,
                     radius: s_radius * 1000,
                     pane: 'wavePane',
@@ -194,9 +194,8 @@ export class EewEvent {
             if(!this.sWaveFill) {
                 this.sWaveFill = L.circle(this.hypoLatLng, {
                     fillColor: this.eqMessage.isWarn ? 'red' : 'orange',
-                    weight: 0,
-                    opacity: 0,
                     fillOpacity,
+                    stroke: false,
                     radius: s_radius * 1000,
                     pane: 'waveFillPane',
                     interactive: false
@@ -274,9 +273,11 @@ export class EewEvent {
                 }, 100);
             }
             this.setMark()
-            if(this.nearestJmaLoc
-                ? (this.userShindo == '?' || shindoScale.indexOf(this.userShindo) >= settingsStore.mainSettings.actionShindo)
-                : (this.userCsis == '?' || Number(this.userCsis) >= settingsStore.mainSettings.actionCsis)
+            if(
+                (this.nearestJmaLoc
+                ? (this.userShindo == '?' || shindoScale.indexOf(this.userShindo) >= settingsStore.mainSettings.actionLocalShindo)
+                : (this.userCsis == '?' || Number(this.userCsis) >= settingsStore.mainSettings.actionLocalCsis)
+                ) && (settingsStore.mainSettings.actionMag == 0 || this.eqMessage.magnitude >= settingsStore.mainSettings.actionMag)
             ) this.shouldAction = true
             if(this.shouldAction && !isAddition && !this.mute) this.handleActions()
             clearTimeout(this.terminateTimer)

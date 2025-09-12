@@ -153,13 +153,22 @@ const title = computed(() => {
     }
 })
 const handleClick = (item) => {
+    let url
     switch (props.source) {
-        case 'jmaEqlist': {
-            const url = `https://typhoon.yahoo.co.jp/weather/jp/earthquake/${item.id}.html?t=2`
-            openUrl(url)
+        case 'jmaEqlist':
+            url = `https://typhoon.yahoo.co.jp/weather/jp/earthquake/${item.id}.html?t=2`
             break
-        }
+        case 'cwaEqlist':
+            url = 'https://scweb.cwa.gov.tw/'
+            break
+        case 'cencEqlist':
+            url = 'https://news.ceic.ac.cn/'
+            break
+        case 'fssnEqlist':
+            url = 'https://seismic.fanstudio.tech/'
+            break
     }
+    url && openUrl(url)
 }
 onMounted(() => {
     getEqList()
@@ -181,6 +190,7 @@ onBeforeUnmount(() => {
     .title {
         font-size: 2em;
         margin-bottom: 10px;
+        cursor: default;
     }
 
     .item {

@@ -192,8 +192,47 @@
                 </div>
                 <span class="sub-title">行为</span>
                 <div class="group">
-                    <span class="font-bold w-full">预警设置</span>
+                    <span class="font-bold w-full">
+                        预警设置
+                        <el-popover
+                            placement="top"
+                            :width="200"
+                            trigger="hover"
+                        >
+                            <template #reference>
+                                <question-filled width="1em" height="1em" />
+                            </template>
+                            <p><strong>以下所有条件关系为“与”。</strong></p>
+                        </el-popover>
+                    </span>
                     <div class="switch-group">
+                        <div class="switch-full">
+                            <div class="justify-between" style="width: 10rem;">
+                                <span>
+                                    震级阈值
+                                    <el-popover
+                                        placement="top"
+                                        :width="310"
+                                        trigger="hover"
+                                    >
+                                        <template #reference>
+                                            <question-filled width="1em" height="1em" />
+                                        </template>
+                                        <p>仅在预估震级达到阈值时执行下方行为。</p>
+                                        <p>设置为“0”表示不作筛选。</p>
+                                    </el-popover>
+                                </span>
+                                <div class="mag" :class="setClassName(calcCsisLevel(settingsStore.mainSettings.actionMag, 10, 0), false)">
+                                    {{ settingsStore.mainSettings.actionMag.toFixed(1) }}
+                                </div>
+                            </div>
+                            <el-slider
+                            v-model="settingsStore.mainSettings.actionMag"
+                            :min="0" :max="9"
+                            :step="0.1"
+                            size="small"
+                            />
+                        </div>
                         <div class="switch-full" v-if="!settingsStore.nearestJmaLoc">
                             <div class="justify-between" style="width: 10rem;">
                                 <span>
@@ -209,7 +248,7 @@
                                         <p><strong>需要启用“强制估算烈度/震度”。</strong></p>
                                         <p>仅在预估本地烈度达到阈值时执行下方行为。</p>
                                         <p>对日本以外地区生效。</p>
-                                        <p>设置为“0”表示接收全部预警。</p>
+                                        <p>设置为“0”表示不作筛选。</p>
                                         <p>参考：</p>
                                         <p> - 1度及以下：基本无感</p>
                                         <p> - 2~3度：敏感或位于高层的人群静止下有感；悬挂物轻微晃动</p>
@@ -219,15 +258,15 @@
                                         <p> - 10度及以上：无法行走，有抛起感；房屋大规模倒塌；山崩地裂</p>
                                     </el-popover>
                                 </span>
-                                <div class="int" :class="setClassName(settingsStore.mainSettings.actionCsis, false)">
+                                <div class="int" :class="setClassName(settingsStore.mainSettings.actionLocalCsis, false)">
                                     <div class="csis" :class="{
                                         'roman': settingsStore.mainSettings.useRomanCsis,
-                                        'scale-9': settingsStore.mainSettings.actionCsis == 8
-                                    }">{{ formatCsis(settingsStore.mainSettings.actionCsis.toString(), settingsStore.mainSettings.useRomanCsis) }}</div>
+                                        'scale-9': settingsStore.mainSettings.actionLocalCsis == 8
+                                    }">{{ formatCsis(settingsStore.mainSettings.actionLocalCsis.toString(), settingsStore.mainSettings.useRomanCsis) }}</div>
                                 </div>
                             </div>
                             <el-slider
-                            v-model="settingsStore.mainSettings.actionCsis"
+                            v-model="settingsStore.mainSettings.actionLocalCsis"
                             :disabled="!settingsStore.advancedSettings.forceCalcInt"
                             :min="0" :max="12"
                             :step="1"
@@ -250,7 +289,7 @@
                                         <p><strong>需要启用“强制估算烈度/震度”。</strong></p>
                                         <p>仅在预估本地震度达到阈值时执行下方行为。</p>
                                         <p>对附近包含震度观测点的日本地区生效。</p>
-                                        <p>设置为“0”表示接收全部预警。</p>
+                                        <p>设置为“0”表示不作筛选。</p>
                                         <p>参考：</p>
                                         <p> - 震度0：基本无感</p>
                                         <p> - 震度1：敏感人群静止时有感</p>
@@ -262,12 +301,12 @@
                                         <p> - 震度7：无法行走，有抛起感；房屋大规模倒塌；山崩地裂</p>
                                     </el-popover>
                                 </span>
-                                <div class="int" :class="setClassName(shindoScale[settingsStore.mainSettings.actionShindo], true)">
-                                    <div class="shindo">{{ shindoScale[settingsStore.mainSettings.actionShindo] }}</div>
+                                <div class="int" :class="setClassName(shindoScale[settingsStore.mainSettings.actionLocalShindo], true)">
+                                    <div class="shindo">{{ shindoScale[settingsStore.mainSettings.actionLocalShindo] }}</div>
                                 </div>
                             </div>
                             <el-slider
-                            v-model="settingsStore.mainSettings.actionShindo"
+                            v-model="settingsStore.mainSettings.actionLocalShindo"
                             :disabled="!settingsStore.advancedSettings.forceCalcInt"
                             :min="0" :max="9"
                             :step="1"
@@ -279,7 +318,7 @@
                         <div class="switch-full" v-if="settingsStore.advancedSettings.enableGqEew">
                             <div class="justify-between" style="width: 10rem;">
                                 <span>GQ预警震级阈值</span>
-                                <div class="mag" :class="setClassName(settingsStore.mainSettings.gqActionMag * 4/3, false)">
+                                <div class="mag" :class="setClassName(calcCsisLevel(settingsStore.mainSettings.gqActionMag, 10, 0), false)">
                                     {{ settingsStore.mainSettings.gqActionMag.toFixed(1) }}
                                 </div>
                             </div>
@@ -323,7 +362,7 @@
                         <div class="switch-full" v-if="settingsStore.advancedSettings.enableFssnEqlist">
                             <div class="justify-between" style="width: 10rem;">
                                 <span>FSSN震级阈值</span>
-                                <div class="mag" :class="setClassName(settingsStore.mainSettings.fssnActionMag * 4/3, false)">
+                                <div class="mag" :class="setClassName(calcCsisLevel(settingsStore.mainSettings.fssnActionMag, 10, 0), false)">
                                     {{ settingsStore.mainSettings.fssnActionMag.toFixed(1) }}
                                 </div>
                             </div>
@@ -774,6 +813,17 @@
                 <span class="sub-title">高级</span>
                 <div class="group">
                     <div class="switch-group">
+                        <div class="switch-full">
+                            <span>中国地震局预警源</span>
+                            <el-select
+                            style="width: 72px;"
+                            v-model="settingsStore.advancedSettings.ceaEewType"
+                            size="small"
+                            @change="handleNeedReload">
+                                <el-option label="全国" :value=0 />
+                                <el-option label="各省" :value=1 />
+                            </el-select>
+                        </div>
                         <div class="switch-full" v-if="settingsStore.displayTokenButton">
                             <span>管理Token</span>
                             <el-button size="small" @click="showTokenManager = true">管理</el-button>
@@ -1029,7 +1079,7 @@ import { chimeUrls, utilUrls } from '@/utils/Urls';
 import Http from '@/classes/Http';
 import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { QuestionFilled } from '@element-plus/icons-vue';
-import { calcPassedTime, formatCsis, openUrl, playSound, setClassName, shindoScale } from '@/utils/Utils';
+import { calcPassedTime, formatCsis, openUrl, playSound, setClassName, shindoScale, calcCsisLevel } from '@/utils/Utils';
 import { join, appDataDir } from "@tauri-apps/api/path";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { exists, mkdir } from "@tauri-apps/plugin-fs";

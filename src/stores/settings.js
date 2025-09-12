@@ -31,8 +31,9 @@ export const useSettingsStore = defineStore('settingsStore', {
                 tremApi: 'lb-1',
                 displayTremShindo: false
             },
-            actionCsis: 0,
-            actionShindo: 0,
+            actionMag: 0.0,
+            actionLocalCsis: 0,
+            actionLocalShindo: 0,
             gqActionMag: 5.0,
             gqActionCsis: 7,
             fssnActionMag: 5.0,
@@ -101,6 +102,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             enableFssnEqlist: false,
             enableMultiApi: false,
             enableMockEew: false,
+            ceaEewType: 0,
             tokens: {
                 fan_dev: ''
             },

@@ -50,28 +50,26 @@ export const defaultTsunamiMessage = {
 }
 
 const wolfx2Source = {
-    jma_eew: 'jmaEew',
-    cwa_eew: 'cwaEew',
-    sc_eew: 'scEew',
-    fj_eew: 'fjEew',
-    cenc_eqlist: 'cencEqlist'
+    'jma_eew': 'jmaEew',
+    'cwa_eew': 'cwaEew',
+    'sc_eew': 'scEew',
+    'fj_eew': 'fjEew',
+    'cenc_eqlist': 'cencEqlist'
 }
 
 const source2Fan = {
-    ceaEew: 'cea',
-    iclEew: 'icl',
-    scEew: 'sichuan',
-    fjEew: 'fujian',
-    cencEqlist: 'cenc',
-    fssnEqlist: 'fssn'
+    'iclEew': 'icl',
+    'scEew': 'sichuan',
+    'fjEew': 'fujian',
+    'cencEqlist': 'cenc',
+    'fssnEqlist': 'fssn'
 }
 const fan2Source = {
-    cea: 'ceaEew',
-    icl: 'iclEew',
-    sichuan: 'scEew',
-    fujian: 'fjEew',
-    cenc: 'cencEqlist',
-    fssn: 'fssnEqlist'
+    'icl': 'iclEew',
+    'sichuan': 'scEew',
+    'fujian': 'fjEew',
+    'cenc': 'cencEqlist',
+    'fssn': 'fssnEqlist'
 }
 
 export const useStatusStore = defineStore('statusStore', {
@@ -818,6 +816,17 @@ export const useStatusStore = defineStore('statusStore', {
                 if(this.fanSocket) this.fanSocket.close()
                 if(this.activeFanSource.length > 0) {
                     const settingsStore = useSettingsStore()
+                    const ceaEewType = settingsStore.advancedSettings.ceaEewType
+                    if(ceaEewType == 1) {
+                        source2Fan['ceaEew'] = 'cea-pr'
+                        fan2Source['cea'] = 'ceaEew'
+                        fan2Source['cea-pr'] = 'ceaEew'
+                    }
+                    else {
+                        source2Fan['ceaEew'] = 'cea'
+                        fan2Source['cea'] = 'ceaEew'
+                        delete fan2Source['cea-pr']
+                    }
                     const initMsg = []
                     const token = settingsStore.advancedSettings.tokens.fan_dev
                     if(token) initMsg.push(`{"type":"auth","key":"${token}"}`)
