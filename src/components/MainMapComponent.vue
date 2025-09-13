@@ -580,18 +580,18 @@ onMounted(()=>{
     map.createPane('wavePane')
     wavePane = map.getPane('wavePane')
     wavePane.style.zIndex = 150
-    map.createPane('eqlistMarkerPane')
-    eqlistMarkerPane = map.getPane('eqlistMarkerPane')
-    eqlistMarkerPane.style.zIndex = 189
-    map.createPane('eewMarkerPane')
-    eewMarkerPane = map.getPane('eewMarkerPane')
-    eewMarkerPane.style.zIndex = 190
     map.createPane('labelPane1')
     labelPane1 = map.getPane('labelPane1')
-    labelPane1.style.zIndex = 200
+    labelPane1.style.zIndex = 190
     map.createPane('labelPane2')
     labelPane2 = map.getPane('labelPane2')
-    labelPane2.style.zIndex = 200
+    labelPane2.style.zIndex = 190
+    map.createPane('eqlistMarkerPane')
+    eqlistMarkerPane = map.getPane('eqlistMarkerPane')
+    eqlistMarkerPane.style.zIndex = 199
+    map.createPane('eewMarkerPane')
+    eewMarkerPane = map.getPane('eewMarkerPane')
+    eewMarkerPane.style.zIndex = 200
     map.on('dragstart', handleManual)
     map.on('zoomend', () => zoomLevel.value = map.getZoom())
     if(settingsStore.advancedSettings.preventFlickerMode){
