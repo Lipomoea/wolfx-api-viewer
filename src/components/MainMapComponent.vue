@@ -567,31 +567,31 @@ onMounted(()=>{
         map.createPane(`tremStationPane${i}`)
         map.getPane(`tremStationPane${i}`).style.zIndex = i + 50
     }
+    map.createPane('userPane')
+    map.getPane('userPane').style.zIndex = 100
+    map.createPane('terminatorPane')
+    map.getPane('terminatorPane').style.zIndex = 130
     map.createPane('niedGridPane')
     niedGridPane = map.getPane('niedGridPane')
-    niedGridPane.style.zIndex = 100
+    niedGridPane.style.zIndex = 140
     map.createPane('tremGridPane')
     tremGridPane = map.getPane('tremGridPane')
-    tremGridPane.style.zIndex = 100
-    map.createPane('labelPane1')
-    labelPane1 = map.getPane('labelPane1')
-    labelPane1.style.zIndex = 120
-    map.createPane('labelPane2')
-    labelPane2 = map.getPane('labelPane2')
-    labelPane2.style.zIndex = 120
-    map.createPane('userPane')
-    map.getPane('userPane').style.zIndex = 140
-    map.createPane('terminatorPane')
-    map.getPane('terminatorPane').style.zIndex = 149
+    tremGridPane.style.zIndex = 140
     map.createPane('wavePane')
     wavePane = map.getPane('wavePane')
     wavePane.style.zIndex = 150
-    map.createPane('eewMarkerPane')
-    eewMarkerPane = map.getPane('eewMarkerPane')
-    eewMarkerPane.style.zIndex = 201
     map.createPane('eqlistMarkerPane')
     eqlistMarkerPane = map.getPane('eqlistMarkerPane')
-    eqlistMarkerPane.style.zIndex = 200
+    eqlistMarkerPane.style.zIndex = 189
+    map.createPane('eewMarkerPane')
+    eewMarkerPane = map.getPane('eewMarkerPane')
+    eewMarkerPane.style.zIndex = 190
+    map.createPane('labelPane1')
+    labelPane1 = map.getPane('labelPane1')
+    labelPane1.style.zIndex = 200
+    map.createPane('labelPane2')
+    labelPane2 = map.getPane('labelPane2')
+    labelPane2.style.zIndex = 200
     map.on('dragstart', handleManual)
     map.on('zoomend', () => zoomLevel.value = map.getZoom())
     if(settingsStore.advancedSettings.preventFlickerMode){
@@ -826,7 +826,7 @@ const loadMaps = async (retries = 0) => {
                 ctx.font = `${fontSize}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillStyle = '#ffffffdf';
+                ctx.fillStyle = '#ffffffcc';
                 ctx.shadowColor = '#0000007f';
                 ctx.shadowBlur = 5;
                 ctx.fillText(text, canvas.width / dpr / 2, canvas.height / dpr / 2);
