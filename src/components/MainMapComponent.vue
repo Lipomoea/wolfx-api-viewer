@@ -326,6 +326,7 @@ const types = {
         1: 'TREM'
     },
     ceaEew: {
+        0: 'Wolfx',
         1: 'FAN'
     },
     iclEew: {

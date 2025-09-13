@@ -52,6 +52,7 @@ export const defaultTsunamiMessage = {
 const wolfx2Source = {
     'jma_eew': 'jmaEew',
     'cwa_eew': 'cwaEew',
+    'cenc_eew': 'ceaEew',
     'sc_eew': 'scEew',
     'fj_eew': 'fjEew',
     'cenc_eqlist': 'cencEqlist'
@@ -82,7 +83,7 @@ export const useStatusStore = defineStore('statusStore', {
         fanSocket: null,
         p2pquakeSocket: null,
         gqSocket: null,
-        useWolfxSocket: ['jmaEew', 'cwaEew', 'scEew', 'fjEew', 'cencEqlist'],
+        useWolfxSocket: ['jmaEew', 'cwaEew', 'ceaEew', 'scEew', 'fjEew', 'cencEqlist'],
         useFanSocket: ['ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist', 'fssnEqlist'],
         useP2pquakeSocket: ['jmaEqlist', 'jmaTsunami'],
         enabledSource: [],
@@ -273,25 +274,50 @@ export const useStatusStore = defineStore('statusStore', {
                         break
                     }
                     case 'ceaEew':{
-                        eqMessage.id = data.eventId
-                        eqMessage.isEew = true
-                        eqMessage.reportNum = data.updates
-                        eqMessage.reportNumText = '第' + data.updates + '报'
-                        eqMessage.reportTime = data.updateTime || data.shockTime
-                        eqMessage.titleText = '中国地震局地震预警'
-                        eqMessage.hypocenter = data.placeName
-                        eqMessage.hypocenterText = '震源: ' + data.placeName
-                        eqMessage.lat = data.latitude
-                        eqMessage.lng = data.longitude
-                        eqMessage.depth = data.depth ?? 10
-                        eqMessage.depthText = '深度: ' + (data.depth == null ? '不明' : data.depth + 'km')
-                        eqMessage.originTime = data.shockTime
-                        eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
-                        eqMessage.magnitude = data.magnitude
-                        eqMessage.magnitudeText = '震级: ' + eqMessage.magnitude.toFixed(1)
-                        eqMessage.maxIntensity = data.epiIntensity ? data.epiIntensity.toFixed(0) : calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
-                        eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
-                        eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 6.5
+                        switch(type) {
+                            case 0:
+                                eqMessage.id = data.EventID
+                                eqMessage.isEew = true
+                                eqMessage.reportNum = data.ReportNum
+                                eqMessage.reportNumText = '第' + data.ReportNum + '报'
+                                eqMessage.reportTime = data.ReportTime || data.OriginTime
+                                eqMessage.titleText = '中国地震局地震预警'
+                                eqMessage.hypocenter = data.HypoCenter
+                                eqMessage.hypocenterText = '震源: ' + data.HypoCenter
+                                eqMessage.lat = data.Latitude
+                                eqMessage.lng = data.Longitude
+                                eqMessage.depth = data.Depth ?? 10
+                                eqMessage.depthText = '深度: ' + (data.Depth == null ? '不明' : data.Depth + 'km')
+                                eqMessage.originTime = data.OriginTime
+                                eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
+                                eqMessage.magnitude = data.Magnitude
+                                eqMessage.magnitudeText = '震级: ' + eqMessage.magnitude.toFixed(1)
+                                eqMessage.maxIntensity = data.MaxIntensity ? data.MaxIntensity.toFixed(0) : calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
+                                eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
+                                eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 6.5
+                                break
+                            case 1:
+                                eqMessage.id = data.eventId
+                                eqMessage.isEew = true
+                                eqMessage.reportNum = data.updates
+                                eqMessage.reportNumText = '第' + data.updates + '报'
+                                eqMessage.reportTime = data.updateTime || data.shockTime
+                                eqMessage.titleText = '中国地震局地震预警'
+                                eqMessage.hypocenter = data.placeName
+                                eqMessage.hypocenterText = '震源: ' + data.placeName
+                                eqMessage.lat = data.latitude
+                                eqMessage.lng = data.longitude
+                                eqMessage.depth = data.depth ?? 10
+                                eqMessage.depthText = '深度: ' + (data.depth == null ? '不明' : data.depth + 'km')
+                                eqMessage.originTime = data.shockTime
+                                eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
+                                eqMessage.magnitude = data.magnitude
+                                eqMessage.magnitudeText = '震级: ' + eqMessage.magnitude.toFixed(1)
+                                eqMessage.maxIntensity = data.epiIntensity ? data.epiIntensity.toFixed(0) : calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
+                                eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
+                                eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 6.5
+                                break
+                        }
                         break
                     }
                     case 'iclEew':{
@@ -804,7 +830,10 @@ export const useStatusStore = defineStore('statusStore', {
             else if(protocol == 'ws'){
                 if(this.wolfxSocket) this.wolfxSocket.close()
                 if(this.activeWolfxSource.length > 0) {
-                    this.wolfxSocket = new WebSocketObj(eqUrls.wolfx_ws, this.activeWolfxSource.map(source => `query_${source.toLowerCase()}`))
+                    this.wolfxSocket = new WebSocketObj(eqUrls.wolfx_ws, this.activeWolfxSource.map(source => {
+                        if(source == 'ceaEew') return 'query_cenceew'
+                        else return `query_${source.toLowerCase()}`
+                    }))
                     this.wolfxSocket.setMessageHandler((e)=>{
                         let data = JSON.parse(e.data)
                         if(data.type != 'heartbeat'){
@@ -816,8 +845,7 @@ export const useStatusStore = defineStore('statusStore', {
                 if(this.fanSocket) this.fanSocket.close()
                 if(this.activeFanSource.length > 0) {
                     const settingsStore = useSettingsStore()
-                    const ceaEewType = settingsStore.advancedSettings.ceaEewType
-                    if(ceaEewType == 1) {
+                    if(settingsStore.advancedSettings.provinceCeaEew) {
                         source2Fan['ceaEew'] = 'cea-pr'
                         fan2Source['cea'] = 'ceaEew'
                         fan2Source['cea-pr'] = 'ceaEew'

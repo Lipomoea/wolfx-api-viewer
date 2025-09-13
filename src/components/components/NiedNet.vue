@@ -105,10 +105,6 @@ const update = ()=>{
                 }
                 const nearbyStations = adjStationIds[station.id].map(id=>stations[id]).filter(station=>station.level > -1)
                 const possibleNearbyStations = nearbyStations.filter(station=>station.activity > 0)
-                if(possibleNearbyStations.length >= 5) {
-                    chainActivate(station, activeStations, checkedStations)
-                    return
-                }
                 const nearbyActiveNum = possibleNearbyStations.length - possibleNearbyStations.filter(station => station.ascend <= 1 && !station.isActive).length / 2
                 let numThres, activityThres
                 switch(settingsStore.mainSettings.displaySeisNet.niedSensitivity) {

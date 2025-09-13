@@ -814,15 +814,9 @@
                 <div class="group">
                     <div class="switch-group">
                         <div class="switch-full">
-                            <span>中国地震局预警源</span>
-                            <el-select
-                            style="width: 72px;"
-                            v-model="settingsStore.advancedSettings.ceaEewType"
-                            size="small"
-                            @change="handleNeedReload">
-                                <el-option label="全国" :value=0 />
-                                <el-option label="各省" :value=1 />
-                            </el-select>
+                            <span>中国地震局预警融合省级源</span>
+                            <el-switch v-model="settingsStore.advancedSettings.provinceCeaEew"
+                            @change="handleNeedReload" />
                         </div>
                         <div class="switch-full" v-if="settingsStore.displayTokenButton">
                             <span>管理Token</span>
