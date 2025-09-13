@@ -89,6 +89,7 @@ const getEqList = () => {
                     break
                 }
                 case 'cencEqlist': {
+                    const maxIntensity = calcCsisLevel(data[keys[i]].magnitude, data[keys[i]].depth)
                     eqList[i] = {
                         id: data[keys[i]].EventID,
                         timeZone: 8,
@@ -97,8 +98,8 @@ const getEqList = () => {
                         hypocenter: data[keys[i]].placeName,
                         depth: data[keys[i]].depth + 'km',
                         magnitude: data[keys[i]].magnitude,
-                        maxIntensity: data[keys[i]].intensity,
-                        className: setClassName(data[keys[i]].intensity, false)
+                        maxIntensity,
+                        className: setClassName(maxIntensity, false)
                     }
                     break
                 }

@@ -351,7 +351,10 @@ const calcLineDis = (dep, dis) => {
   const lineDis = Math.sqrt(a * a + r * r - 2 * a * r * Math.cos(theta));
   return lineDis;
 };
-export const calcCsis = (m, dep, dis) => {
+export const calcCsis = (m, dep = 10, dis = 0) => {
+  m = Number(m);
+  dep = Number(dep);
+  dis = Number(dis);
   if (isNaN(m) || isNaN(dis)) return 0;
   if (dis > 10000) return 0;
   dep =
@@ -368,7 +371,7 @@ export const calcCsis = (m, dep, dis) => {
   const avg = (ceaCsis + iclCsis) / 2;
   return avg;
 };
-export const calcCsisLevel = (m, dep, dis) =>
+export const calcCsisLevel = (m, dep = 10, dis = 0) =>
   Math.min(Math.max(calcCsis(m, dep, dis), 0), 12).toFixed(0);
 export const formatChineseTaiwan = str =>
   (str.startsWith("台湾") && !(str.includes("市") || str.includes("县"))

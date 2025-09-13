@@ -289,7 +289,7 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
                         eqMessage.magnitude = data.magnitude
                         eqMessage.magnitudeText = '震级: ' + eqMessage.magnitude.toFixed(1)
-                        eqMessage.maxIntensity = data.epiIntensity?.toFixed(0) || calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
+                        eqMessage.maxIntensity = data.epiIntensity ? data.epiIntensity.toFixed(0) : calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
                         eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                         eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 6.5
                         break
@@ -313,7 +313,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
                                 eqMessage.magnitude = data.magnitude
                                 eqMessage.magnitudeText = '震级: ' + data.magnitude.toFixed(1)
-                                eqMessage.maxIntensity = data.epiIntensity?.toFixed(0) || calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
+                                eqMessage.maxIntensity = data.epiIntensity ? data.epiIntensity.toFixed(0) : calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
                                 eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                                 eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 6.5
                                 break
@@ -334,7 +334,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
                                 eqMessage.magnitude = data.magnitude
                                 eqMessage.magnitudeText = '震级: ' + eqMessage.magnitude.toFixed(1)
-                                eqMessage.maxIntensity = data.epiIntensity?.toFixed(0) || calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
+                                eqMessage.maxIntensity = data.epiIntensity ? data.epiIntensity.toFixed(0) : calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
                                 eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                                 eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 6.5
                                 break
@@ -360,7 +360,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.originTimeText = '发震时间: ' + data.OriginTime
                                 eqMessage.magnitude = data.Magunitude
                                 eqMessage.magnitudeText = '震级: ' + data.Magunitude.toFixed(1)
-                                eqMessage.maxIntensity = data.MaxIntensity?.toFixed(0) || calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
+                                eqMessage.maxIntensity = data.MaxIntensity ? data.MaxIntensity.toFixed(0) : calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
                                 eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                                 eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 6.5
                                 break
@@ -381,7 +381,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.originTimeText = '发震时间: ' + data.shockTime
                                 eqMessage.magnitude = data.magnitude
                                 eqMessage.magnitudeText = '震级: ' + eqMessage.magnitude.toFixed(1)
-                                eqMessage.maxIntensity = data.epiIntensity?.toFixed(0) || calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
+                                eqMessage.maxIntensity = data.epiIntensity ? data.epiIntensity.toFixed(0) : calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
                                 eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                                 eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 6.5
                                 break
