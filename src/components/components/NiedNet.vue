@@ -82,8 +82,8 @@ const getData = async (url)=>{
     }
 }
 let pendingRender = false
-const nearbyLength = 5
-const activityThresArr = [Infinity, 10, 13, 15, 16, 16]
+const nearbyLength = 6
+const activityThresArr = [Infinity, 10, 13, 15, 16, 16, 16]
 const update = ()=>{
     if(stationList.value.length == stations.length && stations.length == stationData.value.length){
         let maxLevel = -1
@@ -101,38 +101,41 @@ const update = ()=>{
             if(!checkedStations.has(station)){
                 if(station.isActive && station.ascend > 0) {
                     chainActivate(station, activeStations, checkedStations)
+                    return
                 }
-                else {
-                    const nearbyStations = adjStationIds[station.id].map(id=>stations[id]).filter(station=>station.level > -1)
-                    const possibleNearbyStations = nearbyStations.filter(station=>station.activity > 0)
-                    const nearbyActiveNum = possibleNearbyStations.length - possibleNearbyStations.filter(station => station.ascend <= 1 && !station.isActive).length / 2
-                    let numThres, activityThres
-                    switch(settingsStore.mainSettings.displaySeisNet.niedSensitivity) {
-                        case 1:
-                            numThres = 2.5
-                            activityThres = activityThresArr[nearbyStations.length] + 2
-                            break
-                        case 2:
-                            numThres = nearbyStations.length <= 2 ? (nearbyStations.length + 1) / 2 : nearbyStations.length / 2
-                            activityThres = activityThresArr[nearbyStations.length]
-                            break
-                        case 3:
-                            numThres = nearbyStations.length / 2
-                            activityThres = activityThresArr[nearbyStations.length] - 2
-                            break
-                        default:
-                            return
-                    }
-                    if (nearbyActiveNum >= numThres) {
-                        const numActivity = nearbyActiveNum * (nearbyActiveNum + 1) / 2
-                        const nearbyActivity = nearbyStations.reduce((sum, nearbyStation, index) => 
-                            index >= 3 && distMatrix[station.id][nearbyStation.id] > 15 
-                            ? sum + nearbyStation.activity / 2 
-                            : sum + nearbyStation.activity, 0
-                        ) + numActivity
-                        if (nearbyActivity >= activityThres) {
-                            chainActivate(station, activeStations, checkedStations)
-                        }
+                const nearbyStations = adjStationIds[station.id].map(id=>stations[id]).filter(station=>station.level > -1)
+                const possibleNearbyStations = nearbyStations.filter(station=>station.activity > 0)
+                if(possibleNearbyStations.length >= 5) {
+                    chainActivate(station, activeStations, checkedStations)
+                    return
+                }
+                const nearbyActiveNum = possibleNearbyStations.length - possibleNearbyStations.filter(station => station.ascend <= 1 && !station.isActive).length / 2
+                let numThres, activityThres
+                switch(settingsStore.mainSettings.displaySeisNet.niedSensitivity) {
+                    case 1:
+                        numThres = 3
+                        activityThres = activityThresArr[nearbyStations.length] + 2
+                        break
+                    case 2:
+                        numThres = nearbyStations.length <= 2 ? (nearbyStations.length + 1) / 2 : nearbyStations.length / 2
+                        activityThres = activityThresArr[nearbyStations.length]
+                        break
+                    case 3:
+                        numThres = nearbyStations.length / 2
+                        activityThres = activityThresArr[nearbyStations.length] - 2
+                        break
+                    default:
+                        return
+                }
+                if (nearbyActiveNum >= numThres) {
+                    const numActivity = nearbyActiveNum * (nearbyActiveNum + 1) / 2
+                    const nearbyActivity = nearbyStations.reduce((sum, nearbyStation, index) => 
+                        index >= 3 && distMatrix[station.id][nearbyStation.id] > 15 
+                        ? sum + nearbyStation.activity / 2 
+                        : sum + nearbyStation.activity, 0
+                    ) + numActivity
+                    if (nearbyActivity >= activityThres) {
+                        chainActivate(station, activeStations, checkedStations)
                     }
                 }
             }
@@ -264,8 +267,8 @@ watch(()=>statusStore.map, newVal=>{
                     }
                     distances.sort((a, b) => a.distance - b.distance).splice(nearbyLength)
                     adjStationIds[i] = distances.map(obj => obj.id)
-                    const avgDist = distances.length <= 1 ? 0 : distances.reduce((sum, curr) => sum + curr.distance, 0) / (distances.length - 1)
-                    expireSeconds[i] = Math.max(Math.round(avgDist / 3.5) + 3, 7)
+                    const maxDist = distances[distances.length - 1].distance
+                    expireSeconds[i] = Math.max(Math.round(maxDist / 3.5) + 3, 7)
                 }
                 newVal.forEach((latLng, index)=>{
                     const station = reactive(new NiedStation(map, index, latLng, 'c', expireSeconds[index]))
