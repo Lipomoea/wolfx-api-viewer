@@ -2,7 +2,7 @@
     <div>
         <div class="container">
             <div class="title">{{ title }}</div>
-            <div class="item white" v-for="(item, index) of eqList" :key="index" @click="handleClick(item)">
+            <div class="item white" v-for="(item, index) of eqList" :key="index" @dblclick="handleDblClick(item)" @contextmenu="handleRightClick($event, item)">
                 <div class="intensity" :class="item.className">
                     <div v-if="item.useShindo" :class="item.maxIntensity != '不明' ? 'shindo' : 'csis'">
                         {{ item.maxIntensity == '不明' ? '?' : item.maxIntensity }}
@@ -34,13 +34,14 @@
 import { reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import Http from '@/classes/Http';
 import { eqUrls } from '@/utils/Urls';
-import { openUrl, setClassName, stampToTime, shindoScale, formatTimeZone, formatCsis, calcCsisLevel } from '@/utils/Utils';
+import { openUrl, setClassName, stampToTime, shindoScale, formatTimeZone, formatCsis, calcCsisLevel, calcPassedTime } from '@/utils/Utils';
 import '@/assets/background.css'
 import '@/assets/opacity.css'
 import { useSettingsStore } from '@/stores/settings';
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import router from '@/router';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -153,7 +154,8 @@ const title = computed(() => {
             return 'FSSN地震测定'
     }
 })
-const handleClick = (item) => {
+const handleRightClick = (event, item) => {
+    event.preventDefault()
     let url
     switch (props.source) {
         case 'jmaEqlist':
@@ -170,6 +172,13 @@ const handleClick = (item) => {
             break
     }
     url && openUrl(url)
+}
+const handleDblClick = (item) => {
+    const passedTime = calcPassedTime(item.originTime, item.timeZone)
+    if(typeof(passedTime) == 'number') {
+        settingsStore.mainSettings.displaySeisNet.delay = Math.max(Math.round(passedTime / 600) / 100 + 0.1, 0)
+        router.back()
+    }
 }
 onMounted(() => {
     getEqList()

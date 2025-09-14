@@ -49,10 +49,11 @@ const activeStations = computed(()=>{
     })
     return list
 })
+let decimal = [0, 0]
 const grids = computed(()=>{
     let grids = {}
     Object.keys(activeStations.value).forEach(id=>{
-        const latLng = stations[id].latLng.map(l=>Math.ceil(l + 0.055) - 0.055)
+        const latLng = stations[id].latLng.map((l, index) => Math.round(l - decimal[index]) + decimal[index])
         const level = stations[id].level
         const key = JSON.stringify(latLng)
         if(key in grids){
@@ -72,17 +73,22 @@ const smartSetView = inject('smartSetView')
 let pendingRender = false
 const update = ()=>{
     let maxInst = -3.1
+    let first = null
     Object.keys(stations).forEach(id=>{
         if(id in stationData){
             const alert = !!stationData[id].alert
             const intensity = alert ? stationData[id].I : stationData[id].i
             const render = document.visibilityState === 'visible'
             stations[id].update(intensity, alert, render)
+            if(alert && !statusStore.isActive.tremNet && (!first || intensity > first.intensity)) {
+                first = stations[id]
+            }
             if(!render) pendingRender = true
             if(intensity > maxInst) maxInst = intensity
         }
         else stations[id].update(-3.1, false)
     })
+    if(first) decimal = first.latLng.map(val => Math.round((val + 180) % 1 * 10) / 10)
     tremMaxShindo.value = getShindoFromInstShindo(maxInst)
 }
 const renderAll = ()=>{
@@ -160,22 +166,26 @@ watch(()=>statusStore.map, newVal=>{
         }, { immediate: true })
         unwatchGrids = watch(grids, (newVal)=>{
             for(let key in newVal) {
-                let item = newVal[key]
-                const color = item.level <= 7?'green':(item.level <= 13?'yellow':'red')
-                if(!(key in gridRects && gridRects[key].color == color)) {
-                    if(key in gridRects && map.hasLayer(gridRects[key].layer)) map.removeLayer(gridRects[key].layer)
-                    const layer = L.rectangle([item.latLng, item.latLng.map(l=>l - 0.99)], {
+                const item = newVal[key]
+                const color = item.level <= 7 ? 'green' : item.level <= 13 ? 'yellow' : 'red'
+                if(!(key in gridRects)) {
+                    const layer = L.rectangle([item.latLng.map(l => l - 0.495), item.latLng.map(l => l + 0.495)], {
                         color,
                         weight: 2,
                         fill: false,
                         pane: 'tremGridPane',
                         interactive: false
-                    })
+                    }).addTo(map)
                     gridRects[key] = {
                         color,
                         layer
                     }
-                    layer.addTo(map)
+                }
+                else if(gridRects[key].color != color) {
+                    gridRects[key].color = color
+                    gridRects[key].layer.setStyle({
+                        color
+                    })
                 }
                 if(item.level > periodMaxLevel.value) periodMaxLevel.value = item.level
             }

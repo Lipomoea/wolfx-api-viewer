@@ -52,16 +52,17 @@ const activeStations = computed(()=>{
     })
     return list
 })
+let decimal = [0, 0]
 const grids = computed(()=>{
     let grids = {}
     activeStations.value.forEach(id=>{
-        const latLng = stationList.value[id].map(l=>Math.ceil(l + 0.055) - 0.055)
+        const latLng = stations[id].latLng.map((l, index) => Math.round(l - decimal[index]) + decimal[index])
         const level = stations[id].level
         const key = JSON.stringify(latLng)
         if(key in grids){
             if(level > grids[key].level) grids[key].level = level
         }
-        else{
+        else {
             grids[key] = {
                 latLng,
                 level
@@ -136,6 +137,15 @@ const update = ()=>{
                 }
             }
         })
+        if(!statusStore.isActive.niedNet) {
+            let first = null
+            activeStations.forEach(station=>{
+                if(!first || station.level > first.level) {
+                    first = station
+                }
+            })
+            if(first) decimal = first.latLng.map(val => Math.round((val + 180) % 1 * 10) / 10)
+        }
         activeStations.forEach(station=>{
             station.setActive()
         })
@@ -275,22 +285,26 @@ watch(()=>statusStore.map, newVal=>{
         }, { immediate: true })
         unwatchGrids = watch(grids, (newVal)=>{
             for(let key in newVal) {
-                let item = newVal[key]
-                const color = item.level <= 7?'green':(item.level <= 13?'yellow':'red')
-                if(!(key in gridRects && gridRects[key].color == color)) {
-                    if(key in gridRects && map.hasLayer(gridRects[key].layer)) map.removeLayer(gridRects[key].layer)
-                    const layer = L.rectangle([item.latLng, item.latLng.map(l=>l - 0.99)], {
+                const item = newVal[key]
+                const color = item.level <= 7 ? 'green' : item.level <= 13 ? 'yellow' : 'red'
+                if(!(key in gridRects)) {
+                    const layer = L.rectangle([item.latLng.map(l => l - 0.495), item.latLng.map(l => l + 0.495)], {
                         color,
                         weight: 2,
                         fill: false,
                         pane: 'niedGridPane',
                         interactive: false
-                    })
+                    }).addTo(map)
                     gridRects[key] = {
                         color,
                         layer
                     }
-                    layer.addTo(map)
+                }
+                else if(gridRects[key].color != color) {
+                    gridRects[key].color = color
+                    gridRects[key].layer.setStyle({
+                        color
+                    })
                 }
                 if(item.level > periodMaxLevel.value) periodMaxLevel.value = item.level
             }
