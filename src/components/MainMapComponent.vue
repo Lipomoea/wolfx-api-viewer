@@ -827,7 +827,7 @@ const loadMaps = async (retries = 0) => {
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#ffffffcc';
-                ctx.shadowColor = '#0000007f';
+                ctx.shadowColor = '#000000aa';
                 ctx.shadowBlur = 5;
                 ctx.fillText(text, canvas.width / dpr / 2, canvas.height / dpr / 2);
 
