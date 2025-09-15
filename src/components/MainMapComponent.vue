@@ -626,11 +626,11 @@ onMounted(()=>{
         clearInterval(terminatorInterval)
         if(newVal) {
             const update = () => {
-                const time = new Date(timeStore.timeStamp)
+                const time = new Date(timeStore.getTimeStamp())
                 terminatorLayer?.setTime(time)
                 terminatorFillLayer?.setTime(time)
             }
-            const time = new Date(timeStore.timeStamp)
+            const time = new Date(timeStore.getTimeStamp())
             terminatorLayer = terminator({
                 color: 'black',
                 opacity: 0.5,

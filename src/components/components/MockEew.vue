@@ -101,6 +101,7 @@
 
 <script setup>
 import { useStatusStore } from '@/stores/status';
+import { useTimeStore } from '@/stores/time';
 import dayjs from 'dayjs';
 import { ref, reactive, computed, watch } from 'vue';
 import utc from 'dayjs/plugin/utc';
@@ -109,6 +110,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const statusStore = useStatusStore()
+const timeStore = useTimeStore()
 
 const currentPage = ref(0)
 const forms = reactive([])
@@ -174,8 +176,9 @@ const generateEqMessage = (form, index, id) => {
     const reportNum = index + 1
     const isFinal = reportNum == forms.length
     const reportNumText = `第${reportNum}报${isFinal ? '（最终）' : ''}`
-    const originTime = dayjs().add(form.originDelay, 'seconds').tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss')
-    const reportTime = dayjs().add(form.reportDelay, 'seconds').tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss')
+    const now = timeStore.getTimeStamp()
+    const originTime = dayjs(now).add(form.originDelay, 'seconds').tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss')
+    const reportTime = dayjs(now).add(form.reportDelay, 'seconds').tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss')
     const eqMessage = {
         id,
         isEew: true,

@@ -117,7 +117,7 @@ onMounted(()=>{
     fetchStationList()
     requestInterval = setInterval(() => {
         try {
-            const time = Date.now() + timeStore.offset - delay.value
+            const time = timeStore.getTimeStamp() - delay.value
             Http.get(stationDataUrl.value + (delay.value > 0 ? `/${Math.round(time / 1000)}` : `?time=${time}`)).then(res=>{
                 if(res && Object.keys(res).length > 0){
                     stationData = res.station

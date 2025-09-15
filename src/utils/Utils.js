@@ -58,7 +58,7 @@ export const stampToTime = (timeStamp, timeZone) => {
 export const calcPassedTime = (time, timeZone) => {
   if (!time || !timeZone) return;
   if (!timeStore) timeStore = useTimeStore();
-  let stamp1 = Date.now() + timeStore.offset;
+  let stamp1 = timeStore.getTimeStamp();
   let stamp2 = timeToStamp(time, timeZone);
   return stamp1 - stamp2;
 };
@@ -261,7 +261,7 @@ export const extractNumbers = str => {
 export const getTimeNumberString = (timeZone, offset) => {
   if (!timeStore) timeStore = useTimeStore();
   const now = new Date(
-    Date.now() + timeStore.offset + timeZone * 3600 * 1000 + offset
+    timeStore.getTimeStamp() + timeZone * 3600 * 1000 + offset
   );
   const year = now.getUTCFullYear();
   const month = String(now.getUTCMonth() + 1).padStart(2, "0");

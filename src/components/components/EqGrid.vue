@@ -141,7 +141,7 @@ watch(eqMessage, (newVal)=>{
     }
 }, { deep: true })
 const passedTimeFromOrigin = ref(0)
-watch(()=>timeStore.currentTime, ()=>{
+watch(()=>timeStore.currentTimeStamp, ()=>{
     passedTimeFromOrigin.value = calcPassedTime(eqMessage.value.originTime, eqMessage.value.timeZone)
 })
 

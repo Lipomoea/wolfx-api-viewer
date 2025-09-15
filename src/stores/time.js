@@ -3,15 +3,13 @@ import { utilUrls } from '@/utils/Urls';
 import Http from '@/classes/Http';
 
 export const useTimeStore = defineStore('timeStore', {
-    state: ()=>({
-        currentTime: '',
+    state: () => ({
+        currentTimeStamp: 0,
         offset: 0,
-        timeStamp: 0,
     }),
     actions: {
         updateTime() {
-            this.currentTime = (new Date(Date.now() + this.offset)).toISOString();
-            this.timeStamp = Date.now() + this.offset
+            this.currentTimeStamp = this.getTimeStamp();
         },
         startUpdatingTime() {
             this.stopUpdatingTime()
@@ -36,6 +34,9 @@ export const useTimeStore = defineStore('timeStore', {
                     this.offset = ntpTimeStamp - systemTimeStamp
                 }
             })
+        },
+        getTimeStamp() {
+            return Date.now() + this.offset
         }
     }
 })
