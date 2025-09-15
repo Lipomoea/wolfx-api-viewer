@@ -301,7 +301,7 @@ import { storeToRefs } from 'pinia';
 import { simpleShindo } from '@/classes/StationClasses';
 import { feature } from 'topojson-client';
 import router from '@/router';
-import { cnCityLabels, cnProvinceLabels, jpPrefLabels } from '@/utils/Labels';
+import { cnCityLabels, cnProvinceLabels, jpAreaLabels, jpPrefLabels } from '@/utils/Labels';
 import terminator from '@joergdietrich/leaflet.terminator';
 
 const statusStore = useStatusStore()
@@ -854,6 +854,15 @@ const loadMaps = async (retries = 0) => {
                     interactive: false
                 })
                 labelLayer2.addLayer(label)
+            })
+            jpAreaLabels.forEach(item => {
+                const { name, coord } = item
+                const label = L.marker(coord, {
+                    icon: createTextIcon(name),
+                    pane: "labelPane1",
+                    interactive: false
+                })
+                labelLayer1.addLayer(label)
             })
             jpPrefLabels.forEach(item => {
                 const { name, coord } = item
