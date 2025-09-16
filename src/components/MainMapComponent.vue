@@ -663,15 +663,17 @@ onMounted(()=>{
             }
         }, { immediate: true })
     }
-    watch(menuId, (newVal)=>{
+    watchEffect(() => {
         document.removeEventListener('mousemove', resetDefaultMenuTimer)
-        if(newVal == defaultMenuId.value){
+        if(menuId.value == defaultMenuId.value){
             clearTimeout(defaultMenuTimer)
         }
         else{
             resetDefaultMenuTimer()
             document.addEventListener('mousemove', resetDefaultMenuTimer)
         }
+    })
+    watch(menuId, (newVal) => {
         if(newVal == 'eews'){
             eqlistMarkerPane.style.opacity = 0.3
             jpTsunamiBasePane.style.opacity = 0.3 * (tsunamiFlickerCounter ? 1 : 0)
