@@ -1822,34 +1822,3 @@ export const jpPrefLabels = [
     coord: [24.37, 123.73],
   },
 ];
-
-export const jpAreaLabels = [
-  {
-    name: "北海道",
-    coord: [43.3, 142.75],
-  },
-  {
-    name: "東北",
-    coord: [39.07, 140.61],
-  },
-  {
-    name: "関東",
-    coord: [36.11, 139.71],
-  },
-  {
-    name: "小笠原",
-    coord: [26, 141.7],
-  },
-  {
-    name: "近畿",
-    coord: [34.79, 135.4],
-  },
-  {
-    name: "九州",
-    coord: [32.5, 130.7],
-  },
-  {
-    name: "沖縄",
-    coord: [26.1, 127.33],
-  },
-];
