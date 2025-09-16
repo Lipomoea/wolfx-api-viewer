@@ -380,9 +380,21 @@ export class EewEvent {
             this.pCountdown = -1
         }
     }
+    handleClick() {
+        this.showMenu = !this.showMenu
+        if(this.showMenu) {
+            this.showMenuTimer = setTimeout(() => {
+                this.showMenu = false
+            }, 5000);
+        }
+        else {
+            clearTimeout(this.showMenuTimer)
+        }
+    }
     terminate(force = false){
         if(force) ignoredIds.add(`${this.eqMessage.source}|${this.eqMessage.id}`)
         clearTimeout(this.terminateTimer)
+        clearTimeout(this.showMenuTimer)
         this.renderStop()
         const index = this.activeEewList.indexOf(this)
         if(index >= 0) this.activeEewList.splice(index, 1)
@@ -504,8 +516,20 @@ export class EqlistEvent {
         this.handleTempEqlists(6500, eqMessage.source)
         this.smartSetView()
     }
+    handleClick() {
+        this.showMenu = !this.showMenu
+        if(this.showMenu) {
+            this.showMenuTimer = setTimeout(() => {
+                this.showMenu = false
+            }, 5000);
+        }
+        else {
+            clearTimeout(this.showMenuTimer)
+        }
+    }
     deactivate() {
         clearTimeout(this.deactivateTimer)
+        clearTimeout(this.showMenuTimer)
         this.isActive = false
         this.showMenu = false
         if(settingsStore.mainSettings.eqlistsDisplayMode == 1 && !this.isLatest) this.removeMark()

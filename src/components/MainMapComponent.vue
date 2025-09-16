@@ -11,7 +11,7 @@
                                 <div v-show="activeEewList.length > 1">{{ activeEewList.findIndex(e => e == event) + 1 }}/{{ activeEewList.length }}</div>
                             </div>
                             <div class="info" @click="() => {
-                                event.showMenu = !event.showMenu;
+                                event.handleClick();
                                 infoPageCounter = infoPageCounter - infoPageCounter % 10;
                             }">
                                 <div v-if="event.eqMessage.useShindo" class="intensity" :class="event.eqMessage.className">
@@ -83,7 +83,7 @@
                                 <div v-show="displayEqlistList.length > 1">{{ displayEqlistList.findIndex(e => e == event) + 1 }}/{{ displayEqlistList.length }}</div>
                             </div>
                             <div class="info" @click="() => {
-                                event.showMenu = !event.showMenu;
+                                event.handleClick();
                                 infoPageCounter = infoPageCounter - infoPageCounter % 10;
                             }">
                                 <div v-if="event.eqMessage.useShindo" class="intensity" :class="event.eqMessage.className">
