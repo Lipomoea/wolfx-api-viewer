@@ -4,28 +4,40 @@
             <div class="title">自然资源部海啸预警</div>
             <div class="receive">{{ statusStore.tsunamiMessage.nmefcTsunami.reportTime }} (UTC+8) 更新</div>
             <div class="details">
-                <div class="sub-title purple" v-if="warnAreaByGrade['红色']">大海啸警报</div>
                 <div class="group" v-if="warnAreaByGrade['红色']">
+                    <div class="sub-title info">
+                        <div class="purple">大海啸警报</div>
+                        <div class="purple">预计到达</div>
+                        <div class="purple">最大波</div>
+                    </div>
                     <div class="info" v-for="(item, index) of warnAreaByGrade['红色']" :key="index">
                         <div class="name" :class="item.name.length > 8 ? 'small' : ''">{{ item.name }}</div>
                         <div class="arrival-time">{{ item.arrivalTime }}</div>
-                        <div class="description purple">{{ item.description }}</div>
+                        <div class="description font-purple">{{ item.description }}</div>
                     </div>
                 </div>
-                <div class="sub-title red" v-if="warnAreaByGrade['橙色']">海啸警报</div>
                 <div class="group" v-if="warnAreaByGrade['橙色']">
+                    <div class="sub-title info">
+                        <div class="red">海啸警报</div>
+                        <div class="red">预计到达</div>
+                        <div class="red">最大波</div>
+                    </div>
                     <div class="info" v-for="(item, index) of warnAreaByGrade['橙色']" :key="index">
                         <div class="name" :class="item.name.length > 8 ? 'small' : ''">{{ item.name }}</div>
                         <div class="arrival-time">{{ item.arrivalTime }}</div>
-                        <div class="description red">{{ item.description }}</div>
+                        <div class="description font-red">{{ item.description }}</div>
                     </div>
                 </div>
-                <div class="sub-title yellow" v-if="warnAreaByGrade['黄色']">海啸注意报</div>
                 <div class="group" v-if="warnAreaByGrade['黄色']">
+                    <div class="sub-title info">
+                        <div class="yellow">海啸注意报</div>
+                        <div class="yellow">预计到达</div>
+                        <div class="yellow">最大波</div>
+                    </div>
                     <div class="info" v-for="(item, index) of warnAreaByGrade['黄色']" :key="index">
                         <div class="name" :class="item.name.length > 8 ? 'small' : ''">{{ item.name }}</div>
                         <div class="arrival-time">{{ item.arrivalTime }}</div>
-                        <div class="description yellow">{{ item.description }}</div>
+                        <div class="description font-black">{{ item.description }}</div>
                     </div>
                 </div>
             </div>
@@ -141,9 +153,9 @@ watch(() => statusStore.map, newVal => {
         flex-direction: column;
         align-items: center;
         gap: 3px;
-        background-color: #dfdfdf;
+        background-color: var(--gray);
         box-shadow: 0 4px 10px #0000003f;
-        border-radius: 20px;
+        border-radius: 10px;
         user-select: none;
         .title {
             font-size: 24px;
@@ -159,27 +171,28 @@ watch(() => statusStore.map, newVal => {
             align-items: flex-start;
             width: 100%;
             gap: 5px;
-            .sub-title {
-                font-size: 20px;
-                height: 24px;
-                padding: 5px;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
             .group {
                 width: 100%;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                gap: 5px;
+                gap: 2px;
+                .sub-title {
+                    font-size: 20px;
+                }
                 .info {
                     width: 100%;
+                    height: 30px;
                     display: grid;
-                    grid-template-columns: 48fr 32fr 20fr;
-                    column-gap: 5px;
+                    grid-template-columns: 5fr 3fr 2fr;
+                    gap: 2px;
+                    :nth-child(1) {
+                        justify-content: flex-start;
+                        padding-left: 5px;
+                    }
                     div {
-                        height: 30px;
+                        width: 100%;
+                        height: 100%;
                         justify-self: center;
                         align-self: center;
                         font-size: 18px;
@@ -187,15 +200,26 @@ watch(() => statusStore.map, newVal => {
                         justify-content: center;
                         align-items: center;
                     }
+                    .name,.arrival-time {
+                        background-color: #0000007f;
+                    }
+                    .name {
+                        color: white;
+                    }
                     .arrival-time {
-                        padding: 0 5px;
-                        border: #7f7f7f 1px solid;
-                        border-radius: 5px;
-                        width: 100%;
+                        color: var(--yellow);
                     }
                     .description {
-                        width: 65px;
-                        height: 100%;
+                        background-color: #ffffff7f;
+                    }
+                    .font-purple {
+                        color: var(--purple);
+                    }
+                    .font-red {
+                        color: var(--red);
+                    }
+                    .font-black {
+                        color: black;
                     }
                     .small {
                         font-size: 16px;
