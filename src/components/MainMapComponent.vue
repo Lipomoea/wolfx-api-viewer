@@ -123,6 +123,21 @@
                             </div>
                         </div>
                     </div>
+                    <div class="event" v-if="settingsStore.mainSettings.source.nmefcTsunami && statusStore.isActive.nmefcTsunami">
+                        <div class="eew" v-show="menuId != 'eews'">
+                            <div class="bar" :class="statusStore.tsunamiMessage.nmefcTsunami.className">
+                                <div><WarnTriangleFilled style="width: 1em; height: 1em; margin-right: 0.25em;" />{{ statusStore.tsunamiMessage.nmefcTsunami.titleText }}</div>
+                            </div>
+                            <div class="tsunami-info">
+                                <div v-show="statusStore.tsunamiMessage.nmefcTsunami.status >= 3" class="text">大海啸警报</div>
+                                <div v-show="statusStore.tsunamiMessage.nmefcTsunami.status >= 3" class="legend tsunami-purple"></div>
+                                <div v-show="statusStore.tsunamiMessage.nmefcTsunami.status >= 2" class="text">海啸警报</div>
+                                <div v-show="statusStore.tsunamiMessage.nmefcTsunami.status >= 2" class="legend tsunami-red"></div>
+                                <div v-show="statusStore.tsunamiMessage.nmefcTsunami.status >= 1" class="text">海啸注意报</div>
+                                <div v-show="statusStore.tsunamiMessage.nmefcTsunami.status >= 1" class="legend tsunami-yellow"></div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="event" v-if="settingsStore.mainSettings.source.jmaTsunami && statusStore.isActive.jmaTsunami">
                         <div class="eew" v-show="menuId != 'eews'">
                             <div class="bar" :class="statusStore.tsunamiMessage.jmaTsunami.className">
@@ -307,8 +322,8 @@ import terminator from '@joergdietrich/leaflet.terminator';
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 const timeStore = useTimeStore()
-let map, jpEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap, labelLayer1, labelLayer2, terminatorLayer, terminatorFillLayer, cnFaultBaseMap
-let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, jpEewBasePane, cnEewBasePane, jpTsunamiBasePane, labelPane1, labelPane2
+let map, jpEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap, cnTsunamiBaseMap, labelLayer1, labelLayer2, terminatorLayer, terminatorFillLayer, cnFaultBaseMap
+let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, jpEewBasePane, cnEewBasePane, tsunamiBasePane, labelPane1, labelPane2
 let userMarker
 const defaultLatLng = [38.1, 104.6]
 const { isValidUserLatLng, isValidViewLatLng, isDisplayUser, nearestJmaLoc } = storeToRefs(settingsStore)
@@ -481,7 +496,14 @@ const jmaTsunamiWarnArea = computed(() => {
     })
     return jmaTsunamiWarnArea
 })
-provide('jmaTsunamiWarnArea', jmaTsunamiWarnArea)
+const nmefcTsunamiWarnArea = computed(() => {
+    const warnArea = JSON.parse(statusStore.tsunamiMessage.nmefcTsunami.warnArea)
+    const nmefcTsunamiWarnArea = {}
+    warnArea.forEach(item => {
+        nmefcTsunamiWarnArea[item.name] = item
+    })
+    return nmefcTsunamiWarnArea
+})
 const activeSources = computed(() =>
     new Set([...activeEewList.map(event => event.eqMessage.source), ...activeEqlistList.value.map(event => event.eqMessage.source)])
 )
@@ -558,9 +580,9 @@ onMounted(()=>{
     cnEewBasePane.style.zIndex = 21
     map.createPane('cnFaultBasePane')
     map.getPane('cnFaultBasePane').style.zIndex = 30
-    map.createPane('jpTsunamiBasePane')
-    jpTsunamiBasePane = map.getPane('jpTsunamiBasePane')
-    jpTsunamiBasePane.style.zIndex = 40
+    map.createPane('tsunamiBasePane')
+    tsunamiBasePane = map.getPane('tsunamiBasePane')
+    tsunamiBasePane.style.zIndex = 40
     for(let i = -1; i <= 20; i++){
         map.createPane(`niedStationPane${i}`)
         map.getPane(`niedStationPane${i}`).style.zIndex = i + 50
@@ -676,11 +698,11 @@ onMounted(()=>{
     watch(menuId, (newVal) => {
         if(newVal == 'eews'){
             eqlistMarkerPane.style.opacity = 0.3
-            jpTsunamiBasePane.style.opacity = 0.3 * (tsunamiFlickerCounter ? 1 : 0)
+            tsunamiBasePane.style.opacity = 0.3 * (tsunamiFlickerCounter ? 1 : 0)
         }
         else{
             eqlistMarkerPane.style.opacity = 1
-            jpTsunamiBasePane.style.opacity = 1 * (tsunamiFlickerCounter ? 1 : 0)
+            tsunamiBasePane.style.opacity = 1 * (tsunamiFlickerCounter ? 1 : 0)
         }
         if(newVal == 'eqlists'){
             eewMarkerPane.style.opacity = 0.3 * (blinkStatus.value ? 1 : 0)
@@ -770,7 +792,7 @@ const loadMaps = async (retries = 0) => {
             firstMsg = true
         }, 1000);
     }
-    let promises
+    let promises, shouldRetry = false
     if(!isTauri() && ('caches' in window)){
         const cache = await caches.open('topojson')
         promises = Object.keys(topojsonUrls).map(key=>cache.match(topojsonUrls[key]).then(res=>res?.json()))
@@ -779,7 +801,7 @@ const loadMaps = async (retries = 0) => {
         promises = Object.keys(topojsonUrls).map(key=>fetch(topojsonUrls[key]).then(res=>res?.json()))
     }
     const resps = await Promise.all(promises)
-    const [global, cn, cn_eew, cn_fault, jp, jp_eew, jp_tsunami] = resps
+    const [global, cn, cn_eew, cn_fault, jp, jp_eew, jp_tsunami, cn_tsunami] = resps
     if(global && cn && cn_eew && cn_fault && jp && jp_eew && jp_tsunami){
         clearTimeout(msgTimer)
         loadBaseMap(global, 'globalBasePane')
@@ -937,7 +959,7 @@ const loadMaps = async (retries = 0) => {
             }, { deep: true, immediate: true })
         }
         if(settingsStore.mainSettings.source.jmaTsunami) {
-            jpTsunamiBaseMap = loadBaseMap(jp_tsunami, 'jpTsunamiBasePane', false, {
+            jpTsunamiBaseMap = loadBaseMap(jp_tsunami, 'tsunamiBasePane', false, {
                 color: '#ffffff00',
                 opacity: 1,
                 weight: map.getZoom(),
@@ -968,8 +990,48 @@ const loadMaps = async (retries = 0) => {
                 smartSetView()
             }, { deep: true, immediate: true })
         }
+        if(settingsStore.mainSettings.source.nmefcTsunami) {
+            if(cn_tsunami) {
+                cnTsunamiBaseMap = loadBaseMap(cn_tsunami, 'tsunamiBasePane', false, {
+                    color: '#ffffff00',
+                    opacity: 1,
+                    weight: map.getZoom(),
+                })
+                map.on('zoomend', () => {
+                    cnTsunamiBaseMap.setStyle({
+                        weight: map.getZoom()
+                    })
+                })
+                watch(nmefcTsunamiWarnArea, newVal => {
+                    cnTsunamiBaseMap.eachLayer(layer => {
+                        const layerName = layer.feature.properties.name
+                        if(layerName in newVal){
+                            if(layer.options.color != `var(--tsunami-${newVal[layerName].className})`){
+                                layer.setStyle({
+                                    color: `var(--tsunami-${newVal[layerName].className})`
+                                })
+                            }
+                        }
+                        else{
+                            if(layer.options.color != '#ffffff00'){
+                                layer.setStyle({
+                                    color: '#ffffff00'
+                                })
+                            }
+                        }
+                    })
+                    smartSetView()
+                }, { deep: true, immediate: true })
+            }
+            else {
+                shouldRetry = true
+            }
+        }
     }
     else{
+        shouldRetry = true
+    }
+    if(shouldRetry) {
         if(retries < 50) {
             setTimeout(() => {
                 loadMaps(retries + 1)
@@ -991,7 +1053,7 @@ const intervalEvents = ()=>{
     eewMarkerPane.style.opacity = (blinkStatus.value ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
     niedGridPane.style.opacity = (blinkStatus.value && !statusStore.isActive.jmaEew ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
     tremGridPane.style.opacity = (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
-    jpTsunamiBasePane.style.opacity = (tsunamiFlickerCounter ? 1 : 0) * (menuId.value == 'eews' ? 0.3 : 1)
+    tsunamiBasePane.style.opacity = (tsunamiFlickerCounter ? 1 : 0) * (menuId.value == 'eews' ? 0.3 : 1)
     isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
     isTremDelayed.value = !verifyUpToDate(tremUpdateTime.value, 8, 10000)
     wolfxRS.value = statusStore.wolfxSocket?.socket.readyState ?? 4
@@ -1013,8 +1075,8 @@ const setView = () => {
         //临时Eqlist
         if(settingsStore.mainSettings.cinemaMode && tempEqlists.value && menuId.value == 'eqlists') {
             if(tempEqlists.value == 'jmaTsunami') {
-                jpTsunamiBaseMap?.eachLayer(layer => {
-                    if(statusStore.isActive.jmaTsunami && layer.options.pane.includes('TsunamiBasePane') && layer.options.color && layer.options.color != '#ffffff00') {
+                statusStore.isActive.jmaTsunami && jpTsunamiBaseMap?.eachLayer(layer => {
+                    if(layer.options.color && layer.options.color != '#ffffff00') {
                         if(layer.getBounds){
                             bounds.extend(layer.getBounds())
                         }
@@ -1024,8 +1086,22 @@ const setView = () => {
                     }
                 })
                 if(!bounds.isValid()) {
-                    bounds.extend([46, 148])
-                    bounds.extend([23.5, 122])
+                    bounds.extend(jpTsunamiBaseMap?.getBounds())
+                }
+            }
+            else if(tempEqlists.value == 'nmefcTsunami') {
+                statusStore.isActive.nmefcTsunami && cnTsunamiBaseMap?.eachLayer(layer => {
+                    if(layer.options.color && layer.options.color != '#ffffff00') {
+                        if(layer.getBounds){
+                            bounds.extend(layer.getBounds())
+                        }
+                        else if(layer.getLatLng){
+                            bounds.extend(layer.getLatLng())
+                        }
+                    }
+                })
+                if(!bounds.isValid()) {
+                    bounds.extend(cnTsunamiBaseMap?.getBounds())
                 }
             }
             else {
@@ -1046,8 +1122,7 @@ const setView = () => {
                                 }
                             })
                             if(!bounds.isValid()) {
-                                bounds.extend([46, 148])
-                                bounds.extend([23.5, 122])
+                                bounds.extend(jpEewBaseMap?.getBounds())
                             }
                         }
                         else {
@@ -1091,8 +1166,18 @@ const setView = () => {
             }
             //活跃的Eqlist和Tsunami
             if(!bounds.isValid() && menuId.value != 'eews') {
-                jpTsunamiBaseMap?.eachLayer(layer => {
-                    if(statusStore.isActive.jmaTsunami && layer.options.pane.includes('TsunamiBasePane') && layer.options.color && layer.options.color != '#ffffff00') {
+                statusStore.isActive.jmaTsunami && jpTsunamiBaseMap?.eachLayer(layer => {
+                    if(layer.options.color && layer.options.color != '#ffffff00') {
+                        if(layer.getBounds){
+                            bounds.extend(layer.getBounds())
+                        }
+                        else if(layer.getLatLng){
+                            bounds.extend(layer.getLatLng())
+                        }
+                    }
+                })
+                statusStore.isActive.nmefcTsunami && cnTsunamiBaseMap?.eachLayer(layer => {
+                    if(layer.options.color && layer.options.color != '#ffffff00') {
                         if(layer.getBounds){
                             bounds.extend(layer.getBounds())
                         }
@@ -1117,8 +1202,7 @@ const setView = () => {
                             }
                         })
                         if(!bounds.isValid()) {
-                            bounds.extend([46, 148])
-                            bounds.extend([23.5, 122])
+                            bounds.extend(jpEewBaseMap?.getBounds())
                         }
                     }
                     else {
@@ -1614,9 +1698,6 @@ onBeforeUnmount(()=>{
                     align-items: center;
                     column-gap: 0.5em;
                     margin-top: 0.25rem;
-                    div{
-                        line-height: 1em;
-                    }
                     .s0{
                         color: yellow;
                     }

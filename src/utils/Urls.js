@@ -10,7 +10,8 @@ export const eqUrls = {
     p2pquake_ws: 'wss://api.p2pquake.net/v2/ws'
 }
 export const tsunamiUrls = {
-    jmaTsunami_http: 'https://api.p2pquake.net/v2/history?codes=552&limit=1'
+    jmaTsunami_http: 'https://api.p2pquake.net/v2/history?codes=552&limit=1',
+    nmefcTsunami_http: 'https://api.fanstudio.tech/we/nmefc_tsunami.php'
 }
 export const seisNetUrls = {
     nied: {

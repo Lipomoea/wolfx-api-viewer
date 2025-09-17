@@ -1,31 +1,31 @@
 <template>
     <div class="outer">
         <div class="container" @click="handleClick">
-            <div class="title">津波到達予想</div>
-            <div class="receive">{{ statusStore.tsunamiMessage.jmaTsunami.reportTime }} (UTC+9) 発表</div>
+            <div class="title">自然资源部海啸预警</div>
+            <div class="receive">{{ statusStore.tsunamiMessage.nmefcTsunami.reportTime }} (UTC+8) 更新</div>
             <div class="details">
-                <div class="sub-title purple" v-if="warnAreaByGrade.MajorWarning">大津波警報</div>
-                <div class="group" v-if="warnAreaByGrade.MajorWarning">
-                    <div class="info" v-for="(item, index) of warnAreaByGrade.MajorWarning" :key="index">
+                <div class="sub-title purple" v-if="warnAreaByGrade['红色']">大海啸警报</div>
+                <div class="group" v-if="warnAreaByGrade['红色']">
+                    <div class="info" v-for="(item, index) of warnAreaByGrade['红色']" :key="index">
                         <div class="name" :class="item.name.length > 8 ? 'small' : ''">{{ item.name }}</div>
-                        <div class="arrival-time">{{ formatArrival(item.condition, item.arrivalTime) }}</div>
-                        <div class="description purple">{{ formatDescription(item.description) }}</div>
+                        <div class="arrival-time">{{ item.arrivalTime }}</div>
+                        <div class="description purple">{{ item.description }}</div>
                     </div>
                 </div>
-                <div class="sub-title red" v-if="warnAreaByGrade.Warning">津波警報</div>
-                <div class="group" v-if="warnAreaByGrade.Warning">
-                    <div class="info" v-for="(item, index) of warnAreaByGrade.Warning" :key="index">
+                <div class="sub-title red" v-if="warnAreaByGrade['橙色']">海啸警报</div>
+                <div class="group" v-if="warnAreaByGrade['橙色']">
+                    <div class="info" v-for="(item, index) of warnAreaByGrade['橙色']" :key="index">
                         <div class="name" :class="item.name.length > 8 ? 'small' : ''">{{ item.name }}</div>
-                        <div class="arrival-time">{{ formatArrival(item.condition, item.arrivalTime) }}</div>
-                        <div class="description red">{{ formatDescription(item.description) }}</div>
+                        <div class="arrival-time">{{ item.arrivalTime }}</div>
+                        <div class="description red">{{ item.description }}</div>
                     </div>
                 </div>
-                <div class="sub-title yellow" v-if="warnAreaByGrade.Watch">津波注意報</div>
-                <div class="group" v-if="warnAreaByGrade.Watch">
-                    <div class="info" v-for="(item, index) of warnAreaByGrade.Watch" :key="index">
+                <div class="sub-title yellow" v-if="warnAreaByGrade['黄色']">海啸注意报</div>
+                <div class="group" v-if="warnAreaByGrade['黄色']">
+                    <div class="info" v-for="(item, index) of warnAreaByGrade['黄色']" :key="index">
                         <div class="name" :class="item.name.length > 8 ? 'small' : ''">{{ item.name }}</div>
-                        <div class="arrival-time">{{ formatArrival(item.condition, item.arrivalTime) }}</div>
-                        <div class="description yellow">{{ formatDescription(item.description) }}</div>
+                        <div class="arrival-time">{{ item.arrivalTime }}</div>
+                        <div class="description yellow">{{ item.description }}</div>
                     </div>
                 </div>
             </div>
@@ -45,7 +45,7 @@ const settingsStore = useSettingsStore()
 const handleTempEqlists = inject('handleTempEqlists')
 const warnAreaByGrade = computed(() => {
     const warnAreaByGrade = {}
-    const warnArea = JSON.parse(statusStore.tsunamiMessage.jmaTsunami.warnArea)
+    const warnArea = JSON.parse(statusStore.tsunamiMessage.nmefcTsunami.warnArea)
     warnArea.forEach(item => {
         const grade = item.grade
         if(!warnAreaByGrade[grade]) warnAreaByGrade[grade] = []
@@ -54,24 +54,6 @@ const warnAreaByGrade = computed(() => {
     return warnAreaByGrade
 })
 
-const formatArrival = (condition, arrivalTime) => {
-    if(condition) {
-        switch(condition) {
-            case '津波到達中と推測':
-                return '到達か'
-            case 'ただちに津波来襲と予測':
-                return 'すぐ来る'
-            case '第１波の到達を確認':
-                return 'すでに到達'
-            default:
-                return condition
-        }
-    }
-    else {
-        return arrivalTime.slice(8, -3).replace(' ', '日 ')
-    }
-}
-const formatDescription = description => description.replace('０', '0').replace('１', '1').replace('３', '3').replace('５', '5').replace('ｍ', 'm')
 const handleClick = ()=>{
     openUrl('https://typhoon.yahoo.co.jp/weather/jp/tsunami/')
 }
@@ -80,12 +62,12 @@ let oldMessage = Object.assign({}, defaultTsunamiMessage)
 let currentStatus = 'notsunami'
 watch(() => statusStore.map, newVal => {
     if(newVal !== null) {
-        watch(() => statusStore.tsunamiMessage.jmaTsunami, newMessage => {
+        watch(() => statusStore.tsunamiMessage.nmefcTsunami, newMessage => {
             let title, body, icon, speech, playEws = false, shouldFocus = true
             if(newMessage.status > oldMessage.status) {
                 currentStatus = `tsunami${newMessage.status}issue`
-                title = newMessage.title + 'が発表されました'
-                body = newMessage.status > 1 ? '今すぐ避難！' : '海岸から離れてください。'
+                title = '现正发布' + newMessage.title
+                body = newMessage.status > 1 ? '请立即避难！' : '请从海岸边撤离！'
                 icon = newMessage.status > 1 ? iconUrls.warn : iconUrls.caution
                 speech = currentStatus
                 playEws = newMessage.status > 1
@@ -93,15 +75,15 @@ watch(() => statusStore.map, newVal => {
             else if(newMessage.status < oldMessage.status) {
                 if(newMessage.status == 0) {
                     currentStatus = `tsunami${oldMessage.status}cancel`
-                    title = oldMessage.title + 'が解除されました'
-                    body = '今後の情報に注意してください。'
+                    title = oldMessage.title + '已解除'
+                    body = '请留意后续情报。'
                     icon = iconUrls.info
                     speech = currentStatus
                 }
                 else {
                     currentStatus = `tsunami${newMessage.status}switch`
-                    title = newMessage.title + 'に切り替えられました'
-                    body = '今後の情報に注意してください。'
+                    title = '已切换到' + newMessage.title
+                    body = '请留意后续情报。'
                     icon = iconUrls.info
                     speech = currentStatus
                 }
@@ -113,8 +95,8 @@ watch(() => statusStore.map, newVal => {
                 }
                 else {
                     currentStatus = `tsunami${newMessage.status}update`
-                    title = newMessage.title + 'が更新されました'
-                    body = newMessage.status > 1 ? '今すぐ避難！' : '海岸から離れてください。'
+                    title = newMessage.title + '更新了'
+                    body = newMessage.status > 1 ? '请立即避难！' : '请从海岸边撤离！'
                     icon = newMessage.status > 1 ? iconUrls.warn : iconUrls.caution
                     speech = currentStatus
                 }
@@ -139,7 +121,7 @@ watch(() => statusStore.map, newVal => {
             if(focus && shouldFocus) {
                 focusWindow()
             }
-            if(shouldFocus) handleTempEqlists(15000, 'jmaTsunami')
+            if(shouldFocus) handleTempEqlists(15000, 'nmefcTsunami')
             Object.assign(oldMessage, newMessage)
         }, { immediate: true, deep: true })
     }

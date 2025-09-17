@@ -3,13 +3,15 @@
     <div class="container">
       <div class="title">地震/海啸信息</div>
       <div class="eqGrid">
-        <JmaTsunami v-if="settingsStore.mainSettings.source.jmaTsunami" v-show="statusStore.isActive.jmaTsunami"></JmaTsunami>
+        <NmefcTsunami v-if="settingsStore.mainSettings.source.nmefcTsunami" v-show="statusStore.isActive.nmefcTsunami" />
+        <JmaTsunami v-if="settingsStore.mainSettings.source.jmaTsunami" v-show="statusStore.isActive.jmaTsunami" />
       </div>
       <div class="eqGrid">
         <EqGrid
         v-for="(source, index) of eqlistList"
         :key="index"
-        :source></EqGrid>
+        :source
+        />
       </div>
       <el-button class="more" :icon="More" @click="handleMore">查看历史地震</el-button>
     </div>
@@ -18,6 +20,7 @@
 
 <script setup>
 import EqGrid from '@/components/components/EqGrid.vue';
+import NmefcTsunami from './components/NmefcTsunami.vue';
 import JmaTsunami from './components/JmaTsunami.vue';
 import { More } from '@element-plus/icons-vue';
 import router from '@/router';

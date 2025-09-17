@@ -6,11 +6,12 @@
         <EqGrid
         v-for="(source, index) of eewList"
         :key="index"
-        :source></EqGrid>
-        <EqGrid v-if="settingsStore.advancedSettings.mockEew" source="mockEew"></EqGrid>
+        :source
+        />
+        <EqGrid v-if="settingsStore.advancedSettings.mockEew" source="mockEew" />
       </div>
       <el-button v-if="settingsStore.advancedSettings.mockEew" class="mock" :icon="Plus" @click="statusStore.showMockDialog = true">新建模拟预警</el-button>
-      <MockEew v-if="settingsStore.advancedSettings.mockEew"></MockEew>
+      <MockEew v-if="settingsStore.advancedSettings.mockEew" />
     </div>
   </div>
 </template>

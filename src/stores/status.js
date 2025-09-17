@@ -41,6 +41,7 @@ export const defaultEqMessage = {
 export const defaultTsunamiMessage = {
     source: '',
     id: '',
+    timeZone: 8,
     reportTime: '',
     title: '',
     titleText: '',
@@ -103,7 +104,8 @@ export const useStatusStore = defineStore('statusStore', {
             fssnEqlist: Object.assign({}, defaultEqMessage),
         },
         tsunamiMessage: {
-            jmaTsunami: Object.assign({}, defaultTsunamiMessage)
+            jmaTsunami: Object.assign({}, defaultTsunamiMessage),
+            nmefcTsunami: Object.assign({}, defaultTsunamiMessage)
         },
         isActive: {
             jmaEew: false,
@@ -120,7 +122,8 @@ export const useStatusStore = defineStore('statusStore', {
             fssnEqlist: false,
             niedNet: false,
             tremNet: false,
-            jmaTsunami: false
+            jmaTsunami: false,
+            nmefcTsunami: false
         }
     }),
     getters: {
@@ -723,6 +726,7 @@ export const useStatusStore = defineStore('statusStore', {
                 switch(source){
                     case 'jmaTsunami': {
                         tsunamiMessage.id = data.issue.time.replace(/[^0-9]/g, '')
+                        tsunamiMessage.timeZone = 9
                         tsunamiMessage.reportTime = data.issue.time.replace(/\//g, '-')
                         if(data.cancelled) {
                             tsunamiMessage.title = '津波警報・注意報なし'
@@ -764,7 +768,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 case 'MajorWarning':
                                     className = 'purple'
                                     break
-                            }    
+                            }
                             return {
                                 name: item.name,
                                 grade: item.grade,
@@ -776,6 +780,68 @@ export const useStatusStore = defineStore('statusStore', {
                             }
                         }))
                         this.isActive.jmaTsunami = !!tsunamiMessage.status
+                        break
+                    }
+                    case 'nmefcTsunami': {
+                        tsunamiMessage.id = data.timeInfo.updateDate.replace(/[^0-9]/g, '')
+                        tsunamiMessage.reportTime = data.timeInfo.updateDate
+                        switch(data.warningInfo.level) {
+                            case '解除':
+                                tsunamiMessage.title = '海啸预警已解除'
+                                tsunamiMessage.titleText = '海啸预警已解除'
+                                tsunamiMessage.status = 0
+                                tsunamiMessage.className = 'white'
+                                break        
+                            case '黄色':
+                                tsunamiMessage.title = '海啸注意报'
+                                tsunamiMessage.titleText = '现正发布海啸注意报'
+                                tsunamiMessage.status = 1
+                                tsunamiMessage.className = 'yellow'
+                                break
+                            case '橙色':
+                                tsunamiMessage.title = '海啸警报'
+                                tsunamiMessage.titleText = '现正发布海啸警报'
+                                tsunamiMessage.status = 2
+                                tsunamiMessage.className = 'red'
+                                break
+                            case '红色':
+                                tsunamiMessage.title = '大海啸警报'
+                                tsunamiMessage.titleText = '现正发布大海啸警报'
+                                tsunamiMessage.status = 3
+                                tsunamiMessage.className = 'purple'
+                                break
+                        }    
+                        tsunamiMessage.warnArea = JSON.stringify(data.forecasts.map(item => {
+                            let className = 'white'
+                            let height = 0
+                            let description = ''
+                            switch(item.warningLevel) {
+                                case '黄色':
+                                    className = 'yellow'
+                                    height = 1
+                                    description = '1m'
+                                    break
+                                case '橙色':
+                                    className = 'red'
+                                    height = 3
+                                    description = '3m'
+                                    break
+                                case '红色':
+                                    className = 'purple'
+                                    height = 5
+                                    description = '3m超'
+                                    break
+                            }
+                            return {
+                                name: item.forecastArea,
+                                grade: item.warningLevel,
+                                height,
+                                description,
+                                arrivalTime: item.estimatedArrivalTime,
+                                className
+                            }
+                        }))
+                        this.isActive.nmefcTsunami = !!tsunamiMessage.status
                         break
                     }
                 }
@@ -796,6 +862,10 @@ export const useStatusStore = defineStore('statusStore', {
                         }
                         if(source == 'jmaTsunami' && status % 2 == 1 && (!this.tsunamiMessage[source].id || status == 1)) {
                             const data = await Http.get(tsunamiUrls[source + '_http'] + `&time=${Date.now()}`)
+                            if(data && data.length > 0) this.setTsunamiMessage(source, data[0])
+                        }
+                        if(source == 'nmefcTsunami' && status % 5 == 0) {
+                            const data = await Http.get(tsunamiUrls[source + '_http'] + `?time=${Date.now()}`)
                             if(data && data.length > 0) this.setTsunamiMessage(source, data[0])
                         }
                         if(source == 'cwaEqlist' && 'cwaEqlist_http' in eqUrls) {

@@ -18,7 +18,8 @@ export const useSettingsStore = defineStore('settingsStore', {
                 cwaEqlist: false,
                 cencEqlist: true,
                 fssnEqlist: false,
-                jmaTsunami: true
+                jmaTsunami: true,
+                nmefcTsunami: false,
             },
             displaySeisNet: {
                 style: 'nied',
@@ -100,6 +101,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             enableTremFunctions: false,
             enableGqEew: false,
             enableFssnEqlist: false,
+            enableNmefcTsunami: false,
             enableMultiApi: false,
             enableMockEew: false,
             provinceCeaEew: false,

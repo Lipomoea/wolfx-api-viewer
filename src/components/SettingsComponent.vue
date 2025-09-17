@@ -75,6 +75,10 @@
                             <div>日本気象庁：津波情報</div>
                             <el-switch v-model="settingsStore.mainSettings.source.jmaTsunami" @change="handleNeedReload" />
                         </div>
+                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableNmefcTsunami">
+                            <div>自然资源部：海啸预警</div>
+                            <el-switch v-model="settingsStore.mainSettings.source.nmefcTsunami" @change="handleNeedReload" />
+                        </div>
                     </div>
                 </div>
                 <span class="sub-title">地震监测网</span>
@@ -1225,8 +1229,13 @@ const idForm = reactive({
 })
 const handleAdvance = (val)=>{
     switch(val){
-        case 'enableIclEew': {
-            verifyType = 'enableIclEew'
+        case 'enableIclEew':
+        case 'enableTremFunctions':
+        case 'enableGqEew':
+        case 'enableMultiApi':
+        case 'enableNmefcTsunami':
+        case 'verifyAdmin': {
+            verifyType = val
             verifyDialog.value = true
             break
         }
@@ -1240,11 +1249,6 @@ const handleAdvance = (val)=>{
             })
             break
         }
-        case 'enableTremFunctions': {
-            verifyType = 'enableTremFunctions'
-            verifyDialog.value = true
-            break
-        }
         case 'disableTremFunctions': {
             if(settingsStore.mainSettings.source.cwaEqlist) handleNeedReload()
             settingsStore.advancedSettings.enableTremFunctions = false
@@ -1254,11 +1258,6 @@ const handleAdvance = (val)=>{
                 message: '功能已关闭',
                 type: 'success'
             })
-            break
-        }
-        case 'enableGqEew': {
-            verifyType = 'enableGqEew'
-            verifyDialog.value = true
             break
         }
         case 'disableGqEew': {
@@ -1271,15 +1270,20 @@ const handleAdvance = (val)=>{
             })
             break
         }
-        case 'enableMultiApi': {
-            verifyType = 'enableMultiApi'
-            verifyDialog.value = true
-            break
-        }
         case 'disableMultiApi': {
             if(settingsStore.advancedSettings.multiApi) handleNeedReload()
             settingsStore.advancedSettings.enableMultiApi = false
             settingsStore.advancedSettings.multiApi = false
+            ElMessage({
+                message: '功能已关闭',
+                type: 'success'
+            })
+            break
+        }
+        case 'disableNmefcTsunami': {
+            if(settingsStore.mainSettings.source.nmefcTsunami) handleNeedReload()
+            settingsStore.advancedSettings.enableNmefcTsunami = false
+            settingsStore.mainSettings.source.nmefcTsunami = false
             ElMessage({
                 message: '功能已关闭',
                 type: 'success'
@@ -1338,11 +1342,6 @@ const handleAdvance = (val)=>{
             if(settingsStore.mainSettings.source.fssnEqlist) handleNeedReload()
             settingsStore.mainSettings.source.fssnEqlist = false
             settingsStore.advancedSettings.enableFssnEqlist = false
-            break
-        }
-        case 'verifyAdmin': {
-            verifyType = 'verifyAdmin'
-            verifyDialog.value = true
             break
         }
     }
@@ -1426,11 +1425,31 @@ const postVerify = async (type = verifyType)=>{
             }
             break
         }
+        case 'enableNmefcTsunami': {
+            const res = await Http.post('https://api.lipomoea.tech/cn_tsunami_topo_json_url', idForm)
+            if(res && res.success){
+                settingsStore.advancedSettings.enableNmefcTsunami = true
+                localStorage.setItem('nmefcTsunami', JSON.stringify(res.data))
+                verifyDialog.value = false
+                ElMessage({
+                    message: '认证成功',
+                    type: 'success'
+                })
+            }
+            else{
+                ElMessage({
+                    message: '认证失败',
+                    type: 'error'
+                })
+            }
+            break
+        }
         case 'verifyAdmin': {
             postVerify('enableIclEew')
             postVerify('enableTremFunctions')
             postVerify('enableGqEew')
             postVerify('enableMultiApi')
+            postVerify('enableNmefcTsunami')
         }
     }
 }

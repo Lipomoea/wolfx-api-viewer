@@ -15,9 +15,10 @@ const testJmaEew = true
 const testCwaEew = true
 const testIclEew = true
 const testScEew = false
-const testJmaEqlist = true
+const testJmaEqlist = false
 const testCencEqlist = true
 const testJmaTsunami = true
+const testNmefcTsunami = true
 
 onMounted(async ()=>{
     if(testJmaEew){
@@ -890,16 +891,35 @@ onMounted(async ()=>{
         const limit = 20
         const res = await Http.get(`https://api.p2pquake.net/v2/jma/tsunami?limit=${limit}&order=1&since_date=20240101`)
         console.log(res);
-        let i = 1
+        let i = 0
         const data = res[i]
         statusStore.setTsunamiMessage(source, data)
-        // setInterval(() => {
-        //     i++
-        //     if(i < limit) {
-        //         const data = res[i]
-        //         statusStore.setTsunamiMessage(source, data)
-        //     }
-        // }, 15000);
+        setInterval(() => {
+            i++
+            if(i < limit) {
+                const data = res[i]
+                statusStore.setTsunamiMessage(source, data)
+            }
+        }, 15000);
+    }
+    if(testNmefcTsunami){
+        const source = 'nmefcTsunami'
+        setTimeout(() => {
+            statusStore.disconnect()
+        }, 2000);
+        const res = await Http.get('https://api.fanstudio.tech/we/nmefc_tsunami.php?year=2025')
+        res.reverse()
+        console.log(res);
+        let i = 0
+        const data = res[i]
+        statusStore.setTsunamiMessage(source, data)
+        setInterval(() => {
+            i++
+            if(i < res.length) {
+                const data = res[i]
+                statusStore.setTsunamiMessage(source, data)
+            }
+        }, 15000);
     }
 })
 </script>
