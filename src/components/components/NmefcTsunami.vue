@@ -67,7 +67,7 @@ const warnAreaByGrade = computed(() => {
 })
 
 const handleClick = ()=>{
-    openUrl('https://typhoon.yahoo.co.jp/weather/jp/tsunami/')
+    openUrl('https://www.nmefc.cn/zhyj/hx')
 }
 
 let oldMessage = Object.assign({}, defaultTsunamiMessage)
