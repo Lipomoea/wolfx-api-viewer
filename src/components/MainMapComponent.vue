@@ -154,7 +154,7 @@
                         </div>
                     </div>
                     <div class="event">
-                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.nied && settingsStore.mainSettings.displaySeisNet.displayNiedShindo">
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.niedNet && settingsStore.mainSettings.displaySeisNet.displayNiedShindo">
                             <div class="shindo-bar gray">NIED实时</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(niedMaxShindo, true)">
@@ -165,7 +165,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.nied && settingsStore.mainSettings.displaySeisNet.displayNiedShindo && niedPeriodMaxShindo != '?'">
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.niedNet && settingsStore.mainSettings.displaySeisNet.displayNiedShindo && niedPeriodMaxShindo != '?'">
                             <div class="shindo-bar gray">NIED区间</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(niedPeriodMaxShindo, true)">
@@ -176,7 +176,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.trem && settingsStore.mainSettings.displaySeisNet.displayTremShindo">
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.tremNet && settingsStore.mainSettings.displaySeisNet.displayTremShindo">
                             <div class="shindo-bar gray">TREM实时</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(tremMaxShindo, true)">
@@ -187,7 +187,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.trem && settingsStore.mainSettings.displaySeisNet.displayTremShindo && tremPeriodMaxShindo != '?'">
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.tremNet && settingsStore.mainSettings.displaySeisNet.displayTremShindo && tremPeriodMaxShindo != '?'">
                             <div class="shindo-bar gray">TREM区间</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(tremPeriodMaxShindo, true)">
@@ -221,10 +221,10 @@
                         <div :class="'s' + p2pquakeRS">P2PQ</div>
                         <div v-if="settingsStore.advancedSettings.enableGqEew" :class="'s' + gqRS">GQ</div>
                     </div>
-                    <div class="update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isNiedDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.nied" @dblclick="resetSeisNetDelay">
+                    <div class="update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isNiedDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.niedNet" @dblclick="resetSeisNetDelay">
                         強震モニタ: {{ niedUpdateTime }} (UTC+9)
                     </div>
-                    <div class="update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isTremDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.trem" @dblclick="resetSeisNetDelay">
+                    <div class="update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isTremDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.tremNet" @dblclick="resetSeisNetDelay">
                         TREM-Net : {{ tremUpdateTime }} (UTC+8)
                     </div>
                 </div>
@@ -301,7 +301,7 @@ import 'leaflet/dist/leaflet.css';
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, watchEffect, provide } from 'vue';
 import '@/assets/background.css'
 import { HomeFilled, FullScreen, WarnTriangleFilled, InfoFilled, Setting } from '@element-plus/icons-vue';
-import { useStatusStore } from '@/stores/status';
+import { eewSources, eqlistSources, seisNetSources, tsunamiSources, useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { useTimeStore } from '@/stores/time';
 import EewComponent from './EewComponent.vue';
@@ -406,9 +406,8 @@ const defaultMenuId = computed(() => {
         }
         else {
             const isActive = statusStore.isActive
-            const keys = Object.keys(isActive)
-            const isEewOrNetActive = keys.filter(key => key.includes('Eew') || key.includes('Net')).some(key => isActive[key])
-            const isEqlistOrTsunamiActive = keys.filter(key => key.includes('Eqlist') || key.includes('Tsunami')).some(key => isActive[key])
+            const isEewOrNetActive = [...eewSources, ...seisNetSources].some(key => isActive[key])
+            const isEqlistOrTsunamiActive = [...eqlistSources, ...tsunamiSources].some(key => isActive[key])
             if(isEewOrNetActive && isEqlistOrTsunamiActive) {
                 defaultMenuId = 'main'
             }
@@ -508,11 +507,9 @@ const activeSources = computed(() =>
     new Set([...activeEewList.map(event => event.eqMessage.source), ...activeEqlistList.value.map(event => event.eqMessage.source)])
 )
 watch(activeSources, newVal => {
-    for(let source in statusStore.isActive){
-        if(source.includes('Eew') || source.includes('Eqlist')){
-            statusStore.isActive[source] = newVal.has(source)
-        }
-    }
+    [...eewSources, ...eqlistSources].forEach(source => {
+        statusStore.isActive[source] = newVal.has(source)
+    })
 })
 const formatShindo = (intensity)=>intensity.replace('強', '+').replace('弱', '-').replace('不明', '?')
 const getBarClass = (event)=>{
@@ -1136,25 +1133,26 @@ const setView = () => {
         }
         else {
             //Eew和SeisNet
-            if(menuId.value != 'eqlists'){
-                map?.eachLayer(layer=>{
-                    if(['waveFillPane', 'eewMarkerPane'].includes(layer.options.pane)){
-                        if(layer.getBounds){
-                            bounds.extend(layer.getBounds())
-                        }
-                        else if(layer.getLatLng){
-                            bounds.extend(layer.getLatLng())
-                        }
+            if(menuId.value != 'eqlists') {
+                map?.eachLayer(layer => {
+                    let shouldExtend = false
+                    switch(layer.options.pane) {
+                        case 'eewMarkerPane':
+                        case 'waveFillPane':
+                            shouldExtend = true
+                            break
+                        case 'niedGridPane':
+                            if(!statusStore.isActive.jmaEew) {
+                                shouldExtend = true
+                            }
+                            break
+                        case 'tremGridPane':
+                            if(!statusStore.isActive.cwaEew) {
+                                shouldExtend = true
+                            }
+                            break
                     }
-                    if(layer.options.pane == 'niedGridPane' && !statusStore.isActive.jmaEew){
-                        if(layer.getBounds){
-                            bounds.extend(layer.getBounds())
-                        }
-                        else if(layer.getLatLng){
-                            bounds.extend(layer.getLatLng())
-                        }
-                    }
-                    if(layer.options.pane == 'tremGridPane' && !statusStore.isActive.cwaEew){
+                    if(shouldExtend) {
                         if(layer.getBounds){
                             bounds.extend(layer.getBounds())
                         }

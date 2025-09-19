@@ -25,14 +25,14 @@ import JmaTsunami from './components/JmaTsunami.vue';
 import { More } from '@element-plus/icons-vue';
 import router from '@/router';
 import { useSettingsStore } from '@/stores/settings';
-import { useStatusStore } from '@/stores/status';
+import { eqlistSources, useStatusStore } from '@/stores/status';
 import { eqUrls } from '@/utils/Urls';
 
 const settingsStore = useSettingsStore()
 const statusStore = useStatusStore()
 
 if(settingsStore.advancedSettings.enableTremFunctions) Object.assign(eqUrls, JSON.parse(localStorage.getItem('tremUrl'))?.eqUrls)
-const eqlistList = Object.keys(settingsStore.mainSettings.source).filter(source => source.includes('Eqlist') && settingsStore.mainSettings.source[source])
+const eqlistList = eqlistSources.filter(source => settingsStore.mainSettings.source[source])
 
 const handleMore = ()=>{
   router.push('/eq-history')

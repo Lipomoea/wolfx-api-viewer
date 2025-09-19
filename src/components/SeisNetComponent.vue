@@ -1,7 +1,7 @@
 <template>
     <div>
-        <NiedNet v-if="settingsStore.mainSettings.displaySeisNet.nied"></NiedNet>
-        <TremNet v-if="settingsStore.mainSettings.displaySeisNet.trem"></TremNet>
+        <NiedNet v-if="settingsStore.mainSettings.displaySeisNet.niedNet"></NiedNet>
+        <TremNet v-if="settingsStore.mainSettings.displaySeisNet.tremNet"></TremNet>
     </div>
 </template>
 

@@ -25,10 +25,10 @@ export const useSettingsStore = defineStore('settingsStore', {
                 style: 'nied',
                 hideNoData: false,
                 delay: 0,
-                nied: true,
+                niedNet: true,
                 niedSensitivity: 2,
                 displayNiedShindo: false,
-                trem: false,
+                tremNet: false,
                 tremApi: 'lb-1',
                 displayTremShindo: false
             },

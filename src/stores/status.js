@@ -74,6 +74,15 @@ const fan2Source = {
     'fssn': 'fssnEqlist'
 }
 
+export const eewSources = ['jmaEew', 'cwaEew', 'ceaEew', 'iclEew', 'scEew', 'fjEew', 'gqEew']
+export const eqlistSources = ['jmaEqlist', 'cwaEqlist', 'cencEqlist', 'fssnEqlist']
+export const tsunamiSources = ['jmaTsunami', 'nmefcTsunami']
+export const seisNetSources = ['niedNet', 'tremNet']
+
+const useWolfxSocket = ['jmaEew', 'cwaEew', 'ceaEew', 'scEew', 'fjEew', 'cencEqlist']
+const useFanSocket = ['ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist', 'fssnEqlist']
+const useP2pquakeSocket = ['jmaEqlist', 'jmaTsunami']
+
 export const useStatusStore = defineStore('statusStore', {
     state: ()=>({
         map: null,
@@ -84,9 +93,6 @@ export const useStatusStore = defineStore('statusStore', {
         fanSocket: null,
         p2pquakeSocket: null,
         gqSocket: null,
-        useWolfxSocket: ['jmaEew', 'cwaEew', 'ceaEew', 'scEew', 'fjEew', 'cencEqlist'],
-        useFanSocket: ['ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist', 'fssnEqlist'],
-        useP2pquakeSocket: ['jmaEqlist', 'jmaTsunami'],
         enabledSource: [],
         multiApi: false,
         eqMessage: {
@@ -105,7 +111,7 @@ export const useStatusStore = defineStore('statusStore', {
         },
         tsunamiMessage: {
             jmaTsunami: Object.assign({}, defaultTsunamiMessage),
-            nmefcTsunami: Object.assign({}, defaultTsunamiMessage)
+            nmefcTsunami: Object.assign({}, defaultTsunamiMessage),
         },
         isActive: {
             jmaEew: false,
@@ -120,16 +126,16 @@ export const useStatusStore = defineStore('statusStore', {
             cwaEqlist: false,
             cencEqlist: false,
             fssnEqlist: false,
+            jmaTsunami: false,
+            nmefcTsunami: false,
             niedNet: false,
             tremNet: false,
-            jmaTsunami: false,
-            nmefcTsunami: false
         }
     }),
     getters: {
-        activeWolfxSource: state => state.useWolfxSocket.filter(source => state.enabledSource.includes(source)),
-        activeFanSource: state => state.useFanSocket.filter(source => state.enabledSource.includes(source)),
-        activeP2pquakeSource: state => state.useP2pquakeSocket.filter(source => state.enabledSource.includes(source))
+        activeWolfxSource: state => useWolfxSocket.filter(source => state.enabledSource.includes(source)),
+        activeFanSource: state => useFanSocket.filter(source => state.enabledSource.includes(source)),
+        activeP2pquakeSource: state => useP2pquakeSocket.filter(source => state.enabledSource.includes(source)),
     },
     actions: {
         setEqMessage(source, data, type = 0) {

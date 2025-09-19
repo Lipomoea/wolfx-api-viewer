@@ -88,14 +88,14 @@
                         <div class="w-full">
                             <div class="switch-full">
                                 <span>強震モニタ</span>
-                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.nied" />
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.niedNet" />
                             </div>
                             <div class="switch-full pl-4">
                                 <span>检知灵敏度</span>
                                 <el-select 
                                 v-model="settingsStore.mainSettings.displaySeisNet.niedSensitivity"
                                 size="small"
-                                :disabled="!settingsStore.mainSettings.displaySeisNet.nied"
+                                :disabled="!settingsStore.mainSettings.displaySeisNet.niedNet"
                                 style="width: 48px;"
                                 >
                                     <el-option label="关" :value=0 />
@@ -106,20 +106,20 @@
                             </div>
                             <div class="switch-full pl-4">
                                 <span>解析震度阶</span>
-                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayNiedShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.nied" />
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayNiedShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.niedNet" />
                             </div>
                         </div>
                         <div class="w-full" v-if="settingsStore.advancedSettings.enableTremFunctions">
                             <div class="switch-full">
                                 <span>TREM-Net</span>
-                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.trem" />
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.tremNet" />
                             </div>
                             <div class="switch-full pl-4">
                                 <span>API</span>
                                 <el-select 
                                 v-model="settingsStore.mainSettings.displaySeisNet.tremApi"
                                 size="small"
-                                :disabled="!settingsStore.mainSettings.displaySeisNet.trem"
+                                :disabled="!settingsStore.mainSettings.displaySeisNet.tremNet"
                                 style="width: 72px;"
                                 >
                                     <el-option label="api-1" value="api-1" />
@@ -132,7 +132,7 @@
                             </div>
                             <div class="switch-full pl-4">
                                 <span>解析震度阶</span>
-                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayTremShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.trem" />
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayTremShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.tremNet" />
                             </div>
                         </div>
                     </div>
@@ -1253,7 +1253,7 @@ const handleAdvance = (val)=>{
             if(settingsStore.mainSettings.source.cwaEqlist) handleNeedReload()
             settingsStore.advancedSettings.enableTremFunctions = false
             settingsStore.mainSettings.source.cwaEqlist = false
-            settingsStore.mainSettings.displaySeisNet.trem = false
+            settingsStore.mainSettings.displaySeisNet.tremNet = false
             ElMessage({
                 message: '功能已关闭',
                 type: 'success'

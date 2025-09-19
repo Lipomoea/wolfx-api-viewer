@@ -225,10 +225,10 @@ onMounted(()=>{
                             message: '站点数据已更新，正在重新加载…',
                             type: 'warning',
                         })
-                        settingsStore.mainSettings.displaySeisNet.nied = false
+                        settingsStore.mainSettings.displaySeisNet.niedNet = false
                         settingsStore.mainSettings.displaySeisNet.delay = 0
                         setTimeout(() => {
-                            settingsStore.mainSettings.displaySeisNet.nied = true
+                            settingsStore.mainSettings.displaySeisNet.niedNet = true
                         }, 1000);
                     }
                 }
