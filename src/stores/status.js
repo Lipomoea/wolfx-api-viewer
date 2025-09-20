@@ -64,14 +64,16 @@ const source2Fan = {
     'scEew': 'sichuan',
     'fjEew': 'fujian',
     'cencEqlist': 'cenc',
-    'fssnEqlist': 'fssn'
+    'fssnEqlist': 'fssn',
+    'nmefcTsunami': 'tsunami'
 }
 const fan2Source = {
     'icl': 'iclEew',
     'sichuan': 'scEew',
     'fujian': 'fjEew',
     'cenc': 'cencEqlist',
-    'fssn': 'fssnEqlist'
+    'fssn': 'fssnEqlist',
+    'tsunami': 'nmefcTsunami'
 }
 
 export const eewSources = ['jmaEew', 'cwaEew', 'ceaEew', 'iclEew', 'scEew', 'fjEew', 'gqEew']
@@ -80,7 +82,7 @@ export const tsunamiSources = ['jmaTsunami', 'nmefcTsunami']
 export const seisNetSources = ['niedNet', 'tremNet']
 
 const useWolfxSocket = ['jmaEew', 'cwaEew', 'ceaEew', 'scEew', 'fjEew', 'cencEqlist']
-const useFanSocket = ['ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist', 'fssnEqlist']
+const useFanSocket = ['ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist', 'fssnEqlist', 'nmefcTsunami']
 const useP2pquakeSocket = ['jmaEqlist', 'jmaTsunami']
 
 export const useStatusStore = defineStore('statusStore', {
@@ -872,10 +874,6 @@ export const useStatusStore = defineStore('statusStore', {
                             const data = await Http.get(tsunamiUrls[source + '_http'] + `&time=${Date.now()}`)
                             if(data && data.length > 0) this.setTsunamiMessage(source, data[0])
                         }
-                        if(source == 'nmefcTsunami' && status % 5 == 0) {
-                            const data = await Http.get(tsunamiUrls[source + '_http'] + `?time=${Date.now()}`)
-                            if(data && data.length > 0) this.setTsunamiMessage(source, data[0])
-                        }
                         if(source == 'cwaEqlist' && 'cwaEqlist_http' in eqUrls) {
                             const data = await Http.get(eqUrls[source + '_http'] + `&time=${Date.now()}`)
                             if(data && data.length > 0) this.setEqMessage(source, data[0])
@@ -941,14 +939,18 @@ export const useStatusStore = defineStore('statusStore', {
                         let data = JSON.parse(e.data)
                         if(data.type == 'initial_all' || data.type == 'query_response') {
                             this.activeFanSource.forEach(source => {
+                                const isTsunami = source.endsWith('Tsunami')
                                 const Data = data[source2Fan[source]]?.Data
-                                if(Data) this.setEqMessage(source, Data, 1)
+                                if(Data)
+                                    isTsunami ? this.setTsunamiMessage(source, Data) : this.setEqMessage(source, Data, 1)
                             })
                         }
                         else if(data.type == 'update'){
                             const source = fan2Source[data.source]
+                            const isTsunami = source.endsWith('Tsunami')
                             const Data = data?.Data
-                            if(source && this.activeFanSource.includes(source) && Data) this.setEqMessage(source, Data, 1)
+                            if(source && this.activeFanSource.includes(source) && Data)
+                                isTsunami ? this.setTsunamiMessage(source, Data) : this.setEqMessage(source, Data, 1)
                         }
                     })
                 }
