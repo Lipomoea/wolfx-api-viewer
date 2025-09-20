@@ -76,12 +76,15 @@ const getEqList = () => {
                     break
                 }
                 case 'cwaEqlist': {
+                    const locStart = data[i].loc.indexOf('(位於')
+                    const locEnd = data[i].loc.indexOf(')')
+                    const hypocenter = locStart == -1 || locEnd == -1 || locStart + 3 >= locEnd ? data[i].loc : data[i].loc.slice(locStart + 3, locEnd)
                     eqList[i] = {
                         id: data[i].id,
                         timeZone: 8,
                         useShindo: true,
                         originTime: stampToTime(data[i].time, 8),
-                        hypocenter: data[i].loc.split(' ').slice(-1)[0].slice(3, -1),
+                        hypocenter,
                         depth: data[i].depth + 'km',
                         magnitude: data[i].mag.toFixed(1),
                         maxIntensity: shindoScale[data[i].int],
