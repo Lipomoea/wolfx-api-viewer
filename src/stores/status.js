@@ -624,7 +624,9 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.id = data.id
                         eqMessage.reportTime = stampToTime(data.time + 300 * 1000, 8)
                         eqMessage.titleText = '中央氣象署地震報告'
-                        eqMessage.hypocenter = data.loc.split(' ').slice(-1)[0].slice(3, -1)
+                        const start = data.loc.indexOf('(位於')
+                        const end = data.loc.indexOf(')')
+                        eqMessage.hypocenter = start == -1 || end == -1 || start + 3 >= end ? data.loc : data.loc.slice(start + 3, end)
                         eqMessage.hypocenterText = '震央: ' + eqMessage.hypocenter
                         eqMessage.lat = data.lat
                         eqMessage.lng = data.lon
