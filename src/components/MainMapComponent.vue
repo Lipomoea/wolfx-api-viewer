@@ -406,7 +406,7 @@ const defaultMenuId = computed(() => {
         }
         else {
             const isActive = statusStore.isActive
-            const isEewOrNetActive = [...eewSources, ...seisNetSources].some(key => isActive[key])
+            const isEewOrNetActive = [...eewSources, ...seisNetSources, 'mockEew'].some(key => isActive[key])
             const isEqlistOrTsunamiActive = [...eqlistSources, ...tsunamiSources].some(key => isActive[key])
             if(isEewOrNetActive && isEqlistOrTsunamiActive) {
                 defaultMenuId = 'main'
@@ -507,7 +507,7 @@ const activeSources = computed(() =>
     new Set([...activeEewList.map(event => event.eqMessage.source), ...activeEqlistList.value.map(event => event.eqMessage.source)])
 )
 watch(activeSources, newVal => {
-    [...eewSources, ...eqlistSources].forEach(source => {
+    [...eewSources, ...eqlistSources, 'mockEew'].forEach(source => {
         statusStore.isActive[source] = newVal.has(source)
     })
 })
