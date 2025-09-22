@@ -4,7 +4,7 @@
             <div class="flex justify-between items-center">
                 <div class="title">模拟地震预警</div>
                 <div class="flex items-center">
-                    <input ref="fileInput" type="file" accept=".json" style="display: none" @change="onFileSelected" />
+                    <input ref="fileInput" type="file" accept=".json" style="display: none;" @change="onFileSelected" />
                     <el-button type="primary" @click="importScenario">导入</el-button>
                     <el-button @click="exportScenario">导出</el-button>
                 </div>
@@ -257,6 +257,7 @@ function onFileSelected(e) {
                     forms.push(form)
                 })
             }, 0);
+            currentPage.value = 0
         } catch (err) {
             ElMessage.error('JSON 格式错误！');
         }

@@ -359,14 +359,14 @@ export const calcCsis = (m, dep = 10, dis = 0) => {
   if (dis > 10000) return 0;
   dep = isNaN(dep) || dep === null || dep < 10 ? 10 : dep;
   const lineDis = calcLineDis(dep, dis);
-  const long = 10 ** ((m - 3.821) / 1.86) / 4;
-  const k = 1 - 0.7 * Math.max(1 / Math.sqrt(dep / 10), 0.25);
+  const long = 10 ** ((m - 3.821) / 1.86) / 3;
+  const k = 1 - 0.8 * Math.max(1 / Math.sqrt(dep / 10), 0.2);
   const hypoDep = Math.max((dep * (lineDis - long)) / lineDis, 0);
-  const hypoDis = Math.max(lineDis - long - k * hypoDep, 7);
-  const ceaCsis = 1.297 * m - 4.368 * Math.log10(hypoDis + 8) + 5.363;
-  const iclCsis = 1.363 * m - 1.494 * Math.log(hypoDis) + 2.941;
-  const avg = (3 * ceaCsis + iclCsis) / 4;
-  return avg;
+  const hypoDis = Math.max(lineDis - long - k * hypoDep, 8);
+  const ceaCsis = 1.297 * m - 4.368 * Math.log10(hypoDis + 7) + 5.363;
+  // const iclCsis = 1.363 * m - 1.494 * Math.log(hypoDis) + 2.941;
+  // const avg = (3 * ceaCsis + iclCsis) / 4;
+  return ceaCsis;
 };
 export const calcCsisLevel = (m, dep = 10, dis = 0) =>
   Math.min(Math.max(calcCsis(m, dep, dis), 0), 12).toFixed(0);
