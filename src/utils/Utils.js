@@ -351,6 +351,10 @@ const calcLineDis = (dep, dis) => {
   const lineDis = Math.sqrt(a * a + r * r - 2 * a * r * Math.cos(theta));
   return lineDis;
 };
+const calcCeaCsis = (m, dis = 0) =>
+  1.297 * m - 4.368 * Math.log10(dis + 15) + 5.363;
+const calcIclCsis = (m, dis = 0) =>
+  1.363 * m - 1.494 * Math.log(dis + 7) + 2.941;
 export const calcCsis = (m, dep = 10, dis = 0) => {
   m = Number(m);
   dep = Number(dep);
@@ -359,14 +363,14 @@ export const calcCsis = (m, dep = 10, dis = 0) => {
   if (dis > 10000) return 0;
   dep = isNaN(dep) || dep === null || dep < 10 ? 10 : dep;
   const lineDis = calcLineDis(dep, dis);
-  const long = 10 ** ((m - 3.821) / 1.86) / 3;
+  const long = 10 ** ((m - 3.821) / 1.86) / 2;
   const k = 1 - 0.8 * Math.max(1 / Math.sqrt(dep / 10), 0.2);
   const hypoDep = Math.max((dep * (lineDis - long)) / lineDis, 0);
-  const hypoDis = Math.max(lineDis - long - k * hypoDep, 8);
-  const ceaCsis = 1.297 * m - 4.368 * Math.log10(hypoDis + 7) + 5.363;
-  // const iclCsis = 1.363 * m - 1.494 * Math.log(hypoDis) + 2.941;
-  // const avg = (3 * ceaCsis + iclCsis) / 4;
-  return ceaCsis;
+  const hypoDis1 = Math.max(lineDis - long - k * hypoDep, 8);
+  const hypoDis2 = Math.max(lineDis - k * dep, 8);
+  const ceaCsis1 = calcCeaCsis(m, hypoDis1 - 8);
+  const ceaCsis2 = calcCeaCsis(m, hypoDis2 - 8);
+  return (ceaCsis1 + ceaCsis2) / 2;
 };
 export const calcCsisLevel = (m, dep = 10, dis = 0) =>
   Math.min(Math.max(calcCsis(m, dep, dis), 0), 12).toFixed(0);
