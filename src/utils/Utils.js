@@ -363,7 +363,7 @@ export const calcCsis = (m, dep = 10, dis = 0) => {
   if (dis > 10000) return 0;
   dep = isNaN(dep) || dep === null || dep < 10 ? 10 : dep;
   const lineDis = calcLineDis(dep, dis);
-  const long = 10 ** ((m - 3.821) / 1.86) / 2;
+  const long = 10 ** ((m - 3.821) / 1.86);
   const k = 1 - 0.8 * Math.max(1 / Math.sqrt(dep / 10), 0.2);
   const hypoDep = Math.max((dep * (lineDis - long)) / lineDis, 0);
   const hypoDis1 = Math.max(lineDis - long - k * hypoDep, 8);
