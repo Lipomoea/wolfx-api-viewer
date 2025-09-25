@@ -4,7 +4,9 @@ class WebSocketObj {
         this.autoMessages = autoMessages
         this.initMessages = initMessages
         this.shouldConnect = true
-        this.retryInterval = 3000
+        this.minRetryInterval = 3000
+        this.maxRetryInterval = 10000
+        this.retryInterval = this.minRetryInterval
         this.socket = new WebSocket(this.url)
         this.setupWebSocket()
     }
@@ -15,23 +17,19 @@ class WebSocketObj {
     }
     setupWebSocket() {
         clearInterval(this.msgTimer)
-        this.socket.onopen = () => this.sendMessages(this.initMessages)
+        this.socket.onopen = () => {
+            this.sendMessages(this.initMessages)
+            this.retryInterval = this.minRetryInterval
+        }
         if (this.autoMessages.length > 0) {
             this.msgTimer = setInterval(() => this.sendMessages(this.autoMessages), 10000)
         }
-        this.socket.onerror = () => {
-            // console.log(`${this.url} 连接失败`)
-            clearTimeout(this.timer)
-            this.timer = setTimeout(() => {
-                if (this.shouldConnect) this.reconnect()
-            }, this.retryInterval);
-        }
         this.socket.onclose = () => {
-            // console.log(`${this.url} 断开连接`)
             clearTimeout(this.timer)
             this.timer = setTimeout(() => {
                 if (this.shouldConnect) this.reconnect()
             }, this.retryInterval);
+            this.retryInterval = Math.min(this.retryInterval + 1000, this.maxRetryInterval)
         }
         if (this.messageHandler)
             this.socket.onmessage = this.messageHandler
