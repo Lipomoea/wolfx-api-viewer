@@ -6,14 +6,16 @@ class WebSocketObj {
         this.shouldConnect = true
         this.minRetryInterval = 3000
         this.maxRetryInterval = 10000
+        this.autoSendInterval = 10000
         this.retryInterval = this.minRetryInterval
         this.socket = new WebSocket(this.url)
         this.setupWebSocket()
     }
-    sendMessages(messages) {
-        messages.forEach(msg => {
+    async sendMessages(messages) {
+        for(const msg of messages) {
             this.send(msg)
-        })
+            await new Promise(resolve => setTimeout(resolve, this.autoSendInterval / messages.length))
+        }
     }
     setupWebSocket() {
         clearInterval(this.msgTimer)
@@ -22,7 +24,7 @@ class WebSocketObj {
             this.retryInterval = this.minRetryInterval
         }
         if (this.autoMessages.length > 0) {
-            this.msgTimer = setInterval(() => this.sendMessages(this.autoMessages), 10000)
+            this.msgTimer = setInterval(() => this.sendMessages(this.autoMessages), this.autoSendInterval)
         }
         this.socket.onclose = () => {
             clearTimeout(this.timer)
