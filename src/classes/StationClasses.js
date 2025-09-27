@@ -264,7 +264,7 @@ class NiedStation {
         clearTimeout(this.activeTimer)
         this.activeTimer = setTimeout(() => {
             this.isActive = false
-        }, 15000);
+        }, 12000);
     }
     terminate(){
         if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
