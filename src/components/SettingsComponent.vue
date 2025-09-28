@@ -701,6 +701,18 @@
                             <el-switch v-model="settingsStore.mainSettings.useRomanCsis" />
                         </div>
                         <div class="switch-full">
+                            <span>横波颜色模式</span>
+                            <el-select
+                            style="width: 168px;"
+                            v-model="settingsStore.mainSettings.sWaveColorMode"
+                            size="small"
+                            >
+                                <el-option label="根据是否为警报填色" :value=0 />
+                                <el-option label="根据震级填色" :value=1 />
+                                <el-option label="根据最大烈度/震度填色" :value=2 />
+                            </el-select>
+                        </div>
+                        <div class="switch-full">
                             <span>
                                 预警/信息页不展开侧边栏
                                 <el-popover
@@ -1022,7 +1034,7 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false" append-to-body>
-            <div class="header">要石 v2.2.0-pre.6</div>
+            <div class="header">要石 v2.2.0-pre.6.1</div>
             <div class="title">使用方法</div>
             <div class="about">
                 <p>主要功能：接收日本气象厅、台湾省中央气象署、中国地震局、四川省地震局、福建省地震局地震预警信息，日本气象厅、中国地震台网地震信息，日本气象厅海啸信息，NIED強震モニタ测站数据。</p>

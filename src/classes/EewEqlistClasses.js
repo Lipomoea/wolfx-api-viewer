@@ -1,8 +1,9 @@
-import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendMyNotification, getClassLevel, focusWindow, calcCsisLevel, calcJmaShindoLevel, shindoScale, timeToStamp, formatTimeZone } from '@/utils/Utils';
+import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendMyNotification, getClassLevel, focusWindow, calcCsisLevel, calcJmaShindoLevel, shindoScale, timeToStamp, formatTimeZone, setClassName } from '@/utils/Utils';
 import travelTimes from '@/utils/TravelTimes';
 import { chimeUrls, iconUrls } from '@/utils/Urls';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import '@/assets/background.css';
 import { useSettingsStore } from '@/stores/settings';
 import eewCross from '@/assets/icon/hypocenter/eewCross.svg';
 import cancelCross from '@/assets/icon/hypocenter/cancelCross.svg';
@@ -163,11 +164,55 @@ export class EewEvent {
                 this.pWave = null
             }
         }
+        let color
+        switch(settingsStore.mainSettings.sWaveColorMode) {
+            case 0:
+                color = this.eqMessage.isWarn ? 'var(--swave-red)' : 'var(--swave-orange)'
+                break
+            case 1:
+                const mag = this.eqMessage.magnitude
+                color = 
+                    mag < 3 ? 'var(--swave-blue)' :
+                    mag < 4 ? 'var(--swave-green)' :
+                    mag < 5 ? 'var(--swave-yellow)' :
+                    mag < 6 ? 'var(--swave-orange)' :
+                    mag < 7 ? 'var(--swave-red)' :
+                    'var(--swave-purple)'
+                break
+            case 2:
+                switch(this.eqMessage.className) {
+                    case 'white':
+                    case 'dark-gray':
+                    case 'gray':
+                    case 'sky-blue':
+                    case 'blue':
+                        color = 'var(--swave-blue)'
+                        break
+                    case 'green':
+                        color = 'var(--swave-green)'
+                        break
+                    case 'yellow':
+                        color = 'var(--swave-yellow)'
+                        break
+                    case 'orange':
+                    case 'dark-orange':
+                        color = 'var(--swave-orange)'
+                        break
+                    case 'red':
+                    case 'dark-red':
+                        color = 'var(--swave-red)'
+                        break
+                    case 'purple':
+                        color = 'var(--swave-purple)'
+                        break
+                }
+                break
+        }
         if(s_radius > 0 && s_radius <= maxRadius2) {
             const opacity = s_radius <= maxRadius ? this.calcOpacity(s_radius, 0, maxRadius, 0.25, 1) : this.calcOpacity(s_radius, maxRadius, maxRadius2, 0, 0.25)
             if(!this.sWave) {
                 this.sWave = L.circle(this.hypoLatLng, {
-                    color: this.eqMessage.isWarn ? 'red' : 'orange',
+                    color,
                     opacity,
                     weight: 2,
                     fill: false,
@@ -193,7 +238,7 @@ export class EewEvent {
             const fillOpacity = this.calcOpacity(s_radius, 0, maxRadius, 0, 0.25)
             if(!this.sWaveFill) {
                 this.sWaveFill = L.circle(this.hypoLatLng, {
-                    fillColor: this.eqMessage.isWarn ? 'red' : 'orange',
+                    fillColor: color,
                     fillOpacity,
                     stroke: false,
                     radius: s_radius * 1000,
