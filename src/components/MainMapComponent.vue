@@ -807,7 +807,7 @@ const loadMaps = async (retries = 0) => {
         ? null : loadBaseMap(cn_eew, 'cnEewBasePane', false, {
             color: '#bbbbbb00',
             opacity: 1,
-            fillColor: '#55555500',
+            fillColor: '#39393900',
             fillOpacity: 1,
             weight: 1,
         })
@@ -816,7 +816,7 @@ const loadMaps = async (retries = 0) => {
         ? null : loadBaseMap(jp_eew, 'jpEewBasePane', false, {
             color: '#bbbbbb00',
             opacity: 1,
-            fillColor: '#55555500',
+            fillColor: '#39393900',
             fillOpacity: 1,
             weight: 1,
         })
@@ -902,10 +902,10 @@ const loadMaps = async (retries = 0) => {
                     }
                 }
                 else{
-                    if(layer.options.fillColor != '#55555500'){
+                    if(layer.options.fillColor != '#39393900'){
                         layer.setStyle({
                             color: '#bbbbbb00',
-                            fillColor: '#55555500'
+                            fillColor: '#39393900'
                         })
                     }
                 }
@@ -934,10 +934,10 @@ const loadMaps = async (retries = 0) => {
                         newCsisList[maxInt].push(layerName)
                     }
                     else{
-                        if(layer.options.fillColor != '#55555500'){
+                        if(layer.options.fillColor != '#39393900'){
                             layer.setStyle({
                                 color: '#bbbbbb00',
-                                fillColor: '#55555500'
+                                fillColor: '#39393900'
                             })
                         }
                     }
@@ -1109,7 +1109,7 @@ const setView = () => {
                                 bounds.extend(event.hypoLatLng)
                             }
                             jpEewBaseMap?.eachLayer(layer => {
-                                if(layer.options.fillColor && layer.options.fillColor != '#55555500') {
+                                if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
                                     if(layer.getBounds){
                                         bounds.extend(layer.getBounds())
                                     }
@@ -1190,7 +1190,7 @@ const setView = () => {
                             bounds.extend(event.hypoLatLng)
                         }
                         jpEewBaseMap?.eachLayer(layer => {
-                            if(layer.options.fillColor && layer.options.fillColor != '#55555500') {
+                            if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
                                 if(layer.getBounds){
                                     bounds.extend(layer.getBounds())
                                 }
@@ -1214,7 +1214,7 @@ const setView = () => {
             if(!bounds.isValid() && menuId.value == 'eqlists') {
                 map?.eachLayer(layer => {
                     if(layer.options.pane == 'eqlistMarkerPane' || 
-                    layer.options.pane.includes('EewBasePane') && layer.options.fillColor && layer.options.fillColor != '#55555500'){
+                    layer.options.pane.includes('EewBasePane') && layer.options.fillColor && layer.options.fillColor != '#39393900'){
                         if(layer.getBounds){
                             bounds.extend(layer.getBounds())
                         }
