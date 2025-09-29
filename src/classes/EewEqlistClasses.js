@@ -172,6 +172,7 @@ export class EewEvent {
             case 1:
                 const mag = this.eqMessage.magnitude
                 color = 
+                    mag < 2 ? 'var(--swave-gray)' :
                     mag < 3 ? 'var(--swave-blue)' :
                     mag < 4 ? 'var(--swave-green)' :
                     mag < 5 ? 'var(--swave-yellow)' :
@@ -184,6 +185,8 @@ export class EewEvent {
                     case 'white':
                     case 'dark-gray':
                     case 'gray':
+                        color = 'var(--swave-gray)'
+                        break
                     case 'sky-blue':
                     case 'blue':
                         color = 'var(--swave-blue)'
