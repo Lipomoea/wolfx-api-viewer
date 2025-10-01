@@ -1070,7 +1070,7 @@ const setView = () => {
     if(document.visibilityState === 'visible') {
         const bounds = L.latLngBounds([])
         //临时Eqlist
-        if(settingsStore.mainSettings.cinemaMode && tempEqlists.value && menuId.value == 'eqlists') {
+        if(settingsStore.mainSettings.cinemaMode && tempEqlists.value && menuId.value == 'eqlists' && activeEqlistList.value.length > 0) {
             if(tempEqlists.value == 'jmaTsunami') {
                 statusStore.isActive.jmaTsunami && jpTsunamiBaseMap?.eachLayer(layer => {
                     if(layer.options.color && layer.options.color != '#ffffff00') {
@@ -1103,29 +1103,27 @@ const setView = () => {
             }
             else {
                 activeEqlistList.value.forEach(event=>{
-                    if(event.eqMessage.source == tempEqlists.value) {
-                        if(event.eqMessage.source == 'jmaEqlist') {
-                            if(event.isValidHypo){
-                                bounds.extend(event.hypoLatLng)
-                            }
-                            jpEewBaseMap?.eachLayer(layer => {
-                                if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
-                                    if(layer.getBounds){
-                                        bounds.extend(layer.getBounds())
-                                    }
-                                    else if(layer.getLatLng){
-                                        bounds.extend(layer.getLatLng())
-                                    }
-                                }
-                            })
-                            if(!bounds.isValid()) {
-                                bounds.extend(jpEewBaseMap?.getBounds())
-                            }
+                    if(event.eqMessage.source == tempEqlists.value && event.isValidHypo) {
+                        bounds.extend(event.hypoLatLng)
+                    }
+                })
+                jpEewBaseMap?.eachLayer(layer => {
+                    if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
+                        if(layer.getBounds){
+                            bounds.extend(layer.getBounds())
                         }
-                        else {
-                            if(event.isValidHypo){
-                                bounds.extend(event.hypoLatLng)
-                            }
+                        else if(layer.getLatLng){
+                            bounds.extend(layer.getLatLng())
+                        }
+                    }
+                })
+                cnEewBaseMap?.eachLayer(layer => {
+                    if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
+                        if(layer.getBounds){
+                            bounds.extend(layer.getBounds())
+                        }
+                        else if(layer.getLatLng){
+                            bounds.extend(layer.getLatLng())
                         }
                     }
                 })
@@ -1185,27 +1183,27 @@ const setView = () => {
                     }
                 })
                 activeEqlistList.value.forEach(event=>{
-                    if(event.eqMessage.source == 'jmaEqlist') {
-                        if(event.isValidHypo){
-                            bounds.extend(event.hypoLatLng)
+                    if(event.isValidHypo){
+                        bounds.extend(event.hypoLatLng)
+                    }
+                })
+                jpEewBaseMap?.eachLayer(layer => {
+                    if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
+                        if(layer.getBounds){
+                            bounds.extend(layer.getBounds())
                         }
-                        jpEewBaseMap?.eachLayer(layer => {
-                            if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
-                                if(layer.getBounds){
-                                    bounds.extend(layer.getBounds())
-                                }
-                                else if(layer.getLatLng){
-                                    bounds.extend(layer.getLatLng())
-                                }
-                            }
-                        })
-                        if(!bounds.isValid()) {
-                            bounds.extend(jpEewBaseMap?.getBounds())
+                        else if(layer.getLatLng){
+                            bounds.extend(layer.getLatLng())
                         }
                     }
-                    else {
-                        if(event.isValidHypo){
-                            bounds.extend(event.hypoLatLng)
+                })
+                cnEewBaseMap?.eachLayer(layer => {
+                    if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
+                        if(layer.getBounds){
+                            bounds.extend(layer.getBounds())
+                        }
+                        else if(layer.getLatLng){
+                            bounds.extend(layer.getLatLng())
                         }
                     }
                 })
@@ -1359,7 +1357,13 @@ const jmaWarnArea = computed(()=>{
         }
     }
     else {
-        const jmaEqlistEvent = activeEqlistList.value.length > 0 ? activeEqlistList.value.find(event => event.eqMessage.source == 'jmaEqlist') : eqlistList.find(event => event.eqMessage.source == 'jmaEqlist')
+        const jmaEqlistEvent = activeEqlistList.value.length > 0
+        ? settingsStore.mainSettings.cinemaMode && tempEqlists.value
+        ? tempEqlists.value == 'jmaEqlist'
+        ? activeEqlistList.value.find(event => event.eqMessage.source == 'jmaEqlist')
+        : null
+        : activeEqlistList.value.find(event => event.eqMessage.source == 'jmaEqlist')
+        : eqlistList.find(event => event.eqMessage.source == 'jmaEqlist')
         if(!jmaEqlistEvent) return {}
         if(settingsStore.mainSettings.eqlistsDisplayMode == 1 && !jmaEqlistEvent.isLatest && !jmaEqlistEvent.isActive) return {}
         const warnArea = JSON.parse(jmaEqlistEvent.eqMessage.warnArea)
@@ -1404,7 +1408,11 @@ const jpEewInfoList = computed(()=>{
 })
 const cnEewInfoList = computed(()=>{
     const cnEewList = menuId.value == 'eqlists'
-        ? activeEqlistList.value.length > 0 ? activeEqlistList.value.filter(event=>event.hypoMarker && !event.eqMessage.isCanceled) : eqlistList.filter(event=>event.hypoMarker && !event.eqMessage.isCanceled)
+        ? activeEqlistList.value.length > 0
+        ? settingsStore.mainSettings.cinemaMode && tempEqlists.value
+        ? activeEqlistList.value.filter(event=>event.eqMessage.source == tempEqlists.value && event.hypoMarker && !event.eqMessage.isCanceled)
+        : activeEqlistList.value.filter(event=>event.hypoMarker && !event.eqMessage.isCanceled)
+        : eqlistList.filter(event=>event.hypoMarker && !event.eqMessage.isCanceled)
         : activeEewList.filter(event=>!(event.eqMessage.isCanceled || event.eqMessage.isAssumption))
     const cnEewInfoList = cnEewList.map(event=>{
         const { magnitude, depth, lat, lng } = event.eqMessage
