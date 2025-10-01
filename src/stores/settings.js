@@ -86,7 +86,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             useRomanCsis: false,
             sWaveColorMode: 0,
             hideDrawer: false,
-            cinemaMode: false,
+            cinemaMode: true,
             eqlistsAsDefault: false,
             eqlistsDisplayMode: 0,
             alwaysDisplayLatestInfo: false,

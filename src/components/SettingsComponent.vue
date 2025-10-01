@@ -740,10 +740,9 @@
                                         <template #reference>
                                             <question-filled width="1em" height="1em" />
                                         </template>
-                                        <p>收到新的信息时自动切换到对应的菜单页面。适合在不频繁操作此应用时使用。</p>
+                                        <p>收到新的信息时自动切换到对应的菜单栏。</p>
                                         <p>推荐同步启用“预警/信息页不展开侧边栏”。</p>
                                         <strong>
-                                            <p>此模式下，收信时您的操作可能被打断。</p>
                                             <p>需重新加载页面后生效。</p>
                                         </strong>
                                     </el-popover>
