@@ -1359,7 +1359,7 @@ const jmaWarnArea = computed(()=>{
         }
     }
     else {
-        const jmaEqlistEvent = eqlistList.find(event => event.eqMessage.source == 'jmaEqlist')
+        const jmaEqlistEvent = activeEqlistList.value.length > 0 ? activeEqlistList.value.find(event => event.eqMessage.source == 'jmaEqlist') : eqlistList.find(event => event.eqMessage.source == 'jmaEqlist')
         if(!jmaEqlistEvent) return {}
         if(settingsStore.mainSettings.eqlistsDisplayMode == 1 && !jmaEqlistEvent.isLatest && !jmaEqlistEvent.isActive) return {}
         const warnArea = JSON.parse(jmaEqlistEvent.eqMessage.warnArea)
@@ -1404,7 +1404,7 @@ const jpEewInfoList = computed(()=>{
 })
 const cnEewInfoList = computed(()=>{
     const cnEewList = menuId.value == 'eqlists'
-        ? eqlistList.filter(event=>event.hypoMarker && !event.eqMessage.isCanceled)
+        ? activeEqlistList.value.length > 0 ? activeEqlistList.value.filter(event=>event.hypoMarker && !event.eqMessage.isCanceled) : eqlistList.filter(event=>event.hypoMarker && !event.eqMessage.isCanceled)
         : activeEewList.filter(event=>!(event.eqMessage.isCanceled || event.eqMessage.isAssumption))
     const cnEewInfoList = cnEewList.map(event=>{
         const { magnitude, depth, lat, lng } = event.eqMessage
