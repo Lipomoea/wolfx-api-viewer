@@ -117,7 +117,12 @@
                                     type="danger" 
                                     plain 
                                     :disabled="!event.isActive"
-                                    @click.stop="event.deactivate()"
+                                    @click.stop="() => {
+                                        event.deactivate()
+                                        if(tempEqlists == event.eqMessage.source) {
+                                            tempEqlists = ''
+                                        }
+                                    }"
                                     >关闭信息</el-button>
                                 </div>
                             </div>
