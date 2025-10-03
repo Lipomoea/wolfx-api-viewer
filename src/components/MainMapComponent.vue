@@ -328,7 +328,7 @@ const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 const timeStore = useTimeStore()
 let map, jpEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap, cnTsunamiBaseMap, labelLayer1, labelLayer2, terminatorLayer, terminatorFillLayer, cnFaultBaseMap
-let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, jpEewBasePane, cnEewBasePane, tsunamiBasePane, labelPane1, labelPane2
+let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, eewBasePane, tsunamiBasePane, labelPane1, labelPane2
 let userMarker
 const defaultLatLng = [38.1, 104.6]
 const { isValidUserLatLng, isValidViewLatLng, isDisplayUser, nearestJmaLoc } = storeToRefs(settingsStore)
@@ -574,12 +574,9 @@ onMounted(()=>{
     map.createPane('waveFillPane')
     waveFillPane = map.getPane('waveFillPane')
     waveFillPane.style.zIndex = 10
-    map.createPane('jpEewBasePane')
-    jpEewBasePane = map.getPane('jpEewBasePane')
-    jpEewBasePane.style.zIndex = 20
-    map.createPane('cnEewBasePane')
-    cnEewBasePane = map.getPane('cnEewBasePane')
-    cnEewBasePane.style.zIndex = 21
+    map.createPane('eewBasePane')
+    eewBasePane = map.getPane('eewBasePane')
+    eewBasePane.style.zIndex = 20
     map.createPane('cnFaultBasePane')
     map.getPane('cnFaultBasePane').style.zIndex = 30
     map.createPane('tsunamiBasePane')
@@ -809,7 +806,7 @@ const loadMaps = async (retries = 0) => {
         loadBaseMap(global, 'globalBasePane')
         loadBaseMap(cn, 'cnBasePane')
         cnEewBaseMap = settingsStore.mainSettings.disableEewBaseMap 
-        ? null : loadBaseMap(cn_eew, 'cnEewBasePane', false, {
+        ? null : loadBaseMap(cn_eew, 'eewBasePane', false, {
             color: '#bbbbbb00',
             opacity: 1,
             fillColor: '#39393900',
@@ -818,7 +815,7 @@ const loadMaps = async (retries = 0) => {
         })
         loadBaseMap(jp, 'jpBasePane')
         jpEewBaseMap = settingsStore.mainSettings.disableEewBaseMap 
-        ? null : loadBaseMap(jp_eew, 'jpEewBasePane', false, {
+        ? null : loadBaseMap(jp_eew, 'eewBasePane', false, {
             color: '#bbbbbb00',
             opacity: 1,
             fillColor: '#39393900',
@@ -1075,7 +1072,7 @@ const setView = () => {
     if(document.visibilityState === 'visible') {
         const bounds = L.latLngBounds([])
         //临时Eqlist
-        if(settingsStore.mainSettings.cinemaMode && tempEqlists.value && menuId.value == 'eqlists' && activeEqlistList.value.length > 0) {
+        if(settingsStore.mainSettings.cinemaMode && tempEqlists.value && menuId.value == 'eqlists') {
             if(tempEqlists.value == 'jmaTsunami') {
                 statusStore.isActive.jmaTsunami && jpTsunamiBaseMap?.eachLayer(layer => {
                     if(layer.options.color && layer.options.color != '#ffffff00') {
@@ -1106,7 +1103,7 @@ const setView = () => {
                     bounds.extend(cnTsunamiBaseMap?.getBounds())
                 }
             }
-            else {
+            else if(activeEqlistList.value.length > 0) {
                 activeEqlistList.value.forEach(event=>{
                     if(event.eqMessage.source == tempEqlists.value && event.isValidHypo) {
                         bounds.extend(event.hypoLatLng)
@@ -1187,37 +1184,39 @@ const setView = () => {
                         }
                     }
                 })
-                activeEqlistList.value.forEach(event=>{
-                    if(event.isValidHypo){
-                        bounds.extend(event.hypoLatLng)
-                    }
-                })
-                jpEewBaseMap?.eachLayer(layer => {
-                    if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
-                        if(layer.getBounds){
-                            bounds.extend(layer.getBounds())
+                if(activeEqlistList.value.length > 0) {
+                    activeEqlistList.value.forEach(event=>{
+                        if(event.isValidHypo){
+                            bounds.extend(event.hypoLatLng)
                         }
-                        else if(layer.getLatLng){
-                            bounds.extend(layer.getLatLng())
+                    })
+                    jpEewBaseMap?.eachLayer(layer => {
+                        if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
+                            if(layer.getBounds){
+                                bounds.extend(layer.getBounds())
+                            }
+                            else if(layer.getLatLng){
+                                bounds.extend(layer.getLatLng())
+                            }
                         }
-                    }
-                })
-                cnEewBaseMap?.eachLayer(layer => {
-                    if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
-                        if(layer.getBounds){
-                            bounds.extend(layer.getBounds())
+                    })
+                    cnEewBaseMap?.eachLayer(layer => {
+                        if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
+                            if(layer.getBounds){
+                                bounds.extend(layer.getBounds())
+                            }
+                            else if(layer.getLatLng){
+                                bounds.extend(layer.getLatLng())
+                            }
                         }
-                        else if(layer.getLatLng){
-                            bounds.extend(layer.getLatLng())
-                        }
-                    }
-                })
+                    })
+                }
             }
             //不活跃的Eqlist
             if(!bounds.isValid() && menuId.value == 'eqlists') {
                 map?.eachLayer(layer => {
                     if(layer.options.pane == 'eqlistMarkerPane' || 
-                    layer.options.pane.includes('EewBasePane') && layer.options.fillColor && layer.options.fillColor != '#39393900'){
+                    layer.options.pane == 'eewBasePane' && layer.options.fillColor && layer.options.fillColor != '#39393900'){
                         if(layer.getBounds){
                             bounds.extend(layer.getBounds())
                         }
