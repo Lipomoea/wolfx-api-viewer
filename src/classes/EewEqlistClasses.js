@@ -44,7 +44,7 @@ const cancelCircleIcon = L.icon({
 })
 
 let settingsStore
-export const ignoredIds = new Set()
+export const ignoredIds = {}
 
 export class EewEvent {
     constructor(map, eqMessage, activeEewList, handleTempEqlists, smartSetView){
@@ -440,7 +440,9 @@ export class EewEvent {
         }
     }
     terminate(force = false){
-        if(force) ignoredIds.add(`${this.eqMessage.source}|${this.eqMessage.id}`)
+        ignoredIds[`${this.eqMessage.source}|${this.eqMessage.id}`] = force ? Infinity : this.eqMessage.reportNum
+        const keys = Object.keys(ignoredIds)
+        if(keys.length > 10) delete ignoredIds[keys[0]]
         clearTimeout(this.terminateTimer)
         clearTimeout(this.showMenuTimer)
         this.renderStop()
