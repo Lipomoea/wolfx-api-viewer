@@ -48,8 +48,8 @@
                         <div class="countdown eew realtime" v-if="settingsStore.mainSettings.displayCountdown">
                             <div class="shindo-bar" @dblclick="event.showPCountdown = !event.showPCountdown"
                             :class="event.showPCountdown ? 'blue' 
-                            : event.countdown <= 0 || event.eqMessage.isCanceled ? 'gray' 
-                            : event.countdown <= 10 ? 'red' 
+                            : event.countdown < 0 || event.eqMessage.isCanceled ? 'gray' 
+                            : event.countdown <= 15 ? 'red' 
                             : event.countdown <= 60 ? 'orange' 
                             : 'yellow'">
                                 {{ event.countdown == -1 ? '-' : Math.ceil(event.showPCountdown ? event.pCountdown : event.countdown) }}秒
@@ -1479,14 +1479,15 @@ onBeforeUnmount(()=>{
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    border: #3f3f3f 1px solid;
-                    border-top: 0px;
-                    border-left: 0px;
+                    margin: 5px 0 0 5px;
+                    border-radius: 12px;
+                    overflow: hidden;
+                    box-shadow: 0 0 10px 2px #0000003f;
                     user-select: none;
                     .bar{
                         width: 100%;
                         height: 30px;
-                        border-bottom: #3f3f3f 1px solid;
+                        border-bottom: #00000020 1px solid;
                         display: flex;
                         justify-content: space-between;
                         align-items: center;
@@ -1502,8 +1503,7 @@ onBeforeUnmount(()=>{
                     .shindo-bar{
                         width: 100px;
                         height: 30px;
-                        border-right: #3f3f3f 1px solid;
-                        border-bottom: #3f3f3f 1px solid;
+                        border-bottom: #00000020 1px solid;
                         display: flex;
                         justify-content: center;
                         align-items: center;
@@ -1516,12 +1516,11 @@ onBeforeUnmount(()=>{
                         gap: 10px;
                         align-items: center;
                         background-color: #ffffff9f;
-                        backdrop-filter: blur(2px);
+                        backdrop-filter: blur(1px);
                         pointer-events: auto;
                         .intensity{
                             width: 100px;
                             height: 100%;
-                            border-right: #3f3f3f 1px solid;
                             display: flex;
                             flex-direction: column;
                             justify-content: center;
@@ -1533,7 +1532,7 @@ onBeforeUnmount(()=>{
                                 font-size: 16px;
                                 line-height: 1;
                                 position: absolute;
-                                top: 0;
+                                top: 2px;
                                 display: flex;
                                 justify-content: center;
                                 align-items: center;
@@ -1544,10 +1543,10 @@ onBeforeUnmount(()=>{
                                 letter-spacing: -5px;
                                 padding-right: 5px;
                                 position: absolute;
-                                bottom: 10px;
+                                bottom: 8px;
                             }
                             .shindo{
-                                font-size: 60px;
+                                font-size: 55px;
                             }
                             .shindo::first-letter{
                                 font-size: 80px;
@@ -1558,7 +1557,7 @@ onBeforeUnmount(()=>{
                             }
                         }
                         .right{
-                            width: 300px;
+                            width: 305px;
                             height: 100%;
                             display: flex;
                             flex-direction: column;
@@ -1615,7 +1614,7 @@ onBeforeUnmount(()=>{
                         }
                     }
                     .tsunami-info {
-                        width: 410px;
+                        width: 415px;
                         height: 100px;
                         padding: 1px 0;
                         display: grid;
@@ -1624,7 +1623,7 @@ onBeforeUnmount(()=>{
                         align-content: space-evenly;
                         align-items: center;
                         background-color: #ffffff9f;
-                        backdrop-filter: blur(2px);
+                        backdrop-filter: blur(1px);
                         .legend {
                             width: 90px;
                             height: 5px;
@@ -1651,7 +1650,6 @@ onBeforeUnmount(()=>{
                 }
                 .realtime{
                     width: 100px;
-                    border-right: 0px;
                 }
             }
             .left-bottom{

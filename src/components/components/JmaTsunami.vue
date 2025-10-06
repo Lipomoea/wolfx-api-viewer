@@ -189,6 +189,8 @@ watch(() => statusStore.map, newVal => {
             flex-direction: column;
             align-items: flex-start;
             width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
             gap: 5px;
             .group {
                 width: 100%;
