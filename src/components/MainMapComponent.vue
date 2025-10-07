@@ -1778,7 +1778,7 @@ onBeforeUnmount(()=>{
                                 font-size: 16px;
                             }
                             .shindo {
-                                font-size: 12px;
+                                font-size: 11px;
                             }
                             .shindo::first-letter {
                                 font-size: 16px;
