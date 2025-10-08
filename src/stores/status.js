@@ -6,6 +6,7 @@ import { setClassName, calcCsisLevel, stampToTime, getShindoFromInstShindo, shin
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { useSettingsStore } from './settings';
 import { isTauri } from '@tauri-apps/api/core';
+import { getFEName } from '@/utils/FERegions';
 
 export const defaultEqMessage = {
     source: '',
@@ -512,7 +513,7 @@ export const useStatusStore = defineStore('statusStore', {
                             date.setHours(date.getHours() + 8)
                             eqMessage.reportTime = date.toISOString().replace('T', ' ').slice(0, -5)
                             eqMessage.reportNumText = '第' + data.RevisionId + '报'
-                            eqMessage.hypocenter = data.Region || '未知区域'
+                            eqMessage.hypocenter = getFEName(data.Latitude, data.Longitude) || data.Region || '未知区域'
                             eqMessage.hypocenterText = '震源: ' + eqMessage.hypocenter
                             eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                         }

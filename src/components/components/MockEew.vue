@@ -106,6 +106,7 @@ import dayjs from 'dayjs';
 import { ref, reactive, computed, watch } from 'vue';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import { getFEName } from '@/utils/FERegions';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -176,6 +177,7 @@ const generateEqMessage = (form, index, id) => {
     const reportNum = index + 1
     const isFinal = reportNum == forms.length
     const reportNumText = `第${reportNum}报${isFinal ? '（最终）' : ''}`
+    const hypocenter = '模拟·' + (form.hypocenter || getFEName(form.lat, form.lng))
     const now = timeStore.getTimeStamp()
     const originTime = dayjs(now).add(form.originDelay, 'seconds').tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss')
     const reportTime = dayjs(now).add(form.reportDelay, 'seconds').tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss')
@@ -191,8 +193,8 @@ const generateEqMessage = (form, index, id) => {
         isCanceled: form.isCancel,
         title: '模拟·' + (title.value || '地震预警'),
         titleText: '模拟·' + (title.value || '地震预警') + (form.isCancel ? '（取消）' : ''),
-        hypocenter: '模拟·' + (form.hypocenter || '未知地名'),
-        hypocenterText: '震源: 模拟·' + (form.hypocenter || '未知地名'),
+        hypocenter,
+        hypocenterText: '震源: ' + hypocenter,
         lat: form.lat,
         lng: form.lng,
         depth: form.depth,
