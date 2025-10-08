@@ -1214,6 +1214,7 @@ const setView = () => {
             }
             //不活跃的Eqlist
             if(!bounds.isValid() && menuId.value == 'eqlists') {
+                const candidates = []
                 map?.eachLayer(layer => {
                     if(layer.options.pane == 'eqlistMarkerPane' || 
                     layer.options.pane == 'eewBasePane' && layer.options.fillColor && layer.options.fillColor != '#39393900'){
@@ -1221,10 +1222,24 @@ const setView = () => {
                             bounds.extend(layer.getBounds())
                         }
                         else if(layer.getLatLng){
-                            bounds.extend(layer.getLatLng())
+                            const latLng = layer.getLatLng()
+                            const { lat, lng } = latLng
+                            if(
+                                lat >= 18 && lat <= 54 && lng >= 73 && lng <= 149
+                                ||
+                                lat >= 3 && lat <= 18 && lng >= 108 && lng <= 119
+                            ) {
+                                bounds.extend(latLng)
+                            }
+                            else {
+                                candidates.push(latLng)
+                            }
                         }
                     }
                 })
+                if(!bounds.isValid()) {
+                    candidates.forEach(latLng => bounds.extend(latLng))
+                }
             }
         }
         //应用bounds
@@ -1779,6 +1794,8 @@ onBeforeUnmount(()=>{
                             }
                             .shindo {
                                 font-size: 11px;
+                                letter-spacing: -1px;
+                                padding-right: 1px;
                             }
                             .shindo::first-letter {
                                 font-size: 16px;

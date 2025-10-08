@@ -1772,6 +1772,8 @@ ul {
     }
     .shindo {
         font-size: 11px;
+        letter-spacing: -1px;
+        padding-right: 1px;
     }
     .shindo::first-letter {
         font-size: 16px;
