@@ -1227,7 +1227,7 @@ const setView = () => {
                             if(
                                 lat >= 18 && lat <= 54 && lng >= 73 && lng <= 149
                                 ||
-                                lat >= 3 && lat <= 18 && lng >= 108 && lng <= 119
+                                lat >= 3 && lat <= 18 && lng >= 107 && lng <= 120
                             ) {
                                 bounds.extend(latLng)
                             }
