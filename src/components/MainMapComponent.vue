@@ -638,6 +638,9 @@ onMounted(()=>{
         }
         nearestJmaLoc.value
     })
+    watchEffect(() => {
+        waveFillPane.style.display = settingsStore.mainSettings.fillSWave ? 'block' : 'none'
+    })
     labelLayer1 = L.layerGroup().addTo(map);
     labelLayer2 = L.layerGroup().addTo(map);
     loadMaps()

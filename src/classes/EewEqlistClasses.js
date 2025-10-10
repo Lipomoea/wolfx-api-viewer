@@ -125,6 +125,10 @@ export class EewEvent {
         else{
             this.clearWaves()
         }
+        clearTimeout(this.drawWavesTimer)
+        this.drawWavesTimer = setTimeout(() => {
+            this.drawWaves()
+        }, 1000 / settingsStore.mainSettings.maxWaveRenderRate);
     }
     switchDrawWaves(passedTime){
         let p_reach, p_radius, s_reach, s_radius
@@ -273,7 +277,7 @@ export class EewEvent {
         }
     }
     renderStop(){
-        clearInterval(this.drawWavesInterval)
+        clearTimeout(this.drawWavesTimer)
         this.removeMark()
         this.clearWaves()
     }
@@ -315,10 +319,6 @@ export class EewEvent {
                     this.userShindo = '?'
                 }
                 this.drawWaves(true)
-                clearInterval(this.drawWavesInterval)
-                this.drawWavesInterval = setInterval(() => {
-                    this.drawWaves()
-                }, 100);
             }
             this.setMark()
             if(

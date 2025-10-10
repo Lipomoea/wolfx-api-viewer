@@ -701,6 +701,10 @@
                             <el-switch v-model="settingsStore.mainSettings.useRomanCsis" />
                         </div>
                         <div class="switch-full">
+                            <span>填充横波</span>
+                            <el-switch v-model="settingsStore.mainSettings.fillSWave" />
+                        </div>
+                        <div class="switch-full">
                             <span>横波颜色模式</span>
                             <el-select
                             style="width: 168px;"
@@ -776,6 +780,15 @@
                 <span class="sub-title">性能</span>
                 <div class="group">
                     <div class="switch-group">
+                        <div class="switch-full">
+                            <span>地震波最大渲染速率：{{ settingsStore.mainSettings.maxWaveRenderRate }}次/秒</span>
+                            <el-slider
+                            v-model="settingsStore.mainSettings.maxWaveRenderRate"
+                            :min="1" :max="20"
+                            :step="1"
+                            size="small"
+                            />
+                        </div>
                         <div class="switch-full">
                             <span>
                                 禁用预警区图层
