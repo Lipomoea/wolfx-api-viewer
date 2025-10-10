@@ -87,5 +87,5 @@ export const topojsonUrls = {
 }
 export const utilUrls = {
     geoIp: 'https://api.wolfx.jp/geoip.php',
-    ntpTime: 'https://api.wolfx.jp/ntp.json',
+    ntpTime: 'https://api.fanstudio.tech/tool/ntp.php',
 }
