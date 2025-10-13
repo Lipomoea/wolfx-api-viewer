@@ -1,6 +1,6 @@
 <template>
-    <div class="outer">
-        <div class="container" @dblclick="handleDblClick">
+    <div class="outer2">
+        <div class="container">
             <div class="bg" :class="className"></div>
             <div class="intensity" :class="fontClass">{{ eqMessage.useShindo ? eqMessage.maxIntensity : formatCsis(eqMessage.maxIntensity, settingsStore.mainSettings.useRomanCsis) }}</div>
             <div class="text title" :class="fontClass">{{ formatText(eqMessage.titleText) }}</div>
@@ -37,10 +37,6 @@ const timeStore = useTimeStore()
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 const eqMessage = computed(()=>statusStore.eqMessage[props.source])
-
-const handleDblClick = () => {
-    if(typeof(passedTimeFromOrigin.value) == 'number') settingsStore.mainSettings.displaySeisNet.delay = Math.max(Math.round(passedTimeFromOrigin.value / 600) / 100 + 0.1, 0)
-}
 
 onBeforeUnmount(()=>{
     clearTimeout(timer)
@@ -149,14 +145,14 @@ watch(()=>timeStore.currentTimeStamp, ()=>{
 </script>
 
 <style lang="scss" scoped>
-.outer{
+.outer2{
     width: 100%;
+    max-width: 500px;
     .container{
         position: relative;
         overflow: hidden;
         width: 100%;
         height: 270px;
-        margin-bottom: 10px;
         display: flex;
         flex-direction: column;
         align-items: center;

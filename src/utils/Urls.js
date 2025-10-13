@@ -5,6 +5,7 @@ export const eqUrls = {
     cencEqlistHistory: 'https://api.wolfx.jp/cenc_eqlist.json',
     jmaEqlistHistory: 'https://api.wolfx.jp/jma_eqlist.json',
     fssnEqlistHistory: 'https://api.fanstudio.tech/eq/fssn_50.php?translate=zh',
+    usgsEqlistHistory: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson',
     wolfx_ws: 'wss://ws-api.wolfx.jp/all_eew',
     fan_ws: 'wss://ws.fanstudio.tech/all',
     p2pquake_ws: 'wss://api.p2pquake.net/v2/ws'

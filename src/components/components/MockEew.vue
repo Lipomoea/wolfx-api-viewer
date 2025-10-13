@@ -1,4 +1,13 @@
 <template>
+    <div class="outer2">
+        <div class="container" @click="() => {
+            statusStore.showMockDialog = true
+            statusStore.showStatusPanel = false
+        }">
+            <div class="title">新建模拟地震预警</div>
+            <Plus class="icon" />
+        </div>
+    </div>
     <el-dialog v-model="statusStore.showMockDialog" width="35rem" :show-close="false" append-to-body>
         <template #header>
             <div class="flex justify-between items-center">
@@ -107,6 +116,7 @@ import { ref, reactive, computed, watch } from 'vue';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { getFEName } from '@/utils/FERegions';
+import { Plus } from '@element-plus/icons-vue';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -282,6 +292,42 @@ const pickLatLng = () => {
 </script>
 
 <style lang="scss" scoped>
+.outer2{
+    width: 100%;
+    max-width: 500px;
+    .container{
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        height: 270px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border-radius: 20px;
+        user-select: none;
+        box-shadow: 0 4px 10px #0000003f;
+        transition: box-shadow 0.3s ease, transform 0.3s ease;
+        &:hover {
+            box-shadow: 0 2px 5px #0000003f;
+            transform: translateY(2px);
+        }
+        .title {
+            position: absolute;
+            bottom: 40px;
+            margin: 0 auto;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .icon {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 30px;
+        }
+    }
+}
+
+
 .title {
     font-size: 24px;
     color: var(--el-text-color-regular);

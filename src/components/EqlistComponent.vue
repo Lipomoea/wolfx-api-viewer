@@ -1,64 +1,99 @@
 <template>
   <div class="outer">
     <div class="container">
-      <div class="title">地震/海啸信息</div>
+      <div class="bar">
+        <div class="title">地震/海啸信息</div>
+        <div class="switch">
+          <div class="mag"
+            :class="setClassName(calcCsisLevel(settingsStore.mainSettings.historyMagThres, 10, 0), false)">
+            {{ settingsStore.mainSettings.historyMagThres.toFixed(1) }}
+          </div>
+          <el-slider v-model="settingsStore.mainSettings.historyMagThres" :min="0" :max="9" :step="0.1" size="small" />
+        </div>
+      </div>
       <div class="eqGrid">
-        <NmefcTsunami v-if="settingsStore.mainSettings.source.nmefcTsunami" v-show="statusStore.isActive.nmefcTsunami" />
+        <NmefcTsunami v-if="settingsStore.mainSettings.source.nmefcTsunami"
+          v-show="statusStore.isActive.nmefcTsunami" />
         <JmaTsunami v-if="settingsStore.mainSettings.source.jmaTsunami" v-show="statusStore.isActive.jmaTsunami" />
       </div>
       <div class="eqGrid">
-        <EqGrid
-        v-for="(source, index) of eqlistList"
-        :key="index"
-        :source
-        />
+        <EqlistHistoryComponent />
       </div>
-      <el-button class="more" :icon="More" @click="handleMore">查看历史地震</el-button>
     </div>
   </div>
 </template>
 
 <script setup>
-import EqGrid from '@/components/components/EqGrid.vue';
 import NmefcTsunami from './components/NmefcTsunami.vue';
 import JmaTsunami from './components/JmaTsunami.vue';
-import { More } from '@element-plus/icons-vue';
-import router from '@/router';
 import { useSettingsStore } from '@/stores/settings';
-import { eqlistSources, useStatusStore } from '@/stores/status';
-import { eqUrls } from '@/utils/Urls';
+import { useStatusStore } from '@/stores/status';
+import EqlistHistoryComponent from './components/EqlistHistory.vue';
+import { calcCsisLevel, setClassName } from '@/utils/Utils';
 
 const settingsStore = useSettingsStore()
 const statusStore = useStatusStore()
 
-if(settingsStore.advancedSettings.enableTremFunctions) Object.assign(eqUrls, JSON.parse(localStorage.getItem('tremUrl'))?.eqUrls)
-const eqlistList = eqlistSources.filter(source => settingsStore.mainSettings.source[source])
-
-const handleMore = ()=>{
-  router.push('/eq-history')
-}
 </script>
 
 <style lang="scss" scoped>
-.outer{
+.outer {
   width: 100%;
-  .container{
+
+  .container {
     width: 100%;
-    padding: 10px;
+    padding: 5px;
     display: flex;
     flex-direction: column;
-    .title{
-      font-size: 24px;
-      font-weight: 700;
-      margin-bottom: 10px;
+    gap: 10px;
+
+    .bar {
+      width: 100%;
+      height: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .title {
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      .switch {
+        width: 200px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .mag {
+          width: 28px;
+          height: 22px;
+          margin-left: 6px;
+          border-radius: 5px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          pointer-events: none;
+          user-select: none;
+        }
+
+        .el-slider {
+          flex: 1;
+          margin: 0 0.5rem 0 1rem;
+        }
+
+      }
+
     }
-    .eqGrid{
+
+    .eqGrid {
       width: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
-    .more{
+
+    .more {
       width: 100%;
       height: 50px;
       align-self: center;

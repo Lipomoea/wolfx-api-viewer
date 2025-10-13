@@ -14,6 +14,7 @@
                                 event.handleClick();
                                 infoPageCounter = infoPageCounter - infoPageCounter % 10;
                             }">
+                                <div class="background" :class="event.eqMessage.className"></div>
                                 <div v-if="event.eqMessage.useShindo" class="intensity" :class="event.eqMessage.className">
                                     <div class="intensity-title">最大震度</div>
                                     <div :class="formatShindo(event.eqMessage.maxIntensity) != '?'?'shindo':'csis'">
@@ -86,6 +87,7 @@
                                 event.handleClick();
                                 infoPageCounter = infoPageCounter - infoPageCounter % 10;
                             }">
+                                <div class="background" :class="event.eqMessage.className"></div>
                                 <div v-if="event.eqMessage.useShindo" class="intensity" :class="event.eqMessage.className">
                                     <div class="intensity-title">最大震度</div>
                                     <div :class="formatShindo(event.eqMessage.maxIntensity) != '?'?'shindo':'csis'">
@@ -134,6 +136,7 @@
                                 <div><WarnTriangleFilled style="width: 1em; height: 1em; margin-right: 0.25em;" />{{ statusStore.tsunamiMessage.nmefcTsunami.titleText }}</div>
                             </div>
                             <div class="tsunami-info">
+                                <div class="background" :class="statusStore.tsunamiMessage.nmefcTsunami.className"></div>
                                 <div v-show="statusStore.tsunamiMessage.nmefcTsunami.status >= 3" class="legend tsunami-purple"></div>
                                 <div v-show="statusStore.tsunamiMessage.nmefcTsunami.status >= 3" class="text">大海啸警报</div>
                                 <div v-show="statusStore.tsunamiMessage.nmefcTsunami.status >= 2" class="legend tsunami-red"></div>
@@ -149,6 +152,7 @@
                                 <div><WarnTriangleFilled style="width: 1em; height: 1em; margin-right: 0.25em;" />{{ statusStore.tsunamiMessage.jmaTsunami.titleText }}</div>
                             </div>
                             <div class="tsunami-info">
+                                <div class="background" :class="statusStore.tsunamiMessage.jmaTsunami.className"></div>
                                 <div v-show="statusStore.tsunamiMessage.jmaTsunami.status >= 3" class="legend tsunami-purple"></div>
                                 <div v-show="statusStore.tsunamiMessage.jmaTsunami.status >= 3" class="text">大津波警報</div>
                                 <div v-show="statusStore.tsunamiMessage.jmaTsunami.status >= 2" class="legend tsunami-red"></div>
@@ -289,12 +293,15 @@
                     </el-menu-item>
                 </el-menu>
             </div>
-            <div class="drawer" v-show="(menuId == 'eews' || menuId == 'eqlists') && !settingsStore.mainSettings.hideDrawer || menuId == 'settings'">
-                <EewComponent v-show="menuId == 'eews'"></EewComponent>
-                <SeisNetComponent v-show="false"></SeisNetComponent>
-                <EqlistComponent v-show="menuId == 'eqlists'"></EqlistComponent>
-                <SettingsComponent v-show="menuId == 'settings'"></SettingsComponent>
+            <div class="drawer" v-show="menuId == 'eqlists' && !settingsStore.mainSettings.hideDrawer || menuId == 'settings'">
+                <EqlistComponent v-show="menuId == 'eqlists'" />
+                <SettingsComponent v-show="menuId == 'settings'" />
             </div>
+            <transition name="dialog-fade">
+                <div class="statusContainer" v-show="statusStore.showStatusPanel">
+                    <StatusComponent />
+                </div>
+            </transition>
         </div>
     </div>
 </template>
@@ -304,25 +311,23 @@ import L from 'leaflet';
 import 'leaflet.vectorgrid';
 import 'leaflet/dist/leaflet.css';
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, watchEffect, provide } from 'vue';
-import '@/assets/background.css'
+import '@/assets/background.css';
 import { HomeFilled, FullScreen, WarnTriangleFilled, InfoFilled, Setting } from '@element-plus/icons-vue';
 import { eewSources, eqlistSources, seisNetSources, tsunamiSources, useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { useTimeStore } from '@/stores/time';
-import EewComponent from './EewComponent.vue';
-import SeisNetComponent from './SeisNetComponent.vue';
 import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
-import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToCnArea, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone, simplifyTopoJson, formatCsis, csisRomanArray } from '@/utils/Utils';
+import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToCnArea, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone, simplifyTopoJson, formatCsis, csisRomanArray, formatShindo } from '@/utils/Utils';
 import { topojsonUrls } from '@/utils/Urls';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { isTauri } from '@tauri-apps/api/core';
 import { storeToRefs } from 'pinia';
 import { simpleShindo } from '@/classes/StationClasses';
 import { feature } from 'topojson-client';
-import router from '@/router';
 import { cnCityLabels, cnProvinceLabels, jpPrefLabels } from '@/utils/Labels';
 import terminator from '@joergdietrich/leaflet.terminator';
+import StatusComponent from './StatusComponent.vue';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
@@ -519,7 +524,6 @@ watch(activeSources, newVal => {
         statusStore.isActive[source] = newVal.has(source)
     })
 })
-const formatShindo = (intensity)=>intensity.replace('強', '+').replace('弱', '-').replace('不明', '?')
 const getBarClass = (event)=>{
     const eqMessage = event.eqMessage
     if(eqMessage.isEew){
@@ -755,14 +759,6 @@ function handleKeydown(event) {
                 const nextMenu = menuArr[nextIndex]
                 handleMenu(nextMenu)
                 break
-            case 'h':
-                if (router.currentRoute.value.path == '/eq-history') {
-                    router.back()
-                }
-                else {
-                    router.push('/eq-history')
-                }
-                break
             case 'a':
                 if(isAutoZoom.value) {
                     handleManual()
@@ -771,6 +767,9 @@ function handleKeydown(event) {
                     isAutoZoom.value = true
                     setView()
                 }
+                break
+            case 's':
+                statusStore.showStatusPanel = !statusStore.showStatusPanel
                 break
             case 'm':
                 if(settingsStore.advancedSettings.mockEew) {
@@ -1539,6 +1538,17 @@ onBeforeUnmount(()=>{
                         background-color: #ffffff9f;
                         backdrop-filter: blur(1px);
                         pointer-events: auto;
+                        position: relative;
+                        * {
+                            z-index: 1;
+                        }
+                        .background {
+                            position: absolute;
+                            width: 100%;
+                            height: 100%;
+                            z-index: 0;
+                            opacity: 0.2;
+                        }
                         .intensity{
                             width: 100px;
                             height: 100%;
@@ -1583,6 +1593,9 @@ onBeforeUnmount(()=>{
                             display: flex;
                             flex-direction: column;
                             justify-content: space-evenly;
+                            line-height: 1;
+                            vertical-align: middle;
+                            padding-top: 4px;
                             .location{
                                 width: 100%;
                                 font-size: 28px;
@@ -1592,7 +1605,7 @@ onBeforeUnmount(()=>{
                             }
                             .time{
                                 width: 100%;
-                                font-size: 22px;
+                                font-size: 24px;
                                 white-space: nowrap;
                                 text-overflow: ellipsis;
                                 overflow: hidden;
@@ -1628,6 +1641,7 @@ onBeforeUnmount(()=>{
                             display: flex;
                             justify-content: space-evenly;
                             align-items: center;
+                            z-index: 2;
                             .eew-button {
                                 width: 80px;
                                 height: 40px;
@@ -1645,6 +1659,16 @@ onBeforeUnmount(()=>{
                         align-items: center;
                         background-color: #ffffff9f;
                         backdrop-filter: blur(1px);
+                        * {
+                            z-index: 1;
+                        }
+                        .background {
+                            position: absolute;
+                            width: 100%;
+                            height: 100%;
+                            z-index: 0;
+                            opacity: 0.2;
+                        }
                         .legend {
                             width: 90px;
                             height: 5px;
@@ -1854,6 +1878,35 @@ onBeforeUnmount(()=>{
             overflow: auto;
             z-index: 600;
             background-color: #fff;
+        }
+        
+        .dialog-fade-enter-active {
+            transition: all 0.5s ease-out;
+        }
+        .dialog-fade-leave-active {
+            transition: all 0.75s ease-out;
+        }
+
+        .dialog-fade-enter-from,
+        .dialog-fade-leave-to {
+            opacity: 0;
+            transform: scale(0.7);
+        }
+
+        .dialog-fade-enter-to,
+        .dialog-fade-leave-from {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .statusContainer {
+            z-index: 10000;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         .roman.scale-9{
             transform: scaleX(0.9);

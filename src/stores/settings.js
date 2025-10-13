@@ -40,6 +40,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             usgsActionMag: 5.0,
             fssnActionMag: 5.0,
             fssnActionType: 2,
+            historyMagThres: 0.0,
             onEew: {
                 notification: false,
                 sound: false,

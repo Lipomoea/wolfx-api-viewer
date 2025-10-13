@@ -93,6 +93,7 @@ export const useStatusStore = defineStore('statusStore', {
         map: null,
         isTauri: isTauri(),
         showMockDialog: false,
+        showStatusPanel: false,
         httpRequest: null,
         wolfxSocket: null,
         fanSocket: null,
@@ -739,7 +740,7 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.isCanceled = infoType == '取消'
                         eqMessage.title = `FSSN地震测定（${infoType}）`
                         eqMessage.titleText = eqMessage.title
-                        eqMessage.hypocenter = data.placeName_zh || data.placeName
+                        eqMessage.hypocenter = getFEName(data.latitude, data.longitude) || data.placeName_zh || data.placeName
                         eqMessage.hypocenterText = '震源: ' + eqMessage.hypocenter
                         eqMessage.lat = data.latitude
                         eqMessage.lng = data.longitude
