@@ -17,6 +17,7 @@ export const useSettingsStore = defineStore('settingsStore', {
                 jmaEqlist: true,
                 cwaEqlist: false,
                 cencEqlist: true,
+                usgsEqlist: false,
                 fssnEqlist: false,
                 jmaTsunami: true,
                 nmefcTsunami: false,
@@ -36,9 +37,8 @@ export const useSettingsStore = defineStore('settingsStore', {
             actionLocalCsis: 0,
             actionLocalShindo: 0,
             gqActionMag: 5.0,
-            gqActionCsis: 7,
+            usgsActionMag: 5.0,
             fssnActionMag: 5.0,
-            fssnActionCsis: 7,
             fssnActionType: 2,
             onEew: {
                 notification: false,

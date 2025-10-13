@@ -533,6 +533,15 @@ export class EqlistEvent {
                     }
                     break
                 }
+                case 'usgsEqlist': {
+                    if(eqMessage.title == 'USGS自动测定'){
+                        playSound("hypocenter")
+                    }
+                    else{
+                        playSound("detail")
+                    }
+                    break
+                }
                 case 'fssnEqlist': {
                     switch(eqMessage.title) {
                         case 'FSSN地震测定（自动）':

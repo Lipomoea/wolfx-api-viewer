@@ -64,6 +64,10 @@
                             <div>日本気象庁：地震情報</div>
                             <el-switch v-model="settingsStore.mainSettings.source.jmaEqlist" @change="handleNeedReload" />
                         </div>
+                        <div class="switch-full">
+                            <div>USGS：地震测定</div>
+                            <el-switch v-model="settingsStore.mainSettings.source.usgsEqlist" @change="handleNeedReload" />
+                        </div>
                         <div class="switch-full" v-if="settingsStore.advancedSettings.enableFssnEqlist">
                             <div>FSSN：地震测定</div>
                             <el-switch v-model="settingsStore.mainSettings.source.fssnEqlist" @change="handleNeedReload" />
@@ -333,23 +337,18 @@
                             size="small"
                             />
                         </div>
-                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableGqEew">
+                        <div class="switch-full">
                             <div class="justify-between" style="width: 10rem;">
-                                <span>GQ预警烈度阈值</span>
-                                <div class="int" :class="setClassName(settingsStore.mainSettings.gqActionCsis, false)">
-                                    <div class="csis" :class="{
-                                        'roman': settingsStore.mainSettings.useRomanCsis,
-                                        'scale-9': settingsStore.mainSettings.gqActionCsis == 8
-                                    }">{{ formatCsis(settingsStore.mainSettings.gqActionCsis.toString(), settingsStore.mainSettings.useRomanCsis) }}</div>
+                                <span>USGS震级阈值</span>
+                                <div class="mag" :class="setClassName(calcCsisLevel(settingsStore.mainSettings.usgsActionMag, 10, 0), false)">
+                                    {{ settingsStore.mainSettings.usgsActionMag.toFixed(1) }}
                                 </div>
                             </div>
                             <el-slider
-                            v-model="settingsStore.mainSettings.gqActionCsis"
-                            :disabled="!settingsStore.advancedSettings.forceCalcInt"
-                            :min="0" :max="12"
-                            :step="1"
+                            v-model="settingsStore.mainSettings.usgsActionMag"
+                            :min="0" :max="9"
+                            :step="0.1"
                             size="small"
-                            show-stops
                             />
                         </div>
                         <div class="switch-full" v-if="settingsStore.advancedSettings.enableFssnEqlist">
@@ -375,25 +374,6 @@
                             :min="0" :max="9"
                             :step="0.1"
                             size="small"
-                            />
-                        </div>
-                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableFssnEqlist">
-                            <div class="justify-between" style="width: 10rem;">
-                                <span>FSSN烈度阈值</span>
-                                <div class="int" :class="setClassName(settingsStore.mainSettings.fssnActionCsis, false)">
-                                    <div class="csis" :class="{
-                                        'roman': settingsStore.mainSettings.useRomanCsis,
-                                        'scale-9': settingsStore.mainSettings.fssnActionCsis == 8
-                                    }">{{ formatCsis(settingsStore.mainSettings.fssnActionCsis.toString(), settingsStore.mainSettings.useRomanCsis) }}</div>
-                                </div>
-                            </div>
-                            <el-slider
-                            v-model="settingsStore.mainSettings.fssnActionCsis"
-                            :disabled="!settingsStore.advancedSettings.forceCalcInt"
-                            :min="0" :max="12"
-                            :step="1"
-                            size="small"
-                            show-stops
                             />
                         </div>
                     </div>

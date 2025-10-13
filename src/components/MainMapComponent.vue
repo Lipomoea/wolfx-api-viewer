@@ -383,9 +383,12 @@ const types = {
         0: 'Wolfx',
         1: 'FAN'
     },
+    usgsEqlist: {
+        1: 'FAN'
+    },
     fssnEqlist: {
         1: 'FAN'
-    }
+    },
 }
 const tempEqlists = ref('')
 let tempEqlistsTimer

@@ -57,7 +57,7 @@ const wolfx2Source = {
     'cenc_eew': 'ceaEew',
     'sc_eew': 'scEew',
     'fj_eew': 'fjEew',
-    'cenc_eqlist': 'cencEqlist'
+    'cenc_eqlist': 'cencEqlist',
 }
 
 const source2Fan = {
@@ -65,25 +65,27 @@ const source2Fan = {
     'scEew': 'sichuan',
     'fjEew': 'fujian',
     'cencEqlist': 'cenc',
+    'usgsEqlist': 'usgs',
     'fssnEqlist': 'fssn',
-    'nmefcTsunami': 'tsunami'
+    'nmefcTsunami': 'tsunami',
 }
 const fan2Source = {
     'icl': 'iclEew',
     'sichuan': 'scEew',
     'fujian': 'fjEew',
     'cenc': 'cencEqlist',
+    'usgs': 'usgsEqlist',
     'fssn': 'fssnEqlist',
-    'tsunami': 'nmefcTsunami'
+    'tsunami': 'nmefcTsunami',
 }
 
 export const eewSources = ['jmaEew', 'cwaEew', 'ceaEew', 'iclEew', 'scEew', 'fjEew', 'gqEew']
-export const eqlistSources = ['jmaEqlist', 'cwaEqlist', 'cencEqlist', 'fssnEqlist']
+export const eqlistSources = ['jmaEqlist', 'cwaEqlist', 'cencEqlist', 'usgsEqlist', 'fssnEqlist']
 export const tsunamiSources = ['jmaTsunami', 'nmefcTsunami']
 export const seisNetSources = ['niedNet', 'tremNet']
 
 const useWolfxSocket = ['jmaEew', 'cwaEew', 'ceaEew', 'scEew', 'fjEew', 'cencEqlist']
-const useFanSocket = ['ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist', 'fssnEqlist', 'nmefcTsunami']
+const useFanSocket = ['ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist', 'usgsEqlist', 'fssnEqlist', 'nmefcTsunami']
 const useP2pquakeSocket = ['jmaEqlist', 'jmaTsunami']
 
 export const useStatusStore = defineStore('statusStore', {
@@ -110,6 +112,7 @@ export const useStatusStore = defineStore('statusStore', {
             jmaEqlist: Object.assign({}, defaultEqMessage),
             cwaEqlist: Object.assign({}, defaultEqMessage),
             cencEqlist: Object.assign({}, defaultEqMessage),
+            usgsEqlist: Object.assign({}, defaultEqMessage),
             fssnEqlist: Object.assign({}, defaultEqMessage),
         },
         tsunamiMessage: {
@@ -128,6 +131,7 @@ export const useStatusStore = defineStore('statusStore', {
             jmaEqlist: false,
             cwaEqlist: false,
             cencEqlist: false,
+            usgsEqlist: false,
             fssnEqlist: false,
             jmaTsunami: false,
             nmefcTsunami: false,
@@ -690,6 +694,25 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                                 break
                         }
+                        break
+                    }
+                    case 'usgsEqlist': {
+                        eqMessage.id = data.id
+                        eqMessage.reportTime = data.updateTime
+                        eqMessage.title = 'USGS' + (data.infoTypeName == 'reviewed' ? '正式' : '自动') + '测定'
+                        eqMessage.titleText = eqMessage.title
+                        eqMessage.hypocenter = getFEName(data.latitude, data.longitude) || data.placeName
+                        eqMessage.hypocenterText = '震源: ' + eqMessage.hypocenter
+                        eqMessage.lat = data.latitude
+                        eqMessage.lng = data.longitude
+                        eqMessage.depth = data.depth
+                        eqMessage.depthText = '深度: ' + data.depth.toFixed(0) + 'km'
+                        eqMessage.originTime = data.shockTime
+                        eqMessage.originTimeText = '发震时间: ' + data.shockTime
+                        eqMessage.magnitude = data.magnitude
+                        eqMessage.magnitudeText = '震级: ' + data.magnitude.toFixed(1)
+                        eqMessage.maxIntensity = calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
+                        eqMessage.maxIntensityText = '估计最大烈度: ' + eqMessage.maxIntensity
                         break
                     }
                     case 'fssnEqlist': {
