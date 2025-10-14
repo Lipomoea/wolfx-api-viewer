@@ -1639,14 +1639,14 @@ onBeforeUnmount(()=>{
                             height: 100%;
                             position: absolute;
                             background-color: #ffffff9f;
-                            backdrop-filter: blur(10px);
+                            backdrop-filter: blur(1px);
                             display: flex;
                             justify-content: space-evenly;
                             align-items: center;
                             z-index: 2;
                             .eew-button {
-                                width: 80px;
-                                height: 40px;
+                                width: 88px;
+                                height: 36px;
                             }
                         }
                     }

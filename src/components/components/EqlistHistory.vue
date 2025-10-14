@@ -384,6 +384,10 @@ onBeforeUnmount(() => {
                 justify-content: space-evenly;
                 align-items: center;
                 z-index: 2;
+                .button {
+                    width: 88px;
+                    height: 32px;
+                }
             }
         }
     }
