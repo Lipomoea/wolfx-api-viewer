@@ -258,7 +258,6 @@ onBeforeUnmount(() => {
         display: flex;
         flex-direction: column;
         align-items: center;
-        margin-bottom: 10px;
         gap: 5px;
         .info{
             width: 100%;

@@ -90,6 +90,10 @@ const eqlistList = eqlistSources.filter(
             gap: 10px;
             overflow: auto;
             border-top: #dcdfe6 1px solid;
+            scrollbar-width: none;
+            &::-webkit-scrollbar {
+                display: none;
+            }
 
             .eqGrid {
                 width: 100%;

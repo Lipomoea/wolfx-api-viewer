@@ -40,6 +40,7 @@ icon是《铃芽之旅》的草太さん（椅子形态）。
 * HomoOS
 * [azzbm](https://space.bilibili.com/702013828)
 * [不知道要取什么系列](https://space.bilibili.com/499911115)
+* [Andyli](https://space.bilibili.com/401770455)
 * 各位提供帮助的EEW爱好者
 ## 版权声明
 本项目参考了以下项目的源代码。

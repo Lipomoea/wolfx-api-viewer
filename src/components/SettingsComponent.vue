@@ -1,5 +1,5 @@
 <template>
-    <div class="outer">
+    <div class="outer1">
         <div class="container">
             <div class="title">设置</div>
             <div class="settings">
@@ -1678,14 +1678,13 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
-.outer{
+.outer1{
     width: 100%;
     .container{
         width: 100%;
-        padding: 10px;
+        padding: 5px;
         display: flex;
         flex-direction: column;
-        gap: 10px;
         .title{
             font-size: 24px;
             font-weight: 700;
@@ -1697,22 +1696,21 @@ onBeforeUnmount(() => {
             .sub-title{
                 font-size: 18px;
                 font-weight: 700;
-                margin-bottom: 5px;
+                margin: 10px 0 5px;
             }
             .group{
                 display: flex;
                 flex-direction: column;
                 width: 100%;
                 align-items: flex-start;
-                row-gap: 5px;
-                margin-bottom: 5px;
+                row-gap: 4px;
             }
             .switch-group{
                 width: 100%;
                 display: flex;
                 flex-wrap: wrap;
                 align-items: center;
-                row-gap: 5px;
+                row-gap: 4px;
                 column-gap: 15px;
             }
             .switch{
@@ -1741,10 +1739,6 @@ onBeforeUnmount(() => {
 }
 ul {
     list-style-position: inside;
-}
-.force-wrap{
-    flex-wrap: wrap;
-    row-gap: 5px;
 }
 .w-full{
     width: 100%;
@@ -1792,7 +1786,7 @@ ul {
 }
 .el-slider {
     flex: 1;
-    margin: 0 0.5rem 0 1rem;
+    margin: 0 1rem;
 }
 .justify-between {
     display: flex;

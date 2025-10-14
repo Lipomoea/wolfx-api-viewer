@@ -1,5 +1,5 @@
 <template>
-  <div class="outer">
+  <div class="outer1">
     <div class="container">
       <div class="bar">
         <div class="title">地震/海啸信息</div>
@@ -8,7 +8,7 @@
             :class="setClassName(calcCsisLevel(settingsStore.mainSettings.historyMagThres, 10, 0), false)">
             {{ settingsStore.mainSettings.historyMagThres.toFixed(1) }}
           </div>
-          <el-slider v-model="settingsStore.mainSettings.historyMagThres" :min="0" :max="9" :step="0.1" size="small" />
+          <el-slider v-model="settingsStore.mainSettings.historyMagThres" :min="0" :max="9" :step="0.1" size="small" :show-tooltip="false" />
         </div>
       </div>
       <div class="eqGrid">
@@ -37,21 +37,21 @@ const statusStore = useStatusStore()
 </script>
 
 <style lang="scss" scoped>
-.outer {
+.outer1 {
   width: 100%;
 
   .container {
     width: 100%;
     padding: 5px;
+    padding-right: calc(100% - 395px);
     display: flex;
     flex-direction: column;
     gap: 10px;
 
     .bar {
       width: 100%;
-      height: 30px;
+      height: 28px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
 
       .title {
@@ -61,6 +61,7 @@ const statusStore = useStatusStore()
 
       .switch {
         width: 200px;
+        margin-left: 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -79,7 +80,7 @@ const statusStore = useStatusStore()
 
         .el-slider {
           flex: 1;
-          margin: 0 0.5rem 0 1rem;
+          margin: 0 1rem;
         }
 
       }

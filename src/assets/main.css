@@ -46,3 +46,13 @@ path.leaflet-interactive:focus {
 .el-message-box__message {
   white-space: pre-line;
 }
+
+/* 滚动条 */
+* {
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
