@@ -293,7 +293,7 @@
                     </el-menu-item>
                 </el-menu>
             </div>
-            <div class="drawer" v-show="menuId == 'eqlists' && !settingsStore.mainSettings.hideDrawer || menuId == 'settings'">
+            <div class="drawer" ref="drawer" v-show="menuId == 'eqlists' && !settingsStore.mainSettings.hideDrawer || menuId == 'settings'">
                 <EqlistComponent v-show="menuId == 'eqlists'" />
                 <SettingsComponent v-show="menuId == 'settings'" />
             </div>
@@ -464,7 +464,7 @@ const handleHome = ()=>{
 }
 const handleMenu = (index)=>{
     const shouldHandleHome = menuId.value == index
-    if(shouldHandleHome && (index == 'eews' || index == 'eqlists') && isAutoZoom.value) settingsStore.mainSettings.hideDrawer = !settingsStore.mainSettings.hideDrawer
+    if(shouldHandleHome && index == 'eqlists' && isAutoZoom.value) settingsStore.mainSettings.hideDrawer = !settingsStore.mainSettings.hideDrawer
     menuId.value = index
     setTimeout(() => {
         map.invalidateSize()
@@ -472,6 +472,7 @@ const handleMenu = (index)=>{
     }, 0);  //语句推迟到容器大小变化后再执行
 }
 provide('handleHome', handleHome)
+const drawer = ref(null)
 const wolfxRS = ref(4)
 const fanRS = ref(4)
 const p2pquakeRS = ref(4)
@@ -705,6 +706,7 @@ onMounted(()=>{
         }
     })
     watch(menuId, (newVal) => {
+        drawer.value.scrollTop = 0
         if(newVal == 'eews'){
             eqlistMarkerPane.style.opacity = 0.3
             tsunamiBasePane.style.opacity = 0.3 * (tsunamiFlickerCounter ? 1 : 0)
@@ -1866,7 +1868,7 @@ onBeforeUnmount(()=>{
                 right: 1px;
                 top: 1px;
                 z-index: 600;
-                border-radius: 10px;
+                border-radius: 10px 0 0 10px;
                 overflow: hidden;
                 background-color: #ffffff9f;
                 backdrop-filter: blur(4px);

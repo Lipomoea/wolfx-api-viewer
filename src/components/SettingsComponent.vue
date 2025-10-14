@@ -698,7 +698,7 @@
                         </div>
                         <div class="switch-full">
                             <span>
-                                地震/海啸信息页不展开侧边栏
+                                隐藏地震/海啸信息页侧栏
                                 <el-popover
                                     placement="top"
                                     :width="300"
@@ -707,7 +707,7 @@
                                     <template #reference>
                                         <question-filled width="1em" height="1em" />
                                     </template>
-                                    <p>当前处于预警/信息页面且地图处于自动缩放状态时，可再次点击对应菜单快速切换状态。</p>
+                                    <p>处于地震/海啸信息页且地图处于自动视野状态时，可再次点击当前菜单快速切换。</p>
                                 </el-popover>
                             </span>
                             <el-switch v-model="settingsStore.mainSettings.hideDrawer" />
@@ -725,7 +725,6 @@
                                             <question-filled width="1em" height="1em" />
                                         </template>
                                         <p>收到新的信息时自动切换到对应的菜单栏。</p>
-                                        <p>推荐同步启用“预警/信息页不展开侧边栏”。</p>
                                         <strong>
                                             <p>需重新加载页面后生效。</p>
                                         </strong>
