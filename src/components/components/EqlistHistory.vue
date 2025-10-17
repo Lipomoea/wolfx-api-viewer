@@ -72,6 +72,10 @@ const getEqList = async (source) => {
         case 'usgsEqlist':
             keys = data.features ? Object.keys(data.features) : []
             break
+        case 'jmaEqlist':
+        case 'cencEqlist':
+            keys = Object.keys(data).filter(key => key.startsWith('No'))
+            break
         default:
             keys = Object.keys(data)
             break
