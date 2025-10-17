@@ -88,6 +88,8 @@ const useWolfxSocket = ['jmaEew', 'cwaEew', 'ceaEew', 'scEew', 'fjEew', 'cencEql
 const useFanSocket = ['ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist', 'usgsEqlist', 'fssnEqlist', 'nmefcTsunami']
 const useP2pquakeSocket = ['jmaEqlist', 'jmaTsunami']
 
+let usgsCache = null
+
 export const useStatusStore = defineStore('statusStore', {
     state: ()=>({
         map: null,
@@ -698,6 +700,11 @@ export const useStatusStore = defineStore('statusStore', {
                         break
                     }
                     case 'usgsEqlist': {
+                        const usgsNew = Object.assign({}, data)
+                        delete usgsNew.updateTime
+                        if(JSON.stringify(usgsNew) == JSON.stringify(usgsCache))
+                            break
+                        usgsCache = usgsNew
                         eqMessage.id = data.id
                         eqMessage.reportTime = data.updateTime
                         eqMessage.title = 'USGS' + (data.infoTypeName == 'reviewed' ? '正式' : '自动') + '测定'
