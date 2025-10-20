@@ -98,7 +98,7 @@ const eqlistList = eqlistSources.filter(
             .eqGrid {
                 width: 100%;
                 display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(375px, 1fr));
                 justify-items: center;
                 align-items: center;
                 gap: 10px;
