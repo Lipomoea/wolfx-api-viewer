@@ -466,5 +466,7 @@ export const formatCsis = (value, useRoman) => {
     else return value;
   }
 };
-export const formatShindo = intensity =>
-  intensity.replace("強", "+").replace("弱", "-").replace("不明", "?");
+export const formatShindo = (intensity, useSymbol = true) =>
+  useSymbol
+    ? intensity.replace("強", "+").replace("弱", "-").replace("不明", "?")
+    : intensity.replace("+", "強").replace("-", "弱").replace("?", "不明");

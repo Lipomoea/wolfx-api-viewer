@@ -58,7 +58,7 @@ dayjs.extend(timezone);
 
 const settingsStore = useSettingsStore()
 
-const maxHistoryNumber = 50
+const maxHistoryNumber = 100
 const activatedSources = eqlistSources.filter(source => settingsStore.mainSettings.source[source])
 const useAnd = new Set(['cwaEqlist', 'fssnEqlist'])
 const eqlists = ref([])
@@ -226,7 +226,7 @@ const handleReplay = (item) => {
     settingsStore.mainSettings.displaySeisNet.delay = passedTime
 }
 const handleCopy = (item) => {
-    const content = `${item.hypocenter} ${item.originTime} (UTC${formatTimeZone(item.timeZone)}) M${item.magnitude ? item.magnitude.toFixed(1) : '不明'} ${item.depth.toFixed(0)}km`
+    const content = `${item.hypocenter} ${item.originTime} (UTC${formatTimeZone(item.timeZone)}) M${item.magnitude ? item.magnitude.toFixed(1) : '不明'} ${item.depth.toFixed(0)}km ${item.useShindo ? ('最大震度' + formatShindo(item.maxIntensity, false)) : ('预估最大烈度' + item.maxIntensity)}`
     navigator.clipboard.writeText(content)
         .then(() => {
             ElMessage({
