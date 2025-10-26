@@ -678,6 +678,8 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.maxIntensityText = '预估最大烈度: ' + eqMessage.maxIntensity
                                 break
                             case 1:
+                                if(calcTimeDiff(data.createTime, 8, eqMessage.reportTime, 8) < 3000)
+                                    break
                                 eqMessage.id = data.eventId
                                 eqMessage.reportTime = data.createTime
                                 const cedingIndex = data.infoTypeName.indexOf('测定')
