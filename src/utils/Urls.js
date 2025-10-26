@@ -2,10 +2,8 @@ export const eqUrls = {
     niedLatest: 'http://www.kmoni.bosai.go.jp/webservice/server/pros/latest.json',
     jmaEew2_http: 'http://www.kmoni.bosai.go.jp/webservice/hypo/eew',
     jmaEqlist_http: 'https://api.p2pquake.net/v2/history?codes=551&limit=1',
-    cencEqlistHistory: 'https://api.wolfx.jp/cenc_eqlist.json',
-    jmaEqlistHistory: 'https://api.wolfx.jp/jma_eqlist.json',
+    usgsEqlist_http: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson',
     fssnEqlistHistory: 'https://api.fanstudio.tech/eq/fssn_50.php?translate=zh',
-    usgsEqlistHistory: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson',
     wolfx_ws: 'wss://ws-api.wolfx.jp/all_eew',
     fan_ws: 'wss://ws.fanstudio.tech/all',
     p2pquake_ws: 'wss://api.p2pquake.net/v2/ws'

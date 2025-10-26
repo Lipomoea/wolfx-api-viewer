@@ -389,6 +389,7 @@ const types = {
         1: 'FAN'
     },
     usgsEqlist: {
+        0: 'USGS',
         1: 'FAN'
     },
     fssnEqlist: {

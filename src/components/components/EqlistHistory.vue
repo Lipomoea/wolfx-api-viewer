@@ -43,184 +43,18 @@
 <script setup>
 import '@/assets/background.css';
 import '@/assets/opacity.css';
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-import Http from '@/classes/Http';
+import { computed } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
-import { eqlistSources } from '@/stores/status';
-import { eqUrls } from '@/utils/Urls';
-import { openUrl, setClassName, stampToTime, shindoScale, formatTimeZone, formatCsis, calcCsisLevel, calcTimeDiff, formatShindo, calcPassedTime } from '@/utils/Utils';
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
-import { getFEName } from '@/utils/FERegions';
-dayjs.extend(utc);
-dayjs.extend(timezone);
+import { useStatusStore } from '@/stores/status';
+import { openUrl, formatTimeZone, formatCsis, calcTimeDiff, formatShindo, calcPassedTime } from '@/utils/Utils';
 
+const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 
 const maxHistoryNumber = 100
-const activatedSources = eqlistSources.filter(source => settingsStore.mainSettings.source[source])
-const useAnd = new Set(['cwaEqlist', 'fssnEqlist'])
-const repo = ref(Array.from({ length: activatedSources.length }, () => []))
-const sorted = computed(() => repo.value.flat().sort((a, b) => calcTimeDiff(b.originTime, b.timeZone, a.originTime, a.timeZone)))
+const flatted = computed(() => Object.keys(statusStore.history).map(key => statusStore.history[key]).flat())
+const sorted = computed(() => flatted.value.sort((a, b) => calcTimeDiff(b.originTime, b.timeZone, a.originTime, a.timeZone)))
 const eqlists = computed(() => sorted.value.filter(item => item.magnitude >= settingsStore.mainSettings.historyMagThres).slice(0, maxHistoryNumber))
-const getEqList = async (source, index) => {
-    const list = []
-    const data = await Http.get(eqUrls[source + 'History'] + (useAnd.has(source) ? '&' : '?') + `time=${Date.now()}`)
-    if(data) {
-        let keys
-        switch (source) {
-            case 'usgsEqlist':
-                keys = data.features ? Object.keys(data.features) : []
-                break
-            case 'jmaEqlist':
-            case 'cencEqlist':
-                keys = Object.keys(data).filter(key => key.startsWith('No'))
-                break
-            default:
-                keys = Object.keys(data)
-                break
-        }
-        for (let i = 0; i < Math.min(keys.length, maxHistoryNumber); i++) {
-            switch (source) {
-                case 'jmaEqlist': {
-                    const id = data[keys[i]].EventID
-                    list[i] = {
-                        source: 'JMA',
-                        id,
-                        timeZone: 9,
-                        useShindo: true,
-                        originTime: data[keys[i]].time_full.replace(/\//g, '-'),
-                        lat: Number(data[keys[i]].latitude),
-                        lng: Number(data[keys[i]].longitude),
-                        hypocenter: data[keys[i]].location,
-                        depth: Number(data[keys[i]].depth.replace('km', '')),
-                        magnitude: Number(data[keys[i]].magnitude),
-                        maxIntensity: data[keys[i]].shindo,
-                        className: setClassName(data[keys[i]].shindo, true),
-                        url: `https://typhoon.yahoo.co.jp/weather/jp/earthquake/${id}.html`
-                    }
-                    break
-                }
-                case 'cwaEqlist': {
-                    const locStart = data[i].loc.indexOf('(位於')
-                    const locEnd = data[i].loc.indexOf(')')
-                    const hypocenter = locStart == -1 || locEnd == -1 || locStart + 3 >= locEnd ? data[i].loc : data[i].loc.slice(locStart + 3, locEnd)
-                    list[i] = {
-                        source: 'CWA',
-                        id: data[i].id,
-                        timeZone: 8,
-                        useShindo: true,
-                        originTime: stampToTime(data[i].time, 8),
-                        lat: data[i].lat,
-                        lng: data[i].lon,
-                        hypocenter,
-                        depth: data[i].depth,
-                        magnitude: data[i].mag,
-                        maxIntensity: shindoScale[data[i].int],
-                        className: setClassName(shindoScale[data[i].int], true),
-                        url: 'https://scweb.cwa.gov.tw/zh-tw/earthquake/data'
-                    }
-                    break
-                }
-                case 'cencEqlist': {
-                    const depth = Number(data[keys[i]].depth)
-                    const magnitude = Number(data[keys[i]].magnitude)
-                    const maxIntensity = calcCsisLevel(magnitude, depth)
-                    list[i] = {
-                        source: 'CENC',
-                        id: data[keys[i]].EventID,
-                        timeZone: 8,
-                        useShindo: false,
-                        originTime: data[keys[i]].time,
-                        lat: Number(data[keys[i]].latitude),
-                        lng: Number(data[keys[i]].longitude),
-                        hypocenter: (data[keys[i]].type == 'reviewed' ? '' : '(A)') + data[keys[i]].placeName,
-                        depth,
-                        magnitude,
-                        maxIntensity,
-                        className: setClassName(maxIntensity, false),
-                        url: 'https://news.ceic.ac.cn/'
-                    }
-                    break
-                }
-                case 'usgsEqlist': {
-                    const feature = data.features[i]
-                    const properties = feature.properties
-                    const lng = feature.geometry.coordinates[0]
-                    const lat = feature.geometry.coordinates[1]
-                    const depth = feature.geometry.coordinates[2]
-                    const magnitude = properties.mag
-                    const maxIntensity = calcCsisLevel(magnitude, depth)
-                    list[i] = {
-                        source: 'USGS',
-                        id: feature.id,
-                        timeZone: 8,
-                        useShindo: false,
-                        originTime: stampToTime(properties.time, 8),
-                        lat,
-                        lng,
-                        hypocenter: (properties.status == 'reviewed' ? '' : '(A)') + (getFEName(lat, lng) || properties.place),
-                        depth,
-                        magnitude,
-                        maxIntensity,
-                        className: setClassName(maxIntensity, false),
-                        url: properties.url
-                    }
-                    break
-                }
-                case 'fssnEqlist': {
-                    let infoType
-                    switch (data[i].infoTypeName) {
-                        case '自动(未核实)':
-                            infoType = '(A)'
-                            break
-                        case '已确认':
-                            infoType = '(C)'
-                            break
-                        case '正式(已核实)':
-                            infoType = ''
-                            break
-                        case '取消':
-                            infoType = '(X)'
-                            break
-                        default:
-                            infoType = data[i].infoTypeName
-                            break
-                    }
-                    const lat = Number(data[i].latitude)
-                    const lng = Number(data[i].longitude)
-                    const isCanceled = data[i].infoTypeName == '取消'
-                    const maxIntensity = Number(data[i].magnitude) ? calcCsisLevel(Number(data[i].magnitude), Number(data[i].depth), 0) : '不明'
-                    list[i] = {
-                        source: 'FSSN',
-                        id: data[i].ID,
-                        timeZone: 8,
-                        useShindo: false,
-                        originTime: dayjs.utc(data[i].shockTime).tz('Asia/Shanghai').format("YYYY-MM-DD HH:mm:ss"),
-                        lat,
-                        lng,
-                        hypocenter: infoType + (getFEName(lat, lng) || data[i].placeName_zh || data[i].placeName),
-                        depth: Number(data[i].depth),
-                        magnitude: Number(data[i].magnitude),
-                        maxIntensity,
-                        className: setClassName(maxIntensity, false, isCanceled),
-                        url: 'https://seismic.fanstudio.tech/'
-                    }
-                    break
-                }
-            }
-        }
-    }
-    if(list.length > 0)
-        repo.value[index] = list
-}
-const update = async () => {
-    const promises = activatedSources.map(async (source, index) => {
-        return await getEqList(source, index)
-    })
-    await Promise.all(promises)
-}
 const handleReplay = (item) => {
     const passedTime = Math.max(calcPassedTime(item.originTime, item.timeZone) / 60000 + 0.1, 0)
     settingsStore.mainSettings.displaySeisNet.delay = passedTime
@@ -241,14 +75,6 @@ const handleCopy = (item) => {
             })
         })
 }
-let updateInterval
-onMounted(() => {
-    update()
-    updateInterval = setInterval(update, 10000);
-})
-onBeforeUnmount(() => {
-    clearInterval(updateInterval)
-})
 </script>
 
 <style lang="scss" scoped>

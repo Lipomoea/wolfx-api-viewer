@@ -2,11 +2,17 @@ import { defineStore } from 'pinia';
 import Http from '@/classes/Http';
 import WebSocketObj from '@/classes/WebSocket';
 import { eqUrls, tsunamiUrls } from '@/utils/Urls';
-import { setClassName, calcCsisLevel, stampToTime, getShindoFromInstShindo, shindoScaleKanji, calcTimeDiff } from '@/utils/Utils';
+import { setClassName, calcCsisLevel, stampToTime, getShindoFromInstShindo, shindoScaleKanji, calcTimeDiff, shindoScale } from '@/utils/Utils';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { useSettingsStore } from './settings';
 import { isTauri } from '@tauri-apps/api/core';
 import { getFEName } from '@/utils/FERegions';
+import isEqual from 'lodash/isEqual';
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export const defaultEqMessage = {
     source: '',
@@ -57,6 +63,7 @@ const wolfx2Source = {
     'cenc_eew': 'ceaEew',
     'sc_eew': 'scEew',
     'fj_eew': 'fjEew',
+    'jma_eqlist': 'jmaEqlist',
     'cenc_eqlist': 'cencEqlist',
 }
 
@@ -84,9 +91,11 @@ export const eqlistSources = ['jmaEqlist', 'cwaEqlist', 'cencEqlist', 'usgsEqlis
 export const tsunamiSources = ['jmaTsunami', 'nmefcTsunami']
 export const seisNetSources = ['niedNet', 'tremNet']
 
-const useWolfxSocket = ['jmaEew', 'cwaEew', 'ceaEew', 'scEew', 'fjEew', 'cencEqlist']
+const useWolfxSocket = ['jmaEew', 'cwaEew', 'ceaEew', 'scEew', 'fjEew', 'jmaEqlist', 'cencEqlist']
 const useFanSocket = ['ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist', 'usgsEqlist', 'fssnEqlist', 'nmefcTsunami']
 const useP2pquakeSocket = ['jmaEqlist', 'jmaTsunami']
+
+const maxHistoryNumber = 100
 
 let usgsCache = null
 
@@ -140,12 +149,20 @@ export const useStatusStore = defineStore('statusStore', {
             nmefcTsunami: false,
             niedNet: false,
             tremNet: false,
+        },
+        history: {
+            jmaEqlist: [],
+            cwaEqlist: [],
+            cencEqlist: [],
+            usgsEqlist: [],
+            fssnEqlist: [],
         }
     }),
     getters: {
-        activeWolfxSource: state => useWolfxSocket.filter(source => state.enabledSource.includes(source)),
-        activeFanSource: state => useFanSocket.filter(source => state.enabledSource.includes(source)),
-        activeP2pquakeSource: state => useP2pquakeSocket.filter(source => state.enabledSource.includes(source)),
+        activeWolfxSources: state => useWolfxSocket.filter(source => state.enabledSource.includes(source)),
+        activeFanSources: state => useFanSocket.filter(source => state.enabledSource.includes(source)),
+        activeP2pquakeSources: state => useP2pquakeSocket.filter(source => state.enabledSource.includes(source)),
+        activeEqlistSources: state => eqlistSources.filter(source => state.enabledSource.includes(source)),
     },
     actions: {
         setEqMessage(source, data, type = 0) {
@@ -702,27 +719,55 @@ export const useStatusStore = defineStore('statusStore', {
                         break
                     }
                     case 'usgsEqlist': {
-                        const usgsNew = Object.assign({}, data)
-                        delete usgsNew.updateTime
-                        if(JSON.stringify(usgsNew) == JSON.stringify(usgsCache))
-                            break
-                        usgsCache = usgsNew
-                        eqMessage.id = data.id
-                        eqMessage.reportTime = data.updateTime
-                        eqMessage.title = 'USGS' + (data.infoTypeName == 'reviewed' ? '正式' : '自动') + '测定'
-                        eqMessage.titleText = eqMessage.title
-                        eqMessage.hypocenter = getFEName(data.latitude, data.longitude) || data.placeName
-                        eqMessage.hypocenterText = '震源: ' + eqMessage.hypocenter
-                        eqMessage.lat = data.latitude
-                        eqMessage.lng = data.longitude
-                        eqMessage.depth = data.depth
-                        eqMessage.depthText = '深度: ' + data.depth.toFixed(0) + 'km'
-                        eqMessage.originTime = data.shockTime
-                        eqMessage.originTimeText = '发震时间: ' + data.shockTime
-                        eqMessage.magnitude = data.magnitude
-                        eqMessage.magnitudeText = '震级: ' + data.magnitude.toFixed(1)
-                        eqMessage.maxIntensity = calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
-                        eqMessage.maxIntensityText = '预估最大烈度: ' + eqMessage.maxIntensity
+                        const tempMsg = {}
+                        switch(type) {
+                            case 0:
+                                const { geometry, properties } = data
+                                const [lng, lat, depth] = geometry.coordinates
+                                tempMsg.id = properties.code
+                                tempMsg.title = 'USGS' + (properties.status == 'reviewed' ? '正式' : '自动') + '测定'
+                                tempMsg.titleText = tempMsg.title
+                                tempMsg.hypocenter = getFEName(lat, lng) || properties.place
+                                tempMsg.hypocenterText = '震源: ' + tempMsg.hypocenter
+                                tempMsg.lat = lat
+                                tempMsg.lng = lng
+                                tempMsg.depth = depth
+                                tempMsg.depthText = '深度: ' + tempMsg.depth.toFixed(0) + 'km'
+                                tempMsg.originTime = stampToTime(properties.time, 8)
+                                tempMsg.originTimeText = '发震时间: ' + tempMsg.originTime
+                                tempMsg.magnitude = properties.mag
+                                tempMsg.magnitudeText = '震级: ' + tempMsg.magnitude.toFixed(1)
+                                tempMsg.maxIntensity = calcCsisLevel(tempMsg.magnitude, tempMsg.depth, 0)
+                                tempMsg.maxIntensityText = '预估最大烈度: ' + tempMsg.maxIntensity
+                                if(isEqual(tempMsg, usgsCache))
+                                    break
+                                usgsCache = tempMsg
+                                Object.assign(eqMessage, tempMsg)
+                                eqMessage.reportTime = stampToTime(properties.updated, 8)
+                                break
+                            case 1:
+                                tempMsg.id = data.id
+                                tempMsg.title = 'USGS' + (data.infoTypeName == 'reviewed' ? '正式' : '自动') + '测定'
+                                tempMsg.titleText = tempMsg.title
+                                tempMsg.hypocenter = getFEName(data.latitude, data.longitude) || data.placeName
+                                tempMsg.hypocenterText = '震源: ' + tempMsg.hypocenter
+                                tempMsg.lat = data.latitude
+                                tempMsg.lng = data.longitude
+                                tempMsg.depth = data.depth
+                                tempMsg.depthText = '深度: ' + tempMsg.depth.toFixed(0) + 'km'
+                                tempMsg.originTime = data.shockTime
+                                tempMsg.originTimeText = '发震时间: ' + tempMsg.originTime
+                                tempMsg.magnitude = data.magnitude
+                                tempMsg.magnitudeText = '震级: ' + tempMsg.magnitude.toFixed(1)
+                                tempMsg.maxIntensity = calcCsisLevel(tempMsg.magnitude, tempMsg.depth, 0)
+                                tempMsg.maxIntensityText = '预估最大烈度: ' + tempMsg.maxIntensity
+                                if(isEqual(tempMsg, usgsCache))
+                                    break
+                                usgsCache = tempMsg
+                                Object.assign(eqMessage, tempMsg)
+                                eqMessage.reportTime = data.updateTime
+                                break
+                        }
                         break
                     }
                     case 'fssnEqlist': {
@@ -899,43 +944,201 @@ export const useStatusStore = defineStore('statusStore', {
                 console.log(err);
             }
         },
+        setHistory(source, data) {
+            const list = []
+            let keys
+            switch (source) {
+                case 'jmaEqlist':
+                case 'cencEqlist':
+                    keys = Object.keys(data).filter(key => key.startsWith('No'))
+                    break
+                default:
+                    keys = Object.keys(data)
+                    break
+            }
+            for (let i = 0; i < Math.min(keys.length, maxHistoryNumber); i++) {
+                switch (source) {
+                    case 'jmaEqlist': {
+                        const id = data[keys[i]].EventID
+                        list[i] = {
+                            source: 'JMA',
+                            id,
+                            timeZone: 9,
+                            useShindo: true,
+                            originTime: data[keys[i]].time_full.replace(/\//g, '-'),
+                            lat: Number(data[keys[i]].latitude),
+                            lng: Number(data[keys[i]].longitude),
+                            hypocenter: data[keys[i]].location,
+                            depth: Number(data[keys[i]].depth.replace('km', '')),
+                            magnitude: Number(data[keys[i]].magnitude),
+                            maxIntensity: data[keys[i]].shindo,
+                            className: setClassName(data[keys[i]].shindo, true),
+                            url: `https://typhoon.yahoo.co.jp/weather/jp/earthquake/${id}.html`
+                        }
+                        break
+                    }
+                    case 'cwaEqlist': {
+                        const locStart = data[i].loc.indexOf('(位於')
+                        const locEnd = data[i].loc.indexOf(')')
+                        const hypocenter = locStart == -1 || locEnd == -1 || locStart + 3 >= locEnd ? data[i].loc : data[i].loc.slice(locStart + 3, locEnd)
+                        list[i] = {
+                            source: 'CWA',
+                            id: data[i].id,
+                            timeZone: 8,
+                            useShindo: true,
+                            originTime: stampToTime(data[i].time, 8),
+                            lat: data[i].lat,
+                            lng: data[i].lon,
+                            hypocenter,
+                            depth: data[i].depth,
+                            magnitude: data[i].mag,
+                            maxIntensity: shindoScale[data[i].int],
+                            className: setClassName(shindoScale[data[i].int], true),
+                            url: 'https://scweb.cwa.gov.tw/zh-tw/earthquake/data'
+                        }
+                        break
+                    }
+                    case 'cencEqlist': {
+                        const depth = Number(data[keys[i]].depth)
+                        const magnitude = Number(data[keys[i]].magnitude)
+                        const maxIntensity = calcCsisLevel(magnitude, depth)
+                        list[i] = {
+                            source: 'CENC',
+                            id: data[keys[i]].EventID,
+                            timeZone: 8,
+                            useShindo: false,
+                            originTime: data[keys[i]].time,
+                            lat: Number(data[keys[i]].latitude),
+                            lng: Number(data[keys[i]].longitude),
+                            hypocenter: (data[keys[i]].type == 'reviewed' ? '' : '(A)') + data[keys[i]].placeName,
+                            depth,
+                            magnitude,
+                            maxIntensity,
+                            className: setClassName(maxIntensity, false),
+                            url: 'https://news.ceic.ac.cn/'
+                        }
+                        break
+                    }
+                    case 'usgsEqlist': {
+                        const feature = data[i]
+                        const { properties, geometry } = feature
+                        const [lng, lat, depth] = geometry.coordinates
+                        const magnitude = properties.mag
+                        const maxIntensity = calcCsisLevel(magnitude, depth)
+                        list[i] = {
+                            source: 'USGS',
+                            id: feature.id,
+                            timeZone: 8,
+                            useShindo: false,
+                            originTime: stampToTime(properties.time, 8),
+                            lat,
+                            lng,
+                            hypocenter: (properties.status == 'reviewed' ? '' : '(A)') + (getFEName(lat, lng) || properties.place),
+                            depth,
+                            magnitude,
+                            maxIntensity,
+                            className: setClassName(maxIntensity, false),
+                            url: properties.url
+                        }
+                        break
+                    }
+                    case 'fssnEqlist': {
+                        let infoType
+                        switch (data[i].infoTypeName) {
+                            case '自动(未核实)':
+                                infoType = '(A)'
+                                break
+                            case '已确认':
+                                infoType = '(C)'
+                                break
+                            case '正式(已核实)':
+                                infoType = ''
+                                break
+                            case '取消':
+                                infoType = '(X)'
+                                break
+                            default:
+                                infoType = data[i].infoTypeName
+                                break
+                        }
+                        const lat = Number(data[i].latitude)
+                        const lng = Number(data[i].longitude)
+                        const isCanceled = data[i].infoTypeName == '取消'
+                        const maxIntensity = Number(data[i].magnitude) ? calcCsisLevel(Number(data[i].magnitude), Number(data[i].depth), 0) : '不明'
+                        list[i] = {
+                            source: 'FSSN',
+                            id: data[i].ID,
+                            timeZone: 8,
+                            useShindo: false,
+                            originTime: dayjs.utc(data[i].shockTime).tz('Asia/Shanghai').format("YYYY-MM-DD HH:mm:ss"),
+                            lat,
+                            lng,
+                            hypocenter: infoType + (getFEName(lat, lng) || data[i].placeName_zh || data[i].placeName),
+                            depth: Number(data[i].depth),
+                            magnitude: Number(data[i].magnitude),
+                            maxIntensity,
+                            className: setClassName(maxIntensity, false, isCanceled),
+                            url: 'https://seismic.fanstudio.tech/'
+                        }
+                        break
+                    }
+                }
+            }
+            if(list.length > 0)
+                this.history[source] = list
+        },        
         connect(protocol){
             if(protocol == 'http'){
+                let status = -1
                 clearInterval(this.httpRequest)
                 this.httpRequest = setInterval(async () => {
                     const stamp = Date.now()
-                    const status = Math.floor(stamp / 1000) % 10
+                    status = (status + 1) % 10
                     const promises = this.enabledSource.map(async source=>{
                         if(source == 'jmaEqlist' && status % 2 == 0 && (!this.eqMessage[source].id || status == 0)) {
-                            const data = await Http.get(eqUrls[source + '_http'])
+                            const data = await Http.get(eqUrls.jmaEqlist_http)
                             if(data && data.length > 0) this.setEqMessage(source, data[0])
                         }
                         if(source == 'jmaTsunami' && status % 2 == 1 && (!this.tsunamiMessage[source].id || status == 1)) {
-                            const data = await Http.get(tsunamiUrls[source + '_http'])
+                            const data = await Http.get(tsunamiUrls.jmaTsunami_http)
                             if(data && data.length > 0) this.setTsunamiMessage(source, data[0])
                         }
-                        if(source == 'cwaEqlist' && 'cwaEqlist_http' in eqUrls) {
-                            const data = await Http.get(eqUrls[source + '_http'] + `&time=${Date.now()}`)
-                            if(data && data.length > 0) this.setEqMessage(source, data[0])
+                        if(source == 'cwaEqlist' && 'cwaEqlist_http' in eqUrls && status % 2 == 0) {
+                            const data = await Http.get(eqUrls.cwaEqlist_http + `&time=${stamp}`)
+                            if(data && data.length > 0) {
+                                this.setEqMessage(source, data[0])
+                                this.setHistory(source, data)
+                            }
+                        }
+                        if(source == 'usgsEqlist' && status == 0) {
+                            const data = await Http.get(eqUrls.usgsEqlist_http + `?time=${stamp}`)
+                            if(data) {
+                                this.setEqMessage(source, data.features[0])
+                                this.setHistory(source, data.features)
+                            }
+                        }
+                        if(source == 'fssnEqlist' && status == 0) {
+                            const data = await Http.get(eqUrls.fssnEqlistHistory + `&time=${stamp}`)
+                            if(data) this.setHistory(source, data)
                         }
                         if(source == 'jmaEew' && this.isTauri) {
-                            const timeData = await Http.tauriGet(`${eqUrls.niedLatest}?time=${Date.now()}`)
+                            const timeData = await Http.tauriGet(eqUrls.niedLatest + `?time=${stamp}`)
                             if(timeData && timeData.result.status == 'success') {
                                 const timeStr = timeData.latest_time.replace(/\D/g, '')
-                                const data = await Http.tauriGet(`${eqUrls.jmaEew2_http}/${timeStr}.json`)
+                                const data = await Http.tauriGet(eqUrls.jmaEew2_http + `/${timeStr}.json`)
                                 if(data && data.report_id) this.setEqMessage(source, data, 1)
                             }
                         }
                         if(this.multiApi) {
                             if(source == 'cwaEew' && 'cwaEew2_http' in eqUrls) {
-                                const arr = await Http.get(`${eqUrls.cwaEew2_http}?time=${Date.now()}`)
+                                const arr = await Http.get(eqUrls.cwaEew2_http + `?time=${stamp}`)
                                 if(arr && arr.length > 0) {
                                     const data = arr.find(item => item.author == 'cwa')
                                     if(data) this.setEqMessage(source, data, 1)
                                 }
                             }
                             if(source == 'iclEew' && 'iclEew_http' in eqUrls) {
-                                const data = await Http.get(eqUrls[source + '_http'] + `?time=${Date.now()}`)
+                                const data = await Http.get(eqUrls.iclEew_http + `?time=${stamp}`)
                                 if(data && Object.keys(data).length > 0) this.setEqMessage(source, data)
                             }
                         }
@@ -945,21 +1148,32 @@ export const useStatusStore = defineStore('statusStore', {
             }
             else if(protocol == 'ws'){
                 if(this.wolfxSocket) this.wolfxSocket.close()
-                if(this.activeWolfxSource.length > 0) {
-                    this.wolfxSocket = new WebSocketObj(eqUrls.wolfx_ws, this.activeWolfxSource.map(source => {
+                if(this.activeWolfxSources.length > 0) {
+                    this.wolfxSocket = new WebSocketObj(eqUrls.wolfx_ws, this.activeWolfxSources.map(source => {
                         if(source == 'ceaEew') return 'query_cenceew'
                         else return `query_${source.toLowerCase()}`
                     }))
                     this.wolfxSocket.setMessageHandler((e)=>{
-                        let data = JSON.parse(e.data)
-                        if(data.type != 'heartbeat'){
-                            const source = wolfx2Source[data.type]
-                            if(source && this.activeWolfxSource.includes(source)) this.setEqMessage(source, data)
+                        const data = JSON.parse(e.data)
+                        const source = wolfx2Source[data.type]
+                        if(source && this.activeWolfxSources.includes(source)) {
+                            switch(source) {
+                                case 'jmaEqlist':
+                                    this.setHistory(source, data)
+                                    break
+                                case 'cencEqlist':
+                                    this.setEqMessage(source, data)
+                                    this.setHistory(source, data)
+                                    break
+                                default:
+                                    this.setEqMessage(source, data)
+                                    break
+                            }
                         }
                     })
                 }
                 if(this.fanSocket) this.fanSocket.close()
-                if(this.activeFanSource.length > 0) {
+                if(this.activeFanSources.length > 0) {
                     const settingsStore = useSettingsStore()
                     if(settingsStore.advancedSettings.provinceCeaEew) {
                         source2Fan['ceaEew'] = 'cea-pr'
@@ -976,9 +1190,9 @@ export const useStatusStore = defineStore('statusStore', {
                     if(token) initMsg.push(`{"type":"auth","key":"${token}"}`)
                     this.fanSocket = new WebSocketObj(eqUrls.fan_ws, ['query'], initMsg)
                     this.fanSocket.setMessageHandler((e)=>{
-                        let data = JSON.parse(e.data)
+                        const data = JSON.parse(e.data)
                         if(data.type == 'initial_all' || data.type == 'query_response') {
-                            this.activeFanSource.forEach(source => {
+                            this.activeFanSources.forEach(source => {
                                 const Data = data[source2Fan[source]]?.Data
                                 if(Data)
                                     source.endsWith('Tsunami') ? this.setTsunamiMessage(source, Data) : this.setEqMessage(source, Data, 1)
@@ -987,22 +1201,22 @@ export const useStatusStore = defineStore('statusStore', {
                         else if(data.type == 'update'){
                             const source = fan2Source[data.source]
                             const Data = data?.Data
-                            if(source && this.activeFanSource.includes(source) && Data)
+                            if(source && this.activeFanSources.includes(source) && Data)
                                 source.endsWith('Tsunami') ? this.setTsunamiMessage(source, Data) : this.setEqMessage(source, Data, 1)
                         }
                     })
                 }
                 if(this.p2pquakeSocket) this.p2pquakeSocket.close()
-                if(this.activeP2pquakeSource.length > 0) {
+                if(this.activeP2pquakeSources.length > 0) {
                     this.p2pquakeSocket = new WebSocketObj(eqUrls.p2pquake_ws, ['ping'])
                     this.p2pquakeSocket.setMessageHandler((e)=>{
-                        let data = JSON.parse(e.data)
+                        const data = JSON.parse(e.data)
                         switch(data.code) {
                             case 551:
-                                if(this.activeP2pquakeSource.includes('jmaEqlist')) this.setEqMessage('jmaEqlist', data)
+                                if(this.activeP2pquakeSources.includes('jmaEqlist')) this.setEqMessage('jmaEqlist', data)
                                 break
                             case 552:
-                                if(this.activeP2pquakeSource.includes('jmaTsunami')) this.setTsunamiMessage('jmaTsunami', data)
+                                if(this.activeP2pquakeSources.includes('jmaTsunami')) this.setTsunamiMessage('jmaTsunami', data)
                                 break
                         }
                     })
@@ -1011,7 +1225,7 @@ export const useStatusStore = defineStore('statusStore', {
                 if(this.enabledSource.includes('gqEew') && 'gqEew_ws' in eqUrls) {
                     this.gqSocket = new WebSocketObj(eqUrls.gqEew_ws, ['ping'])
                     this.gqSocket.setMessageHandler((e)=>{
-                        let data = JSON.parse(e.data)
+                        const data = JSON.parse(e.data)
                         if(data.RevisionId) this.setEqMessage('gqEew', data)
                     })
                 }
