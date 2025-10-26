@@ -29,6 +29,7 @@ const delay = computed(()=>settingsStore.mainSettings.displaySeisNet.delay * 600
 const tremMaxShindo = inject('tremMaxShindo')
 const tremUpdateTime = inject('tremUpdateTime')
 const tremPeriodMaxShindo = inject('tremPeriodMaxShindo')
+const handleTempEqlists = inject('handleTempEqlists')
 const periodMaxLevel = ref(-1)
 const currentMaxShindo = computed(()=>{
     const currentMaxLevel = Math.max(...Object.keys(grids.value).map(key=>grids.value[key].level), -1)
@@ -253,6 +254,7 @@ watch(currentMaxShindo, (newVal, oldVal)=>{
                 focused = true
             }
         }
+        handleTempEqlists(0)
     }
     else{
         shake1Notified = false
