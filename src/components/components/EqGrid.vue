@@ -81,7 +81,7 @@ watch(eqMessage, (newVal)=>{
             }
             if(i == activeEewList.length){
                 if(statusStore.map){
-                    if(time > 0 && (props.source != 'gqEew' 
+                    if(time > 0 && (settingsStore.actionWhiteListArr.some(key => newVal.hypocenter.includes(key)) || props.source != 'gqEew' 
                         || (settingsStore.mainSettings.gqActionMag == 0 || newVal.magnitude >= settingsStore.mainSettings.gqActionMag)
                     )) {
                         const newEvent = reactive(new EewEvent(statusStore.map, Object.assign({}, newVal), activeEewList, handleTempEqlists, smartSetView))
@@ -94,7 +94,7 @@ watch(eqMessage, (newVal)=>{
     }
     else {
         let i = 0
-        const shouldUpdate = newVal.source != 'fssnEqlist' && newVal.source != 'usgsEqlist'
+        const shouldUpdate = settingsStore.actionWhiteListArr.some(key => newVal.hypocenter.includes(key)) || newVal.source != 'fssnEqlist' && newVal.source != 'usgsEqlist'
             || newVal.source == 'fssnEqlist'
             && (newVal.title == 'FSSN地震测定（正式）' || newVal.title == 'FSSN地震测定（确认）' && settingsStore.mainSettings.fssnActionType <= 1 || settingsStore.mainSettings.fssnActionType == 0) 
             && (settingsStore.mainSettings.fssnActionMag == 0 || newVal.magnitude >= settingsStore.mainSettings.fssnActionMag)

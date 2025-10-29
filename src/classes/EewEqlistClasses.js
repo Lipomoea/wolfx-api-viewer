@@ -322,10 +322,12 @@ export class EewEvent {
             }
             this.setMark()
             if(
-                (this.nearestJmaLoc
+                settingsStore.actionWhiteListArr.some(key => this.eqMessage.hypocenter.includes(key))
+                || (this.nearestJmaLoc
                 ? (this.userShindo == '?' || shindoScale.indexOf(this.userShindo) >= settingsStore.mainSettings.actionLocalShindo)
                 : (this.userCsis == '?' || Number(this.userCsis) >= settingsStore.mainSettings.actionLocalCsis)
-                ) && (settingsStore.mainSettings.actionMag == 0 || this.eqMessage.magnitude >= settingsStore.mainSettings.actionMag)
+                )
+                && (settingsStore.mainSettings.actionMag == 0 || this.eqMessage.magnitude >= settingsStore.mainSettings.actionMag)
             ) this.shouldAction = true
             if(this.shouldAction && !isAddition && !this.mute) this.handleActions()
             clearTimeout(this.terminateTimer)

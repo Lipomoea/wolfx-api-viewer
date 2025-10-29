@@ -201,7 +201,7 @@
                 <span class="sub-title">行为</span>
                 <div class="group">
                     <span class="font-bold w-full">
-                        预警设置
+                        过滤设置
                         <el-popover
                             placement="top"
                             :width="200"
@@ -226,7 +226,7 @@
                                         <template #reference>
                                             <question-filled width="1em" height="1em" />
                                         </template>
-                                        <p>仅在预估震级达到阈值时执行下方行为。</p>
+                                        <p>地震预警事件中，仅在预估震级达到阈值时进行提醒。</p>
                                         <p>设置为“0”表示不作筛选。</p>
                                     </el-popover>
                                 </span>
@@ -254,7 +254,7 @@
                                             <question-filled width="1em" height="1em" />
                                         </template>
                                         <p><strong>需要启用“软件估算烈度/震度”。</strong></p>
-                                        <p>仅在预估本地烈度达到阈值时执行下方行为。</p>
+                                        <p>地震预警事件中，仅在预估本地烈度达到阈值时进行提醒。</p>
                                         <p>对日本以外地区生效。</p>
                                         <p>设置为“0”表示不作筛选。</p>
                                         <p>参考：</p>
@@ -295,7 +295,7 @@
                                             <question-filled width="1em" height="1em" />
                                         </template>
                                         <p><strong>需要启用“软件估算烈度/震度”。</strong></p>
-                                        <p>仅在预估本地震度达到阈值时执行下方行为。</p>
+                                        <p>地震预警事件中，仅在预估本地震度达到阈值时进行提醒。</p>
                                         <p>对附近包含震度观测点的日本地区生效。</p>
                                         <p>设置为“0”表示不作筛选。</p>
                                         <p>参考：</p>
@@ -374,6 +374,29 @@
                             :min="0" :max="9"
                             :step="0.1"
                             size="small"
+                            />
+                        </div>
+                        <div class="switch-full">
+                            <span>
+                                地名白名单
+                                <el-popover
+                                    placement="top"
+                                    :width="310"
+                                    trigger="hover"
+                                >
+                                    <template #reference>
+                                        <question-filled width="1em" height="1em" />
+                                    </template>
+                                    <p>地名包含关键词的事件，始终通过过滤。</p>
+                                    <p>使用“|”对多个关键词进行分隔。</p>
+                                </el-popover>
+                            </span>
+                            <el-input 
+                            class="text-right"
+                            v-model="settingsStore.mainSettings.actionWhiteList"
+                            style="width: 180px;"
+                            size="small"
+                            placeholder="使用“|”对多个关键词进行分隔"
                             />
                         </div>
                     </div>
@@ -1814,6 +1837,12 @@ ul {
 }
 .font-bold {
     font-weight: 700;
+}
+.text-right {
+    text-align: right;
+    :deep(.el-input__inner) {
+        text-align: right;
+    }
 }
 </style>
 
