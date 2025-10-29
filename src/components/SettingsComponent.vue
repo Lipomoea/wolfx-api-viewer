@@ -253,7 +253,7 @@
                                         <template #reference>
                                             <question-filled width="1em" height="1em" />
                                         </template>
-                                        <p><strong>需要启用“强制估算烈度/震度”。</strong></p>
+                                        <p><strong>需要启用“软件估算烈度/震度”。</strong></p>
                                         <p>仅在预估本地烈度达到阈值时执行下方行为。</p>
                                         <p>对日本以外地区生效。</p>
                                         <p>设置为“0”表示不作筛选。</p>
@@ -294,7 +294,7 @@
                                         <template #reference>
                                             <question-filled width="1em" height="1em" />
                                         </template>
-                                        <p><strong>需要启用“强制估算烈度/震度”。</strong></p>
+                                        <p><strong>需要启用“软件估算烈度/震度”。</strong></p>
                                         <p>仅在预估本地震度达到阈值时执行下方行为。</p>
                                         <p>对附近包含震度观测点的日本地区生效。</p>
                                         <p>设置为“0”表示不作筛选。</p>
