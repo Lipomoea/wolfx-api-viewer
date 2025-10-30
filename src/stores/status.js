@@ -1149,7 +1149,7 @@ export const useStatusStore = defineStore('statusStore', {
             else if(protocol == 'ws'){
                 if(this.wolfxSocket) this.wolfxSocket.close()
                 if(this.activeWolfxSources.length > 0) {
-                    this.wolfxSocket = new WebSocketObj(eqUrls.wolfx_ws, this.activeWolfxSources.map(source => {
+                    this.wolfxSocket = new WebSocketObj([eqUrls.wolfx_ws], this.activeWolfxSources.map(source => {
                         if(source == 'ceaEew') return 'query_cenceew'
                         else return `query_${source.toLowerCase()}`
                     }))
@@ -1188,7 +1188,7 @@ export const useStatusStore = defineStore('statusStore', {
                     const initMsg = []
                     const token = settingsStore.advancedSettings.tokens.fan_dev
                     if(token) initMsg.push(`{"type":"auth","key":"${token}"}`)
-                    this.fanSocket = new WebSocketObj(eqUrls.fan_ws, ['query'], initMsg)
+                    this.fanSocket = new WebSocketObj([eqUrls.fan_ws, eqUrls.fan2_ws], ['query'], initMsg)
                     this.fanSocket.setMessageHandler((e)=>{
                         const data = JSON.parse(e.data)
                         if(data.type == 'initial_all' || data.type == 'query_response') {
@@ -1208,7 +1208,7 @@ export const useStatusStore = defineStore('statusStore', {
                 }
                 if(this.p2pquakeSocket) this.p2pquakeSocket.close()
                 if(this.activeP2pquakeSources.length > 0) {
-                    this.p2pquakeSocket = new WebSocketObj(eqUrls.p2pquake_ws, ['ping'])
+                    this.p2pquakeSocket = new WebSocketObj([eqUrls.p2pquake_ws], ['ping'])
                     this.p2pquakeSocket.setMessageHandler((e)=>{
                         const data = JSON.parse(e.data)
                         switch(data.code) {
@@ -1223,7 +1223,7 @@ export const useStatusStore = defineStore('statusStore', {
                 }
                 if(this.gqSocket) this.gqSocket.close()
                 if(this.enabledSource.includes('gqEew') && 'gqEew_ws' in eqUrls) {
-                    this.gqSocket = new WebSocketObj(eqUrls.gqEew_ws, ['ping'])
+                    this.gqSocket = new WebSocketObj([eqUrls.gqEew_ws], ['ping'])
                     this.gqSocket.setMessageHandler((e)=>{
                         const data = JSON.parse(e.data)
                         if(data.RevisionId) this.setEqMessage('gqEew', data)

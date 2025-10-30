@@ -1,6 +1,8 @@
 class WebSocketObj {
-    constructor(url, autoMessages = [], initMessages = [...autoMessages]) {
-        this.url = url
+    constructor(urls, autoMessages = [], initMessages = [...autoMessages]) {
+        this.urls = urls
+        this.urlIndex = 0
+        this.url = this.urls[this.urlIndex]
         this.autoMessages = autoMessages
         this.initMessages = initMessages
         this.shouldConnect = true
@@ -28,6 +30,10 @@ class WebSocketObj {
         }
         this.socket.onclose = () => {
             clearTimeout(this.timer)
+            if(this.retryInterval == this.maxRetryInterval) {
+                this.urlIndex = (this.urlIndex + 1) % this.urls.length
+                this.url = this.urls[this.urlIndex]
+            }
             this.timer = setTimeout(() => {
                 if (this.shouldConnect) this.reconnect()
             }, this.retryInterval);

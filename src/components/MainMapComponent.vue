@@ -225,10 +225,10 @@
                     </div>
                     <div class="ws-status">
                         <div>WebSocket状态: </div>
-                        <div :class="'s' + wolfxRS">Wolfx</div>
-                        <div :class="'s' + fanRS">FAN</div>
-                        <div :class="'s' + p2pquakeRS">P2PQ</div>
-                        <div v-if="settingsStore.advancedSettings.enableGqEew" :class="'s' + gqRS">GQ</div>
+                        <div :class="'s' + wolfxRS">Wolfx{{ wolfxUrlIndex ? '(B)' : '' }}</div>
+                        <div :class="'s' + fanRS">FAN{{ fanUrlIndex ? '(B)' : '' }}</div>
+                        <div :class="'s' + p2pquakeRS">P2PQ{{ p2pquakeUrlIndex ? '(B)' : '' }}</div>
+                        <div v-if="settingsStore.advancedSettings.enableGqEew" :class="'s' + gqRS">GQ{{ gqUrlIndex ? '(B)' : '' }}</div>
                     </div>
                     <div class="update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isNiedDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.niedNet" @dblclick="resetSeisNetDelay">
                         強震モニタ: {{ niedUpdateTime }} (UTC+9)
@@ -478,6 +478,10 @@ const wolfxRS = ref(4)
 const fanRS = ref(4)
 const p2pquakeRS = ref(4)
 const gqRS = ref(4)
+const wolfxUrlIndex = ref(0)
+const fanUrlIndex = ref(0)
+const p2pquakeUrlIndex = ref(0)
+const gqUrlIndex = ref(0)
 const niedUpdateTime = ref('1970-01-01 09:00:00')
 const niedMaxShindo = ref('?')
 const niedPeriodMaxShindo = ref('?')
@@ -1067,6 +1071,10 @@ const intervalEvents = ()=>{
     fanRS.value = statusStore.fanSocket?.socket.readyState ?? 4
     p2pquakeRS.value = statusStore.p2pquakeSocket?.socket.readyState ?? 4
     gqRS.value = statusStore.gqSocket?.socket.readyState ?? 4
+    wolfxUrlIndex.value = statusStore.wolfxSocket?.urlIndex
+    fanUrlIndex.value = statusStore.fanSocket?.urlIndex
+    p2pquakeUrlIndex.value = statusStore.p2pquakeSocket?.urlIndex
+    gqUrlIndex.value = statusStore.gqSocket?.urlIndex
 }
 const setMapHeight = (height) => {
     const mapElement = map.getContainer()

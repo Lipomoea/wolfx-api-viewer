@@ -6,6 +6,7 @@ export const eqUrls = {
     fssnEqlistHistory: 'https://api.fanstudio.tech/eq/fssn_50.php?translate=zh',
     wolfx_ws: 'wss://ws-api.wolfx.jp/all_eew',
     fan_ws: 'wss://ws.fanstudio.tech/all',
+    fan2_ws: 'wss://ws.fanstudio.hk/all',
     p2pquake_ws: 'wss://api.p2pquake.net/v2/ws'
 }
 export const tsunamiUrls = {
