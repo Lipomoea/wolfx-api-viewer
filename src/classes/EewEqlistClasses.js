@@ -1,4 +1,4 @@
-import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendMyNotification, getClassLevel, focusWindow, calcCsisLevel, calcJmaShindoLevel, shindoScale, timeToStamp, formatTimeZone, setClassName } from '@/utils/Utils';
+import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendMyNotification, getClassLevel, focusWindow, calcCsisLevel, calcJmaShindoLevel, shindoScale, timeToStamp, formatTimeZone } from '@/utils/Utils';
 import travelTimes from '@/utils/TravelTimes';
 import { chimeUrls, iconUrls } from '@/utils/Urls';
 import L from 'leaflet';
@@ -321,6 +321,7 @@ export class EewEvent {
                 this.drawWaves(true)
             }
             this.setMark()
+            this.smartSetView()
             if(
                 settingsStore.actionWhiteListArr.some(key => this.eqMessage.hypocenter.includes(key))
                 || (this.nearestJmaLoc
@@ -411,7 +412,6 @@ export class EewEvent {
                 settingsStore.mainSettings.muteNotification)
         }
         this.handleTempEqlists(0)
-        this.smartSetView()
     }
     handleCountdown(passedTime){
         if(settingsStore.mainSettings.displayCountdown && this.isValidUserLatLng && (this.userDist <= this.maxCountdownRadius && !this.eqMessage.isAssumption || settingsStore.mainSettings.forceDisplayCountdown)){
@@ -448,11 +448,14 @@ export class EewEvent {
         clearTimeout(this.terminateTimer)
         clearTimeout(this.showMenuTimer)
         this.renderStop()
+        this.smartSetView()
         const index = this.activeEewList.indexOf(this)
         if(index >= 0) this.activeEewList.splice(index, 1)
         this.map = null
         this.eqMessage = null
         this.activeEewList = null
+        this.handleTempEqlists = null
+        this.smartSetView = null
     }
 }
 export class EqlistEvent {
@@ -474,6 +477,7 @@ export class EqlistEvent {
             this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
             this.isValidHypo = this.hypoLatLng.some(item => !!item)
             this.setMark()
+            this.smartSetView()
             if(time > 0){
                 this.handleActions()
                 this.isActive = true
@@ -575,7 +579,6 @@ export class EqlistEvent {
                 settingsStore.mainSettings.muteNotification)
         }
         this.handleTempEqlists(6500, eqMessage.source)
-        this.smartSetView()
     }
     handleClick() {
         this.showMenu = !this.showMenu
@@ -594,5 +597,51 @@ export class EqlistEvent {
         this.isActive = false
         this.showMenu = false
         if(settingsStore.mainSettings.eqlistsDisplayMode == 1 && !this.isLatest) this.removeMark()
+        this.smartSetView()
+    }
+}
+export class HistoryEvent extends EqlistEvent {
+    constructor(map, eqMessage, smartSetView, historyList){
+        super(map, eqMessage, null, smartSetView)
+        this.historyList = historyList
+    }
+    setMark(){
+        this.removeMark()
+        if(this.isValidHypo){
+            this.hypoMarker = L.marker(this.hypoLatLng, { icon: this.eqMessage.isCanceled ? cancelCrossIcon : eqlistCrossIcon, pane: 'historyMarkerPane' })
+            this.hypoMarker.bindTooltip(`
+                <strong>${this.eqMessage.titleText}</strong><br>
+                ${this.eqMessage.hypocenter}(${this.eqMessage.lat},${this.eqMessage.lng})<br>
+                ${this.eqMessage.depthText}<br>
+                ${this.eqMessage.originTime} (${formatTimeZone(this.eqMessage.timeZone)})<br>
+                M${this.eqMessage.magnitude == -1 ? '不明' : this.eqMessage.magnitude.toFixed(1)}<br>
+                ${this.eqMessage.maxIntensityText}
+                `, { permanent: false, direction: 'top', className: 'custom-tooltip' })
+            this.hypoMarker.addTo(this.map)    
+        }
+    }
+    update(eqMessage){
+        Object.assign(this.eqMessage, eqMessage)
+        this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
+        this.isValidHypo = this.hypoLatLng.some(item => !!item)
+        this.setMark()
+        this.smartSetView()
+        this.isActive = true
+    }
+    handleActions() {
+        return
+    }
+    deactivate() {
+        clearTimeout(this.showMenuTimer)
+        this.isActive = false
+        this.showMenu = false
+        this.removeMark()
+        this.smartSetView()
+        const index = this.historyList.indexOf(this)
+        if(index >= 0) this.historyList.splice(index, 1)
+        this.map = null
+        this.eqMessage = null
+        this.smartSetView = null
+        this.historyList = null
     }
 }

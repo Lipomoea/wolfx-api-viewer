@@ -120,10 +120,10 @@
                                     plain 
                                     :disabled="!event.isActive"
                                     @click.stop="() => {
-                                        event.deactivate()
                                         if(tempEqlists == event.eqMessage.source) {
                                             tempEqlists = ''
                                         }
+                                        event.deactivate()
                                     }"
                                     >关闭信息</el-button>
                                 </div>
@@ -333,7 +333,7 @@ const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 const timeStore = useTimeStore()
 let map, jpEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap, cnTsunamiBaseMap, labelLayer1, labelLayer2, terminatorLayer, terminatorFillLayer, cnFaultBaseMap
-let eewMarkerPane, eqlistMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, eewBasePane, tsunamiBasePane, labelPane1, labelPane2
+let eewMarkerPane, eqlistMarkerPane, historyMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, eewBasePane, tsunamiBasePane, labelPane1, labelPane2
 let userMarker
 const defaultLatLng = [38.1, 104.6]
 const { isValidUserLatLng, isValidViewLatLng, isDisplayUser, nearestJmaLoc } = storeToRefs(settingsStore)
@@ -395,11 +395,15 @@ const types = {
     fssnEqlist: {
         1: 'FAN'
     },
+    history: {
+        0: ''
+    }
 }
 const tempEqlists = ref('')
 let tempEqlistsTimer
 const handleTempEqlists = (time, source = '') => {
     if(time && source) {
+        clearHistoryList()
         tempEqlists.value = source
         clearTimeout(tempEqlistsTimer)
         tempEqlistsTimer = setTimeout(() => {
@@ -499,10 +503,15 @@ const isTremDelayed = ref(true)
 const isAutoZoom = ref(true)
 const activeEewList = reactive([])
 const eqlistList = reactive([])
+const historyList = reactive([])
 const activeEqlistList = computed(() => eqlistList.filter(event => event.isActive))
-const displayEqlistList = computed(() => eqlistList.filter(event => settingsStore.mainSettings.alwaysDisplayLatestInfo ? event.isActive || event.isLatest : event.isActive))
+const displayEqlistList = computed(() => historyList.length > 0 ? historyList : eqlistList.filter(event => settingsStore.mainSettings.alwaysDisplayLatestInfo ? event.isActive || event.isLatest : event.isActive))
 provide('activeEewList', activeEewList)
 provide('eqlistList', eqlistList)
+provide('historyList', historyList)
+const clearHistoryList = () => {
+    while(historyList.length > 0) historyList[0].deactivate()
+}
 watch(() => `${activeEewList.length}|${displayEqlistList.value.length}|${menuId.value}`, () => {
     infoPageCounter.value = 0
 })
@@ -622,7 +631,10 @@ onMounted(()=>{
     labelPane2.style.zIndex = 190
     map.createPane('eqlistMarkerPane')
     eqlistMarkerPane = map.getPane('eqlistMarkerPane')
-    eqlistMarkerPane.style.zIndex = 199
+    eqlistMarkerPane.style.zIndex = 198
+    map.createPane('historyMarkerPane')
+    historyMarkerPane = map.getPane('historyMarkerPane')
+    historyMarkerPane.style.zIndex = 199
     map.createPane('eewMarkerPane')
     eewMarkerPane = map.getPane('eewMarkerPane')
     eewMarkerPane.style.zIndex = 200
@@ -653,6 +665,10 @@ onMounted(()=>{
     })
     watchEffect(() => {
         waveFillPane.style.display = settingsStore.mainSettings.fillSWave ? 'block' : 'none'
+    })
+    watchEffect(() => {
+        eqlistMarkerPane.style.display = historyList.length > 0 ? 'none' : 'block'
+        historyMarkerPane.style.display = historyList.length > 0 ? 'block' : 'none'
     })
     labelLayer1 = L.layerGroup().addTo(map);
     labelLayer2 = L.layerGroup().addTo(map);
@@ -712,6 +728,7 @@ onMounted(()=>{
     })
     watch(menuId, (newVal) => {
         drawer.value.scrollTop = 0
+        clearHistoryList()
         if(newVal == 'eews'){
             eqlistMarkerPane.style.opacity = 0.3
             tsunamiBasePane.style.opacity = 0.3 * (tsunamiFlickerCounter ? 1 : 0)
@@ -775,13 +792,30 @@ function handleKeydown(event) {
                     setView()
                 }
                 break
-            case 's':
+            case 'x':
                 statusStore.showStatusPanel = !statusStore.showStatusPanel
                 break
             case 'm':
                 if(settingsStore.advancedSettings.mockEew) {
                     statusStore.showMockDialog = !statusStore.showMockDialog
                 }
+                break
+            case 'c':
+                if(menuId.value == 'eqlists') {
+                    clearHistoryList()
+                }
+                break
+            case 'f':
+                handleMenu('main')
+                break
+            case 'e':
+                handleMenu('eews')
+                break
+            case 'l':
+                handleMenu('eqlists')
+                break
+            case 's':
+                handleMenu('settings')
                 break
             case ',':
                 infoPageCounter.value = (infoPageCounter.value - infoPageCounter.value % 10 + 25200 - 10) % 25200
@@ -1088,7 +1122,7 @@ const setView = () => {
     if(document.visibilityState === 'visible') {
         const bounds = L.latLngBounds([])
         //临时Eqlist
-        if(settingsStore.mainSettings.cinemaMode && tempEqlists.value && menuId.value == 'eqlists') {
+        if(settingsStore.mainSettings.cinemaMode && tempEqlists.value && menuId.value == 'eqlists' && historyList.length == 0) {
             if(tempEqlists.value == 'jmaTsunami') {
                 statusStore.isActive.jmaTsunami && jpTsunamiBaseMap?.eachLayer(layer => {
                     if(layer.options.color && layer.options.color != '#ffffff00') {
@@ -1169,6 +1203,34 @@ const setView = () => {
                             break
                     }
                     if(shouldExtend) {
+                        if(layer.getBounds){
+                            bounds.extend(layer.getBounds())
+                        }
+                        else if(layer.getLatLng){
+                            bounds.extend(layer.getLatLng())
+                        }
+                    }
+                })
+            }
+            //历史地震
+            if(!bounds.isValid() && menuId.value == 'eqlists' && historyList.length > 0) {
+                historyList.forEach(event => {
+                    if(event.isValidHypo){
+                        bounds.extend(event.hypoLatLng)
+                    }
+                })
+                jpEewBaseMap?.eachLayer(layer => {
+                    if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
+                        if(layer.getBounds){
+                            bounds.extend(layer.getBounds())
+                        }
+                        else if(layer.getLatLng){
+                            bounds.extend(layer.getLatLng())
+                        }
+                    }
+                })
+                cnEewBaseMap?.eachLayer(layer => {
+                    if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
                         if(layer.getBounds){
                             bounds.extend(layer.getBounds())
                         }
@@ -1392,7 +1454,9 @@ const jmaWarnArea = computed(()=>{
         }
     }
     else {
-        const jmaEqlistEvent = activeEqlistList.value.length > 0
+        const jmaEqlistEvent = historyList.length > 0
+        ? null
+        : activeEqlistList.value.length > 0
         ? settingsStore.mainSettings.cinemaMode && tempEqlists.value
         ? tempEqlists.value == 'jmaEqlist'
         ? activeEqlistList.value.find(event => event.eqMessage.source == 'jmaEqlist')
@@ -1443,7 +1507,9 @@ const jpEewInfoList = computed(()=>{
 })
 const cnEewInfoList = computed(()=>{
     const cnEewList = menuId.value == 'eqlists'
-        ? activeEqlistList.value.length > 0
+        ? historyList.length > 0
+        ? historyList.filter(event => event.hypoMarker && !event.eqMessage.isCanceled)
+        : activeEqlistList.value.length > 0
         ? settingsStore.mainSettings.cinemaMode && tempEqlists.value
         ? activeEqlistList.value.filter(event=>event.eqMessage.source == tempEqlists.value && event.hypoMarker && !event.eqMessage.isCanceled)
         : activeEqlistList.value.filter(event=>event.hypoMarker && !event.eqMessage.isCanceled)

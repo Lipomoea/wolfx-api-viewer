@@ -1077,6 +1077,7 @@ export const useStatusStore = defineStore('statusStore', {
                             depth: Number(data[i].depth),
                             magnitude: Number(data[i].magnitude),
                             maxIntensity,
+                            isCanceled,
                             className: setClassName(maxIntensity, false, isCanceled),
                             url: 'https://seismic.fanstudio.tech/'
                         }

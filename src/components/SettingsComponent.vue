@@ -1052,7 +1052,7 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false" append-to-body>
-            <div class="header">要石 v2.2.0-pre.8</div>
+            <div class="header">要石 v2.2.0-rc.1</div>
             <div class="title">使用方法</div>
             <div class="about">
                 <p>主要功能：接收日本气象厅、台湾省中央气象署、中国地震局、四川省地震局、福建省地震局地震预警信息，日本气象厅、中国地震台网地震信息，日本气象厅海啸信息，NIED強震モニタ测站数据。</p>
@@ -1070,10 +1070,15 @@
                 <ul>
                     <li>[A]uto：打开/关闭自动视野</li>
                     <li>[D]rawer：显示/隐藏侧边栏</li>
-                    <li>[S]tatus：打开/关闭状态面板</li>
+                    <li>[F]ull：切换到主菜单</li>
+                    <li>[E]EW：切换到地震预警菜单</li>
+                    <li>[L]ist：切换到地震信息菜单</li>
+                    <li>[S]ettings：切换到设置菜单</li>
+                    <li>[C]lear：清除地图上的历史地震</li>
                     <li v-if="settingsStore.advancedSettings.mockEew">[M]ock：打开/关闭模拟地震预警面板</li>
-                    <li>Tab / Enter + Tab：轮询菜单</li>
-                    <li>, / . ：存在多页信息框时轮询信息框</li>
+                    <li>[X]：打开/关闭状态面板</li>
+                    <li>[Tab] / [Enter + Tab]：轮询菜单</li>
+                    <li>[,] / [.]：存在多页信息框时轮询信息框</li>
                 </ul>
             </div>
             <div class="title">注意事项</div>

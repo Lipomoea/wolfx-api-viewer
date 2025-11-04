@@ -30,10 +30,10 @@
                         <div class="source">{{ item.source }}</div>
                     </div>
                 </div>
-                <div class="buttons">
+                <div class="buttons" @contextmenu.prevent="handleCopy(item)">
                     <el-button class="button" type="warning" plain @click="openUrl(item.url)">查看网页</el-button>
                     <el-button class="button" type="primary" plain @click="handleReplay(item)">测站回放</el-button>
-                    <el-button class="button" type="success" plain @click="handleCopy(item)">复制信息</el-button>
+                    <el-button class="button" :type="displayIds.has(item.id) ? 'danger' : 'success'" plain @click="displayOnMap(item)">{{ displayIds.has(item.id) ? '取消显示' : '地图显示' }}</el-button>
                 </div>
             </div>
         </div>
@@ -43,13 +43,19 @@
 <script setup>
 import '@/assets/background.css';
 import '@/assets/opacity.css';
-import { computed } from 'vue';
+import { reactive, computed } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
-import { useStatusStore } from '@/stores/status';
-import { openUrl, formatTimeZone, formatCsis, calcTimeDiff, formatShindo, calcPassedTime } from '@/utils/Utils';
+import { defaultEqMessage, useStatusStore } from '@/stores/status';
+import { openUrl, formatTimeZone, formatCsis, calcTimeDiff, formatShindo, calcPassedTime, stampToTime } from '@/utils/Utils';
+import { useTimeStore } from '@/stores/time';
+import { HistoryEvent } from '@/classes/EewEqlistClasses';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
+const timeStore = useTimeStore()
+
+const smartSetView = inject('smartSetView')
+const historyList = inject('historyList')
 
 const maxHistoryNumber = 100
 const flatted = computed(() => Object.keys(statusStore.history).map(key => statusStore.history[key]).flat())
@@ -74,6 +80,24 @@ const handleCopy = (item) => {
                 type: 'error'
             })
         })
+}
+const displayIds = computed(() => new Set(historyList.map(event => event.eqMessage.id)))
+const displayOnMap = (item) => {
+    const event = historyList.find(event => event.eqMessage.id == item.id)
+    if(event) {
+        event.deactivate()
+    }
+    else {
+        const eqMessage = Object.assign({}, defaultEqMessage, item)
+        eqMessage.source = 'history'
+        eqMessage.title = eqMessage.titleText = '历史地震' + `(${item.source})`
+        eqMessage.depthText = '深度: ' + eqMessage.depth.toFixed(0) + 'km'
+        eqMessage.reportTime = stampToTime(timeStore.getTimeStamp(), eqMessage.timeZone)
+        if(!statusStore.map) return
+        const newEvent = reactive(new HistoryEvent(statusStore.map, eqMessage, smartSetView, historyList))
+        historyList.unshift(newEvent)
+        newEvent.update(eqMessage)
+    }
 }
 </script>
 
