@@ -204,7 +204,7 @@ const generateEqMessage = (form, index, id) => {
         title: '模拟·' + (title.value || '地震预警'),
         titleText: '模拟·' + (title.value || '地震预警') + (form.isCancel ? '（取消）' : ''),
         hypocenter,
-        hypocenterText: '震源: ' + hypocenter,
+        hypocenterText: '震中: ' + hypocenter,
         lat: form.lat,
         lng: form.lng,
         depth: form.depth,
