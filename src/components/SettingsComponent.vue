@@ -357,7 +357,6 @@
                                 style="width: 120px;"
                                 v-model="settingsStore.mainSettings.fssnActionType"
                                 size="small"
-                                :disabled="!settingsStore.mainSettings.source.fssnEqlist"
                             >
                                 <el-option label="自动和正式测定" :value=0 />
                                 <el-option label="仅正式测定" :value=1 />
