@@ -39,48 +39,56 @@
 }
 .white{
     background-color: var(--white);
+    color: #000000;
 }
 .white:active{
     background-color: var(--white-active);
 }
 .dark-gray{
     background-color: var(--dark-gray);
+    color: #000000;
 }
 .dark-gray:active{
     background-color: var(--dark-gray-active);
 }
 .gray{
     background-color: var(--gray);
+    color: #000000;
 }
 .gray:active{
     background-color: var(--gray-active);
 }
 .sky-blue{
     background-color: var(--sky-blue);
+    color: #000000;
 }
 .sky-blue:active{
     background-color: var(--sky-blue-active);
 }
 .blue{
     background-color: var(--blue);
+    color: #000000;
 }
 .blue:active{
     background-color: var(--blue-active);
 }
 .green{
     background-color: var(--green);
+    color: #000000;
 }
 .green:active{
     background-color: var(--green-active);
 }
 .yellow{
     background-color: var(--yellow);
+    color: #000000;
 }
 .yellow:active{
     background-color: var(--yellow-active);
 }
 .orange{
     background-color: var(--orange);
+    color: #000000;
 }
 .orange:active{
     background-color: var(--orange-active);

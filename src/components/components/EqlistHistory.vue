@@ -42,7 +42,6 @@
 
 <script setup>
 import '@/assets/background.css';
-import '@/assets/opacity.css';
 import { reactive, computed } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
 import { defaultEqMessage, useStatusStore } from '@/stores/status';
