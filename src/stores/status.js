@@ -775,24 +775,18 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.reportTime = data.createTime
                         let infoType
                         switch(data.infoTypeName) {
-                            case '自动(未核实)':
-                                infoType = '自动'
-                                break
                             case '已确认':
-                                infoType = '确认'
+                                infoType = '自动'
                                 break
                             case '正式(已核实)':
                                 infoType = '正式'
-                                break
-                            case '取消':
-                                infoType = '取消'
                                 break
                             default:
                                 infoType = data.infoTypeName
                                 break
                         }
                         eqMessage.isCanceled = infoType == '取消'
-                        eqMessage.title = `FSSN地震测定（${infoType}）`
+                        eqMessage.title = `FSSN${infoType}测定`
                         eqMessage.titleText = eqMessage.title
                         eqMessage.hypocenter = getFEName(data.latitude, data.longitude) || data.placeName_zh || data.placeName
                         eqMessage.hypocenterText = '震中: ' + eqMessage.hypocenter
@@ -949,7 +943,6 @@ export const useStatusStore = defineStore('statusStore', {
             let keys
             switch (source) {
                 case 'jmaEqlist':
-                case 'cencEqlist':
                     keys = Object.keys(data).filter(key => key.startsWith('No'))
                     break
                 default:
@@ -999,18 +992,18 @@ export const useStatusStore = defineStore('statusStore', {
                         break
                     }
                     case 'cencEqlist': {
-                        const depth = Number(data[keys[i]].depth)
-                        const magnitude = Number(data[keys[i]].magnitude)
+                        const depth = Number(data[i].depth)
+                        const magnitude = Number(data[i].magnitude)
                         const maxIntensity = calcCsisLevel(magnitude, depth)
                         list[i] = {
                             source: 'CENC',
-                            id: data[keys[i]].EventID,
+                            id: data[i].id,
                             timeZone: 8,
                             useShindo: false,
-                            originTime: data[keys[i]].time,
-                            lat: Number(data[keys[i]].latitude),
-                            lng: Number(data[keys[i]].longitude),
-                            hypocenter: (data[keys[i]].type == 'reviewed' ? '' : '(A)') + data[keys[i]].placeName,
+                            originTime: data[i].shockTime,
+                            lat: Number(data[i].latitude),
+                            lng: Number(data[i].longitude),
+                            hypocenter: (data[i].infoTypeName.includes('正式') ? '' : '(A)') + data[i].placeName,
                             depth,
                             magnitude,
                             maxIntensity,
@@ -1045,11 +1038,8 @@ export const useStatusStore = defineStore('statusStore', {
                     case 'fssnEqlist': {
                         let infoType
                         switch (data[i].infoTypeName) {
-                            case '自动(未核实)':
-                                infoType = '(A)'
-                                break
                             case '已确认':
-                                infoType = '(C)'
+                                infoType = '(A)'
                                 break
                             case '正式(已核实)':
                                 infoType = ''
@@ -1118,10 +1108,6 @@ export const useStatusStore = defineStore('statusStore', {
                                 this.setHistory(source, data.features)
                             }
                         }
-                        if(source == 'fssnEqlist' && status == 0) {
-                            const data = await Http.get(eqUrls.fssnEqlistHistory + `&time=${stamp}`)
-                            if(data) this.setHistory(source, data)
-                        }
                         if(source == 'jmaEew' && this.isTauri) {
                             const timeData = await Http.tauriGet(eqUrls.niedLatest + `?time=${stamp}`)
                             if(timeData && timeData.result.status == 'success') {
@@ -1162,10 +1148,6 @@ export const useStatusStore = defineStore('statusStore', {
                                 case 'jmaEqlist':
                                     this.setHistory(source, data)
                                     break
-                                case 'cencEqlist':
-                                    this.setEqMessage(source, data)
-                                    this.setHistory(source, data)
-                                    break
                                 default:
                                     this.setEqMessage(source, data)
                                     break
@@ -1189,7 +1171,16 @@ export const useStatusStore = defineStore('statusStore', {
                     const initMsg = []
                     const token = settingsStore.advancedSettings.tokens.fan_dev
                     if(token) initMsg.push(`{"type":"auth","key":"${token}"}`)
-                    this.fanSocket = new WebSocketObj([eqUrls.fan_ws, eqUrls.fan2_ws], ['query'], initMsg)
+                    const autoMsg = ['query']
+                    if(this.activeFanSources.includes('cencEqlist')) {
+                        autoMsg.push('cenclist')
+                        initMsg.push('cenclist')
+                    }
+                    if(this.activeFanSources.includes('fssnEqlist')) {
+                        autoMsg.push('fssnlist')
+                        initMsg.push('fssnlist')
+                    }
+                    this.fanSocket = new WebSocketObj([eqUrls.fan_ws, eqUrls.fan2_ws], autoMsg, initMsg)
                     this.fanSocket.setMessageHandler((e)=>{
                         const data = JSON.parse(e.data)
                         if(data.type == 'initial_all' || data.type == 'query_response') {
@@ -1204,6 +1195,16 @@ export const useStatusStore = defineStore('statusStore', {
                             const Data = data?.Data
                             if(source && this.activeFanSources.includes(source) && Data)
                                 source.endsWith('Tsunami') ? this.setTsunamiMessage(source, Data) : this.setEqMessage(source, Data, 1)
+                        }
+                        else if(data.type == 'cenclist_response') {
+                            const source = 'cencEqlist'
+                            const Data = data?.Data
+                            this.setHistory(source, Data)
+                        }
+                        else if(data.type == 'fssnlist_response') {
+                            const source = 'fssnEqlist'
+                            const Data = data?.Data
+                            this.setHistory(source, Data)
                         }
                     })
                 }

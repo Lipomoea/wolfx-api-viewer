@@ -68,9 +68,9 @@
                             <div>USGS：地震测定</div>
                             <el-switch v-model="settingsStore.mainSettings.source.usgsEqlist" @change="handleNeedReload" />
                         </div>
-                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableFssnEqlist">
+                        <div class="switch-full">
                             <div>FSSN：地震测定</div>
-                            <el-switch v-model="settingsStore.mainSettings.source.fssnEqlist" @change="handleNeedReload" />
+                            <el-switch v-model="settingsStore.mainSettings.source.fssnEqlist" @change="handleFssnEqlist" />
                         </div>
                     </div>
                     <div class="switch-group">
@@ -351,18 +351,19 @@
                             size="small"
                             />
                         </div>
-                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableFssnEqlist">
+                        <div class="switch-full">
                             <span>FSSN事件接收类型</span>
                             <el-select
                                 style="width: 120px;"
                                 v-model="settingsStore.mainSettings.fssnActionType"
-                                size="small">
-                                    <el-option label="全部接收" :value=0 />
-                                    <el-option label="仅确认和正式报" :value=1 />
-                                    <el-option label="仅正式报" :value=2 />
+                                size="small"
+                                :disabled="!settingsStore.mainSettings.source.fssnEqlist"
+                            >
+                                <el-option label="自动和正式测定" :value=0 />
+                                <el-option label="仅正式测定" :value=1 />
                             </el-select>
                         </div>
-                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableFssnEqlist">
+                        <div class="switch-full">
                             <div class="justify-between" style="width: 10rem;">
                                 <span>FSSN震级阈值</span>
                                 <div class="mag" :class="setClassName(calcCsisLevel(settingsStore.mainSettings.fssnActionMag, 10, 0), false)">
@@ -1043,7 +1044,7 @@
         </el-dialog>
         <el-dialog v-model="showTokenManager" width="300px" top="20vh" :show-close="false" append-to-body>
             <el-form :model="idForm">
-                <el-form-item v-if="settingsStore.advancedSettings.enableIclEew || settingsStore.advancedSettings.enableFssnEqlist" label="FAN:DEV" label-width="60px">
+                <el-form-item v-if="settingsStore.advancedSettings.enableIclEew" label="FAN:DEV" label-width="60px">
                     <el-input v-model="settingsStore.advancedSettings.tokens.fan_dev" @change="handleNeedReload" />
                 </el-form-item>
             </el-form>
@@ -1254,6 +1255,30 @@ const needReload = ref(false)
 const handleReload = () => {
     window.location.reload()
 }
+const handleFssnEqlist = (newVal) => {
+    if(newVal) {
+        ElMessageBox.confirm(
+            `FAN Studio Seismic Network (FSSN)是由FAN Studio提供支持，利用FDSN等地震仪网络进行全球地震测定的项目。
+            该项目由地震学爱好者组织维护，不属于任何官方机构，测定结果仅供参考。
+            请问您是否坚持使用？`,
+            '启用FSSN地震测定',
+            {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning',
+                showClose: false,
+            }
+        ).then(()=>{
+            settingsStore.mainSettings.source.fssnEqlist = true
+            handleNeedReload()
+        }).catch(()=>{
+            settingsStore.mainSettings.source.fssnEqlist = false
+        })
+    }
+    else {
+        handleNeedReload()
+    }
+}
 const showTokenManager = ref(false)
 const advancedInput = ref('')
 const verifyDialog = ref(false)
@@ -1348,35 +1373,6 @@ const handleAdvance = (val)=>{
             if(settingsStore.advancedSettings.mockEew) handleNeedReload()
             settingsStore.advancedSettings.mockEew = false
             settingsStore.advancedSettings.enableMockEew = false
-            break
-        }
-        case 'enableFssnEqlist': {
-            ElMessageBox.confirm(
-                `
-                FAN Studio Seismic Network (FSSN)是由FAN Studio提供支持，利用FDSN地震仪网络进行全球地震测定的项目。
-                该项目由地震学爱好者组织维护，不属于任何官方机构。
-                该数据源的信息可能存在较多错误，请确认您是否坚持使用？
-                `,
-                '启用FSSN地震测定',
-                {
-                    confirmButtonText: '确定',
-                    cancelButtonText: '取消',
-                    type: 'warning',
-                    showClose: false,
-                }
-            ).then(()=>{
-                settingsStore.advancedSettings.enableFssnEqlist = true
-            }).catch(()=>{
-                if(settingsStore.mainSettings.source.fssnEqlist) handleNeedReload()
-                settingsStore.mainSettings.source.fssnEqlist = false
-                settingsStore.advancedSettings.enableFssnEqlist = false
-            })
-            break
-        }
-        case 'disableFssnEqlist': {
-            if(settingsStore.mainSettings.source.fssnEqlist) handleNeedReload()
-            settingsStore.mainSettings.source.fssnEqlist = false
-            settingsStore.advancedSettings.enableFssnEqlist = false
             break
         }
     }

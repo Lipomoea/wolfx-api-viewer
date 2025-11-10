@@ -550,16 +550,13 @@ export class EqlistEvent {
                 }
                 case 'fssnEqlist': {
                     switch(eqMessage.title) {
-                        case 'FSSN地震测定（自动）':
-                            playSound("prompt")
-                            break
-                        case 'FSSN地震测定（确认）': 
+                        case 'FSSN自动测定': 
                             playSound("hypocenter")
                             break
-                        case 'FSSN地震测定（正式）':
+                        case 'FSSN正式测定':
                             playSound("detail")
                             break
-                        case 'FSSN地震测定（取消）':
+                        case 'FSSN取消测定':
                             playSound("cancel")
                             break
                     }

@@ -16,7 +16,7 @@ class WebSocketObj {
     async sendMessages(messages) {
         for(const msg of messages) {
             this.send(msg)
-            await new Promise(resolve => setTimeout(resolve, this.autoSendInterval / messages.length))
+            await new Promise(resolve => setTimeout(resolve, Math.min(this.autoSendInterval / messages.length, 2000)))
         }
     }
     setupWebSocket() {

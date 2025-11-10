@@ -39,7 +39,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             gqActionMag: 5.0,
             usgsActionMag: 5.0,
             fssnActionMag: 5.0,
-            fssnActionType: 2,
+            fssnActionType: 1,
             actionWhiteList: '',
             historyMagThres: 0.0,
             onEew: {
@@ -105,7 +105,6 @@ export const useSettingsStore = defineStore('settingsStore', {
             enableIclEew: false,
             enableTremFunctions: false,
             enableGqEew: false,
-            enableFssnEqlist: false,
             enableNmefcTsunami: false,
             enableMultiApi: false,
             enableMockEew: false,
@@ -145,7 +144,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             }
             else return null
         },
-        displayTokenButton: (state) => state.advancedSettings.enableIclEew || state.advancedSettings.enableFssnEqlist,
+        displayTokenButton: (state) => state.advancedSettings.enableIclEew,
         actionWhiteListArr: (state) => state.mainSettings.actionWhiteList.split('|').filter(key => key)
     },
     actions: {
