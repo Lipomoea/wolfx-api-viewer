@@ -38,6 +38,7 @@
         { "url": "https://**" }
       ]
     },
-    "http:allow-fetch"
+    "http:allow-fetch",
+    "clipboard-manager:allow-write-text"
   ]
 }

@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { defineStore } from 'pinia';
 import { utilUrls } from '@/utils/Urls';
 import Http from '@/classes/Http';
 

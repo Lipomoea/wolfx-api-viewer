@@ -49,6 +49,8 @@ import { defaultEqMessage, useStatusStore } from '@/stores/status';
 import { openUrl, formatTimeZone, formatCsis, calcTimeDiff, formatShindo, calcPassedTime, stampToTime } from '@/utils/Utils';
 import { useTimeStore } from '@/stores/time';
 import { HistoryEvent } from '@/classes/EewEqlistClasses';
+import { isTauri } from '@tauri-apps/api/core';
+import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
@@ -65,21 +67,26 @@ const handleReplay = (item) => {
     const passedTime = Math.max(calcPassedTime(item.originTime, item.timeZone) / 60000 + 0.1, 0)
     settingsStore.mainSettings.displaySeisNet.delay = passedTime
 }
-const handleCopy = (item) => {
+const handleCopy = async (item) => {
     const content = `${item.hypocenter} ${item.originTime} (UTC${formatTimeZone(item.timeZone)}) M${item.magnitude ? item.magnitude.toFixed(1) : '不明'} ${item.depth.toFixed(0)}km ${item.useShindo ? ('最大震度' + formatShindo(item.maxIntensity, false)) : ('预估最大烈度' + item.maxIntensity)}`
-    navigator.clipboard.writeText(content)
-        .then(() => {
-            ElMessage({
-                message: '复制成功',
-                type: 'success'
-            })
+    try {
+        if(isTauri()) {
+            await writeText(content)
+        }
+        else {
+            await navigator.clipboard.writeText(content)
+        }
+        ElMessage({
+            message: '复制成功',
+            type: 'success'
         })
-        .catch(() => {
-            ElMessage({
-                message: '复制失败',
-                type: 'error'
-            })
+    } catch (e) {
+        console.log(e)
+        ElMessage({
+            message: '复制失败',
+            type: 'error'
         })
+    }
 }
 const displayIds = computed(() => new Set(historyList.map(event => event.eqMessage.id)))
 const displayOnMap = (item) => {

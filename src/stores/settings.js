@@ -1,7 +1,7 @@
-import { defineStore } from 'pinia'
-import merge from 'lodash/merge'
-import { point, distance } from '@turf/turf'
-import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc'
+import { defineStore } from 'pinia';
+import merge from 'lodash/merge';
+import { point, distance } from '@turf/turf';
+import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 
 export const useSettingsStore = defineStore('settingsStore', {
     state: ()=>({
