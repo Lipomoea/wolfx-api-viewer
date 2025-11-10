@@ -22,8 +22,8 @@ import { EewEvent, EqlistEvent, ignoredIds } from '@/classes/EewEqlistClasses';
 import { useTimeStore } from '@/stores/time';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
-import '@/assets/background.css'
-import '@/assets/opacity.css'
+import '@/assets/background.css';
+import '@/assets/opacity.css';
 
 const props = defineProps({
     source: String,
