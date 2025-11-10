@@ -147,14 +147,12 @@ watch(() => statusStore.map, newVal => {
         position: relative;
         overflow: hidden;
         width: 100%;
-        margin-bottom: 10px;
         padding: 10px;
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 3px;
-        background-color: var(--gray);
-        box-shadow: 0 4px 10px #0000003f;
+        background-color: #dfdfdf;
         border-radius: 10px;
         user-select: none;
         .title {

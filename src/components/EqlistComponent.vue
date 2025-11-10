@@ -8,17 +8,13 @@
             :class="setClassName(calcCsisLevel(settingsStore.mainSettings.historyMagThres, 10, 0), false)">
             {{ settingsStore.mainSettings.historyMagThres.toFixed(1) }}
           </div>
-          <el-slider v-model="settingsStore.mainSettings.historyMagThres" :min="0" :max="9" :step="0.1" size="small" :show-tooltip="false" />
+          <el-slider v-model="settingsStore.mainSettings.historyMagThres" :min="0" :max="9" :step="0.1" size="small"
+            :show-tooltip="false" />
         </div>
       </div>
-      <div class="eqGrid">
-        <NmefcTsunami v-if="settingsStore.mainSettings.source.nmefcTsunami"
-          v-show="statusStore.isActive.nmefcTsunami" />
-        <JmaTsunami v-if="settingsStore.mainSettings.source.jmaTsunami" v-show="statusStore.isActive.jmaTsunami" />
-      </div>
-      <div class="eqGrid">
-        <EqlistHistoryComponent />
-      </div>
+      <NmefcTsunami v-if="settingsStore.mainSettings.source.nmefcTsunami" v-show="statusStore.isActive.nmefcTsunami" />
+      <JmaTsunami v-if="settingsStore.mainSettings.source.jmaTsunami" v-show="statusStore.isActive.jmaTsunami" />
+      <EqlistHistoryComponent />
     </div>
   </div>
 </template>
@@ -39,7 +35,6 @@ const statusStore = useStatusStore()
 <style lang="scss" scoped>
 .outer1 {
   width: 100%;
-
   .container {
     width: 100%;
     padding: 5px;
@@ -47,25 +42,21 @@ const statusStore = useStatusStore()
     display: flex;
     flex-direction: column;
     gap: 10px;
-
     .bar {
       width: 100%;
       height: 28px;
       display: flex;
       align-items: center;
-
       .title {
         font-size: 24px;
         font-weight: 700;
       }
-
       .switch {
         width: 200px;
         margin-left: 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-
         .mag {
           width: 28px;
           height: 22px;
@@ -77,29 +68,11 @@ const statusStore = useStatusStore()
           pointer-events: none;
           user-select: none;
         }
-
         .el-slider {
           flex: 1;
           margin: 0 1rem;
         }
-
       }
-
-    }
-
-    .eqGrid {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .more {
-      width: 100%;
-      height: 50px;
-      align-self: center;
-      font-size: 16px;
-      border-radius: 25px;
     }
   }
 }
