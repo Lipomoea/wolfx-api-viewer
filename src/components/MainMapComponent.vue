@@ -56,7 +56,7 @@
                                 {{ event.countdown == -1 ? '-' : Math.ceil(event.showPCountdown ? event.pCountdown : event.countdown) }}秒
                             </div>
                             <div class="info" v-if="event.nearestJmaLoc">
-                                <div class="intensity" :class="setClassName(event.userShindo, true)">
+                                <div class="intensity" :class="setClassName(event.userShindo, true, event.eqMessage.isCanceled)">
                                     <div class="intensity-title">本地震度</div>
                                     <div :class="event.userShindo != '?'?'shindo':'csis'">
                                         {{ event.userShindo }}
@@ -64,7 +64,7 @@
                                 </div>
                             </div>
                             <div class="info" v-else>
-                                <div class="intensity" :class="setClassName(event.userCsis, false)">
+                                <div class="intensity" :class="setClassName(event.userCsis, false, event.eqMessage.isCanceled)">
                                     <div class="intensity-title">本地烈度</div>
                                     <div class="csis" :class="{
                                         'roman': settingsStore.mainSettings.useRomanCsis,

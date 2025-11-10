@@ -79,11 +79,12 @@
                     </el-form-item>
 
                     <el-form-item label="警报">
-                        <el-switch v-model="currentForm.isWarn" />
+                        <el-switch v-model="currentForm.isWarn" v-if="currentForm.maxIntensity != '自动'" />
+                        <span v-else>自动判断</span>
                     </el-form-item>
 
                     <el-form-item label="取消报">
-                        <el-switch v-model="currentForm.isCancel" />
+                        <el-switch v-model="currentForm.isCanceled" />
                     </el-form-item>
                 </el-form>
             </div>
@@ -117,6 +118,7 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { getFEName } from '@/utils/FERegions';
 import { Plus } from '@element-plus/icons-vue';
+import { calcCsisLevel, calcMaxJmaShindoLevel } from '@/utils/Utils';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -135,7 +137,7 @@ const createEmptyMessage = () => ({
     reportDelay: 5,
     isAssumption: false,
     isWarn: false,
-    isCancel: false,
+    isCanceled: false,
     hypocenter: '',
     lat: 0,
     lng: 0,
@@ -149,8 +151,8 @@ forms.push(createEmptyMessage())
 const currentForm = computed(() => forms[currentPage.value])
 
 const intensities = computed(() => useShindo.value
-    ? ['不明', '0', '1', '2', '3', '4', '5弱', '5強', '6弱', '6強', '7']
-    : ['不明', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'])
+    ? ['自动', '不明', '0', '1', '2', '3', '4', '5弱', '5強', '6弱', '6強', '7']
+    : ['自动', '不明', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'])
 
 watch(intensities, () => {
     forms.forEach(message => {
@@ -188,6 +190,8 @@ const generateEqMessage = (form, index, id) => {
     const isFinal = reportNum == forms.length
     const reportNumText = `第${reportNum}报${isFinal ? '（最终）' : ''}`
     const hypocenter = '模拟·' + (form.hypocenter || getFEName(form.lat, form.lng))
+    const { lat, lng, depth, magnitude, isAssumption, isWarn, isCanceled } = form
+    const maxIntensity = form.maxIntensity == '自动' ? (useShindo.value ? calcMaxJmaShindoLevel(magnitude, depth, lat, lng, false) : calcCsisLevel(magnitude, depth)) : form.maxIntensity
     const now = timeStore.getTimeStamp()
     const originTime = dayjs(now).add(form.originDelay, 'seconds').tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss')
     const reportTime = dayjs(now).add(form.reportDelay, 'seconds').tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss')
@@ -197,25 +201,25 @@ const generateEqMessage = (form, index, id) => {
         reportNum,
         reportNumText,
         reportTime,
-        isAssumption: form.isAssumption,
-        isWarn: form.isWarn,
+        isAssumption,
+        isWarn: form.maxIntensity == '自动' ? (useShindo.value ? maxIntensity >= '5' : maxIntensity >= 6.5) : isWarn,
         isFinal,
-        isCanceled: form.isCancel,
+        isCanceled,
         title: '模拟·' + (title.value || '地震预警'),
-        titleText: '模拟·' + (title.value || '地震预警') + (form.isCancel ? '（取消）' : ''),
+        titleText: '模拟·' + (title.value || '地震预警') + (isCanceled ? '（取消）' : ''),
         hypocenter,
         hypocenterText: '震中: ' + hypocenter,
-        lat: form.lat,
-        lng: form.lng,
-        depth: form.depth,
-        depthText: '深度: ' + form.depth.toFixed(0) + 'km',
+        lat,
+        lng,
+        depth,
+        depthText: '深度: ' + depth.toFixed(0) + 'km',
         originTime,
         originTimeText: '发震时间: ' + originTime,
-        magnitude: form.magnitude,
-        magnitudeText: '震级: ' + form.magnitude.toFixed(1),
+        magnitude,
+        magnitudeText: '震级: ' + magnitude.toFixed(1),
         useShindo: useShindo.value,
-        maxIntensity: form.maxIntensity,
-        maxIntensityText: (useShindo.value ? '推定最大震度: ' : '预估最大烈度: ') + form.maxIntensity
+        maxIntensity,
+        maxIntensityText: (useShindo.value ? '推定最大震度: ' : '预估最大烈度: ') + maxIntensity
     }
     return eqMessage
 }

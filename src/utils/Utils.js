@@ -11,6 +11,7 @@ import timezone from "dayjs/plugin/timezone";
 import { presimplify, simplify } from "topojson-simplify";
 import { cnSeisIntLoc, cnSeisIntLocBush } from "./CnSeisIntLoc";
 import { around } from "geokdbush";
+import { jmaSeisIntLoc } from "./JmaSeisIntLoc";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -470,3 +471,23 @@ export const formatShindo = (intensity, useSymbol = true) =>
   useSymbol
     ? intensity.replace("強", "+").replace("弱", "-").replace("不明", "?")
     : intensity.replace("+", "強").replace("-", "弱").replace("?", "不明");
+export const calcMaxJmaShindoLevel = (
+  mj,
+  dep,
+  hypoLat,
+  hypoLng,
+  useSymbol = true
+) => {
+  const locList = Object.keys(jmaSeisIntLoc);
+  const maxInt = locList.reduce(
+    (maxInt, currLoc) =>
+      Math.max(
+        calcJmaShindo(mj, dep, hypoLat, hypoLng, jmaSeisIntLoc[currLoc]),
+        maxInt
+      ),
+    -Infinity
+  );
+  const maxInt1 = Math.floor(Math.round(maxInt * 100) / 10) / 10;
+  if (maxInt1 < 0.5) return "0";
+  else return getShindoFromInstShindo(maxInt1, useSymbol);
+};
