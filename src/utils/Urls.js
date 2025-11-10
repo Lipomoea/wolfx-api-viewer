@@ -3,7 +3,6 @@ export const eqUrls = {
     jmaEew2_http: 'http://www.kmoni.bosai.go.jp/webservice/hypo/eew',
     jmaEqlist_http: 'https://api.p2pquake.net/v2/history?codes=551&limit=1',
     usgsEqlist_http: 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson',
-    fssnEqlistHistory: 'https://api.fanstudio.tech/eq/fssn_50.php?translate=zh',
     wolfx_ws: 'wss://ws-api.wolfx.jp/all_eew',
     fan_ws: 'wss://ws.fanstudio.tech/all',
     fan2_ws: 'wss://ws.fanstudio.hk/all',
