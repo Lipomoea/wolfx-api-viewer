@@ -670,6 +670,25 @@ onMounted(()=>{
         eqlistMarkerPane.style.display = historyList.length > 0 ? 'none' : 'block'
         historyMarkerPane.style.display = historyList.length > 0 ? 'block' : 'none'
     })
+    watchEffect(() => {
+        if(activeEqlistList.value.length > 0) {
+            if(settingsStore.mainSettings.cinemaMode && tempEqlists.value.endsWith('Eqlist')) {
+                eqlistList.forEach(event => {
+                    event.hypoMarker?.setOpacity(tempEqlists.value == event.eqMessage.source ? 1 : 0.3)
+                })
+            }
+            else {
+                eqlistList.forEach(event => {
+                    event.hypoMarker?.setOpacity(event.isActive ? 1 : 0.3)
+                })
+            }
+        }
+        else {
+            eqlistList.forEach(event => {
+                event.hypoMarker?.setOpacity(1)
+            })
+        }
+    })
     labelLayer1 = L.layerGroup().addTo(map);
     labelLayer2 = L.layerGroup().addTo(map);
     loadMaps()
@@ -1457,7 +1476,7 @@ const jmaWarnArea = computed(()=>{
         const jmaEqlistEvent = historyList.length > 0
         ? null
         : activeEqlistList.value.length > 0
-        ? settingsStore.mainSettings.cinemaMode && tempEqlists.value
+        ? settingsStore.mainSettings.cinemaMode && tempEqlists.value.endsWith('Eqlist')
         ? tempEqlists.value == 'jmaEqlist'
         ? activeEqlistList.value.find(event => event.eqMessage.source == 'jmaEqlist')
         : null
@@ -1510,7 +1529,7 @@ const cnEewInfoList = computed(()=>{
         ? historyList.length > 0
         ? historyList.filter(event => event.hypoMarker && !event.eqMessage.isCanceled)
         : activeEqlistList.value.length > 0
-        ? settingsStore.mainSettings.cinemaMode && tempEqlists.value
+        ? settingsStore.mainSettings.cinemaMode && tempEqlists.value.endsWith('Eqlist')
         ? activeEqlistList.value.filter(event=>event.eqMessage.source == tempEqlists.value && event.hypoMarker && !event.eqMessage.isCanceled)
         : activeEqlistList.value.filter(event=>event.hypoMarker && !event.eqMessage.isCanceled)
         : eqlistList.filter(event=>event.hypoMarker && !event.eqMessage.isCanceled)
