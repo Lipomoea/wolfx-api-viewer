@@ -57,6 +57,15 @@ export const defaultTsunamiMessage = {
     className: ''
 }
 
+export const eewSources = ['jmaEew', 'cwaEew', 'ceaEew', 'iclEew', 'scEew', 'fjEew', 'gqEew']
+export const eqlistSources = ['jmaEqlist', 'cwaEqlist', 'cencEqlist', 'usgsEqlist', 'fssnEqlist']
+export const tsunamiSources = ['jmaTsunami', 'nmefcTsunami']
+export const seisNetSources = ['niedNet', 'tremNet']
+
+const useWolfxSocket = ['jmaEew', 'cwaEew', 'ceaEew', 'scEew', 'fjEew', 'jmaEqlist', 'cencEqlist']
+const useFanSocket = ['cwaEew', 'ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist', 'usgsEqlist', 'fssnEqlist', 'nmefcTsunami']
+const useP2pquakeSocket = ['jmaEqlist', 'jmaTsunami']
+
 const wolfx2Source = {
     'jma_eew': 'jmaEew',
     'cwa_eew': 'cwaEew',
@@ -66,7 +75,6 @@ const wolfx2Source = {
     'jma_eqlist': 'jmaEqlist',
     'cenc_eqlist': 'cencEqlist',
 }
-
 const source2Fan = {
     'cwaEew': 'cwa',
     'iclEew': 'icl',
@@ -88,14 +96,64 @@ const fan2Source = {
     'tsunami': 'nmefcTsunami',
 }
 
-export const eewSources = ['jmaEew', 'cwaEew', 'ceaEew', 'iclEew', 'scEew', 'fjEew', 'gqEew']
-export const eqlistSources = ['jmaEqlist', 'cwaEqlist', 'cencEqlist', 'usgsEqlist', 'fssnEqlist']
-export const tsunamiSources = ['jmaTsunami', 'nmefcTsunami']
-export const seisNetSources = ['niedNet', 'tremNet']
-
-const useWolfxSocket = ['jmaEew', 'cwaEew', 'ceaEew', 'scEew', 'fjEew', 'jmaEqlist', 'cencEqlist']
-const useFanSocket = ['cwaEew', 'ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist', 'usgsEqlist', 'fssnEqlist', 'nmefcTsunami']
-const useP2pquakeSocket = ['jmaEqlist', 'jmaTsunami']
+export const sourceTypes = {
+    jmaEew: {
+        0: 'Wolfx',
+        1: 'NIED'
+    },
+    cwaEew: {
+        0: 'Wolfx',
+        1: 'FAN'
+    },
+    ceaEew: {
+        0: 'Wolfx',
+        1: 'FAN'
+    },
+    iclEew: {
+        0: 'Lipo',
+        1: 'FAN'
+    },
+    scEew: {
+        0: 'Wolfx',
+        1: 'FAN'
+    },
+    fjEew: {
+        0: 'Wolfx',
+        1: 'FAN'
+    },
+    gqEew: {
+        0: 'S',
+        1: 'A',
+        2: 'B',
+        3: 'C',
+        4: 'D',
+        5: 'E',
+        6: 'F'
+    },
+    mockEew: {
+        0: 'MOCK'
+    },
+    jmaEqlist: {
+        0: 'P2PQ'
+    },
+    cwaEqlist: {
+        0: 'TREM'
+    },
+    cencEqlist: {
+        0: 'Wolfx',
+        1: 'FAN'
+    },
+    usgsEqlist: {
+        0: 'USGS',
+        1: 'FAN'
+    },
+    fssnEqlist: {
+        1: 'FAN'
+    },
+    history: {
+        0: ''
+    }
+}
 
 const maxHistoryNumber = 100
 

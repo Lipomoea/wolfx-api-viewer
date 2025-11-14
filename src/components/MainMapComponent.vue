@@ -37,7 +37,7 @@
                                     <div class="bottom">
                                         <div class="magnitude">{{ event.eqMessage.isAssumption?'仮定震源要素':'M' + event.eqMessage.magnitude.toFixed(1) }}</div>
                                         <div class="depth">{{ event.eqMessage.isAssumption?'':event.eqMessage.depthText }}</div>
-                                        <div class="type" v-if="settingsStore.advancedSettings.displayApiType">{{ types[event.eqMessage.source][event.eqMessage.type] }}</div>
+                                        <div class="type" v-if="settingsStore.advancedSettings.displayApiType">{{ sourceTypes[event.eqMessage.source][event.eqMessage.type] }}</div>
                                     </div>
                                 </div>
                                 <div class="eew-buttons" v-if="event.showMenu">
@@ -110,7 +110,7 @@
                                     <div class="bottom">
                                         <div class="magnitude">{{ event.eqMessage.magnitude != -1 ? 'M' + event.eqMessage.magnitude.toFixed(1) : '規模 調査中' }}</div>
                                         <div class="depth">{{ event.eqMessage.depth != -1 ? event.eqMessage.depthText : '' }}</div>
-                                        <div class="type" v-if="settingsStore.advancedSettings.displayApiType">{{ types[event.eqMessage.source][event.eqMessage.type] }}</div>
+                                        <div class="type" v-if="settingsStore.advancedSettings.displayApiType">{{ sourceTypes[event.eqMessage.source][event.eqMessage.type] }}</div>
                                     </div>
                                 </div>
                                 <div class="eew-buttons" v-if="event.showMenu">
@@ -313,7 +313,7 @@ import 'leaflet/dist/leaflet.css';
 import '@/assets/background.css';
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, watchEffect, provide } from 'vue';
 import { HomeFilled, FullScreen, WarnTriangleFilled, InfoFilled, Setting } from '@element-plus/icons-vue';
-import { eewSources, eqlistSources, seisNetSources, tsunamiSources, useStatusStore } from '@/stores/status';
+import { eewSources, eqlistSources, seisNetSources, sourceTypes, tsunamiSources, useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { useTimeStore } from '@/stores/time';
 import EqlistComponent from './EqlistComponent.vue';
@@ -341,64 +341,6 @@ const userLatLng = computed(() => settingsStore.mainSettings.userLatLng)
 const viewLatLng = computed(() => settingsStore.mainSettings.viewLatLng)
 const zoomLevel = ref(settingsStore.mainSettings.defaultZoom)
 const resetSeisNetDelay = () => settingsStore.mainSettings.displaySeisNet.delay = 0
-const types = {
-    jmaEew: {
-        0: 'Wolfx',
-        1: 'NIED'
-    },
-    cwaEew: {
-        0: 'Wolfx',
-        1: 'TREM'
-    },
-    ceaEew: {
-        0: 'Wolfx',
-        1: 'FAN'
-    },
-    iclEew: {
-        0: 'Lipo',
-        1: 'FAN'
-    },
-    scEew: {
-        0: 'Wolfx',
-        1: 'FAN'
-    },
-    fjEew: {
-        0: 'Wolfx',
-        1: 'FAN'
-    },
-    gqEew: {
-        0: 'S',
-        1: 'A',
-        2: 'B',
-        3: 'C',
-        4: 'D',
-        5: 'E',
-        6: 'F'
-    },
-    mockEew: {
-        0: 'MOCK'
-    },
-    jmaEqlist: {
-        0: 'P2PQ'
-    },
-    cwaEqlist: {
-        0: 'TREM'
-    },
-    cencEqlist: {
-        0: 'Wolfx',
-        1: 'FAN'
-    },
-    usgsEqlist: {
-        0: 'USGS',
-        1: 'FAN'
-    },
-    fssnEqlist: {
-        1: 'FAN'
-    },
-    history: {
-        0: ''
-    }
-}
 const tempEqlists = ref('')
 let tempEqlistsTimer
 const handleTempEqlists = (time, source = '') => {
