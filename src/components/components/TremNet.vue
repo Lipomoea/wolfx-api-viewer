@@ -101,35 +101,33 @@ const clearReactiveObject = (obj) => {
     if(obj) for(let key in obj) delete obj[key]
 }
 let fetchStationInterval, requestInterval
-const fetchStationList = () => {
+const fetchStationList = async () => {
     try {
-        Http.get(seisNetUrls?.trem.stationList + `?time=${Date.now()}`).then(res=>{
-            if(res && JSON.stringify(res) != JSON.stringify(stationList)){
-                clearReactiveObject(stationList)
-                Object.assign(stationList, res)
-            }
-        })
+        const res = await Http.get(seisNetUrls?.trem.stationList + `?time=${Date.now()}`)
+        if(res && JSON.stringify(res) != JSON.stringify(stationList)){
+            clearReactiveObject(stationList)
+            Object.assign(stationList, res)
+        }
     } catch (err) {
         console.log(err);
     }
 }
 onMounted(()=>{
-    fetchStationInterval = setInterval(fetchStationList, 300 * 1000);
+    fetchStationInterval = setInterval(fetchStationList, 180 * 1000);
     fetchStationList()
-    requestInterval = setInterval(() => {
+    requestInterval = setInterval(async () => {
         try {
             const time = timeStore.getTimeStamp() - delay.value
-            Http.get(stationDataUrl.value + (delay.value > 0 ? `/${Math.round(time / 1000)}` : `?time=${time}`)).then(res=>{
-                if(res && Object.keys(res).length > 0){
-                    stationData = res.station
-                    const timeString = stampToTime(res.time, 8)
-                    const timeDiff = calcTimeDiff(timeString, 8, tremUpdateTime.value, 8)
-                    if(delay.value > 0 && timeDiff < 0 || timeDiff > 0){
-                        tremUpdateTime.value = timeString
-                        update()
-                    }
+            const res = await Http.get(stationDataUrl.value + (delay.value > 0 ? `/${Math.round(time / 1000)}` : `?time=${time}`), { timeout: 10000 })
+            if(res && Object.keys(res).length > 0){
+                stationData = res.station
+                const timeString = stampToTime(res.time, 8)
+                const timeDiff = calcTimeDiff(timeString, 8, tremUpdateTime.value, 8)
+                if(delay.value > 0 && timeDiff < 0 || timeDiff > 0){
+                    tremUpdateTime.value = timeString
+                    update()
                 }
-            })
+            }
         } catch (err) {
             console.log(err);
         }

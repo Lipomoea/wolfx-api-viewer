@@ -116,6 +116,7 @@ export class EewEvent {
         }
     }
     drawWaves(updated = false){
+        const start = Date.now()
         const passedTime = calcPassedTime(this.eqMessage.originTime, this.eqMessage.timeZone) / 1000
         this.handleCountdown(passedTime)
         if(this.hypoLatLng && !this.eqMessage.isAssumption){
@@ -126,9 +127,11 @@ export class EewEvent {
             this.clearWaves()
         }
         clearTimeout(this.drawWavesTimer)
+        const end = Date.now()
+        const used = Math.max(end - start, 0)
         this.drawWavesTimer = setTimeout(() => {
             this.drawWaves()
-        }, 1000 / settingsStore.mainSettings.maxWaveRenderRate);
+        }, 1000 / settingsStore.mainSettings.maxWaveRenderRate - used);
     }
     switchDrawWaves(passedTime){
         let p_reach, p_radius, s_reach, s_radius

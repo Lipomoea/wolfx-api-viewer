@@ -76,11 +76,13 @@ const gridRects = {}
 const smartSetView = inject('smartSetView')
 const getData = async (url)=>{
     try {
-        const res = await axios.get(url)
+        const res = await axios.get(url, { timeout: 10000 })
         return res
     }
-    catch (_) {
-        if(delay.value <= maxDelay - 100) delay.value += 100
+    catch (e) {
+        if(e.code == "ERR_BAD_REQUEST" && delay.value <= maxDelay - 100) {
+            delay.value += 100
+        }
     }
 }
 let pendingRender = false
@@ -173,15 +175,14 @@ const renderAll = ()=>{
     })
 }
 let fetchStationInterval, requestInterval, delayInterval
-const fetchStationList = () => {
+const fetchStationList = async () => {
     try {
-        Http.get(seisNetUrls.nied.stationList).then(res=>{
-            if(res && res.siteConfigId) {
-                stationList.value = res.items
-                siteConfigId.value = res.siteConfigId
-                clearInterval(fetchStationInterval)
-            }
-        })
+        const res = await Http.get(seisNetUrls.nied.stationList + `?time=${Date.now()}`)
+        if(res && res.siteConfigId) {
+            stationList.value = res.items
+            siteConfigId.value = res.siteConfigId
+            clearInterval(fetchStationInterval)
+        }
     } catch (err) {
         console.log(err);
     }
@@ -189,51 +190,50 @@ const fetchStationList = () => {
 onMounted(()=>{
     fetchStationInterval = setInterval(fetchStationList, 5000);
     fetchStationList()
-    requestInterval = setInterval(() => {
+    requestInterval = setInterval(async () => {
         try {
             const time = getTimeNumberString(9, -delay.value)
             const date = time.slice(0, 8)
-            getData(`${seisNetUrls.nied.stationData}/${date}/${time}.json`).then(res=>{
-                if(res?.status == 200){
-                    const data = res.data
-                    if(data.realTimeData.siteConfigId == siteConfigId.value){
-                        stationData.value = data.realTimeData.intensity.split('')
-                        const timeDiff = calcTimeDiff(data.realTimeData.dataTime.slice(0, -6), 9, niedUpdateTime.value, 9)
-                        if(timeDiff > 1000){
-                            const popNum = Math.floor(timeDiff / 1000) - 1
-                            stations.forEach(station=>{
-                                station.recentLevel.splice(-popNum, popNum)
-                            })
-                        }
-                        if(timeDiff > 10000){
-                            stations.forEach(station=>{
-                                station.isActive = false
-                            })
-                        }
-                        if(delay.value > maxDelay && timeDiff < 0){
-                            stations.forEach(station=>{
-                                station.recentLevel = []
-                                station.isActive = false
-                            })
-                        }
-                        if(delay.value > maxDelay && timeDiff < 0 || timeDiff > 0){
-                            niedUpdateTime.value = data.realTimeData.dataTime.slice(0, -6).replace('T', ' ')
-                            update()
-                        }
-                    }
-                    else if(siteConfigId.value){
-                        ElMessage({
-                            message: '站点数据已更新，正在重新加载…',
-                            type: 'warning',
+            const res = await getData(`${seisNetUrls.nied.stationData}/${date}/${time}.json`)
+            if(res?.status == 200){
+                const data = res.data
+                if(data.realTimeData.siteConfigId == siteConfigId.value){
+                    stationData.value = data.realTimeData.intensity.split('')
+                    const timeDiff = calcTimeDiff(data.realTimeData.dataTime.slice(0, -6), 9, niedUpdateTime.value, 9)
+                    if(timeDiff > 1000){
+                        const popNum = Math.floor(timeDiff / 1000) - 1
+                        stations.forEach(station=>{
+                            station.recentLevel.splice(-popNum, popNum)
                         })
-                        settingsStore.mainSettings.displaySeisNet.niedNet = false
-                        settingsStore.mainSettings.displaySeisNet.delay = 0
-                        setTimeout(() => {
-                            settingsStore.mainSettings.displaySeisNet.niedNet = true
-                        }, 1000);
+                    }
+                    if(timeDiff > 10000){
+                        stations.forEach(station=>{
+                            station.isActive = false
+                        })
+                    }
+                    if(delay.value > maxDelay && timeDiff < 0){
+                        stations.forEach(station=>{
+                            station.recentLevel = []
+                            station.isActive = false
+                        })
+                    }
+                    if(delay.value > maxDelay && timeDiff < 0 || timeDiff > 0){
+                        niedUpdateTime.value = data.realTimeData.dataTime.slice(0, -6).replace('T', ' ')
+                        update()
                     }
                 }
-            })
+                else if(siteConfigId.value){
+                    ElMessage({
+                        message: '站点数据已更新，正在重新加载…',
+                        type: 'warning',
+                    })
+                    settingsStore.mainSettings.displaySeisNet.niedNet = false
+                    settingsStore.mainSettings.displaySeisNet.delay = 0
+                    setTimeout(() => {
+                        settingsStore.mainSettings.displaySeisNet.niedNet = true
+                    }, 1000);
+                }
+            }
         } catch (err) {
             console.log(err);
         }
