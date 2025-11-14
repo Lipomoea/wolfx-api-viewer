@@ -68,6 +68,7 @@ const wolfx2Source = {
 }
 
 const source2Fan = {
+    'cwaEew': 'cwa',
     'iclEew': 'icl',
     'scEew': 'sichuan',
     'fjEew': 'fujian',
@@ -77,6 +78,7 @@ const source2Fan = {
     'nmefcTsunami': 'tsunami',
 }
 const fan2Source = {
+    'cwa': 'cwaEew',
     'icl': 'iclEew',
     'sichuan': 'scEew',
     'fujian': 'fjEew',
@@ -92,7 +94,7 @@ export const tsunamiSources = ['jmaTsunami', 'nmefcTsunami']
 export const seisNetSources = ['niedNet', 'tremNet']
 
 const useWolfxSocket = ['jmaEew', 'cwaEew', 'ceaEew', 'scEew', 'fjEew', 'jmaEqlist', 'cencEqlist']
-const useFanSocket = ['ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist', 'usgsEqlist', 'fssnEqlist', 'nmefcTsunami']
+const useFanSocket = ['cwaEew', 'ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist', 'usgsEqlist', 'fssnEqlist', 'nmefcTsunami']
 const useP2pquakeSocket = ['jmaEqlist', 'jmaTsunami']
 
 const maxHistoryNumber = 100
@@ -270,7 +272,6 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.reportNum = data.ReportNum
                                 eqMessage.reportNumText = '第' + data.ReportNum + '報'
                                 eqMessage.reportTime = data.ReportTime
-                                eqMessage.isWarn = data.MaxIntensity >= '5'
                                 eqMessage.isCanceled = data.isCancel
                                 eqMessage.titleText = '中央氣象署強震即時警報' + (data.isCancel?'（取消）':'')
                                 eqMessage.hypocenter = data.HypoCenter
@@ -286,29 +287,30 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.useShindo = true
                                 eqMessage.maxIntensity = data.MaxIntensity
                                 eqMessage.maxIntensityText = '預估最大震度: ' + data.MaxIntensity
+                                eqMessage.isWarn = eqMessage.maxIntensity >= '5'
                                 break
                             case 1:
                                 eqMessage.id = data.id
                                 eqMessage.isEew = true
-                                eqMessage.reportNum = data.serial
-                                eqMessage.reportNumText = '第' + data.serial + '報'
-                                eqMessage.reportTime = stampToTime(data.time, 8)
-                                eqMessage.isWarn = data.eq.max >= 5
+                                eqMessage.reportNum = data.updates
+                                eqMessage.reportNumText = '第' + data.updates + '報'
+                                eqMessage.reportTime = data.createTime || data.shockTime
                                 eqMessage.isCanceled = false
                                 eqMessage.titleText = '中央氣象署強震即時警報'
-                                eqMessage.hypocenter = data.eq.loc
-                                eqMessage.hypocenterText = '震央: ' + data.eq.loc
-                                eqMessage.lat = data.eq.lat
-                                eqMessage.lng = data.eq.lon
-                                eqMessage.depth = data.eq.depth
-                                eqMessage.depthText = '深度: ' + data.eq.depth + 'km'
-                                eqMessage.originTime = stampToTime(data.eq.time, 8)
+                                eqMessage.hypocenter = data.placeName || getFEName(data.latitude, data.longitude)
+                                eqMessage.hypocenterText = '震央: ' + eqMessage.hypocenter
+                                eqMessage.lat = data.latitude
+                                eqMessage.lng = data.longitude
+                                eqMessage.depth = data.depth
+                                eqMessage.depthText = '深度: ' + data.depth + 'km'
+                                eqMessage.originTime = data.shockTime
                                 eqMessage.originTimeText = '時間: ' + eqMessage.originTime
-                                eqMessage.magnitude = data.eq.mag
-                                eqMessage.magnitudeText = '規模: ' + data.eq.mag.toFixed(1)
+                                eqMessage.magnitude = data.magnitude
+                                eqMessage.magnitudeText = '規模: ' + eqMessage.magnitude.toFixed(1)
                                 eqMessage.useShindo = true
-                                eqMessage.maxIntensity = shindoScaleKanji[data.eq.max]
+                                eqMessage.maxIntensity = data.maxIntensity || '不明'
                                 eqMessage.maxIntensityText = '預估最大震度: ' + eqMessage.maxIntensity
+                                eqMessage.isWarn = eqMessage.maxIntensity >= '5'
                                 break
                         }
                         break
@@ -1117,13 +1119,6 @@ export const useStatusStore = defineStore('statusStore', {
                             }
                         }
                         if(this.multiApi) {
-                            if(source == 'cwaEew' && 'cwaEew2_http' in eqUrls) {
-                                const arr = await Http.get(eqUrls.cwaEew2_http + `?time=${stamp}`)
-                                if(arr && arr.length > 0) {
-                                    const data = arr.find(item => item.author == 'cwa')
-                                    if(data) this.setEqMessage(source, data, 1)
-                                }
-                            }
                             if(source == 'iclEew' && 'iclEew_http' in eqUrls) {
                                 const data = await Http.get(eqUrls.iclEew_http + `?time=${stamp}`)
                                 if(data && Object.keys(data).length > 0) this.setEqMessage(source, data)
