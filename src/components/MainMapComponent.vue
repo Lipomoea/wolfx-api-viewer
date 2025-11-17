@@ -727,6 +727,7 @@ function handleKeydown(event) {
     if (!isInput) {
         switch (event.key) {
             case 'd':
+            case 'D':
                 settingsStore.mainSettings.hideDrawer = !settingsStore.mainSettings.hideDrawer
                 setTimeout(() => {
                     map.invalidateSize()
@@ -745,6 +746,7 @@ function handleKeydown(event) {
                 handleMenu(nextMenu)
                 break
             case 'a':
+            case 'A':
                 if(isAutoZoom.value) {
                     handleManual()
                 }
@@ -754,34 +756,43 @@ function handleKeydown(event) {
                 }
                 break
             case 'x':
+            case 'X':
                 statusStore.showStatusPanel = !statusStore.showStatusPanel
                 break
             case 'm':
+            case 'M':
                 if(settingsStore.advancedSettings.mockEew) {
                     statusStore.showMockDialog = !statusStore.showMockDialog
                 }
                 break
             case 'c':
+            case 'C':
                 if(menuId.value == 'eqlists') {
                     clearHistoryList()
                 }
                 break
             case 'f':
+            case 'F':
                 handleMenu('main')
                 break
             case 'e':
+            case 'E':
                 handleMenu('eews')
                 break
             case 'l':
+            case 'L':
                 handleMenu('eqlists')
                 break
             case 's':
+            case 'S':
                 handleMenu('settings')
                 break
             case ',':
+            case '<':
                 infoPageCounter.value = (infoPageCounter.value - infoPageCounter.value % 10 + 25200 - 10) % 25200
                 break
             case '.':
+            case '>':
                 infoPageCounter.value = (infoPageCounter.value - infoPageCounter.value % 10 + 10) % 25200
                 break
         }
