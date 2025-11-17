@@ -140,9 +140,10 @@ const displayOnMap = (item) => {
                 opacity: 0.2;
             }
             .intensity{
-                width: 80px;
+                width: 78px;
                 flex-shrink: 0;
                 height: 100%;
+                padding-right: 2px;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
