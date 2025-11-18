@@ -97,10 +97,10 @@
                             <div class="switch-full pl-4">
                                 <span>检知灵敏度</span>
                                 <el-select 
-                                v-model="settingsStore.mainSettings.displaySeisNet.niedSensitivity"
-                                size="small"
-                                :disabled="!settingsStore.mainSettings.displaySeisNet.niedNet"
-                                style="width: 48px;"
+                                    v-model="settingsStore.mainSettings.displaySeisNet.niedSensitivity"
+                                    size="small"
+                                    :disabled="!settingsStore.mainSettings.displaySeisNet.niedNet"
+                                    style="width: 48px;"
                                 >
                                     <el-option label="关" :value=0 />
                                     <el-option label="低" :value=1 />
@@ -121,10 +121,10 @@
                             <div class="switch-full pl-4">
                                 <span>API</span>
                                 <el-select 
-                                v-model="settingsStore.mainSettings.displaySeisNet.tremApi"
-                                size="small"
-                                :disabled="!settingsStore.mainSettings.displaySeisNet.tremNet"
-                                style="width: 72px;"
+                                    v-model="settingsStore.mainSettings.displaySeisNet.tremApi"
+                                    size="small"
+                                    :disabled="!settingsStore.mainSettings.displaySeisNet.tremNet"
+                                    style="width: 72px;"
                                 >
                                     <el-option label="api-1" value="api-1" />
                                     <el-option label="api-2" value="api-2" />
@@ -147,15 +147,15 @@
                                 <span>测站回放(min)</span>
                                 <div class="flex gap-2">
                                     <el-input-number
-                                    v-model="settingsStore.mainSettings.displaySeisNet.delay"
-                                    size="small"
-                                    :min="0"
-                                    style="width: 108px;"
+                                        v-model="settingsStore.mainSettings.displaySeisNet.delay"
+                                        size="small"
+                                        :min="0"
+                                        style="width: 108px;"
                                     />
                                     <el-button
-                                    size="small"
-                                    @click="settingsStore.mainSettings.displaySeisNet.delay = 0"
-                                    :disabled="settingsStore.mainSettings.displaySeisNet.delay == 0"
+                                        size="small"
+                                        @click="settingsStore.mainSettings.displaySeisNet.delay = 0"
+                                        :disabled="settingsStore.mainSettings.displaySeisNet.delay == 0"
                                     >还原</el-button>
                                 </div>
                             </div>
@@ -163,18 +163,18 @@
                                 <span>选择时间回放</span>
                                 <div class="flex gap-2">
                                     <el-date-picker
-                                    v-model="replayDateTime"
-                                    type="datetime"
-                                    size="small"
-                                    style="width: 156px;"
-                                    placeholder="选择日期时间(CST)"
-                                    format="YYYY-MM-DD HH:mm:ss"
-                                    value-format="YYYY-MM-DD HH:mm:ss"
+                                        v-model="replayDateTime"
+                                        type="datetime"
+                                        size="small"
+                                        style="width: 156px;"
+                                        placeholder="选择日期时间(CST)"
+                                        format="YYYY-MM-DD HH:mm:ss"
+                                        value-format="YYYY-MM-DD HH:mm:ss"
                                     />
                                     <el-button
-                                    size="small"
-                                    @click="setReplayDateTime"
-                                    :disabled="!replayDateTime"
+                                        size="small"
+                                        @click="setReplayDateTime"
+                                        :disabled="!replayDateTime"
                                     >回放</el-button>
                                 </div>
                             </div>
@@ -183,9 +183,10 @@
                             <div class="switch-full">
                                 <span>测站风格</span>
                                 <el-select
-                                style="width: 72px;"
-                                v-model="settingsStore.mainSettings.displaySeisNet.style"
-                                size="small">
+                                    style="width: 72px;"
+                                    v-model="settingsStore.mainSettings.displaySeisNet.style"
+                                    size="small"
+                                >
                                     <el-option label="NIED" value="nied" />
                                     <el-option label="SREV" value="srev" />
                                     <el-option label="混合" value="mix" />
@@ -211,6 +212,7 @@
                                 <question-filled width="1em" height="1em" />
                             </template>
                             <p><strong>以下所有条件关系为“与”。</strong></p>
+                            <p><strong>从下一个事件开始生效。</strong></p>
                         </el-popover>
                     </span>
                     <div class="switch-group">
@@ -235,10 +237,10 @@
                                 </div>
                             </div>
                             <el-slider
-                            v-model="settingsStore.mainSettings.actionMag"
-                            :min="0" :max="9"
-                            :step="0.1"
-                            size="small"
+                                v-model="settingsStore.mainSettings.actionMag"
+                                :min="0" :max="9"
+                                :step="0.1"
+                                size="small"
                             />
                         </div>
                         <div class="switch-full" v-if="!settingsStore.nearestJmaLoc">
@@ -274,12 +276,12 @@
                                 </div>
                             </div>
                             <el-slider
-                            v-model="settingsStore.mainSettings.actionLocalCsis"
-                            :disabled="!settingsStore.advancedSettings.forceCalcInt"
-                            :min="0" :max="12"
-                            :step="1"
-                            size="small"
-                            show-stops
+                                v-model="settingsStore.mainSettings.actionLocalCsis"
+                                :disabled="!settingsStore.advancedSettings.forceCalcInt"
+                                :min="0" :max="12"
+                                :step="1"
+                                size="small"
+                                show-stops
                             />
                         </div>
                         <div class="switch-full" v-else>
@@ -314,13 +316,49 @@
                                 </div>
                             </div>
                             <el-slider
-                            v-model="settingsStore.mainSettings.actionLocalShindo"
-                            :disabled="!settingsStore.advancedSettings.forceCalcInt"
-                            :min="0" :max="9"
-                            :step="1"
-                            size="small"
-                            show-stops
-                            :format-tooltip="(value) => shindoScale[value]"
+                                v-model="settingsStore.mainSettings.actionLocalShindo"
+                                :disabled="!settingsStore.advancedSettings.forceCalcInt"
+                                :min="0" :max="9"
+                                :step="1"
+                                size="small"
+                                show-stops
+                                :format-tooltip="(value) => shindoScale[value]"
+                            />
+                        </div>
+                        <div class="switch-full pl-4">
+                            <div class="justify-between" style="width: 9rem;">
+                                <el-checkbox 
+                                    v-model="settingsStore.mainSettings.playIntenseSound" 
+                                    :disabled="!settingsStore.advancedSettings.forceCalcInt"
+                                >强有感提示音</el-checkbox>
+                                <div v-if="!settingsStore.nearestJmaLoc" class="int" :class="setClassName(settingsStore.mainSettings.intenseLocalCsis, false)">
+                                    <div class="csis" :class="{
+                                        'roman': settingsStore.mainSettings.useRomanCsis,
+                                        'scale-9': settingsStore.mainSettings.intenseLocalCsis == 8
+                                    }">{{ formatCsis(settingsStore.mainSettings.intenseLocalCsis.toString(), settingsStore.mainSettings.useRomanCsis) }}</div>
+                                </div>
+                                <div v-else class="int" :class="setClassName(shindoScale[settingsStore.mainSettings.intenseLocalShindo], true)">
+                                    <div class="shindo">{{ shindoScale[settingsStore.mainSettings.intenseLocalShindo] }}</div>
+                                </div>
+                            </div>
+                            <el-slider
+                                v-if="!settingsStore.nearestJmaLoc"
+                                v-model="settingsStore.mainSettings.intenseLocalCsis"
+                                :disabled="!settingsStore.advancedSettings.forceCalcInt || !settingsStore.mainSettings.playIntenseSound"
+                                :min="0" :max="12"
+                                :step="1"
+                                size="small"
+                                show-stops
+                            />
+                            <el-slider
+                                v-else
+                                v-model="settingsStore.mainSettings.intenseLocalShindo"
+                                :disabled="!settingsStore.advancedSettings.forceCalcInt || !settingsStore.mainSettings.playIntenseSound"
+                                :min="0" :max="9"
+                                :step="1"
+                                size="small"
+                                show-stops
+                                :format-tooltip="(value) => shindoScale[value]"
                             />
                         </div>
                         <div class="switch-full" v-if="settingsStore.advancedSettings.enableGqEew">
@@ -331,10 +369,10 @@
                                 </div>
                             </div>
                             <el-slider
-                            v-model="settingsStore.mainSettings.gqActionMag"
-                            :min="0" :max="9"
-                            :step="0.1"
-                            size="small"
+                                v-model="settingsStore.mainSettings.gqActionMag"
+                                :min="0" :max="9"
+                                :step="0.1"
+                                size="small"
                             />
                         </div>
                         <div class="switch-full">
@@ -345,10 +383,10 @@
                                 </div>
                             </div>
                             <el-slider
-                            v-model="settingsStore.mainSettings.usgsActionMag"
-                            :min="0" :max="9"
-                            :step="0.1"
-                            size="small"
+                                v-model="settingsStore.mainSettings.usgsActionMag"
+                                :min="0" :max="9"
+                                :step="0.1"
+                                size="small"
                             />
                         </div>
                         <div class="switch-full">
@@ -370,10 +408,10 @@
                                 </div>
                             </div>
                             <el-slider
-                            v-model="settingsStore.mainSettings.fssnActionMag"
-                            :min="0" :max="9"
-                            :step="0.1"
-                            size="small"
+                                v-model="settingsStore.mainSettings.fssnActionMag"
+                                :min="0" :max="9"
+                                :step="0.1"
+                                size="small"
                             />
                         </div>
                         <div class="switch-full">
@@ -392,11 +430,11 @@
                                 </el-popover>
                             </span>
                             <el-input 
-                            class="text-right"
-                            v-model="settingsStore.mainSettings.actionWhiteList"
-                            style="width: 180px;"
-                            size="small"
-                            placeholder="使用“|”对多个关键词进行分隔"
+                                class="text-right"
+                                v-model="settingsStore.mainSettings.actionWhiteList"
+                                style="width: 180px;"
+                                size="small"
+                                placeholder="使用“|”对多个关键词进行分隔"
                             />
                         </div>
                     </div>
@@ -415,7 +453,7 @@
                             <el-switch v-model="settingsStore.mainSettings.onEewWarn.focus" :disabled="settingsStore.mainSettings.onEew.focus" />
                         </div>
                     </div>
-                    <span class="font-bold w-full">收到地震预警（全部）时</span>
+                    <span class="font-bold w-full">收到任意地震预警时</span>
                     <div class="switch-group justify-between">
                         <div class="switch" v-if="showNotifButton">
                             <span>发送通知</span>
@@ -486,9 +524,9 @@
                         <div class="switch-full">
                             <span>选择音效</span>
                             <el-select 
-                            v-model="settingsStore.mainSettings.soundEffect"
-                            size="small"
-                            style="width: 72px;"
+                                v-model="settingsStore.mainSettings.soundEffect"
+                                size="small"
+                                style="width: 72px;"
                             >
                                 <el-option label="SREV" value="srev" />
                             </el-select>
@@ -521,37 +559,38 @@
                         <div class="switch-full">
                             <span>纬度</span>
                             <el-input-number
-                            class="lat-lng"
-                            v-model="settingsStore.mainSettings.userLatLng[0]"
-                            size="small"
-                            :step="0.1"
-                            :min="-90"
-                            :max="90"
+                                class="lat-lng"
+                                v-model="settingsStore.mainSettings.userLatLng[0]"
+                                size="small"
+                                :step="0.1"
+                                :min="-90"
+                                :max="90"
                             />
                         </div>
                         <div class="switch-full">
                             <span>经度</span>
                             <el-input-number
-                            class="lat-lng"
-                            v-model="settingsStore.mainSettings.userLatLng[1]"
-                            size="small"
-                            :step="0.1"
-                            :min="-180"
-                            :max="180"
+                                class="lat-lng"
+                                v-model="settingsStore.mainSettings.userLatLng[1]"
+                                size="small"
+                                :step="0.1"
+                                :min="-180"
+                                :max="180"
                             />
                         </div>
                         <div class="switch-full">
                             <span>使用IP地址定位</span>
                             <el-button
-                            size="small"
-                            @click="autoLocate"
+                                size="small"
+                                @click="autoLocate"
                             >自动定位</el-button>
                         </div>
                         <div class="switch-full">
                             <span>清除经纬度</span>
                             <el-button
-                            size="small"
-                            @click="clearUserLatLng">清除</el-button>
+                                size="small"
+                                @click="clearUserLatLng"
+                            >清除</el-button>
                         </div>
                         <div class="switch-full">
                             <span>显示所在地</span>
@@ -573,19 +612,23 @@
                                 <span>播放倒计时音效</span>
                                 <el-switch v-model="settingsStore.mainSettings.playCountdownSound" :disabled="!settingsStore.mainSettings.displayCountdown" />
                             </div>
-                            <div class="switch-full pl-4">
-                                <span>语音播报倒计时</span>
+                            <div class="switch-full pl-8">
+                                <span>仅强有感时播放音效</span>
+                                <el-switch v-model="settingsStore.mainSettings.countdownOnlyIntense" :disabled="!(settingsStore.mainSettings.displayCountdown && settingsStore.mainSettings.playCountdownSound && settingsStore.advancedSettings.forceCalcInt && settingsStore.mainSettings.playIntenseSound)" />
+                            </div>
+                            <div class="switch-full pl-8">
+                                <span>中文播报倒计时</span>
                                 <el-switch v-model="settingsStore.mainSettings.countdownSpeech" :disabled="!(settingsStore.mainSettings.displayCountdown && settingsStore.mainSettings.playCountdownSound)" />
                             </div>
-                            <div class="switch-full pl-4">
-                                <span>剩余{{ settingsStore.mainSettings.countdownStart }}秒开始倒数</span>
+                            <div class="switch-full pl-8">
+                                <span>剩余{{ settingsStore.mainSettings.countdownStart }}秒时开始播放</span>
                                 <el-slider
-                                v-model="settingsStore.mainSettings.countdownStart"
-                                :disabled="!(settingsStore.mainSettings.displayCountdown && settingsStore.mainSettings.playCountdownSound)"
-                                :min="5" :max="60"
-                                :step="5"
-                                size="small"
-                                show-stops
+                                    v-model="settingsStore.mainSettings.countdownStart"
+                                    :disabled="!(settingsStore.mainSettings.displayCountdown && settingsStore.mainSettings.playCountdownSound)"
+                                    :min="5" :max="60"
+                                    :step="5"
+                                    size="small"
+                                    show-stops
                                 />
                             </div>
                         </div>
@@ -622,47 +665,49 @@
                         <div class="switch-full">
                             <span>纬度</span>
                             <el-input-number
-                            class="lat-lng"
-                            v-model="settingsStore.mainSettings.viewLatLng[0]"
-                            size="small"
-                            :step="0.1"
-                            :min="-90"
-                            :max="90"
+                                class="lat-lng"
+                                v-model="settingsStore.mainSettings.viewLatLng[0]"
+                                size="small"
+                                :step="0.1"
+                                :min="-90"
+                                :max="90"
                             />
                         </div>
                         <div class="switch-full">
                             <span>经度</span>
                             <el-input-number
-                            class="lat-lng"
-                            v-model="settingsStore.mainSettings.viewLatLng[1]"
-                            size="small"
-                            :step="0.1"
-                            :min="-180"
-                            :max="180"
+                                class="lat-lng"
+                                v-model="settingsStore.mainSettings.viewLatLng[1]"
+                                size="small"
+                                :step="0.1"
+                                :min="-180"
+                                :max="180"
                             />
                         </div>
                         <div class="switch-full">
                             <span>缩放</span>
                             <el-input-number
-                            v-model="settingsStore.mainSettings.defaultZoom"
-                            size="small"
-                            :min="2"
-                            :max="12"
-                            :precision="0"
-                            style="width: 84px;"
+                                v-model="settingsStore.mainSettings.defaultZoom"
+                                size="small"
+                                :min="2"
+                                :max="12"
+                                :precision="0"
+                                style="width: 84px;"
                             />
                         </div>
                         <div class="switch-full">
                             <span>设置为当前地图视野</span>
                             <el-button
-                            size="small"
-                            @click="setCurrentViewAsDefault">设置</el-button>
+                                size="small"
+                                @click="setCurrentViewAsDefault"
+                            >设置</el-button>
                         </div>
                         <div class="switch-full">
                             <span>清除经纬度</span>
                             <el-button
-                            size="small"
-                            @click="clearViewLatLng">清除</el-button>
+                                size="small"
+                                @click="clearViewLatLng"
+                            >清除</el-button>
                         </div>
                     </div>
                     <span class="font-bold w-full">其他</span>
@@ -670,9 +715,10 @@
                         <div class="switch-full">
                             <span>UI缩放比例</span>
                             <el-select
-                            style="width: 72px;"
-                            v-model="settingsStore.mainSettings.uiScale"
-                            size="small">
+                                style="width: 72px;"
+                                v-model="settingsStore.mainSettings.uiScale"
+                                size="small"
+                            >
                                 <el-option label="50%" :value=0.5 />
                                 <el-option label="75%" :value=0.75 />
                                 <el-option label="默认" :value=1 />
@@ -710,9 +756,9 @@
                         <div class="switch-full">
                             <span>横波颜色模式</span>
                             <el-select
-                            style="width: 168px;"
-                            v-model="settingsStore.mainSettings.sWaveColorMode"
-                            size="small"
+                                style="width: 168px;"
+                                v-model="settingsStore.mainSettings.sWaveColorMode"
+                                size="small"
                             >
                                 <el-option label="根据是否为警报填色" :value=0 />
                                 <el-option label="根据震级填色" :value=1 />
@@ -765,10 +811,11 @@
                         <div class="switch-full">
                             <span>地震信息显示模式</span>
                             <el-select
-                            style="width: 192px;"
-                            v-model="settingsStore.mainSettings.eqlistsDisplayMode"
-                            size="small"
-                            @change="handleNeedReload">
+                                style="width: 192px;"
+                                v-model="settingsStore.mainSettings.eqlistsDisplayMode"
+                                size="small"
+                                @change="handleNeedReload"
+                            >
                                 <el-option label="显示每个数据源的最新地震" :value=0 />
                                 <el-option label="显示全部数据源中的最新地震" :value=1 />
                             </el-select>
@@ -785,10 +832,10 @@
                         <div class="switch-full">
                             <span>地震波最大渲染速率：{{ settingsStore.mainSettings.maxWaveRenderRate }}次/秒</span>
                             <el-slider
-                            v-model="settingsStore.mainSettings.maxWaveRenderRate"
-                            :min="1" :max="20"
-                            :step="1"
-                            size="small"
+                                v-model="settingsStore.mainSettings.maxWaveRenderRate"
+                                :min="1" :max="20"
+                                :step="1"
+                                size="small"
                             />
                         </div>
                         <div class="switch-full">
@@ -828,14 +875,14 @@
                                 </el-popover>
                             </span>
                             <el-slider
-                            v-model="settingsStore.mainSettings.mapSimplifyFactor"
-                            :min="0" :max="4"
-                            :step="1"
-                            size="small"
-                            show-stops
-                            :show-tooltip="false"
-                            :marks="simplifyMarks"
-                            @change="handleNeedReload"
+                                v-model="settingsStore.mainSettings.mapSimplifyFactor"
+                                :min="0" :max="4"
+                                :step="1"
+                                size="small"
+                                show-stops
+                                :show-tooltip="false"
+                                :marks="simplifyMarks"
+                                @change="handleNeedReload"
                             />
                         </div>
                     </div>
@@ -942,11 +989,12 @@
                         <div class="switch-full">
                             <span>输入指令</span>
                             <el-input
-                            type="password"
-                            v-model="advancedInput"
-                            size="small"
-                            style="width: 192px;"
-                            @change="handleAdvance" />
+                                type="password"
+                                v-model="advancedInput"
+                                size="small"
+                                style="width: 192px;"
+                                @change="handleAdvance" 
+                            />
                         </div>
                     </div>
                 </div>
@@ -980,9 +1028,10 @@
                         <div class="switch-full">
                             <span>立即检查更新</span>
                             <el-button
-                            type="primary"
-                            size="small"
-                            @click="checkNewVersion(false)">检查更新</el-button>
+                                type="primary"
+                                size="small"
+                                @click="checkNewVersion(false)"
+                            >检查更新</el-button>
                         </div>
                     </div>
                     <span class="font-bold w-full">帮助&关于</span>
@@ -993,9 +1042,10 @@
                 <span class="sub-title" v-if="needReload">需要重载</span>
                 <div class="group">
                     <el-button 
-                    type="warning"
-                    v-if="needReload"
-                    @click="handleReload">重载以应用变更</el-button>
+                        type="warning"
+                        v-if="needReload"
+                        @click="handleReload"
+                    >重载以应用变更</el-button>
                 </div>
             </div>
         </div>
@@ -1828,6 +1878,9 @@ ul {
 }
 .pl-4 {
     padding-left: 1rem;
+}
+.pl-8 {
+    padding-left: 2rem;
 }
 .pr-4 {
     padding-right: 1rem;

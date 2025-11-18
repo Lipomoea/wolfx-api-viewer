@@ -60,6 +60,7 @@ export class EewEvent {
         this.countdown = -1
         this.pCountdown = -1
         this.shouldAction = false
+        this.isIntense = false
         this.mute = false
         this.showMenu = false
         this.showPCountdown = false
@@ -67,6 +68,7 @@ export class EewEvent {
             firstSound: false,
             cautionSound: false,
             warnSound: false,
+            intenseSound: false,
             focused: false,
             lastSecondsCount: settingsStore.mainSettings.countdownStart + 1
         }
@@ -340,6 +342,11 @@ export class EewEvent {
                 &&
                 (settingsStore.mainSettings.actionMag == 0 || this.eqMessage.magnitude >= settingsStore.mainSettings.actionMag)
             ) this.shouldAction = true
+            if(
+                this.nearestJmaLoc
+                ? (shindoScale.indexOf(this.userShindo) >= settingsStore.mainSettings.intenseLocalShindo)
+                : (Number(this.userCsis) >= settingsStore.mainSettings.intenseLocalCsis)
+            ) this.isIntense = true
             if(this.shouldAction && !isAddition && !this.mute) this.handleActions()
             clearTimeout(this.terminateTimer)
             this.terminateTimer = setTimeout(() => {
@@ -415,6 +422,14 @@ export class EewEvent {
                 }
             }
         }
+        if(settingsStore.mainSettings.playIntenseSound) {
+            if(this.isIntense) {
+                if(!this.flags.intenseSound) {
+                    playSound("intense")
+                    this.flags.intenseSound = true
+                }
+            }
+        }
         if(icon){
             sendMyNotification(`${eqMessage.titleText} ${eqMessage.reportNumText}`, 
                 `${eqMessage.hypocenterText}\n${eqMessage.depthText}\n${eqMessage.magnitudeText}\n${eqMessage.maxIntensityText}`, 
@@ -427,9 +442,14 @@ export class EewEvent {
         if(settingsStore.mainSettings.displayCountdown && this.isValidUserLatLng && (this.userDist <= this.maxCountdownRadius && !this.eqMessage.isAssumption || settingsStore.mainSettings.forceDisplayCountdown)){
             this.countdown = Math.max(this.sReachTime - passedTime, 0)
             this.pCountdown = Math.max(this.pReachTime - passedTime, 0)
-            if(settingsStore.mainSettings.playCountdownSound && this.shouldAction && !this.mute) {
+            if(settingsStore.mainSettings.playCountdownSound && this.shouldAction && !this.mute && (
+                this.isIntense
+                || !settingsStore.advancedSettings.forceCalcInt
+                || !settingsStore.mainSettings.playIntenseSound
+                || !settingsStore.mainSettings.countdownOnlyIntense
+            )) {
                 const secondsCount = Math.ceil(this.countdown)
-                if(secondsCount < this.flags.lastSecondsCount){
+                if(secondsCount < this.flags.lastSecondsCount) {
                     playSound(settingsStore.mainSettings.countdownSpeech && (`${secondsCount}s` in chimeUrls.general) ? `${secondsCount}s` : "countdown")
                     this.flags.lastSecondsCount = secondsCount
                 }

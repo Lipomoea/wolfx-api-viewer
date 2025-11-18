@@ -25,6 +25,7 @@ export const iconUrls = {
 export const chimeUrls = {
     general: {
         countdown: '/sound/general/countdown.wav',
+        intense: '/sound/general/intense.wav',
         ews: '/sound/general/ews.mp3',
         '0s': '/sound/general/0s.mp3',
         '1s': '/sound/general/1s.mp3',
