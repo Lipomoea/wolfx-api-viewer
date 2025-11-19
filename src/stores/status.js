@@ -1023,7 +1023,7 @@ export const useStatusStore = defineStore('statusStore', {
                             lng: Number(data[keys[i]].longitude),
                             hypocenter: data[keys[i]].location,
                             depth: Number(data[keys[i]].depth.replace('km', '')),
-                            magnitude: Number(data[keys[i]].magnitude),
+                            magnitude: Number(data[keys[i]].magnitude) || 0,
                             maxIntensity: data[keys[i]].shindo,
                             className: setClassName(data[keys[i]].shindo, true),
                             url: `https://typhoon.yahoo.co.jp/weather/jp/earthquake/${id}.html`
