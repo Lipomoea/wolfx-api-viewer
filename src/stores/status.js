@@ -1113,8 +1113,10 @@ export const useStatusStore = defineStore('statusStore', {
                         }
                         const lat = Number(data[i].latitude)
                         const lng = Number(data[i].longitude)
+                        const depth = Number(data[i].depth)
+                        const magnitude = Number(data[i].magnitude)
                         const isCanceled = data[i].infoTypeName == '取消'
-                        const maxIntensity = Number(data[i].magnitude) ? calcCsisLevel(Number(data[i].magnitude), Number(data[i].depth), 0) : '不明'
+                        const maxIntensity = magnitude ? calcCsisLevel(magnitude, depth) : '不明'
                         list[i] = {
                             source: 'FSSN',
                             id: data[i].ID,
@@ -1124,8 +1126,8 @@ export const useStatusStore = defineStore('statusStore', {
                             lat,
                             lng,
                             hypocenter: infoType + (getFEName(lat, lng) || data[i].placeName_zh || data[i].placeName),
-                            depth: Number(data[i].depth),
-                            magnitude: Number(data[i].magnitude),
+                            depth,
+                            magnitude,
                             maxIntensity,
                             isCanceled,
                             className: setClassName(maxIntensity, false, isCanceled),
