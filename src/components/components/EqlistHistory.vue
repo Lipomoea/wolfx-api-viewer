@@ -61,7 +61,7 @@ const historyList = inject('historyList')
 const maxHistoryNumber = 100
 const flatted = computed(() => Object.keys(statusStore.history).map(key => statusStore.history[key]).flat())
 const sorted = computed(() => flatted.value.sort((a, b) => calcTimeDiff(b.originTime, b.timeZone, a.originTime, a.timeZone)))
-const eqlists = computed(() => sorted.value.filter(item => item.magnitude >= settingsStore.mainSettings.historyMagThres).slice(0, maxHistoryNumber))
+const eqlists = computed(() => sorted.value.filter(item => settingsStore.mainSettings.historyMagThres == 0 || item.magnitude >= settingsStore.mainSettings.historyMagThres).slice(0, maxHistoryNumber))
 const handleReplay = (item) => {
     const passedTime = Math.max(calcPassedTime(item.originTime, item.timeZone) / 60000 + 0.1, 0)
     settingsStore.mainSettings.displaySeisNet.delay = passedTime
