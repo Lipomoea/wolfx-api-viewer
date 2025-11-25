@@ -195,13 +195,7 @@ watch(()=>statusStore.map, newVal=>{
                 }
             }
             tremPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel.value)
-            if(Object.keys(newVal).length > 0){
-                statusStore.isActive.tremNet = true
-                smartSetView()
-            }
-            else{
-                statusStore.isActive.tremNet = false
-            }
+            statusStore.isActive.tremNet = Object.keys(newVal).length > 0
         }, { immediate: true })
         unwatchRender = watch(
             ()=>`${settingsStore.mainSettings.displaySeisNet.style}|${settingsStore.mainSettings.displaySeisNet.displayTremShindo}|${settingsStore.mainSettings.displaySeisNet.hideNoData}|${simpleShindo.value}`, 
@@ -220,7 +214,8 @@ watch(()=>(statusStore.isActive.cwaEew || statusStore.isActive.tremNet), newVal=
         periodMaxLevel.value = -1
         tremPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel.value)
     }
-})
+}, { immediate: true })
+watch(() => Object.keys(grids.value).length, smartSetView)
 let shake1Notified = false, shake2Notified = false
 let focused = false
 watch(currentMaxShindo, (newVal, oldVal)=>{

@@ -1090,7 +1090,17 @@ const setMapHeight = (height) => {
     }, 0);
 }
 let pendingSetView = false
+let allowSetView = true
+let allowSetViewTimer
+const disableSetView = () => {
+    allowSetView = false
+    clearTimeout(allowSetViewTimer)
+    allowSetViewTimer = setTimeout(() => {
+        allowSetView = true
+    }, 50);
+}
 const setView = () => {
+    if(!allowSetView) return
     if(document.visibilityState === 'visible') {
         const bounds = L.latLngBounds([])
         //临时Eqlist
@@ -1318,6 +1328,7 @@ const setView = () => {
     else {
         pendingSetView = true
     }
+    disableSetView()
 }
 const smartSetView = () => {
     setTimeout(() => {
@@ -1384,13 +1395,11 @@ const resetDefaultMenuTimer = ()=>{
 }
 let autoZoomInterval
 watch(isAutoZoom, (newVal)=>{
+    clearInterval(autoZoomInterval)
     if(newVal){
         autoZoomInterval = setInterval(() => {
             setView()
         }, 1000);
-    }
-    else{
-        clearInterval(autoZoomInterval)
     }
 }, { immediate: true })
 const jmaWarnArea = computed(()=>{
@@ -1500,6 +1509,7 @@ onBeforeUnmount(()=>{
     clearTimeout(autoZoomTimer)
     clearTimeout(defaultMenuTimer)
     clearTimeout(tempEqlistsTimer)
+    clearTimeout(allowSetViewTimer)
     document.removeEventListener('mousemove', resetDefaultMenuTimer)
     document.removeEventListener('keydown', handleKeydown)
     activeEewList.length = 0

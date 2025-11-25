@@ -316,13 +316,7 @@ watch(()=>statusStore.map, newVal=>{
                 }
             }
             niedPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel.value)
-            if(Object.keys(newVal).length > 0){
-                statusStore.isActive.niedNet = true
-                smartSetView()
-            }
-            else{
-                statusStore.isActive.niedNet = false
-            }
+            statusStore.isActive.niedNet = Object.keys(newVal).length > 0
         }, { immediate: true })
         unwatchRender = watch(
             ()=>`${settingsStore.mainSettings.displaySeisNet.style}|${settingsStore.mainSettings.displaySeisNet.displayNiedShindo}|${settingsStore.mainSettings.displaySeisNet.hideNoData}|${simpleShindo.value}`, 
@@ -341,7 +335,8 @@ watch(()=>(statusStore.isActive.jmaEew || statusStore.isActive.niedNet), newVal=
         periodMaxLevel.value = -1
         niedPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel.value)
     }
-})
+}, { immediate: true })
+watch(() => Object.keys(grids.value).length, smartSetView)
 let shake1Notified = false, shake2Notified = false
 let focused = false
 watch(currentMaxShindo, (newVal, oldVal)=>{
