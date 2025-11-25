@@ -102,8 +102,8 @@ class NiedStation {
     update(intensity, render = true){
         const originLevel = intensity.charCodeAt(0) - 100
         const level = originLevel == -1 ? this.recentLevel.slice(0, 4).find(val => val != -1) ?? -1 : originLevel
-        if(level > this.level) this.expireSeconds ++
-        else if(level < this.level) this.expireSeconds = this.defaultExpireSeconds
+        if(level > this.level && this.level != -1) this.expireSeconds ++
+        else if(level < this.level || level == -1) this.expireSeconds = this.defaultExpireSeconds
         if(level != this.level){
             this.shindo = getShindoFromChar(intensity)
             this.level = level
