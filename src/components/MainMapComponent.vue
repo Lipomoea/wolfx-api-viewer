@@ -400,6 +400,9 @@ const currentEqlistInfoPage = computed(() => Math.floor(infoPageCounter.value / 
 const currentEqlistInfoItems = computed(() => displayEqlistList.value.slice(eventsPerPage.value * currentEqlistInfoPage.value, eventsPerPage.value * (currentEqlistInfoPage.value + 1)))
 const handleManual = ()=>{
     isAutoZoom.value = false
+    lastBounds = null
+    lastCenter = null
+    lastZoom = null
     clearTimeout(autoZoomTimer)
     autoZoomTimer = setTimeout(() => {
         handleHome()
@@ -1090,17 +1093,8 @@ const setMapHeight = (height) => {
     }, 0);
 }
 let pendingSetView = false
-let allowSetView = true
-let allowSetViewTimer
-const disableSetView = () => {
-    allowSetView = false
-    clearTimeout(allowSetViewTimer)
-    allowSetViewTimer = setTimeout(() => {
-        allowSetView = true
-    }, 50);
-}
+let lastBounds = null, lastCenter = null, lastZoom = null
 const setView = () => {
-    if(!allowSetView) return
     if(document.visibilityState === 'visible') {
         const bounds = L.latLngBounds([])
         //临时Eqlist
@@ -1304,11 +1298,16 @@ const setView = () => {
         }
         //应用bounds
         if(bounds.isValid()){
-            map.fitBounds(bounds, {
-                padding: [50, 50],
-                maxZoom: 8,
-                animate: true
-            })
+            if(!lastBounds || !bounds.equals(lastBounds)) {
+                map.fitBounds(bounds, {
+                    padding: [50, 50],
+                    maxZoom: 8,
+                    animate: true
+                })
+                lastBounds = bounds
+                lastCenter = null
+                lastZoom = null
+            }
         }
         //默认视野
         else{
@@ -1322,13 +1321,18 @@ const setView = () => {
             else{
                 targetCenter = defaultLatLng
             }
-            map.setView(targetCenter, settingsStore.mainSettings.defaultZoom, { animate: true })
+            const targetZoom = settingsStore.mainSettings.defaultZoom
+            if(!lastCenter || !lastZoom || targetCenter[0] != lastCenter[0] || targetCenter[1] != lastCenter[1] || targetZoom != lastZoom) {
+                map.setView(targetCenter, targetZoom, { animate: true })
+                lastBounds = null
+                lastCenter = targetCenter
+                lastZoom = targetZoom
+            }
         }
     }
     else {
         pendingSetView = true
     }
-    disableSetView()
 }
 const smartSetView = () => {
     setTimeout(() => {
@@ -1509,7 +1513,6 @@ onBeforeUnmount(()=>{
     clearTimeout(autoZoomTimer)
     clearTimeout(defaultMenuTimer)
     clearTimeout(tempEqlistsTimer)
-    clearTimeout(allowSetViewTimer)
     document.removeEventListener('mousemove', resetDefaultMenuTimer)
     document.removeEventListener('keydown', handleKeydown)
     activeEewList.length = 0
