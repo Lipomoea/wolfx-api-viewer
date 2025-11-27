@@ -204,6 +204,7 @@ onMounted(()=>{
                         const popNum = Math.floor(timeDiff / 1000) - 1
                         stations.forEach(station=>{
                             station.recentLevel.splice(-popNum, popNum)
+                            station.expireSeconds = Math.max(station.expireSeconds - popNum, station.defaultExpireSeconds)
                         })
                     }
                     if(timeDiff > 10000){
@@ -214,6 +215,7 @@ onMounted(()=>{
                     if(delay.value > maxDelay && timeDiff < 0){
                         stations.forEach(station=>{
                             station.recentLevel = []
+                            station.expireSeconds = station.defaultExpireSeconds
                             station.isActive = false
                         })
                     }

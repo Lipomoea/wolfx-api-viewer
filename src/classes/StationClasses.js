@@ -119,7 +119,7 @@ class NiedStation {
         this.activity = this.calcActivity(level, ascend)
         this.recentLevel.unshift(originLevel)
         this.recentLevel.splice(this.expireSeconds)
-        if(this.expireSeconds > this.defaultExpireSeconds && !this.isActive) {
+        if(this.expireSeconds > this.defaultExpireSeconds && !this.isActive && this.recentLevel.length == this.expireSeconds) {
             recentFilter = this.recentLevel.filter(val => val != -1)
             if(recentFilter.every(val => val == recentFilter[0])) {
                 this.expireSeconds = this.defaultExpireSeconds
