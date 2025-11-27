@@ -109,7 +109,7 @@ class NiedStation {
             this.level = level
             render && this.render()
         }
-        const recentFilter = this.recentLevel.filter(val => val != -1)
+        let recentFilter = this.recentLevel.filter(val => val != -1)
         let ascend = 0
         if(recentFilter.length > 0){
             const minRecent = Math.min(...recentFilter)
@@ -119,6 +119,13 @@ class NiedStation {
         this.activity = this.calcActivity(level, ascend)
         this.recentLevel.unshift(originLevel)
         this.recentLevel.splice(this.expireSeconds)
+        if(this.expireSeconds > this.defaultExpireSeconds && !this.isActive) {
+            recentFilter = this.recentLevel.filter(val => val != -1)
+            if(recentFilter.every(val => val == recentFilter[0])) {
+                this.expireSeconds = this.defaultExpireSeconds
+                this.recentLevel.splice(this.expireSeconds)
+            }
+        }
     }
     calcActivity(level, ascend){
         let levelActivity, ascendActivity
@@ -266,7 +273,7 @@ class NiedStation {
         clearTimeout(this.activeTimer)
         this.activeTimer = setTimeout(() => {
             this.isActive = false
-        }, 12000);
+        }, 12500);
     }
     terminate(){
         if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
