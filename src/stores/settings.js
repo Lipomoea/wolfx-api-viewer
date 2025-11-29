@@ -125,8 +125,8 @@ export const useSettingsStore = defineStore('settingsStore', {
         }
     }),
     getters: {
-        isValidUserLatLng: (state) => state.mainSettings.userLatLng.some(item => !!item),
-        isValidViewLatLng: (state) => state.mainSettings.viewLatLng.some(item => !!item),
+        isValidUserLatLng: (state) => state.mainSettings.userLatLng.every(item => item || item === 0) && !state.mainSettings.userLatLng.every(item => item === 0),
+        isValidViewLatLng: (state) => state.mainSettings.viewLatLng.every(item => item || item === 0) && !state.mainSettings.viewLatLng.every(item => item === 0),
         isDisplayUser(state) { return this.isValidUserLatLng && state.mainSettings.displayUser },
         nearestJmaLoc(state) {
             if(this.isValidUserLatLng) {

@@ -565,6 +565,7 @@
                                 :step="0.1"
                                 :min="-90"
                                 :max="90"
+                                @change="val => setLat('userLatLng')(val)"
                             />
                         </div>
                         <div class="switch-full">
@@ -576,6 +577,7 @@
                                 :step="0.1"
                                 :min="-180"
                                 :max="180"
+                                @change="val => setLng('userLatLng')(val)"
                             />
                         </div>
                         <div class="switch-full">
@@ -671,6 +673,7 @@
                                 :step="0.1"
                                 :min="-90"
                                 :max="90"
+                                @change="val => setLat('viewLatLng')(val)"
                             />
                         </div>
                         <div class="switch-full">
@@ -682,6 +685,7 @@
                                 :step="0.1"
                                 :min="-180"
                                 :max="180"
+                                @change="val => setLng('viewLatLng')(val)"
                             />
                         </div>
                         <div class="switch-full">
@@ -1189,7 +1193,10 @@ const setReplayDateTime = () => {
     settingsStore.mainSettings.displaySeisNet.delay = passedTime
 }
 const setLat = (type)=>(val)=>{
-    if(!val) return
+    if(!val) {
+        settingsStore.mainSettings[type][0] = 0
+        return
+    }
     let number = Number(val)
     if(isNaN(number)){
         settingsStore.mainSettings[type][0] = 0
@@ -1201,7 +1208,10 @@ const setLat = (type)=>(val)=>{
     }
 }
 const setLng = (type)=>(val)=>{
-    if(!val) return
+    if(!val) {
+        settingsStore.mainSettings[type][1] = 0
+        return
+    }
     let number = Number(val)
     if(isNaN(number)){
         settingsStore.mainSettings[type][1] = 0

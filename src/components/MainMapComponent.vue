@@ -1325,7 +1325,7 @@ const setView = () => {
             if(!lastCenter || !lastZoom || targetCenter[0] != lastCenter[0] || targetCenter[1] != lastCenter[1] || targetZoom != lastZoom) {
                 map.setView(targetCenter, targetZoom, { animate: true })
                 lastBounds = null
-                lastCenter = targetCenter
+                lastCenter = [...targetCenter]
                 lastZoom = targetZoom
             }
         }
