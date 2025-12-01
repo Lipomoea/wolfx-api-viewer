@@ -398,11 +398,14 @@ const currentEewInfoItems = computed(() => activeEewList.slice(eventsPerPage.val
 const eqlistInfoTotalPages = computed(() => Math.ceil(displayEqlistList.value.length / eventsPerPage.value))
 const currentEqlistInfoPage = computed(() => Math.floor(infoPageCounter.value / 10) % eqlistInfoTotalPages.value)
 const currentEqlistInfoItems = computed(() => displayEqlistList.value.slice(eventsPerPage.value * currentEqlistInfoPage.value, eventsPerPage.value * (currentEqlistInfoPage.value + 1)))
-const handleManual = ()=>{
-    isAutoZoom.value = false
+const clearSetViewCache = () => {
     lastBounds = null
     lastCenter = null
     lastZoom = null
+}
+const handleManual = ()=>{
+    isAutoZoom.value = false
+    clearSetViewCache()
     clearTimeout(autoZoomTimer)
     autoZoomTimer = setTimeout(() => {
         handleHome()
@@ -418,6 +421,7 @@ const handleMenu = (index)=>{
     menuId.value = index
     setTimeout(() => {
         map.invalidateSize()
+        clearSetViewCache()
         if(shouldHandleHome || isAutoZoom.value) handleHome()
     }, 0);  //语句推迟到容器大小变化后再执行
 }
@@ -585,6 +589,9 @@ onMounted(()=>{
     eewMarkerPane.style.zIndex = 200
     map.on('dragstart', handleManual)
     map.on('zoomend', () => zoomLevel.value = map.getZoom())
+    map.on('resize', () => {
+        clearSetViewCache()
+    })
     if(settingsStore.advancedSettings.preventFlickerMode){
         map.on('zoomstart', ()=>{setMapHeight('calc(100% - 1px)');})
         map.on('zoomend', ()=>{setMapHeight('100%');})
@@ -675,6 +682,7 @@ onMounted(()=>{
                 menuId.value = newVal
                 setTimeout(() => {
                     map.invalidateSize()
+                    clearSetViewCache()
                     setView()
                 }, 0);
             }
@@ -734,6 +742,7 @@ function handleKeydown(event) {
                 settingsStore.mainSettings.hideDrawer = !settingsStore.mainSettings.hideDrawer
                 setTimeout(() => {
                     map.invalidateSize()
+                    clearSetViewCache()
                 }, 0);
                 break
             case 'ArrowUp': case 'ArrowDown': case 'ArrowLeft': case 'ArrowRight':
@@ -1393,6 +1402,7 @@ const resetDefaultMenuTimer = ()=>{
         menuId.value = defaultMenuId.value
         setTimeout(() => {
             map.invalidateSize()
+            clearSetViewCache()
             if(isAutoZoom.value) setView()
         }, 0);
     }, 60 * 1000);
