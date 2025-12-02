@@ -1094,6 +1094,7 @@ const setMapHeight = (height) => {
 }
 let pendingSetView = false
 const setView = () => {
+    if(!map) return
     if(document.visibilityState === 'visible') {
         const bounds = L.latLngBounds([])
         //临时Eqlist
@@ -1159,7 +1160,7 @@ const setView = () => {
         else {
             //Eew和SeisNet
             if(menuId.value != 'eqlists') {
-                map?.eachLayer(layer => {
+                map.eachLayer(layer => {
                     let shouldExtend = false
                     switch(layer.options.pane) {
                         case 'eewMarkerPane':
@@ -1268,7 +1269,7 @@ const setView = () => {
             //不活跃的Eqlist
             if(!bounds.isValid() && menuId.value == 'eqlists') {
                 const candidates = []
-                map?.eachLayer(layer => {
+                map.eachLayer(layer => {
                     if(layer.options.pane == 'eqlistMarkerPane' || 
                     layer.options.pane == 'eewBasePane' && layer.options.fillColor && layer.options.fillColor != '#39393900'){
                         if(layer.getBounds){
