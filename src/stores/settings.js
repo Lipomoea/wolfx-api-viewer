@@ -100,6 +100,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             disableEewBaseMap: false,
             mapSimplifyFactor: 0,
             maxWaveRenderRate: 10,
+            useCanvasRenderer: false,
             minimizeOnLaunch: false,
             autoCheckNewVersion: false,
             checkPrerelease: false,

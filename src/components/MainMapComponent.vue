@@ -329,6 +329,10 @@ import { cnCityLabels, cnProvinceLabels, jpPrefLabels } from '@/utils/Labels';
 import terminator from '@joergdietrich/leaflet.terminator';
 import StatusComponent from './StatusComponent.vue';
 
+const style = window.getComputedStyle(document.body)
+const classNameColors = {}, tsunamiColors = {}
+classNameArray.forEach(color => classNameColors[color] = style.getPropertyValue(`--${color}`).trim())
+classNameArray.forEach(color => tsunamiColors[color] = style.getPropertyValue(`--tsunami-${color}`).trim())
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 const timeStore = useTimeStore()
@@ -398,14 +402,8 @@ const currentEewInfoItems = computed(() => activeEewList.slice(eventsPerPage.val
 const eqlistInfoTotalPages = computed(() => Math.ceil(displayEqlistList.value.length / eventsPerPage.value))
 const currentEqlistInfoPage = computed(() => Math.floor(infoPageCounter.value / 10) % eqlistInfoTotalPages.value)
 const currentEqlistInfoItems = computed(() => displayEqlistList.value.slice(eventsPerPage.value * currentEqlistInfoPage.value, eventsPerPage.value * (currentEqlistInfoPage.value + 1)))
-const clearSetViewCache = () => {
-    lastBounds = null
-    lastCenter = null
-    lastZoom = null
-}
 const handleManual = ()=>{
     isAutoZoom.value = false
-    clearSetViewCache()
     clearTimeout(autoZoomTimer)
     autoZoomTimer = setTimeout(() => {
         handleHome()
@@ -421,7 +419,6 @@ const handleMenu = (index)=>{
     menuId.value = index
     setTimeout(() => {
         map.invalidateSize()
-        clearSetViewCache()
         if(shouldHandleHome || isAutoZoom.value) handleHome()
     }, 0);  //语句推迟到容器大小变化后再执行
 }
@@ -534,12 +531,8 @@ onMounted(()=>{
     }
     statusStore.map = map
     map.removeControl(map.zoomControl)
-    map.createPane('globalBasePane')
-    map.getPane('globalBasePane').style.zIndex = 0
-    map.createPane('jpBasePane')
-    map.getPane('jpBasePane').style.zIndex = 1
-    map.createPane('cnBasePane')
-    map.getPane('cnBasePane').style.zIndex = 2
+    map.createPane('basePane')
+    map.getPane('basePane').style.zIndex = 0
     map.createPane('terminatorFillPane')
     map.getPane('terminatorFillPane').style.zIndex = 9
     map.createPane('waveFillPane')
@@ -548,8 +541,8 @@ onMounted(()=>{
     map.createPane('eewBasePane')
     eewBasePane = map.getPane('eewBasePane')
     eewBasePane.style.zIndex = 20
-    map.createPane('cnFaultBasePane')
-    map.getPane('cnFaultBasePane').style.zIndex = 30
+    map.createPane('faultBasePane')
+    map.getPane('faultBasePane').style.zIndex = 30
     map.createPane('tsunamiBasePane')
     tsunamiBasePane = map.getPane('tsunamiBasePane')
     tsunamiBasePane.style.zIndex = 40
@@ -589,9 +582,6 @@ onMounted(()=>{
     eewMarkerPane.style.zIndex = 200
     map.on('dragstart', handleManual)
     map.on('zoomend', () => zoomLevel.value = map.getZoom())
-    map.on('resize', () => {
-        clearSetViewCache()
-    })
     if(settingsStore.advancedSettings.preventFlickerMode){
         map.on('zoomstart', ()=>{setMapHeight('calc(100% - 1px)');})
         map.on('zoomend', ()=>{setMapHeight('100%');})
@@ -682,7 +672,6 @@ onMounted(()=>{
                 menuId.value = newVal
                 setTimeout(() => {
                     map.invalidateSize()
-                    clearSetViewCache()
                     setView()
                 }, 0);
             }
@@ -742,7 +731,6 @@ function handleKeydown(event) {
                 settingsStore.mainSettings.hideDrawer = !settingsStore.mainSettings.hideDrawer
                 setTimeout(() => {
                     map.invalidateSize()
-                    clearSetViewCache()
                 }, 0);
                 break
             case 'ArrowUp': case 'ArrowDown': case 'ArrowLeft': case 'ArrowRight':
@@ -810,6 +798,9 @@ function handleKeydown(event) {
         }
     }
 }
+const renderers = {}
+const panes = ['basePane', 'eewBasePane', 'tsunamiBasePane', 'faultBasePane']
+settingsStore.mainSettings.useCanvasRenderer && panes.forEach(pane => renderers[pane] = L.canvas({ pane }))
 const loadMaps = async (retries = 0) => {
     let msgTimer
     if(!firstMsg){
@@ -833,19 +824,19 @@ const loadMaps = async (retries = 0) => {
     const [global, cn, cn_eew, cn_fault, jp, jp_eew, jp_tsunami, cn_tsunami] = resps
     if(global && cn && cn_eew && cn_fault && jp && jp_eew && jp_tsunami){
         clearTimeout(msgTimer)
-        loadBaseMap(global, 'globalBasePane')
-        loadBaseMap(cn, 'cnBasePane')
-        cnEewBaseMap = settingsStore.mainSettings.disableEewBaseMap 
-        ? null : loadBaseMap(cn_eew, 'eewBasePane', false, {
+        loadBaseMap(global, 'basePane')
+        loadBaseMap(jp, 'basePane')
+        loadBaseMap(cn, 'basePane')
+        jpEewBaseMap = settingsStore.mainSettings.disableEewBaseMap 
+        ? null : loadBaseMap(jp_eew, 'eewBasePane', false, {
             color: '#bbbbbb00',
             opacity: 1,
             fillColor: '#39393900',
             fillOpacity: 1,
             weight: 1,
         })
-        loadBaseMap(jp, 'jpBasePane')
-        jpEewBaseMap = settingsStore.mainSettings.disableEewBaseMap 
-        ? null : loadBaseMap(jp_eew, 'eewBasePane', false, {
+        cnEewBaseMap = settingsStore.mainSettings.disableEewBaseMap 
+        ? null : loadBaseMap(cn_eew, 'eewBasePane', false, {
             color: '#bbbbbb00',
             opacity: 1,
             fillColor: '#39393900',
@@ -855,7 +846,7 @@ const loadMaps = async (retries = 0) => {
         watch(()=>settingsStore.mainSettings.displayCnFault, newVal => {
             if(cnFaultBaseMap && map.hasLayer(cnFaultBaseMap)) map.removeLayer(cnFaultBaseMap)
             if(newVal) {
-                cnFaultBaseMap = loadBaseMap(cn_fault, 'cnFaultBasePane', true, {
+                cnFaultBaseMap = loadBaseMap(cn_fault, 'faultBasePane', true, {
                     color: 'red',
                     opacity: 0.5,
                     weight: 1,
@@ -926,10 +917,10 @@ const loadMaps = async (retries = 0) => {
             jpEewBaseMap?.eachLayer(layer=>{
                 const layerName = layer.feature.properties.name
                 if(layerName in newVal){
-                    if(layer.options.fillColor != `var(--${newVal[layerName].className})`){
+                    if(layer.options.fillColor != classNameColors[newVal[layerName].className]){
                         layer.setStyle({
                             color: '#bbbbbb',
-                            fillColor: `var(--${newVal[layerName].className})`
+                            fillColor: classNameColors[newVal[layerName].className]
                         })
                     }
                 }
@@ -955,10 +946,10 @@ const loadMaps = async (retries = 0) => {
                     })
                     if(maxInt > 0){
                         const className = setClassName(maxInt, false)
-                        if(layer.options.fillColor != `var(--${className})`){
+                        if(layer.options.fillColor != classNameColors[className]){
                             layer.setStyle({
                                 color: '#bbbbbb',
-                                fillColor: `var(--${className})`
+                                fillColor: classNameColors[className]
                             })
                         }
                         const layerName = layer.feature.properties.name
@@ -1002,9 +993,9 @@ const loadMaps = async (retries = 0) => {
                 jpTsunamiBaseMap.eachLayer(layer => {
                     const layerName = layer.feature.properties.name
                     if(layerName in newVal){
-                        if(layer.options.color != `var(--tsunami-${newVal[layerName].className})`){
+                        if(layer.options.color != tsunamiColors[newVal[layerName].className]){
                             layer.setStyle({
-                                color: `var(--tsunami-${newVal[layerName].className})`
+                                color: tsunamiColors[newVal[layerName].className]
                             })
                         }
                     }
@@ -1035,9 +1026,9 @@ const loadMaps = async (retries = 0) => {
                     cnTsunamiBaseMap.eachLayer(layer => {
                         const layerName = layer.feature.properties.name
                         if(layerName in newVal){
-                            if(layer.options.color != `var(--tsunami-${newVal[layerName].className})`){
+                            if(layer.options.color != tsunamiColors[newVal[layerName].className]){
                                 layer.setStyle({
-                                    color: `var(--tsunami-${newVal[layerName].className})`
+                                    color: tsunamiColors[newVal[layerName].className]
                                 })
                             }
                         }
@@ -1102,7 +1093,6 @@ const setMapHeight = (height) => {
     }, 0);
 }
 let pendingSetView = false
-let lastBounds = null, lastCenter = null, lastZoom = null
 const setView = () => {
     if(document.visibilityState === 'visible') {
         const bounds = L.latLngBounds([])
@@ -1305,39 +1295,36 @@ const setView = () => {
                 }
             }
         }
+        let targetCenter, targetZoom
         //应用bounds
         if(bounds.isValid()){
-            if(!lastBounds || !bounds.equals(lastBounds)) {
-                map.fitBounds(bounds, {
-                    padding: [50, 50],
-                    maxZoom: 8,
-                    animate: true
-                })
-                lastBounds = bounds
-                lastCenter = null
-                lastZoom = null
-            }
+            const target = map._getBoundsCenterZoom(bounds, {
+                padding: [50, 50],
+                maxZoom: 8
+            })
+            targetCenter = target.center
+            targetZoom = target.zoom
         }
         //默认视野
         else{
-            let targetCenter
+            let centerArr
             if(isValidViewLatLng.value){
-                targetCenter = viewLatLng.value
+                centerArr = viewLatLng.value
             }
             else if(isValidUserLatLng.value){
-                targetCenter = userLatLng.value
+                centerArr = userLatLng.value
             }
             else{
-                targetCenter = defaultLatLng
+                centerArr = defaultLatLng
             }
-            const targetZoom = settingsStore.mainSettings.defaultZoom
-            if(!lastCenter || !lastZoom || targetCenter[0] != lastCenter[0] || targetCenter[1] != lastCenter[1] || targetZoom != lastZoom) {
-                map.setView(targetCenter, targetZoom, { animate: true })
-                lastBounds = null
-                lastCenter = [...targetCenter]
-                lastZoom = targetZoom
-            }
+            const [lat, lng] = centerArr
+            targetCenter = { lat, lng }
+            targetZoom = settingsStore.mainSettings.defaultZoom
         }
+        const currCenter = map.getCenter()
+        const currZoom = map.getZoom()
+        if(Math.abs(currCenter.lat - targetCenter.lat) >= 0.01 || Math.abs(currCenter.lng - targetCenter.lng) >= 0.01 || currZoom != targetZoom)
+            map.setView(targetCenter, targetZoom, { animate: true })
     }
     else {
         pendingSetView = true
@@ -1377,9 +1364,10 @@ const loadBaseMap = (topojson, pane, isBaseMap = true, style = {
                 const geojson = feature(simplified, simplified.objects.region)
                 const baseMap = L.geoJson(geojson, {
                     pane,
+                    renderer: settingsStore.mainSettings.useCanvasRenderer && renderers[pane],
                     style,
-                    interactive: settingsStore.mainSettings.placeNameOnHover,
-                    onEachFeature: settingsStore.mainSettings.placeNameOnHover && onEachFeature
+                    interactive: settingsStore.mainSettings.placeNameOnHover && !settingsStore.mainSettings.useCanvasRenderer,
+                    onEachFeature: settingsStore.mainSettings.placeNameOnHover && !settingsStore.mainSettings.useCanvasRenderer && onEachFeature
                 })
                 baseMap.addTo(map)
                 return baseMap
@@ -1402,7 +1390,6 @@ const resetDefaultMenuTimer = ()=>{
         menuId.value = defaultMenuId.value
         setTimeout(() => {
             map.invalidateSize()
-            clearSetViewCache()
             if(isAutoZoom.value) setView()
         }, 0);
     }, 60 * 1000);

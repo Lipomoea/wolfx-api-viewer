@@ -739,6 +739,7 @@
                         <div class="switch-full">
                             <span>悬浮时显示地名</span>
                             <el-switch v-model="settingsStore.mainSettings.placeNameOnHover"
+                            :disabled="settingsStore.mainSettings.useCanvasRenderer"
                             @change="handleNeedReload" />
                         </div>
                         <div class="switch-full">
@@ -844,7 +845,7 @@
                         </div>
                         <div class="switch-full">
                             <span>
-                                禁用预警区图层
+                                使用位图渲染器
                                 <el-popover
                                     placement="top"
                                     :width="300"
@@ -853,9 +854,29 @@
                                     <template #reference>
                                         <question-filled width="1em" height="1em" />
                                     </template>
-                                    <p>完全移除地震预警区（染色）图层。</p>
+                                    <p>部分图层使用Canvas（而不是SVG）渲染器加载。</p>
+                                    <p>可小幅提升流畅性，但是部分情况下图形边缘可能模糊。</p>
+                                    <p>开启后无法使用“悬浮时显示地名”功能。</p>
+                                    <p><strong>需重新加载页面后生效。</strong></p>
+                                </el-popover>
+                            </span>
+                            <el-switch v-model="settingsStore.mainSettings.useCanvasRenderer"
+                            @change="handleNeedReload" />
+                        </div>
+                        <div class="switch-full">
+                            <span>
+                                禁用烈度图层
+                                <el-popover
+                                    placement="top"
+                                    :width="300"
+                                    trigger="hover"
+                                >
+                                    <template #reference>
+                                        <question-filled width="1em" height="1em" />
+                                    </template>
+                                    <p>完全移除烈度/震度图层。</p>
                                     <p>不影响本地烈度计算。</p>
-                                    <p>可大幅度提升性能。</p>
+                                    <p>可极大幅度提升性能。</p>
                                     <p><strong>需重新加载页面后生效。</strong></p>
                                 </el-popover>
                             </span>
@@ -864,7 +885,7 @@
                         </div>
                         <div class="switch-full">
                             <span>
-                                预警区地图简化
+                                烈度/海啸图层简化
                                 <el-popover
                                     placement="top"
                                     :width="350"
@@ -873,7 +894,7 @@
                                     <template #reference>
                                         <question-filled width="1em" height="1em" />
                                     </template>
-                                    <p>通过简化预警区（染色图层）的形状来提升性能。</p>
+                                    <p>通过简化烈度/震度/海啸图层的形状来提升性能。</p>
                                     <p>简化程度越高，渲染压力越小，但图形失真越严重。</p>
                                     <p><strong>需重新加载页面后生效。</strong></p>
                                 </el-popover>
