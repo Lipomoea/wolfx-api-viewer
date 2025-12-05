@@ -906,7 +906,7 @@ export const useStatusStore = defineStore('statusStore', {
                             }    
                         }
                         tsunamiMessage.warnArea = JSON.stringify(data.areas.map(item => {
-                            let className = 'white'
+                            let className = 'gray'
                             switch(item.grade) {
                                 case 'Watch':
                                     className = 'yellow'
@@ -961,7 +961,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 break
                         }    
                         tsunamiMessage.warnArea = JSON.stringify(data.forecasts.map(item => {
-                            let className = 'white'
+                            let className = 'gray'
                             let height = 0
                             let description = ''
                             switch(item.warningLevel) {
