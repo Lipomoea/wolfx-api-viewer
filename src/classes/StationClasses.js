@@ -90,6 +90,7 @@ class NiedStation {
         this.id = id
         this.latLng = latLng
         this.defaultExpireSeconds = this.expireSeconds = expireSeconds
+        this.maxExpireSeconds = 30
         this.shindo = getShindoFromChar(intensity)
         this.level = intensity.charCodeAt(0) - 100
         this.ascend = 0
@@ -102,7 +103,7 @@ class NiedStation {
     update(intensity, render = true){
         const originLevel = intensity.charCodeAt(0) - 100
         const level = originLevel == -1 ? this.recentLevel.slice(0, 4).find(val => val != -1) ?? -1 : originLevel
-        if(level > this.level && this.level != -1) this.expireSeconds += 2
+        if(level > this.level && this.level != -1) this.expireSeconds = Math.min(this.expireSeconds + 2, this.maxExpireSeconds)
         else if(level < this.level || level == -1) this.expireSeconds = this.defaultExpireSeconds
         if(level != this.level){
             this.shindo = getShindoFromChar(intensity)
@@ -118,7 +119,7 @@ class NiedStation {
         this.ascend = ascend
         this.activity = this.calcActivity(level, ascend)
         this.recentLevel.unshift(originLevel)
-        this.recentLevel.splice(30)
+        this.recentLevel.splice(this.maxExpireSeconds)
         if(this.expireSeconds > this.defaultExpireSeconds && !this.isActive && this.recentLevel.length >= this.expireSeconds) {
             recentFilter = this.recentLevel.slice(0, this.expireSeconds).filter(val => val != -1)
             if(recentFilter.every(val => val == recentFilter[0])) {
