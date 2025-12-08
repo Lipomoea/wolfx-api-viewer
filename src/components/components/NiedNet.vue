@@ -87,7 +87,7 @@ const getData = async (url)=>{
 }
 let pendingRender = false
 const nearbyLength = 6
-const activityThresArr = [Infinity, 10, 13, 15, 16, 16, 16]
+const activityThresArr = [Infinity, 9, 12, 14, 15, 16, 16]
 const update = ()=>{
     if(stationList.value.length == stations.length && stations.length == stationData.value.length){
         let maxLevel = -1
@@ -214,6 +214,7 @@ onMounted(()=>{
                     }
                     if(delay.value > maxDelay && timeDiff < 0){
                         stations.forEach(station=>{
+                            station.level = -1
                             station.recentLevel = []
                             station.expireSeconds = station.defaultExpireSeconds
                             station.isActive = false
@@ -277,7 +278,7 @@ watch(()=>statusStore.map, newVal=>{
                     distances.sort((a, b) => a.distance - b.distance).splice(nearbyLength)
                     adjStationIds[i] = distances.map(obj => obj.id)
                     const maxDist = distances[distances.length - 1].distance
-                    expireSeconds[i] = Math.max(Math.round(maxDist / 3.5) + 3, 7)
+                    expireSeconds[i] = Math.max(Math.round(maxDist / 3.5), 5)
                 }
                 newVal.forEach((latLng, index)=>{
                     const station = reactive(new NiedStation(map, index, latLng, 'c', expireSeconds[index]))

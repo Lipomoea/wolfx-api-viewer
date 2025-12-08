@@ -102,14 +102,14 @@ class NiedStation {
     update(intensity, render = true){
         const originLevel = intensity.charCodeAt(0) - 100
         const level = originLevel == -1 ? this.recentLevel.slice(0, 4).find(val => val != -1) ?? -1 : originLevel
-        if(level > this.level && this.level != -1) this.expireSeconds ++
+        if(level > this.level && this.level != -1) this.expireSeconds += 2
         else if(level < this.level || level == -1) this.expireSeconds = this.defaultExpireSeconds
         if(level != this.level){
             this.shindo = getShindoFromChar(intensity)
             this.level = level
             render && this.render()
         }
-        let recentFilter = this.recentLevel.filter(val => val != -1)
+        let recentFilter = this.recentLevel.slice(0, this.expireSeconds).filter(val => val != -1)
         let ascend = 0
         if(recentFilter.length > 0){
             const minRecent = Math.min(...recentFilter)
@@ -118,12 +118,11 @@ class NiedStation {
         this.ascend = ascend
         this.activity = this.calcActivity(level, ascend)
         this.recentLevel.unshift(originLevel)
-        this.recentLevel.splice(this.expireSeconds)
-        if(this.expireSeconds > this.defaultExpireSeconds && !this.isActive && this.recentLevel.length == this.expireSeconds) {
-            recentFilter = this.recentLevel.filter(val => val != -1)
+        this.recentLevel.splice(30)
+        if(this.expireSeconds > this.defaultExpireSeconds && !this.isActive && this.recentLevel.length >= this.expireSeconds) {
+            recentFilter = this.recentLevel.slice(0, this.expireSeconds).filter(val => val != -1)
             if(recentFilter.every(val => val == recentFilter[0])) {
                 this.expireSeconds = this.defaultExpireSeconds
-                this.recentLevel.splice(this.expireSeconds)
             }
         }
     }
@@ -133,7 +132,7 @@ class NiedStation {
             if(level <= 5) levelActivity = 0
             else if(level <= 7) {
                 if(this.isActive) levelActivity = 0.5 * (level - 5)
-                else levelActivity = 0
+                else levelActivity = 0.25 * (level - 5)
             }
             else if(level <= 11) levelActivity = 2 * (level - 7)
             else levelActivity = 6 * (level - 10)
