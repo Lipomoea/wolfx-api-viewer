@@ -348,16 +348,16 @@ const resetSeisNetDelay = () => settingsStore.mainSettings.displaySeisNet.delay 
 const tempEqlists = ref('')
 let tempEqlistsTimer
 const handleTempEqlists = (time, source = '') => {
+    clearTimeout(tempEqlistsTimer)
     if(time && source) {
         clearHistoryList()
         tempEqlists.value = source
-        clearTimeout(tempEqlistsTimer)
         tempEqlistsTimer = setTimeout(() => {
             tempEqlists.value = ''
+            smartSetView()
         }, time);
     }
     else {
-        clearTimeout(tempEqlistsTimer)
         tempEqlists.value = ''
     }
 }
@@ -1324,7 +1324,8 @@ const setView = () => {
         }
         const currCenter = map.getCenter()
         const currZoom = map.getZoom()
-        if(Math.abs(currCenter.lat - targetCenter.lat) >= 0.01 || Math.abs(currCenter.lng - targetCenter.lng) >= 0.01 || currZoom != targetZoom)
+        const err = 1 / 2 ** targetZoom
+        if(currZoom != targetZoom || Math.abs(currCenter.lat - targetCenter.lat) >= err || Math.abs(currCenter.lng - targetCenter.lng) >= err)
             map.setView(targetCenter, targetZoom, { animate: true })
     }
     else {
