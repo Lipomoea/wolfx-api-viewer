@@ -63,7 +63,7 @@ export const tsunamiSources = ['jmaTsunami', 'nmefcTsunami']
 export const seisNetSources = ['niedNet', 'tremNet']
 
 const useWolfxSocket = ['jmaEew', 'cwaEew', 'ceaEew', 'scEew', 'fjEew', 'jmaEqlist', 'cencEqlist']
-const useFanSocket = ['cwaEew', 'ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist', 'usgsEqlist', 'fssnEqlist', 'nmefcTsunami']
+const useFanSocket = ['jmaEew', 'cwaEew', 'ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist', 'usgsEqlist', 'fssnEqlist', 'nmefcTsunami']
 const useP2pquakeSocket = ['jmaEqlist', 'jmaTsunami']
 
 const wolfx2Source = {
@@ -76,6 +76,7 @@ const wolfx2Source = {
     'cenc_eqlist': 'cencEqlist',
 }
 const source2Fan = {
+    'jmaEew': 'jma',
     'cwaEew': 'cwa',
     'iclEew': 'icl',
     'scEew': 'sichuan',
@@ -86,6 +87,7 @@ const source2Fan = {
     'nmefcTsunami': 'tsunami',
 }
 const fan2Source = {
+    'jma': 'jmaEew',
     'cwa': 'cwaEew',
     'icl': 'iclEew',
     'sichuan': 'scEew',
@@ -99,7 +101,8 @@ const fan2Source = {
 export const sourceTypes = {
     jmaEew: {
         0: 'Wolfx',
-        1: 'NIED'
+        1: 'FAN',
+        2: 'NIED'
     },
     cwaEew: {
         0: 'Wolfx',
@@ -259,15 +262,13 @@ export const useStatusStore = defineStore('statusStore', {
                                     eqMessage.reportNumText = 'キャンセル報'
                                     eqMessage.titleText = trainingText + '緊急地震速報（取消）'
                                     eqMessage.hypocenter = trainingText + '取り消されました'
-                                    eqMessage.hypocenterText = trainingText + '震源地: 取り消されました'
                                     eqMessage.maxIntensityText = '推定最大震度: なし'
                                     eqMessage.warnArea = '[]'
                                 }
                                 else{
-                                    eqMessage.reportNumText = '第' + data.Serial + '報' + (data.isFinal?'（最終）':'')
+                                    eqMessage.reportNumText = '第' + data.Serial + '報' + (data.isFinal ? '（最終）' : '')
                                     eqMessage.titleText = trainingText + data.Title
                                     eqMessage.hypocenter = trainingText + data.Hypocenter
-                                    eqMessage.hypocenterText = trainingText + '震源地: ' + data.Hypocenter
                                     eqMessage.maxIntensityText = '推定最大震度: ' + data.MaxIntensity
                                     eqMessage.warnArea = JSON.stringify(data.WarnArea.map(item=>{
                                         return {
@@ -277,9 +278,45 @@ export const useStatusStore = defineStore('statusStore', {
                                         }
                                     }))
                                 }
+                                eqMessage.hypocenterText = '震源地: ' + eqMessage.hypocenter
                                 break
                             }
                             case 1: {
+                                const trainingText = data.training ? '訓練·' : ''
+                                eqMessage.id = data.id
+                                eqMessage.isCanceled = data.cancel
+                                eqMessage.reportNum = data.updates
+                                eqMessage.reportTime = data.createTime
+                                eqMessage.isAssumption = false
+                                eqMessage.isWarn = data.infoTypeName == '警報'
+                                eqMessage.isFinal = data.final
+                                eqMessage.title = trainingText + `緊急地震速報（${data.infoTypeName}）`
+                                eqMessage.lat = data.latitude
+                                eqMessage.lng = data.longitude
+                                eqMessage.depth = data.depth
+                                eqMessage.depthText = '深さ: ' + data.depth + 'km'
+                                eqMessage.originTime = data.shockTime
+                                eqMessage.originTimeText = '発震時刻: ' + eqMessage.originTime + ' (JST)'
+                                eqMessage.magnitude = data.magnitude
+                                eqMessage.magnitudeText = 'マグニチュード: ' + eqMessage.magnitude.toFixed(1)
+                                eqMessage.maxIntensity = data.epiIntensity
+                                if(data.cancel){
+                                    eqMessage.reportNumText = 'キャンセル報'
+                                    eqMessage.titleText = trainingText + '緊急地震速報（取消）'
+                                    eqMessage.hypocenter = trainingText + '取り消されました'
+                                    eqMessage.maxIntensityText = '推定最大震度: なし'
+                                }
+                                else{
+                                    eqMessage.reportNumText = '第' + data.updates + '報' + (data.final ? '（最終）' : '')
+                                    eqMessage.titleText = trainingText + `緊急地震速報（${data.infoTypeName}）`
+                                    eqMessage.hypocenter = trainingText + data.placeName
+                                    eqMessage.maxIntensityText = '推定最大震度: ' + data.epiIntensity
+                                }
+                                eqMessage.hypocenterText = '震源地: ' + eqMessage.hypocenter
+                                eqMessage.warnArea = '[]'
+                                break
+                            }
+                            case 2: {
                                 const trainingText = data.is_training ? '訓練·' : ''
                                 eqMessage.id = data.report_id
                                 eqMessage.isCanceled = data.is_cancel
@@ -305,18 +342,16 @@ export const useStatusStore = defineStore('statusStore', {
                                     eqMessage.reportNumText = 'キャンセル報'
                                     eqMessage.titleText = trainingText + '緊急地震速報（取消）'
                                     eqMessage.hypocenter = trainingText + '取り消されました'
-                                    eqMessage.hypocenterText = trainingText + '震源地: 取り消されました'
                                     eqMessage.maxIntensityText = '推定最大震度: なし'
-                                    eqMessage.warnArea = '[]'
                                 }
                                 else{
-                                    eqMessage.reportNumText = '第' + data.report_num + '報' + (data.is_final?'（最終）':'')
+                                    eqMessage.reportNumText = '第' + data.report_num + '報' + (data.is_final ? '（最終）' : '')
                                     eqMessage.titleText = trainingText + `緊急地震速報（${data.alertflg}）`
                                     eqMessage.hypocenter = trainingText + data.region_name
-                                    eqMessage.hypocenterText = trainingText + '震源地: ' + data.region_name
                                     eqMessage.maxIntensityText = '推定最大震度: ' + data.calcintensity
-                                    eqMessage.warnArea = '[]'
                                 }
+                                eqMessage.hypocenterText = '震源地: ' + eqMessage.hypocenter
+                                eqMessage.warnArea = '[]'
                                 break
                             }
                         }
@@ -1175,7 +1210,7 @@ export const useStatusStore = defineStore('statusStore', {
                             if(timeData && timeData.result.status == 'success') {
                                 const timeStr = timeData.latest_time.replace(/\D/g, '')
                                 const data = await Http.tauriGet(eqUrls.jmaEew2_http + `/${timeStr}.json`)
-                                if(data && data.report_id) this.setEqMessage(source, data, 1)
+                                if(data && data.report_id) this.setEqMessage(source, data, 2)
                             }
                         }
                         if(this.multiApi) {
