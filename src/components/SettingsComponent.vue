@@ -1127,7 +1127,7 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false" append-to-body>
-            <div class="header">要石 v2.2.0-rc.1</div>
+            <div class="header">要石 v2.2.0</div>
             <div class="title">使用方法</div>
             <div class="about">
                 <p>主要功能：接收日本气象厅、台湾省中央气象署、中国地震局、四川省地震局、福建省地震局地震预警信息，日本气象厅、中国地震台网地震信息，日本气象厅海啸信息，NIED強震モニタ测站数据。</p>
