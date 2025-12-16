@@ -1205,14 +1205,14 @@ export const useStatusStore = defineStore('statusStore', {
                                 this.setHistory(source, data.features)
                             }
                         }
-                        if(source == 'jmaEew' && this.isTauri) {
-                            const timeData = await Http.tauriGet(eqUrls.niedLatest + `?time=${stamp}`)
-                            if(timeData && timeData.result.status == 'success') {
-                                const timeStr = timeData.latest_time.replace(/\D/g, '')
-                                const data = await Http.tauriGet(eqUrls.jmaEew2_http + `/${timeStr}.json`)
-                                if(data && data.report_id) this.setEqMessage(source, data, 2)
-                            }
-                        }
+                        // if(source == 'jmaEew' && this.isTauri) {
+                        //     const timeData = await Http.tauriGet(eqUrls.niedLatest + `?time=${stamp}`)
+                        //     if(timeData && timeData.result.status == 'success') {
+                        //         const timeStr = timeData.latest_time.replace(/\D/g, '')
+                        //         const data = await Http.tauriGet(eqUrls.jmaEew2_http + `/${timeStr}.json`)
+                        //         if(data && data.report_id) this.setEqMessage(source, data, 2)
+                        //     }
+                        // }
                         if(this.multiApi) {
                             if(source == 'iclEew' && 'iclEew_http' in eqUrls) {
                                 const data = await Http.get(eqUrls.iclEew_http + `?time=${stamp}`)
