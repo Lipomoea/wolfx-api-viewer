@@ -207,6 +207,21 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.kmaNet && settingsStore.mainSettings.displaySeisNet.displayKmaInt">
+                            <div class="shindo-bar gray">KMA实时</div>
+                            <div class="info">
+                                <div class="intensity" :class="setClassName(kmaMaxInt, false)">
+                                    <div class="intensity-title">最大烈度</div>
+                                    <div class="csis" :class="{
+                                        'roman': settingsStore.mainSettings.useRomanCsis,
+                                        'scale-75': kmaMaxInt == '8',
+                                        'scale-9': kmaMaxInt == '7' || kmaMaxInt == '12'
+                                    }">
+                                        {{ formatCsis(kmaMaxInt, settingsStore.mainSettings.useRomanCsis) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="left-bottom">
@@ -326,7 +341,7 @@ import { topojsonUrls } from '@/utils/Urls';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { isTauri } from '@tauri-apps/api/core';
 import { storeToRefs } from 'pinia';
-import { simpleShindo } from '@/classes/StationClasses';
+import { simpleIcon } from '@/classes/StationClasses';
 import { feature } from 'topojson-client';
 import { cnCityLabels, cnProvinceLabels, jpPrefLabels } from '@/utils/Labels';
 import terminator from '@joergdietrich/leaflet.terminator';
@@ -438,20 +453,22 @@ const gqUrlIndex = ref(0)
 const niedUpdateTime = ref('1970-01-01 09:00:00')
 const niedMaxShindo = ref('?')
 const niedPeriodMaxShindo = ref('?')
+const isNiedDelayed = ref(true)
 provide('niedUpdateTime', niedUpdateTime)
 provide('niedMaxShindo', niedMaxShindo)
 provide('niedPeriodMaxShindo', niedPeriodMaxShindo)
-const isNiedDelayed = ref(true)
 const tremUpdateTime = ref('1970-01-01 08:00:00')
 const tremMaxShindo = ref('?')
 const tremPeriodMaxShindo = ref('?')
+const isTremDelayed = ref(true)
 provide('tremUpdateTime', tremUpdateTime)
 provide('tremMaxShindo', tremMaxShindo)
 provide('tremPeriodMaxShindo', tremPeriodMaxShindo)
-const isTremDelayed = ref(true)
 const kmaUpdateTime = ref('1970-01-01 09:00:00')
-provide('kmaUpdateTime', kmaUpdateTime)
+const kmaMaxInt = ref('?')
 const isKmaDelayed = ref(true)
+provide('kmaUpdateTime', kmaUpdateTime)
+provide('kmaMaxInt', kmaMaxInt)
 const isAutoZoom = ref(true)
 const activeEewList = reactive([])
 const eqlistList = reactive([])
@@ -722,7 +739,7 @@ onMounted(()=>{
             niedGridPane.style.opacity = 1 * (blinkStatus.value && !statusStore.isActive.jmaEew ? 1 : 0)
             tremGridPane.style.opacity = 1 * (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0)
         }
-        simpleShindo.value = newVal == 'eqlists'
+        simpleIcon.value = newVal == 'eqlists'
     }, { immediate: true })
     intervalEvents()
     mainInterval = setInterval(() => {

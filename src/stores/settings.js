@@ -32,7 +32,9 @@ export const useSettingsStore = defineStore('settingsStore', {
                 tremNet: false,
                 tremApi: 'lb-1',
                 displayTremShindo: false,
-                kmaNet: false
+                kmaNet: false,
+                kmaIntHold: 1,
+                displayKmaInt: false,
             },
             actionMag: 0.0,
             actionLocalCsis: 0,

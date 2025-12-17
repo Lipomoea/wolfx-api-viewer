@@ -12,13 +12,14 @@ import { seisNetUrls } from '@/utils/Urls';
 import { playSound, sendMyNotification, calcTimeDiff, focusWindow } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { KmaStation } from '@/classes/StationClasses';
+import { KmaStation, simpleIcon } from '@/classes/StationClasses';
 import WebSocketObj from '@/classes/WebSocket';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 
 const kmaUpdateTime = inject('kmaUpdateTime')
+const kmaMaxInt = inject('kmaMaxInt')
 const stationList = reactive([])
 const stations = reactive([])
 let map
@@ -29,6 +30,7 @@ const update = (intensities) => {
         station.update(intensities[index], false, render)
     })
     if(!render) pendingRender = true
+    kmaMaxInt.value = Math.max(...intensities, 0).toString()
 }
 const renderAll = ()=>{
     stations.forEach(station=>{
@@ -94,7 +96,7 @@ watch(()=>statusStore.map, newVal=>{
             }
         }, { immediate: true })
         unwatchRender = watch(
-            ()=>`${settingsStore.mainSettings.displaySeisNet.style}|${settingsStore.mainSettings.displaySeisNet.hideNoData}`, 
+            ()=>`${settingsStore.mainSettings.displaySeisNet.style}|${settingsStore.mainSettings.displaySeisNet.displayKmaInt}|${settingsStore.mainSettings.displaySeisNet.hideNoData}|${simpleIcon.value}`, 
             renderAll
         )
     }

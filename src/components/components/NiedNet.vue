@@ -14,7 +14,7 @@ import { seisNetUrls, iconUrls } from '@/utils/Urls';
 import { getTimeNumberString, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromLevel } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { NiedStation, simpleShindo } from '@/classes/StationClasses';
+import { NiedStation, simpleIcon } from '@/classes/StationClasses';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
@@ -322,7 +322,7 @@ watch(()=>statusStore.map, newVal=>{
             statusStore.isActive.niedNet = Object.keys(newVal).length > 0
         }, { immediate: true })
         unwatchRender = watch(
-            ()=>`${settingsStore.mainSettings.displaySeisNet.style}|${settingsStore.mainSettings.displaySeisNet.displayNiedShindo}|${settingsStore.mainSettings.displaySeisNet.hideNoData}|${simpleShindo.value}`, 
+            ()=>`${settingsStore.mainSettings.displaySeisNet.style}|${settingsStore.mainSettings.displaySeisNet.displayNiedShindo}|${settingsStore.mainSettings.displaySeisNet.hideNoData}|${simpleIcon.value}`, 
             renderAll
         )
     }

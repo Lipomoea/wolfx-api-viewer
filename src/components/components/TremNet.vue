@@ -13,7 +13,7 @@ import { seisNetUrls, iconUrls } from '@/utils/Urls';
 import { playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromInstShindo, stampToTime, getShindoFromLevel } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { simpleShindo, TremStation } from '@/classes/StationClasses';
+import { simpleIcon, TremStation } from '@/classes/StationClasses';
 import { useTimeStore } from '@/stores/time';
 
 const statusStore = useStatusStore()
@@ -198,7 +198,7 @@ watch(()=>statusStore.map, newVal=>{
             statusStore.isActive.tremNet = Object.keys(newVal).length > 0
         }, { immediate: true })
         unwatchRender = watch(
-            ()=>`${settingsStore.mainSettings.displaySeisNet.style}|${settingsStore.mainSettings.displaySeisNet.displayTremShindo}|${settingsStore.mainSettings.displaySeisNet.hideNoData}|${simpleShindo.value}`, 
+            ()=>`${settingsStore.mainSettings.displaySeisNet.style}|${settingsStore.mainSettings.displaySeisNet.displayTremShindo}|${settingsStore.mainSettings.displaySeisNet.hideNoData}|${simpleIcon.value}`, 
             renderAll
         )
     }

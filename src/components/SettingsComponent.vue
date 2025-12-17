@@ -91,7 +91,7 @@
                     <div class="switch-group">
                         <div class="w-full">
                             <div class="switch-full">
-                                <span>強震モニタ（日本）</span>
+                                <span>強震モニタ・震度（日本）</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.niedNet" />
                             </div>
                             <div class="switch-full pl-4">
@@ -115,7 +115,7 @@
                         </div>
                         <div class="w-full" v-if="settingsStore.advancedSettings.enableTremFunctions">
                             <div class="switch-full">
-                                <span>TREM-Net（台湾）</span>
+                                <span>TREM-Net・震度（台湾）</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.tremNet" />
                             </div>
                             <div class="switch-full pl-4">
@@ -141,8 +141,27 @@
                         </div>
                         <div class="w-full">
                             <div class="switch-full">
-                                <span>KMA-PEWS（韩国）</span>
+                                <span>KMA-PEWS・加速度（韩国）</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.kmaNet" />
+                            </div>
+                            <div class="switch-full pl-4">
+                                <span>加速度维持时间</span>
+                                <el-select 
+                                    v-model="settingsStore.mainSettings.displaySeisNet.kmaIntHold"
+                                    size="small"
+                                    :disabled="!settingsStore.mainSettings.displaySeisNet.kmaNet"
+                                    style="width: 72px;"
+                                >
+                                    <el-option label="关" value="1" />
+                                    <el-option label="5秒" value="5" />
+                                    <el-option label="10秒" value="10" />
+                                    <el-option label="30秒" value="30" />
+                                    <el-option label="60秒" value="60" />
+                                </el-select>
+                            </div>
+                            <div class="switch-full pl-4">
+                                <span>转换为实时烈度（MMI）</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayKmaInt" :disabled="!settingsStore.mainSettings.displaySeisNet.kmaNet" />
                             </div>
                         </div>
                     </div>
