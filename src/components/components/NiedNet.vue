@@ -195,32 +195,32 @@ onMounted(()=>{
             const time = getTimeNumberString(9, -delay.value)
             const date = time.slice(0, 8)
             const res = await getData(`${seisNetUrls.nied.stationData}/${date}/${time}.json`)
-            if(res?.status == 200){
+            if(res?.status == 200) {
                 const data = res.data
-                if(data.realTimeData.siteConfigId == siteConfigId.value){
+                if(data.realTimeData.siteConfigId == siteConfigId.value) {
                     stationData.value = data.realTimeData.intensity.split('')
                     const timeDiff = calcTimeDiff(data.realTimeData.dataTime.slice(0, -6), 9, niedUpdateTime.value, 9)
-                    if(timeDiff > 1000){
-                        const popNum = Math.floor(timeDiff / 1000) - 1
-                        stations.forEach(station=>{
+                    if(timeDiff > 1000) {
+                        const popNum = Math.round(timeDiff / 1000) - 1
+                        stations.forEach(station => {
                             station.recentLevel.splice(-popNum, popNum)
                             station.expireSeconds = Math.max(station.expireSeconds - popNum, station.defaultExpireSeconds)
                         })
                     }
-                    if(timeDiff > 10000){
-                        stations.forEach(station=>{
+                    if(timeDiff > 10000) {
+                        stations.forEach(station => {
                             station.isActive = false
                         })
                     }
-                    if(delay.value > maxDelay && timeDiff < 0){
-                        stations.forEach(station=>{
+                    if(delay.value > maxDelay && timeDiff < 0) {
+                        stations.forEach(station => {
                             station.level = -1
                             station.recentLevel = []
                             station.expireSeconds = station.defaultExpireSeconds
                             station.isActive = false
                         })
                     }
-                    if(delay.value > maxDelay && timeDiff < 0 || timeDiff > 0){
+                    if(delay.value > maxDelay && timeDiff < 0 || timeDiff > 0) {
                         niedUpdateTime.value = data.realTimeData.dataTime.slice(0, -6).replace('T', ' ')
                         update()
                     }

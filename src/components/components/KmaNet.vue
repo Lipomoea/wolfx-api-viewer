@@ -58,6 +58,10 @@ onMounted(()=>{
                 const timeDiff = calcTimeDiff(timestamp, 9, kmaUpdateTime.value, 9)
                 if(timeDiff > 0) {
                     if(mmi.length != stations.length) return
+                    if(timeDiff > 1000) {
+                        const popNum = Math.round(timeDiff / 1000) - 1
+                        stations.forEach(station => station.recentLevel.splice(-popNum, popNum))
+                    }
                     kmaUpdateTime.value = timestamp
                     update(mmi)
                 }
