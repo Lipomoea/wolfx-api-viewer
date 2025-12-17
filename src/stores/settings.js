@@ -7,31 +7,32 @@ export const useSettingsStore = defineStore('settingsStore', {
     state: ()=>({
         mainSettings: {
             source: {
-                jmaEew: true,
+                jmaEew: false,
                 cwaEew: true,
                 ceaEew: true,
                 iclEew: false,
                 scEew: true,
                 fjEew: true,
                 gqEew: false,
-                jmaEqlist: true,
+                jmaEqlist: false,
                 cwaEqlist: false,
                 cencEqlist: true,
                 usgsEqlist: false,
                 fssnEqlist: false,
-                jmaTsunami: true,
+                jmaTsunami: false,
                 nmefcTsunami: false,
             },
             displaySeisNet: {
                 style: 'nied',
                 hideNoData: false,
                 delay: 0,
-                niedNet: true,
+                niedNet: false,
                 niedSensitivity: 2,
                 displayNiedShindo: false,
                 tremNet: false,
                 tremApi: 'lb-1',
-                displayTremShindo: false
+                displayTremShindo: false,
+                kmaNet: false
             },
             actionMag: 0.0,
             actionLocalCsis: 0,

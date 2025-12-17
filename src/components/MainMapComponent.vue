@@ -236,6 +236,9 @@
                     <div class="update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isTremDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.tremNet" @dblclick="resetSeisNetDelay">
                         TREM-Net : {{ tremUpdateTime }} (UTC+8)
                     </div>
+                    <div class="update-time" :class="isKmaDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.kmaNet" @dblclick="resetSeisNetDelay">
+                        KMA-PEWS: {{ kmaUpdateTime }} (UTC+9)
+                    </div>
                 </div>
                 <div class="int-list" v-if="settingsStore.mainSettings.displayAreaIntensities">
                     <div class="csis-list" v-show="csisList.length">
@@ -446,6 +449,9 @@ provide('tremUpdateTime', tremUpdateTime)
 provide('tremMaxShindo', tremMaxShindo)
 provide('tremPeriodMaxShindo', tremPeriodMaxShindo)
 const isTremDelayed = ref(true)
+const kmaUpdateTime = ref('1970-01-01 09:00:00')
+provide('kmaUpdateTime', kmaUpdateTime)
+const isKmaDelayed = ref(true)
 const isAutoZoom = ref(true)
 const activeEewList = reactive([])
 const eqlistList = reactive([])
@@ -551,6 +557,10 @@ onMounted(()=>{
         map.getPane(`niedStationPane${i}`).style.zIndex = i + 50
         map.createPane(`tremStationPane${i}`)
         map.getPane(`tremStationPane${i}`).style.zIndex = i + 50
+    }
+    for(let i = -1; i <= 13; i++){
+        map.createPane(`kmaStationPane${i}`)
+        map.getPane(`kmaStationPane${i}`).style.zIndex = i + 50
     }
     map.createPane('userPane')
     map.getPane('userPane').style.zIndex = 100
@@ -1076,6 +1086,7 @@ const intervalEvents = ()=>{
     tsunamiBasePane.style.opacity = (tsunamiFlickerCounter ? 1 : 0) * (menuId.value == 'eews' ? 0.3 : 1)
     isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
     isTremDelayed.value = !verifyUpToDate(tremUpdateTime.value, 8, 10000)
+    isKmaDelayed.value = !verifyUpToDate(kmaUpdateTime.value, 9, 10000)
     wolfxRS.value = statusStore.wolfxSocket?.socket.readyState ?? 4
     fanRS.value = statusStore.fanSocket?.socket.readyState ?? 4
     p2pquakeRS.value = statusStore.p2pquakeSocket?.socket.readyState ?? 4

@@ -91,7 +91,7 @@
                     <div class="switch-group">
                         <div class="w-full">
                             <div class="switch-full">
-                                <span>強震モニタ</span>
+                                <span>強震モニタ（日本）</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.niedNet" />
                             </div>
                             <div class="switch-full pl-4">
@@ -115,7 +115,7 @@
                         </div>
                         <div class="w-full" v-if="settingsStore.advancedSettings.enableTremFunctions">
                             <div class="switch-full">
-                                <span>TREM-Net</span>
+                                <span>TREM-Net（台湾）</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.tremNet" />
                             </div>
                             <div class="switch-full pl-4">
@@ -137,6 +137,12 @@
                             <div class="switch-full pl-4">
                                 <span>解析震度阶</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayTremShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.tremNet" />
+                            </div>
+                        </div>
+                        <div class="w-full">
+                            <div class="switch-full">
+                                <span>KMA-PEWS（韩国）</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.kmaNet" />
                             </div>
                         </div>
                     </div>
@@ -1127,7 +1133,7 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false" append-to-body>
-            <div class="header">要石 v2.2.0</div>
+            <div class="header">要石 v2.3.0</div>
             <div class="title">使用方法</div>
             <div class="about">
                 <p>主要功能：接收日本气象厅、台湾省中央气象署、中国地震局、四川省地震局、福建省地震局地震预警信息，日本气象厅、中国地震台网地震信息，日本气象厅海啸信息，NIED強震モニタ测站数据。</p>

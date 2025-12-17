@@ -52,6 +52,24 @@ const colorBand = {
     ]
 }
 
+const kmaColorBand = {
+    nied: [
+        '#0003cf', '#004ff4', '#05d384', '#50fb30', '#ccff09', 
+        '#fdfc00', '#ffca00', '#ff7900', '#ff4700', '#f91900', 
+        '#e10000', '#af0000', '#af0000', '#af0000'
+    ],
+    srev: [
+        '#ffffff00', '#ffffff44', '#ffffff99', '#ffffffff', '#ccff09', 
+        '#fdfc00', '#ffca00', '#ff7900', '#ff4700', '#f91900', 
+        '#e10000', '#af0000', '#af0000', '#af0000'
+    ],
+    mix: [
+        '#0003cf00', '#004ff444', '#05d38499', '#50fb30ff', '#ccff09', 
+        '#fdfc00', '#ffca00', '#ff7900', '#ff4700', '#f91900', 
+        '#e10000', '#af0000', '#af0000', '#af0000'
+    ]
+}
+
 const shindoColorBand = [
     'var(--dark-gray)', 'var(--dark-gray)', 'var(--dark-gray)', 'var(--dark-gray)', 'var(--dark-gray)', 'var(--dark-gray)', 
     'var(--dark-gray)', 'var(--dark-gray)', 
@@ -83,7 +101,7 @@ for(let zoom = 6; zoom <= 10; zoom ++) {
 
 let settingsStore
 
-class NiedStation {
+export class NiedStation {
     constructor(map, id, latLng, intensity, expireSeconds){
         if(!settingsStore) settingsStore = useSettingsStore()
         this.map = map
@@ -282,7 +300,7 @@ class NiedStation {
         clearTimeout(this.activeTimer)
     }
 }
-class TremStation {
+export class TremStation {
     constructor(map, id, latLng, intensity, isActive){
         if(!settingsStore) settingsStore = useSettingsStore()
         this.map = map
@@ -429,4 +447,87 @@ class TremStation {
         this.marker = null
     }
 }
-export { NiedStation, TremStation }
+export class KmaStation {
+    constructor(map, id, latLng, intensity, isActive){
+        if(!settingsStore) settingsStore = useSettingsStore()
+        this.map = map
+        this.id = id
+        this.latLng = latLng
+        this.level = intensity + 2
+        this.isActive = isActive
+        this.render()
+    }
+    update(intensity, isActive, render = true){
+        const level = intensity + 2
+        if(level != this.level){
+            this.level = level
+            render && this.render()
+        }
+        this.isActive = isActive
+    }
+    render(){
+        const oldColor = this.color
+        const oldRadius = this.radius
+        this.setColorRadius()
+        if(this.color == oldColor && this.radius == oldRadius) return
+        if(this.color != oldColor) {
+            if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
+            this.marker = L.circleMarker(this.latLng, {
+                radius: this.radius,
+                opacity: 1,
+                fillOpacity: 1,
+                color: this.color,
+                fillColor: this.color,
+                weight: 0,
+                pane: `kmaStationPane${this.level}`,
+                interactive: false
+            })
+            this.marker.addTo(this.map)
+        }
+        else {
+            this.marker.setStyle({
+                color: this.color,
+                fillColor: this.color,
+                weight: 0,
+            }).setRadius(this.radius)
+        }
+    }
+    setColorRadius(){
+        const zoom = this.map.getZoom()
+        switch(settingsStore.mainSettings.displaySeisNet.style) {
+            case 'nied':
+                if(this.level < 0 || this.level >= kmaColorBand.nied.length){
+                    if(settingsStore.mainSettings.displaySeisNet.hideNoData) this.color = '#cfcfcf00'
+                    else this.color = '#cfcfcf'
+                }
+                else{
+                    this.color = kmaColorBand.nied[this.level]
+                }
+                this.radius = (this.level <= 5 ? 2 : 2.5) * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+                break
+            case 'srev':
+                if(this.level < 0 || this.level >= kmaColorBand.srev.length){
+                    this.color = kmaColorBand.srev[0]
+                }
+                else{
+                    this.color = kmaColorBand.srev[this.level]
+                }
+                this.radius = 2.5 * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+                break
+            case 'mix':
+                if(this.level < 0 || this.level >= kmaColorBand.mix.length){
+                    this.color = kmaColorBand.mix[0]
+                }
+                else{
+                    this.color = kmaColorBand.mix[this.level]
+                }
+                this.radius = 2.5 * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+                break
+        }
+    }
+    terminate(){
+        if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
+        this.map = null
+        this.marker = null
+    }
+}
