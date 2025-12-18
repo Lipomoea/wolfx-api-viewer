@@ -26,11 +26,13 @@ let map
 let pendingRender = false
 const update = (intensities) => {
     const render = document.visibilityState === 'visible'
+    let maxInt = 0
     stations.forEach((station, index) => {
         station.update(intensities[index], false, render)
+        if(station.intensity > maxInt) maxInt = station.intensity
     })
     if(!render) pendingRender = true
-    kmaMaxInt.value = Math.max(...intensities, 0).toString()
+    kmaMaxInt.value = maxInt.toString()
 }
 const renderAll = ()=>{
     stations.forEach(station=>{

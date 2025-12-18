@@ -507,7 +507,7 @@ export class KmaStation {
         this.level = intensity + 2
         this.recentLevel = []
         this.holdLevel = this.level
-        this.intensity = Math.min(Math.max(this.holdLevel - 2, 1), 11)
+        this.intensity = Math.min(Math.max(this.holdLevel - 2, 0), 11)
         this.isActive = isActive
         this.render()
     }
@@ -516,7 +516,7 @@ export class KmaStation {
         this.recentLevel.unshift(this.level)
         this.recentLevel.splice(settingsStore.mainSettings.displaySeisNet.kmaIntHold)
         this.holdLevel = Math.max(...this.recentLevel)
-        this.intensity = Math.min(Math.max(this.holdLevel - 2, 1), 11)
+        this.intensity = Math.min(Math.max(this.holdLevel - 2, 0), 11)
         render && this.render()
         this.isActive = isActive
     }
