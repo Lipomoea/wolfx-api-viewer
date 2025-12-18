@@ -234,7 +234,7 @@ onMounted(()=>{
                     settingsStore.mainSettings.displaySeisNet.delay = 0
                     setTimeout(() => {
                         settingsStore.mainSettings.displaySeisNet.niedNet = true
-                    }, 1000);
+                    }, 1500);
                 }
             }
         } catch (err) {
@@ -322,7 +322,11 @@ watch(()=>statusStore.map, newVal=>{
             statusStore.isActive.niedNet = Object.keys(newVal).length > 0
         }, { immediate: true })
         unwatchRender = watch(
-            ()=>`${settingsStore.mainSettings.displaySeisNet.style}|${settingsStore.mainSettings.displaySeisNet.displayNiedShindo}|${settingsStore.mainSettings.displaySeisNet.hideNoData}|${simpleIcon.value}`, 
+            ()=>`${settingsStore.mainSettings.displaySeisNet.style}
+            |${settingsStore.mainSettings.displaySeisNet.displayNiedShindo}
+            |${settingsStore.mainSettings.displaySeisNet.hideNoData}
+            |${simpleIcon.value}
+            |${settingsStore.mainSettings.displaySeisNet.displayShindo0}`, 
             renderAll
         )
     }

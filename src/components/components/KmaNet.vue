@@ -102,7 +102,11 @@ watch(()=>statusStore.map, newVal=>{
             }
         }, { immediate: true })
         unwatchRender = watch(
-            ()=>`${settingsStore.mainSettings.displaySeisNet.style}|${settingsStore.mainSettings.displaySeisNet.displayKmaInt}|${settingsStore.mainSettings.displaySeisNet.hideNoData}|${simpleIcon.value}`, 
+            ()=>`${settingsStore.mainSettings.displaySeisNet.style}
+            |${settingsStore.mainSettings.displaySeisNet.displayKmaInt}
+            |${settingsStore.mainSettings.displaySeisNet.hideNoData}
+            |${simpleIcon.value}
+            |${settingsStore.mainSettings.displaySeisNet.displayShindo0}`, 
             renderAll
         )
     }

@@ -198,7 +198,11 @@ watch(()=>statusStore.map, newVal=>{
             statusStore.isActive.tremNet = Object.keys(newVal).length > 0
         }, { immediate: true })
         unwatchRender = watch(
-            ()=>`${settingsStore.mainSettings.displaySeisNet.style}|${settingsStore.mainSettings.displaySeisNet.displayTremShindo}|${settingsStore.mainSettings.displaySeisNet.hideNoData}|${simpleIcon.value}`, 
+            ()=>`${settingsStore.mainSettings.displaySeisNet.style}
+            |${settingsStore.mainSettings.displaySeisNet.displayTremShindo}
+            |${settingsStore.mainSettings.displaySeisNet.hideNoData}
+            |${simpleIcon.value}
+            |${settingsStore.mainSettings.displaySeisNet.displayShindo0}`, 
             renderAll
         )
     }

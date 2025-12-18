@@ -221,6 +221,10 @@
                                 <span>隐藏无数据测站</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.hideNoData" />
                             </div>
+                            <div class="switch-full">
+                                <span>显示震度0/烈度1图标</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayShindo0" />
+                            </div>
                         </div>
                     </div>
                 </div>

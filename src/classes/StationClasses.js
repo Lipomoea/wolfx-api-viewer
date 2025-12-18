@@ -225,7 +225,7 @@ export class NiedStation {
         const oldRadius = this.radius
         this.setColorRadius()
         const zoom = this.map.getZoom()
-        if(settingsStore.mainSettings.displaySeisNet.displayNiedShindo && this.level >= 6 && zoom >= 4){
+        if(settingsStore.mainSettings.displaySeisNet.displayNiedShindo && this.level >= (settingsStore.mainSettings.displaySeisNet.displayShindo0 ? 6 : 8) && zoom >= 4){
             if(simpleIcon.value && zoom <= 8) {
                 this.markerType = 1
             }
@@ -380,7 +380,7 @@ export class TremStation {
         const oldRadius = this.radius
         this.setColorRadius()
         const zoom = this.map.getZoom()
-        if(settingsStore.mainSettings.displaySeisNet.displayTremShindo && this.level >= 6 && zoom >= 4){
+        if(settingsStore.mainSettings.displaySeisNet.displayTremShindo && this.level >= (settingsStore.mainSettings.displaySeisNet.displayShindo0 ? 6 : 8) && zoom >= 4){
             if(simpleIcon.value && zoom <= 8) {
                 this.markerType = 1
             }
@@ -515,9 +515,12 @@ export class KmaStation {
         this.level = intensity + 2
         this.recentLevel.unshift(this.level)
         this.recentLevel.splice(settingsStore.mainSettings.displaySeisNet.kmaIntHold)
-        this.holdLevel = Math.max(...this.recentLevel)
-        this.intensity = Math.min(Math.max(this.holdLevel - 2, 0), 11)
-        render && this.render()
+        const holdLevel = Math.max(...this.recentLevel)
+        if(holdLevel != this.holdLevel) {
+            this.holdLevel = holdLevel
+            this.intensity = Math.min(Math.max(this.holdLevel - 2, 0), 11)
+            render && this.render()
+        }
         this.isActive = isActive
     }
     render(){
@@ -526,7 +529,7 @@ export class KmaStation {
         const oldRadius = this.radius
         this.setColorRadius()
         const zoom = this.map.getZoom()
-        if(settingsStore.mainSettings.displaySeisNet.displayKmaInt && this.holdLevel >= 3 && zoom >= 4){
+        if(settingsStore.mainSettings.displaySeisNet.displayKmaInt && this.holdLevel >= (settingsStore.mainSettings.displaySeisNet.displayShindo0 ? 3 : 4) && zoom >= 4){
             if(simpleIcon.value && zoom <= 8) {
                 this.markerType = 1
             }
@@ -616,7 +619,7 @@ export class KmaStation {
                 else{
                     this.color = kmaColorBand.nied[this.holdLevel]
                 }
-                this.radius = (this.holdLevel <= 5 ? 2 : 2.5) * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+                this.radius = (this.holdLevel <= 2 ? 2 : 2.5) * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
                 break
             case 'srev':
                 if(this.holdLevel < 0 || this.holdLevel >= kmaColorBand.srev.length){
