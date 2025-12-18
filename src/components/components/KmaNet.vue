@@ -81,6 +81,7 @@ const update = (intensities) => {
     const activeStations = new Set()
     let first = null
     for(let i = 0; i < stationList.length; i++) {
+        if(stations[i].activityLevel < 2) continue
         const nearbyStations = adjStationIds[i].map(id => stations[id])
         const nearbyLevels = nearbyStations.map(station => station.activityLevel)
         const nearbyLength = nearbyLevels.length
