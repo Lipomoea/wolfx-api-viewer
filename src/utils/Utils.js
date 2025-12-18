@@ -505,3 +505,5 @@ export const calcMaxJmaShindoLevel = (
   if (maxInt1 < 0.5) return "0";
   else return getShindoFromInstShindo(maxInt1, useSymbol);
 };
+export const getMmiFromKmaLevel = level =>
+  level == -1 ? "?" : Math.min(Math.max(level - 2, 0), 11).toString();

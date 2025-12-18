@@ -18,7 +18,7 @@ import { NiedStation, simpleIcon } from '@/classes/StationClasses';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
-const stationList = ref([])
+let stationList = []
 const stationData = ref([])
 const stations = reactive([])
 const siteConfigId = ref('')
@@ -30,7 +30,8 @@ const niedMaxShindo = inject('niedMaxShindo')
 const niedUpdateTime = inject('niedUpdateTime')
 const niedPeriodMaxShindo = inject('niedPeriodMaxShindo')
 const handleTempEqlists = inject('handleTempEqlists')
-const periodMaxLevel = ref(-1)
+const smartSetView = inject('smartSetView')
+let periodMaxLevel = -1
 const currentMaxShindo = computed(()=>{
     const currentMaxLevel = Math.max(...Object.keys(grids.value).map(key=>grids.value[key].level), -1)
     if(currentMaxLevel == -1) return -1
@@ -47,18 +48,18 @@ let adjStationIds = {}
 let expireSeconds = {}
 let distMatrix = [[]]
 const activeStations = computed(()=>{
-    let list = []
+    const list = []
     stations.forEach(station=>{
-        if(station.isActive) list.push(station.id)
+        if(station.isActive) list.push(station)
     })
     return list
 })
 let decimal = [0, 0]
 const grids = computed(()=>{
     let grids = {}
-    activeStations.value.forEach(id=>{
-        const latLng = stations[id].latLng.map((l, index) => Math.round(l - decimal[index]) + decimal[index])
-        const level = stations[id].level
+    activeStations.value.forEach(station=>{
+        const latLng = station.latLng.map((l, index) => Math.round(l - decimal[index]) + decimal[index])
+        const level = station.level
         const key = JSON.stringify(latLng)
         if(key in grids){
             if(level > grids[key].level) grids[key].level = level
@@ -73,7 +74,6 @@ const grids = computed(()=>{
     return grids
 })
 const gridRects = {}
-const smartSetView = inject('smartSetView')
 const getData = async (url)=>{
     try {
         const res = await axios.get(url, { timeout: 10000 })
@@ -89,12 +89,12 @@ let pendingRender = false
 const nearbyLength = 6
 const activityThresArr = [Infinity, 9, 12, 14, 15, 16, 16]
 const update = ()=>{
-    if(stationList.value.length == stations.length && stations.length == stationData.value.length){
+    if(stationList.length == stations.length && stations.length == stationData.value.length){
+        const render = document.visibilityState === 'visible'
+        if(!render) pendingRender = true
         let maxLevel = -1
-        for(let i = 0; i < stationList.value.length; i++){
-            const render = document.visibilityState === 'visible'
+        for(let i = 0; i < stationList.length; i++){
             stations[i].update(stationData.value[i], render)
-            if(!render) pendingRender = true
             if(stations[i].level > maxLevel) maxLevel = stations[i].level
         }
         niedMaxShindo.value = getShindoFromLevel(maxLevel)
@@ -179,9 +179,43 @@ const fetchStationList = async () => {
     try {
         const res = await Http.get(seisNetUrls.nied.stationList + `?time=${Date.now()}`)
         if(res && res.siteConfigId) {
-            stationList.value = res.items
-            siteConfigId.value = res.siteConfigId
             clearInterval(fetchStationInterval)
+            stationList = res.items
+            siteConfigId.value = res.siteConfigId
+            if(stationList.length > 0){
+                let latLngs = []
+                for(let i = 0; i < stationList.length; i++){
+                    latLngs[i] = L.latLng(stationList[i])
+                }
+                for(let i = 0; i < stationList.length; i++){
+                    const distances = []
+                    let candidate = {
+                        id: null,
+                        distance: 40
+                    }
+                    distMatrix[i] = []
+                    for(let j = 0; j < stationList.length; j++){
+                        let distance
+                        if(j < i) distance = distMatrix[j][i]
+                        else if(j == i) distance = 0
+                        else distance = latLngs[i].distanceTo(latLngs[j]) / 1000
+                        distMatrix[i][j] = distance
+                        if(distance <= 30) distances.push({ id: j, distance })
+                        else if(distance <= candidate.distance) candidate = { id: j, distance }
+                    }
+                    if(distances.length <= 1 && candidate.id !== null) {
+                        distances.push(candidate)
+                    }
+                    distances.sort((a, b) => a.distance - b.distance).splice(nearbyLength)
+                    adjStationIds[i] = distances.map(obj => obj.id)
+                    const maxDist = distances[distances.length - 1].distance
+                    expireSeconds[i] = Math.max(Math.round(maxDist / 3.5), 5)
+                }
+                stationList.forEach((latLng, index)=>{
+                    const station = reactive(new NiedStation(map, index, latLng, 'c', expireSeconds[index]))
+                    stations.push(station)
+                })
+            }
         }
     } catch (err) {
         console.log(err);
@@ -248,45 +282,11 @@ onMounted(()=>{
         }
     })
 })
-let unwatchStationList, unwatchGrids, unwatchRender
+let unwatchGrids, unwatchRender
 watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
         map.on('zoomend', renderAll)
-        unwatchStationList = watch(stationList, newVal=>{
-            if(newVal.length > 0){
-                let latLngs = []
-                for(let i = 0; i < newVal.length; i++){
-                    latLngs[i] = L.latLng(newVal[i])
-                }
-                for(let i = 0; i < newVal.length; i++){
-                    const distances = []
-                    let candidate = {
-                        id: null,
-                        distance: 40
-                    }
-                    distMatrix[i] = []
-                    for(let j = 0; j < newVal.length; j++){
-                        const distance = latLngs[i].distanceTo(latLngs[j]) / 1000
-                        distMatrix[i][j] = distance
-                        if(distance <= 30) distances.push({ id: j, distance })
-                        else if(distance <= candidate.distance) candidate = { id: j, distance }
-                    }
-                    if(distances.length <= 1 && candidate.id !== null) {
-                        distances.push(candidate)
-                    }
-                    distances.sort((a, b) => a.distance - b.distance).splice(nearbyLength)
-                    adjStationIds[i] = distances.map(obj => obj.id)
-                    const maxDist = distances[distances.length - 1].distance
-                    expireSeconds[i] = Math.max(Math.round(maxDist / 3.5), 5)
-                }
-                newVal.forEach((latLng, index)=>{
-                    const station = reactive(new NiedStation(map, index, latLng, 'c', expireSeconds[index]))
-                    stations.push(station)
-                })
-                if(unwatchStationList) unwatchStationList()
-            }
-        }, { immediate: true })
         unwatchGrids = watch(grids, (newVal)=>{
             for(let key in newVal) {
                 const item = newVal[key]
@@ -310,7 +310,7 @@ watch(()=>statusStore.map, newVal=>{
                         color
                     })
                 }
-                if(item.level > periodMaxLevel.value) periodMaxLevel.value = item.level
+                if(item.level > periodMaxLevel) periodMaxLevel = item.level
             }
             for(let key in gridRects) {
                 if(!(key in newVal)) {
@@ -318,7 +318,7 @@ watch(()=>statusStore.map, newVal=>{
                     delete gridRects[key]
                 }
             }
-            niedPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel.value)
+            niedPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel)
             statusStore.isActive.niedNet = Object.keys(newVal).length > 0
         }, { immediate: true })
         unwatchRender = watch(
@@ -333,14 +333,14 @@ watch(()=>statusStore.map, newVal=>{
 }, { immediate: true })
 watch(()=>(statusStore.isActive.jmaEew || statusStore.isActive.niedNet), newVal=>{
     if(newVal){
-        if(periodMaxLevel.value == -1){
-            periodMaxLevel.value = 0
-            niedPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel.value)
+        if(periodMaxLevel == -1){
+            periodMaxLevel = 0
+            niedPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel)
         }
     }
     else{
-        periodMaxLevel.value = -1
-        niedPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel.value)
+        periodMaxLevel = -1
+        niedPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel)
     }
 }, { immediate: true })
 watch(() => Object.keys(grids.value).length, smartSetView)
@@ -401,7 +401,6 @@ onBeforeUnmount(()=>{
     clearInterval(requestInterval)
     clearInterval(delayInterval)
     if(map !== null) map.off('zoomend', renderAll)
-    if(unwatchStationList) unwatchStationList()
     if(unwatchGrids) unwatchGrids()
     if(unwatchRender) unwatchRender()
     stations.forEach((station, index)=>{

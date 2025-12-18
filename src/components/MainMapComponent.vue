@@ -222,6 +222,21 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.kmaNet && settingsStore.mainSettings.displaySeisNet.displayKmaInt && kmaPeriodMaxInt != '?'">
+                            <div class="shindo-bar gray">KMA区间</div>
+                            <div class="info">
+                                <div class="intensity" :class="setClassName(kmaPeriodMaxInt, false)">
+                                    <div class="intensity-title">最大烈度</div>
+                                    <div class="csis" :class="{
+                                        'roman': settingsStore.mainSettings.useRomanCsis,
+                                        'scale-75': kmaPeriodMaxInt == '8',
+                                        'scale-9': kmaPeriodMaxInt == '7' || kmaPeriodMaxInt == '12'
+                                    }">
+                                        {{ formatCsis(kmaPeriodMaxInt, settingsStore.mainSettings.useRomanCsis) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="left-bottom">
@@ -355,7 +370,7 @@ const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 const timeStore = useTimeStore()
 let map, jpEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap, cnTsunamiBaseMap, labelLayer1, labelLayer2, terminatorLayer, terminatorFillLayer, cnFaultBaseMap
-let eewMarkerPane, eqlistMarkerPane, historyMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, eewBasePane, tsunamiBasePane, labelPane1, labelPane2
+let eewMarkerPane, eqlistMarkerPane, historyMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, kmaGridPane, eewBasePane, tsunamiBasePane, labelPane1, labelPane2
 let userMarker
 const defaultLatLng = [38.1, 104.6]
 const { isValidUserLatLng, isValidViewLatLng, isDisplayUser, nearestJmaLoc } = storeToRefs(settingsStore)
@@ -466,9 +481,11 @@ provide('tremMaxShindo', tremMaxShindo)
 provide('tremPeriodMaxShindo', tremPeriodMaxShindo)
 const kmaUpdateTime = ref('1970-01-01 09:00:00')
 const kmaMaxInt = ref('?')
+const kmaPeriodMaxInt = ref('?')
 const isKmaDelayed = ref(true)
 provide('kmaUpdateTime', kmaUpdateTime)
 provide('kmaMaxInt', kmaMaxInt)
+provide('kmaPeriodMaxInt', kmaPeriodMaxInt)
 const isAutoZoom = ref(true)
 const activeEewList = reactive([])
 const eqlistList = reactive([])
@@ -589,6 +606,9 @@ onMounted(()=>{
     map.createPane('tremGridPane')
     tremGridPane = map.getPane('tremGridPane')
     tremGridPane.style.zIndex = 140
+    map.createPane('kmaGridPane')
+    kmaGridPane = map.getPane('kmaGridPane')
+    kmaGridPane.style.zIndex = 140
     map.createPane('wavePane')
     wavePane = map.getPane('wavePane')
     wavePane.style.zIndex = 150
@@ -731,6 +751,7 @@ onMounted(()=>{
             waveFillPane.style.opacity = 0.3
             niedGridPane.style.opacity = 0.3 * (blinkStatus.value && !statusStore.isActive.jmaEew ? 1 : 0)
             tremGridPane.style.opacity = 0.3 * (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0)
+            kmaGridPane.style.opacity = 0.3 * (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0)
         }
         else{
             eewMarkerPane.style.opacity = 1 * (blinkStatus.value ? 1 : 0)
@@ -738,6 +759,7 @@ onMounted(()=>{
             waveFillPane.style.opacity = 1
             niedGridPane.style.opacity = 1 * (blinkStatus.value && !statusStore.isActive.jmaEew ? 1 : 0)
             tremGridPane.style.opacity = 1 * (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0)
+            kmaGridPane.style.opacity = 1 * (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0)
         }
         simpleIcon.value = newVal == 'eqlists'
     }, { immediate: true })
@@ -1100,6 +1122,7 @@ const intervalEvents = ()=>{
     eewMarkerPane.style.opacity = (blinkStatus.value ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
     niedGridPane.style.opacity = (blinkStatus.value && !statusStore.isActive.jmaEew ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
     tremGridPane.style.opacity = (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
+    kmaGridPane.style.opacity = (blinkStatus.value ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
     tsunamiBasePane.style.opacity = (tsunamiFlickerCounter ? 1 : 0) * (menuId.value == 'eews' ? 0.3 : 1)
     isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
     isTremDelayed.value = !verifyUpToDate(tremUpdateTime.value, 8, 10000)
@@ -1204,6 +1227,9 @@ const setView = () => {
                             if(!statusStore.isActive.cwaEew) {
                                 shouldExtend = true
                             }
+                            break
+                        case 'kmaGridPane':
+                            shouldExtend = true
                             break
                     }
                     if(shouldExtend) {

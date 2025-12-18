@@ -1,6 +1,6 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { getLevelFromInstShindo, getShindoFromChar, getShindoFromInstShindo, intScale, shindoScale } from '@/utils/Utils';
+import { getLevelFromInstShindo, getMmiFromKmaLevel, getShindoFromChar, getShindoFromInstShindo, intScale, shindoScale } from '@/utils/Utils';
 import { useSettingsStore } from '@/stores/settings';
 import { ref } from 'vue';
 import '@/assets/background.css';
@@ -506,19 +506,21 @@ export class KmaStation {
         this.latLng = latLng
         this.level = intensity + 2
         this.recentLevel = []
+        this.activityLevel = this.level
         this.holdLevel = this.level
-        this.intensity = Math.min(Math.max(this.holdLevel - 2, 0), 11)
+        this.intensity = getMmiFromKmaLevel(this.holdLevel)
         this.isActive = isActive
         this.render()
     }
     update(intensity, isActive, render = true){
         this.level = intensity + 2
         this.recentLevel.unshift(this.level)
-        this.recentLevel.splice(settingsStore.mainSettings.displaySeisNet.kmaIntHold)
-        const holdLevel = Math.max(...this.recentLevel)
+        this.recentLevel.splice(60)
+        this.activityLevel = Math.max(...this.recentLevel.slice(0, 10))
+        const holdLevel = Math.max(...this.recentLevel.slice(0, settingsStore.mainSettings.displaySeisNet.kmaIntHold))
         if(holdLevel != this.holdLevel) {
             this.holdLevel = holdLevel
-            this.intensity = Math.min(Math.max(this.holdLevel - 2, 0), 11)
+            this.intensity = getMmiFromKmaLevel(this.holdLevel)
             render && this.render()
         }
         this.isActive = isActive
@@ -641,9 +643,17 @@ export class KmaStation {
                 break
         }
     }
+    setActive(){
+        this.isActive = true
+        clearTimeout(this.activeTimer)
+        this.activeTimer = setTimeout(() => {
+            this.isActive = false
+        }, 10500);
+    }
     terminate(){
         if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
         this.map = null
         this.marker = null
+        clearTimeout(this.activeTimer)
     }
 }
