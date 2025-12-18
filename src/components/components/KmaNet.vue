@@ -89,7 +89,7 @@ const update = (intensities) => {
         const count1 = nearbyLevels.filter(level => level >= 3).length
         const count2 = nearbyLevels.filter(level => level >= 4).length
         if(count0 >= Math.max(0.75 * nearbyLength, 4)
-        || count1 >= Math.max(0.5 * nearbyLength, 3)
+        || count1 >= Math.max(0.4 * nearbyLength, 3)
         || count2 >= 2) {
             nearbyStations.forEach(station => {
                 if(station.activityLevel >= 2 && !activeStations.has(station)) {
