@@ -512,7 +512,7 @@ export class KmaStation {
         this.isActive = isActive
         this.render()
     }
-    update(intensity, isActive, render = true){
+    update(intensity, render = true){
         this.level = intensity + 2
         this.recentLevel.unshift(this.level)
         this.recentLevel.splice(60)
@@ -523,7 +523,6 @@ export class KmaStation {
             this.intensity = getMmiFromKmaLevel(this.holdLevel)
             render && this.render()
         }
-        this.isActive = isActive
     }
     render(){
         const oldMarkerType = this.markerType

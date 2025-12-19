@@ -74,7 +74,7 @@ const update = (intensities) => {
     if(!render) pendingRender = true
     let maxInt = 0
     stations.forEach((station, index) => {
-        station.update(intensities[index], false, render)
+        station.update(intensities[index], render)
         if(station.intensity > maxInt) maxInt = station.intensity
     })
     kmaMaxInt.value = maxInt.toString()
@@ -87,7 +87,7 @@ const update = (intensities) => {
         const nearbyLength = nearbyLevels.length
         const count1 = nearbyLevels.filter(level => level >= 3).length
         const count2 = nearbyLevels.filter(level => level >= 4).length
-        if(count1 >= Math.max(0.5 * nearbyLength, 3) || count2 >= 2) {
+        if(count1 >= Math.max(0.6 * nearbyLength, 4) || count2 >= 2) {
             nearbyStations.forEach(station => {
                 if(station.activityLevel >= 3 && !activeStations.has(station)) {
                     station.setActive()
