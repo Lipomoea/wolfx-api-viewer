@@ -81,18 +81,15 @@ const update = (intensities) => {
     const activeStations = new Set()
     let first = null
     for(let i = 0; i < stationList.length; i++) {
-        if(stations[i].activityLevel < 2) continue
+        if(stations[i].activityLevel < 3) continue
         const nearbyStations = adjStationIds[i].map(id => stations[id])
         const nearbyLevels = nearbyStations.map(station => station.activityLevel)
         const nearbyLength = nearbyLevels.length
-        const count0 = nearbyLevels.filter(level => level >= 2).length
         const count1 = nearbyLevels.filter(level => level >= 3).length
         const count2 = nearbyLevels.filter(level => level >= 4).length
-        if(count0 >= Math.max(0.75 * nearbyLength, 4)
-        || count1 >= Math.max(0.4 * nearbyLength, 3)
-        || count2 >= 2) {
+        if(count1 >= Math.max(0.5 * nearbyLength, 3) || count2 >= 2) {
             nearbyStations.forEach(station => {
-                if(station.activityLevel >= 2 && !activeStations.has(station)) {
+                if(station.activityLevel >= 3 && !activeStations.has(station)) {
                     station.setActive()
                     activeStations.add(station)
                     if(!statusStore.isActive.kmaNet && (!first || station.activityLevel > first.activityLevel))
