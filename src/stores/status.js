@@ -58,12 +58,12 @@ export const defaultTsunamiMessage = {
 }
 
 export const eewSources = ['jmaEew', 'cwaEew', 'ceaEew', 'iclEew', 'scEew', 'fjEew', 'gqEew']
-export const eqlistSources = ['jmaEqlist', 'cwaEqlist', 'cencEqlist', 'usgsEqlist', 'fssnEqlist']
+export const eqlistSources = ['jmaEqlist', 'cwaEqlist', 'cencEqlist', 'kmaEqlist', 'usgsEqlist', 'fssnEqlist']
 export const tsunamiSources = ['jmaTsunami', 'nmefcTsunami']
 export const seisNetSources = ['niedNet', 'tremNet', 'kmaNet']
 
 const useWolfxSocket = ['jmaEew', 'cwaEew', 'ceaEew', 'scEew', 'fjEew', 'jmaEqlist', 'cencEqlist']
-const useFanSocket = ['jmaEew', 'cwaEew', 'ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist', 'usgsEqlist', 'fssnEqlist', 'nmefcTsunami']
+const useFanSocket = ['jmaEew', 'cwaEew', 'ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist', 'kmaEqlist', 'usgsEqlist', 'fssnEqlist', 'nmefcTsunami']
 const useP2pquakeSocket = ['jmaEqlist', 'jmaTsunami']
 
 const wolfx2Source = {
@@ -82,6 +82,7 @@ const source2Fan = {
     'scEew': 'sichuan',
     'fjEew': 'fujian',
     'cencEqlist': 'cenc',
+    'kmaEqlist': 'kma',
     'usgsEqlist': 'usgs',
     'fssnEqlist': 'fssn',
     'nmefcTsunami': 'tsunami',
@@ -93,6 +94,7 @@ const fan2Source = {
     'sichuan': 'scEew',
     'fujian': 'fjEew',
     'cenc': 'cencEqlist',
+    'kma': 'kmaEqlist',
     'usgs': 'usgsEqlist',
     'fssn': 'fssnEqlist',
     'tsunami': 'nmefcTsunami',
@@ -146,6 +148,9 @@ export const sourceTypes = {
         0: 'Wolfx',
         1: 'FAN'
     },
+    kmaEqlist: {
+        1: 'FAN'
+    },
     usgsEqlist: {
         0: 'USGS',
         1: 'FAN'
@@ -187,6 +192,7 @@ export const useStatusStore = defineStore('statusStore', {
             jmaEqlist: Object.assign({}, defaultEqMessage),
             cwaEqlist: Object.assign({}, defaultEqMessage),
             cencEqlist: Object.assign({}, defaultEqMessage),
+            kmaEqlist: Object.assign({}, defaultEqMessage),
             usgsEqlist: Object.assign({}, defaultEqMessage),
             fssnEqlist: Object.assign({}, defaultEqMessage),
         },
@@ -206,6 +212,7 @@ export const useStatusStore = defineStore('statusStore', {
             jmaEqlist: false,
             cwaEqlist: false,
             cencEqlist: false,
+            kmaEqlist: false,
             usgsEqlist: false,
             fssnEqlist: false,
             jmaTsunami: false,
@@ -812,6 +819,26 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.maxIntensityText = '预估最大烈度: ' + eqMessage.maxIntensity
                                 break
                         }
+                        break
+                    }
+                    case 'kmaEqlist':{
+                        eqMessage.timeZone = 9
+                        eqMessage.id = data.id
+                        eqMessage.reportTime = dayjs.tz(data.createTime, "YYYY-MM-DD HH:mm:ss", "Asia/Shanghai").tz("Asia/Seoul").format("YYYY-MM-DD HH:mm:ss")
+                        eqMessage.title = '기상청 지진 정보'
+                        eqMessage.titleText = eqMessage.title
+                        eqMessage.hypocenter = data.placeName
+                        eqMessage.hypocenterText = '위치: ' + data.placeName
+                        eqMessage.lat = data.latitude
+                        eqMessage.lng = data.longitude
+                        eqMessage.depth = data.depth
+                        eqMessage.depthText = '깊이: ' + data.depth + 'km'
+                        eqMessage.originTime = dayjs.tz(data.shockTime, "YYYY-MM-DD HH:mm:ss", "Asia/Shanghai").tz("Asia/Seoul").format("YYYY-MM-DD HH:mm:ss")
+                        eqMessage.originTimeText = '발생시각: ' + eqMessage.originTime
+                        eqMessage.magnitude = data.magnitude
+                        eqMessage.magnitudeText = '규모: ' + data.magnitude.toFixed(1)
+                        eqMessage.maxIntensity = data.epiIntensity.toFixed(0)
+                        eqMessage.maxIntensityText = '최대진도: ' + eqMessage.maxIntensity
                         break
                     }
                     case 'usgsEqlist': {

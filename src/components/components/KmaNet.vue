@@ -88,7 +88,20 @@ const update = (intensities) => {
         const nearbyLength = nearbyLevels.length
         const count1 = nearbyLevels.filter(level => level >= 3).length
         const count2 = nearbyLevels.filter(level => level >= 4).length
-        if(count1 >= Math.max(0.6 * nearbyLength, 4) || count2 >= 2) {
+        const flag1 = count1 >= Math.max(0.6 * nearbyLength, 4)
+        const flag2 = count2 >= 2
+        let flag
+        switch(settingsStore.mainSettings.displaySeisNet.kmaSensitivity) {
+            case 1: 
+                flag = flag2
+                break
+            case 2: 
+                flag = flag1 || flag2
+                break
+            default:
+                return
+        }
+        if(flag) {
             nearbyStations.forEach(station => {
                 if(station.activityLevel >= 3 && !activeStations.has(station)) {
                     station.setActive()

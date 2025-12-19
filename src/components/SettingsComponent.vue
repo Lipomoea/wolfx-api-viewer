@@ -22,65 +22,69 @@
                     <div class="switch-group">
                         <span class="font-bold w-full">地震预警</span>
                         <div class="switch-full">
-                            <div>中国地震局：地震预警</div>
+                            <div>中国地震局: 地震预警</div>
                             <el-switch v-model="settingsStore.mainSettings.source.ceaEew" @change="handleNeedReload" />
                         </div>
                         <div class="switch-full" v-if="settingsStore.advancedSettings.enableIclEew">
-                            <div>成都高新减灾研究所：地震预警</div>
+                            <div>成都高新减灾研究所: 地震预警</div>
                             <el-switch v-model="settingsStore.mainSettings.source.iclEew" @change="handleNeedReload" />
                         </div>
                         <div class="switch-full">
-                            <div>四川地震局：地震预警</div>
+                            <div>四川地震局: 地震预警</div>
                             <el-switch v-model="settingsStore.mainSettings.source.scEew" @change="handleNeedReload" />
                         </div>
                         <div class="switch-full">
-                            <div>福建地震局：地震预警</div>
+                            <div>福建地震局: 地震预警</div>
                             <el-switch v-model="settingsStore.mainSettings.source.fjEew" @change="handleNeedReload" />
                         </div>
                         <div class="switch-full">
-                            <div>臺灣中央氣象署：強震即時警報</div>
+                            <div>臺灣中央氣象署: 強震即時警報</div>
                             <el-switch v-model="settingsStore.mainSettings.source.cwaEew" @change="handleNeedReload" />
                         </div>
                         <div class="switch-full">
-                            <div>日本気象庁：緊急地震速報</div>
+                            <div>日本気象庁: 緊急地震速報</div>
                             <el-switch v-model="settingsStore.mainSettings.source.jmaEew" @change="handleNeedReload" />
                         </div>
                         <div class="switch-full" v-if="settingsStore.advancedSettings.enableGqEew">
-                            <div>GlobalQuake：地震预警</div>
+                            <div>GlobalQuake: 地震预警</div>
                             <el-switch v-model="settingsStore.mainSettings.source.gqEew" @change="handleNeedReload" />
                         </div>
                     </div>
                     <div class="switch-group">
                         <span class="font-bold w-full">地震信息</span>
                         <div class="switch-full">
-                            <div>中国地震台网：地震测定</div>
+                            <div>中国地震台网: 地震测定</div>
                             <el-switch v-model="settingsStore.mainSettings.source.cencEqlist" @change="handleNeedReload" />
                         </div>
                         <div class="switch-full" v-if="settingsStore.advancedSettings.enableTremFunctions">
-                            <div>臺灣中央氣象署：地震報告</div>
+                            <div>臺灣中央氣象署: 地震報告</div>
                             <el-switch v-model="settingsStore.mainSettings.source.cwaEqlist" @change="handleNeedReload" />
                         </div>
                         <div class="switch-full">
-                            <div>日本気象庁：地震情報</div>
+                            <div>日本気象庁: 地震情報</div>
                             <el-switch v-model="settingsStore.mainSettings.source.jmaEqlist" @change="handleNeedReload" />
                         </div>
                         <div class="switch-full">
-                            <div>USGS：地震测定</div>
+                            <div>기상청: 지진 정보</div>
+                            <el-switch v-model="settingsStore.mainSettings.source.kmaEqlist" @change="handleNeedReload" />
+                        </div>
+                        <div class="switch-full">
+                            <div>USGS: 地震测定</div>
                             <el-switch v-model="settingsStore.mainSettings.source.usgsEqlist" @change="handleNeedReload" />
                         </div>
                         <div class="switch-full">
-                            <div>FSSN：地震测定</div>
+                            <div>FSSN: 地震测定</div>
                             <el-switch v-model="settingsStore.mainSettings.source.fssnEqlist" @change="handleFssnEqlist" />
                         </div>
                     </div>
                     <div class="switch-group">
                         <span class="font-bold w-full">海啸信息</span>
                         <div class="switch-full">
-                            <div>日本気象庁：津波情報</div>
+                            <div>日本気象庁: 津波情報</div>
                             <el-switch v-model="settingsStore.mainSettings.source.jmaTsunami" @change="handleNeedReload" />
                         </div>
                         <div class="switch-full" v-if="settingsStore.advancedSettings.enableNmefcTsunami">
-                            <div>自然资源部：海啸预警</div>
+                            <div>自然资源部: 海啸预警</div>
                             <el-switch v-model="settingsStore.mainSettings.source.nmefcTsunami" @change="handleNeedReload" />
                         </div>
                     </div>
@@ -93,6 +97,10 @@
                             <div class="switch-full">
                                 <span>強震モニタ・震度（日本）</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.niedNet" />
+                            </div>
+                            <div class="switch-full pl-4">
+                                <span>解析震度阶</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayNiedShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.niedNet" />
                             </div>
                             <div class="switch-full pl-4">
                                 <span>检知灵敏度</span>
@@ -108,15 +116,15 @@
                                     <el-option label="高" :value=3 />
                                 </el-select>
                             </div>
-                            <div class="switch-full pl-4">
-                                <span>解析震度阶</span>
-                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayNiedShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.niedNet" />
-                            </div>
                         </div>
                         <div class="w-full" v-if="settingsStore.advancedSettings.enableTremFunctions">
                             <div class="switch-full">
                                 <span>TREM-Net・震度（台湾）</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.tremNet" />
+                            </div>
+                            <div class="switch-full pl-4">
+                                <span>解析震度阶</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayTremShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.tremNet" />
                             </div>
                             <div class="switch-full pl-4">
                                 <span>API</span>
@@ -134,10 +142,6 @@
                                     <el-option label="lb-4" value="lb-4" />
                                 </el-select>
                             </div>
-                            <div class="switch-full pl-4">
-                                <span>解析震度阶</span>
-                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayTremShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.tremNet" />
-                            </div>
                         </div>
                         <div class="w-full">
                             <div class="switch-full">
@@ -145,7 +149,24 @@
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.kmaNet" />
                             </div>
                             <div class="switch-full pl-4">
-                                <span>加速度维持时间</span>
+                                <span>转换为烈度（MMI）</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayKmaInt" :disabled="!settingsStore.mainSettings.displaySeisNet.kmaNet" />
+                            </div>
+                            <div class="switch-full pl-4">
+                                <span>检知灵敏度</span>
+                                <el-select 
+                                    v-model="settingsStore.mainSettings.displaySeisNet.kmaSensitivity"
+                                    size="small"
+                                    :disabled="!settingsStore.mainSettings.displaySeisNet.kmaNet"
+                                    style="width: 48px;"
+                                >
+                                    <el-option label="关" :value=0 />
+                                    <el-option label="低" :value=1 />
+                                    <el-option label="中" :value=2 />
+                                </el-select>
+                            </div>
+                            <div class="switch-full pl-4">
+                                <span>加速度保持时间</span>
                                 <el-select 
                                     v-model="settingsStore.mainSettings.displaySeisNet.kmaIntHold"
                                     size="small"
@@ -158,10 +179,6 @@
                                     <el-option label="30秒" :value="30" />
                                     <el-option label="60秒" :value="60" />
                                 </el-select>
-                            </div>
-                            <div class="switch-full pl-4">
-                                <span>转换为实时烈度（MMI）</span>
-                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayKmaInt" :disabled="!settingsStore.mainSettings.displaySeisNet.kmaNet" />
                             </div>
                         </div>
                     </div>
@@ -1159,7 +1176,7 @@
             <div class="header">要石 v2.3.0</div>
             <div class="title">使用方法</div>
             <div class="about">
-                <p>主要功能：接收日本气象厅、台湾省中央气象署、中国地震局、四川省地震局、福建省地震局地震预警信息，日本气象厅、中国地震台网地震信息，日本气象厅海啸信息，NIED強震モニタ测站数据。</p>
+                <p>主要功能：接收中国地震局、四川地震局、福建地震局、台湾中央气象署、日本气象厅地震预警信息，中国地震台网、日本气象厅、韩国气象厅、美国地质调查局（USGS）、FAN Studio地震网络（FSSN）地震信息，日本气象厅海啸信息，NIED強震モニタ、KMA-PEWS测站数据。</p>
                 <p>Chrome/Edge推荐设置（以Chrome为例，Edge方法类似）：</p>
                 <ul>
                     <li>保持后台刷新：浏览器访问chrome://flags - Calculate window occlusion on Windows - Disabled - 右下角重新启动</li>
@@ -1187,9 +1204,9 @@
             </div>
             <div class="title">注意事项</div>
             <div class="about">
-                <p>关于烈度：日本气象厅紧急地震速报（震度），台湾中央气象署（震度），中国地震局（烈度），四川地震局（烈度），福建地震局（烈度），日本气象厅地震情报（震度），中国地震台网地震信息（烈度）。除日本气象厅地震情报外均为预估值。</p>
-                <p>关于时间：显示为发报机构当地时间。</p>
-                <p>关于延迟：受API限制，部分资料具有延迟是正常现象。</p>
+                <p>关于烈度：中国大陆（含港澳）、韩国使用烈度制（12度表，I ~ XII），日本、中国台湾地区使用震度制（10度表，0 ~ 7，其中震度5、6两级分为强/弱）。部分数值为预估值，非实测值。</p>
+                <p>关于时间：除全球性台网（USGS、FSSN）显示为中国标准时间，其他均显示为发报机构当地时间。</p>
+                <p>关于延迟：受API及服务器限制，部分资料具有延迟是正常现象。</p>
                 <p>关于地图：由于服务器带宽限制，进入页面后需要一定时间加载地图。如长时间未加载地图，请刷新页面。</p>
             </div>
             <div class="title">关于</div>
