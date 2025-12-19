@@ -21,6 +21,7 @@ const settingsStore = useSettingsStore()
 const kmaUpdateTime = inject('kmaUpdateTime')
 const kmaMaxInt = inject('kmaMaxInt')
 const kmaPeriodMaxInt = inject('kmaPeriodMaxInt')
+const kmaPeriodBarClass = inject('kmaPeriodBarClass')
 const handleTempEqlists = inject('handleTempEqlists')
 const smartSetView = inject('smartSetView')
 let periodMaxLevel = -1
@@ -107,7 +108,7 @@ const renderAll = ()=>{
 }
 let kmaSocket = null
 onMounted(()=>{
-    kmaSocket = new WebSocketObj([seisNetUrls.kma])
+    kmaSocket = new WebSocketObj([seisNetUrls.kma], ['ping'])
     kmaSocket.setMessageHandler(e => {
         const data = JSON.parse(e.data)
         const type = data?.type
@@ -149,40 +150,6 @@ watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
         map.on('zoomend', renderAll)
-        unwatchGrids = watch(grids, (newVal)=>{
-            for(let key in newVal) {
-                const item = newVal[key]
-                const color = item.level <= 3 ? 'green' : item.level <= 7 ? 'yellow' : 'red'
-                if(!(key in gridRects)) {
-                    const layer = L.rectangle([item.latLng.map(l => l - 0.495), item.latLng.map(l => l + 0.495)], {
-                        color,
-                        weight: 2,
-                        fill: false,
-                        pane: 'kmaGridPane',
-                        interactive: false
-                    }).addTo(map)
-                    gridRects[key] = {
-                        color,
-                        layer
-                    }
-                }
-                else if(gridRects[key].color != color) {
-                    gridRects[key].color = color
-                    gridRects[key].layer.setStyle({
-                        color
-                    })
-                }
-                if(item.level > periodMaxLevel) periodMaxLevel = item.level
-            }
-            for(let key in gridRects) {
-                if(!(key in newVal)) {
-                    if(map.hasLayer(gridRects[key].layer)) map.removeLayer(gridRects[key].layer)
-                    delete gridRects[key]
-                }
-            }
-            kmaPeriodMaxInt.value = getMmiFromKmaLevel(periodMaxLevel)
-            statusStore.isActive.kmaNet = Object.keys(newVal).length > 0
-        }, { immediate: true })
         unwatchStationList = watch(stationList, newVal=>{
             if(newVal.length > 0){
                 stations.forEach(station=>{
@@ -221,6 +188,46 @@ watch(()=>statusStore.map, newVal=>{
                     stations.push(station)
                 })
             }
+        }, { immediate: true })
+        unwatchGrids = watch(grids, (newVal)=>{
+            let maxLevel = -1, maxColor = 'gray'
+            for(let key in newVal) {
+                const item = newVal[key]
+                const color = item.level <= 3 ? 'green' : item.level <= 7 ? 'yellow' : 'red'
+                if(item.level > maxLevel) {
+                    maxLevel = item.level
+                    maxColor = color
+                }
+                if(!(key in gridRects)) {
+                    const layer = L.rectangle([item.latLng.map(l => l - 0.495), item.latLng.map(l => l + 0.495)], {
+                        color,
+                        weight: 2,
+                        fill: false,
+                        pane: 'kmaGridPane',
+                        interactive: false
+                    }).addTo(map)
+                    gridRects[key] = {
+                        color,
+                        layer
+                    }
+                }
+                else if(gridRects[key].color != color) {
+                    gridRects[key].color = color
+                    gridRects[key].layer.setStyle({
+                        color
+                    })
+                }
+                if(item.level > periodMaxLevel) periodMaxLevel = item.level
+            }
+            for(let key in gridRects) {
+                if(!(key in newVal)) {
+                    if(map.hasLayer(gridRects[key].layer)) map.removeLayer(gridRects[key].layer)
+                    delete gridRects[key]
+                }
+            }
+            kmaPeriodMaxInt.value = getMmiFromKmaLevel(periodMaxLevel)
+            kmaPeriodBarClass.value = maxColor
+            statusStore.isActive.kmaNet = Object.keys(newVal).length > 0
         }, { immediate: true })
         unwatchRender = watch(
             ()=>`${settingsStore.mainSettings.displaySeisNet.style}

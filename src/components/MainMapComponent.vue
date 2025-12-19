@@ -175,7 +175,7 @@
                             </div>
                         </div>
                         <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.niedNet && settingsStore.mainSettings.displaySeisNet.displayNiedShindo && niedPeriodMaxShindo != '?'">
-                            <div class="shindo-bar gray">NIED区间</div>
+                            <div class="shindo-bar" :class="niedPeriodBarClass">NIED区间</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(niedPeriodMaxShindo, true)">
                                     <div class="intensity-title">最大震度</div>
@@ -197,7 +197,7 @@
                             </div>
                         </div>
                         <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.tremNet && settingsStore.mainSettings.displaySeisNet.displayTremShindo && tremPeriodMaxShindo != '?'">
-                            <div class="shindo-bar gray">TREM区间</div>
+                            <div class="shindo-bar" :class="tremPeriodBarClass">TREM区间</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(tremPeriodMaxShindo, true)">
                                     <div class="intensity-title">最大震度</div>
@@ -223,7 +223,7 @@
                             </div>
                         </div>
                         <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.kmaNet && settingsStore.mainSettings.displaySeisNet.displayKmaInt && kmaPeriodMaxInt != '?'">
-                            <div class="shindo-bar gray">KMA区间</div>
+                            <div class="shindo-bar" :class="kmaPeriodBarClass">KMA区间</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(kmaPeriodMaxInt, false)">
                                     <div class="intensity-title">最大烈度</div>
@@ -468,24 +468,30 @@ const gqUrlIndex = ref(0)
 const niedUpdateTime = ref('1970-01-01 09:00:00')
 const niedMaxShindo = ref('?')
 const niedPeriodMaxShindo = ref('?')
+const niedPeriodBarClass = ref('gray')
 const isNiedDelayed = ref(true)
 provide('niedUpdateTime', niedUpdateTime)
 provide('niedMaxShindo', niedMaxShindo)
 provide('niedPeriodMaxShindo', niedPeriodMaxShindo)
+provide('niedPeriodBarClass', niedPeriodBarClass)
 const tremUpdateTime = ref('1970-01-01 08:00:00')
 const tremMaxShindo = ref('?')
 const tremPeriodMaxShindo = ref('?')
+const tremPeriodBarClass = ref('gray')
 const isTremDelayed = ref(true)
 provide('tremUpdateTime', tremUpdateTime)
 provide('tremMaxShindo', tremMaxShindo)
 provide('tremPeriodMaxShindo', tremPeriodMaxShindo)
+provide('tremPeriodBarClass', tremPeriodBarClass)
 const kmaUpdateTime = ref('1970-01-01 09:00:00')
 const kmaMaxInt = ref('?')
 const kmaPeriodMaxInt = ref('?')
+const kmaPeriodBarClass = ref('gray')
 const isKmaDelayed = ref(true)
 provide('kmaUpdateTime', kmaUpdateTime)
 provide('kmaMaxInt', kmaMaxInt)
 provide('kmaPeriodMaxInt', kmaPeriodMaxInt)
+provide('kmaPeriodBarClass', kmaPeriodBarClass)
 const isAutoZoom = ref(true)
 const activeEewList = reactive([])
 const eqlistList = reactive([])

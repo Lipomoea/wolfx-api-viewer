@@ -29,6 +29,7 @@ const delay = computed(()=>settingsStore.mainSettings.displaySeisNet.delay * 600
 const tremMaxShindo = inject('tremMaxShindo')
 const tremUpdateTime = inject('tremUpdateTime')
 const tremPeriodMaxShindo = inject('tremPeriodMaxShindo')
+const tremPeriodBarClass = inject('tremPeriodBarClass')
 const handleTempEqlists = inject('handleTempEqlists')
 const smartSetView = inject('smartSetView')
 let periodMaxLevel = -1
@@ -52,6 +53,7 @@ const activeStationIds = computed(()=>{
     return list
 })
 let decimal = [0, 0]
+const gridRects = {}
 const grids = computed(()=>{
     let grids = {}
     activeStationIds.value.forEach(id=>{
@@ -70,7 +72,6 @@ const grids = computed(()=>{
     })
     return grids
 })
-const gridRects = {}
 let pendingRender = false
 const update = ()=>{
     const render = document.visibilityState === 'visible'
@@ -164,9 +165,14 @@ watch(()=>statusStore.map, newVal=>{
             }
         }, { immediate: true })
         unwatchGrids = watch(grids, (newVal)=>{
+            let maxLevel = -1, maxColor = 'gray'
             for(let key in newVal) {
                 const item = newVal[key]
                 const color = item.level <= 7 ? 'green' : item.level <= 13 ? 'yellow' : 'red'
+                if(item.level > maxLevel) {
+                    maxLevel = item.level
+                    maxColor = color
+                }
                 if(!(key in gridRects)) {
                     const layer = L.rectangle([item.latLng.map(l => l - 0.495), item.latLng.map(l => l + 0.495)], {
                         color,
@@ -195,6 +201,7 @@ watch(()=>statusStore.map, newVal=>{
                 }
             }
             tremPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel)
+            tremPeriodBarClass.value = maxColor
             statusStore.isActive.tremNet = Object.keys(newVal).length > 0
         }, { immediate: true })
         unwatchRender = watch(

@@ -29,6 +29,7 @@ const delay = ref(defaultDelay)
 const niedMaxShindo = inject('niedMaxShindo')
 const niedUpdateTime = inject('niedUpdateTime')
 const niedPeriodMaxShindo = inject('niedPeriodMaxShindo')
+const niedPeriodBarClass = inject('niedPeriodBarClass')
 const handleTempEqlists = inject('handleTempEqlists')
 const smartSetView = inject('smartSetView')
 let periodMaxLevel = -1
@@ -47,6 +48,8 @@ const currentMaxShindo = computed(()=>{
 let adjStationIds = {}
 let expireSeconds = {}
 let distMatrix = [[]]
+let decimal = [0, 0]
+const gridRects = {}
 const activeStations = computed(()=>{
     const list = []
     stations.forEach(station=>{
@@ -54,7 +57,6 @@ const activeStations = computed(()=>{
     })
     return list
 })
-let decimal = [0, 0]
 const grids = computed(()=>{
     let grids = {}
     activeStations.value.forEach(station=>{
@@ -73,7 +75,6 @@ const grids = computed(()=>{
     })
     return grids
 })
-const gridRects = {}
 const getData = async (url)=>{
     try {
         const res = await axios.get(url, { timeout: 10000 })
@@ -288,9 +289,14 @@ watch(()=>statusStore.map, newVal=>{
         map = newVal
         map.on('zoomend', renderAll)
         unwatchGrids = watch(grids, (newVal)=>{
+            let maxLevel = -1, maxColor = 'gray'
             for(let key in newVal) {
                 const item = newVal[key]
                 const color = item.level <= 7 ? 'green' : item.level <= 13 ? 'yellow' : 'red'
+                if(item.level > maxLevel) {
+                    maxLevel = item.level
+                    maxColor = color
+                }
                 if(!(key in gridRects)) {
                     const layer = L.rectangle([item.latLng.map(l => l - 0.495), item.latLng.map(l => l + 0.495)], {
                         color,
@@ -319,6 +325,7 @@ watch(()=>statusStore.map, newVal=>{
                 }
             }
             niedPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel)
+            niedPeriodBarClass.value = maxColor
             statusStore.isActive.niedNet = Object.keys(newVal).length > 0
         }, { immediate: true })
         unwatchRender = watch(
