@@ -757,7 +757,7 @@ onMounted(()=>{
             waveFillPane.style.opacity = 0.3
             niedGridPane.style.opacity = 0.3 * (blinkStatus.value && !statusStore.isActive.jmaEew ? 1 : 0)
             tremGridPane.style.opacity = 0.3 * (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0)
-            kmaGridPane.style.opacity = 0.3 * (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0)
+            kmaGridPane.style.opacity = 0.3 * (blinkStatus.value ? 1 : 0)
         }
         else{
             eewMarkerPane.style.opacity = 1 * (blinkStatus.value ? 1 : 0)
@@ -765,7 +765,7 @@ onMounted(()=>{
             waveFillPane.style.opacity = 1
             niedGridPane.style.opacity = 1 * (blinkStatus.value && !statusStore.isActive.jmaEew ? 1 : 0)
             tremGridPane.style.opacity = 1 * (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0)
-            kmaGridPane.style.opacity = 1 * (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0)
+            kmaGridPane.style.opacity = 1 * (blinkStatus.value ? 1 : 0)
         }
         simpleIcon.value = newVal == 'eqlists'
     }, { immediate: true })
