@@ -969,29 +969,18 @@ const loadMaps = async (retries = 0) => {
             })
         }
         watch(jmaWarnArea, (newVal)=>{
-            jpEewBaseMap?.eachLayer(layer=>{
-                const layerName = layer.feature.properties.name
-                if(layerName in newVal){
-                    if(layer.options.fillColor != classNameColors[newVal[layerName].className]){
-                        layer.setStyle({
-                            color: '#bbbbbb',
-                            fillColor: classNameColors[newVal[layerName].className]
-                        })
-                    }
-                }
-                else{
-                    if(layer.options.fillColor != '#39393900'){
-                        layer.setStyle({
-                            color: '#bbbbbb00',
-                            fillColor: '#39393900'
-                        })
-                    }
-                }
+            jpEewBaseMap?.setStyle(feature => {
+                const className = newVal[feature.properties.name]?.className
+                return ({
+                    color: className ? '#bbbbbb' : '#bbbbbb00',
+                    fillColor: classNameColors[className] || '#39393900'
+                })
             })
         }, { deep: true, immediate: true })
         if(settingsStore.advancedSettings.forceCalcInt){
             watch(cnEewInfoList, newVal=>{
                 const newCsisList = {}
+                const areaClass = {}
                 cnEewBaseMap?.eachLayer(layer=>{
                     let maxInt = 0
                     newVal.forEach(info=>{
@@ -1001,24 +990,18 @@ const loadMaps = async (retries = 0) => {
                     })
                     if(maxInt > 0){
                         const className = setClassName(maxInt, false)
-                        if(layer.options.fillColor != classNameColors[className]){
-                            layer.setStyle({
-                                color: '#bbbbbb',
-                                fillColor: classNameColors[className]
-                            })
-                        }
                         const layerName = layer.feature.properties.name
+                        areaClass[layerName] = className
                         if(!(maxInt in newCsisList)) newCsisList[maxInt] = []
                         newCsisList[maxInt].push(layerName)
                     }
-                    else{
-                        if(layer.options.fillColor != '#39393900'){
-                            layer.setStyle({
-                                color: '#bbbbbb00',
-                                fillColor: '#39393900'
-                            })
-                        }
-                    }
+                })
+                cnEewBaseMap?.setStyle(feature => {
+                    const className = areaClass[feature.properties.name]
+                    return ({
+                        color: className ? '#bbbbbb' : '#bbbbbb00',
+                        fillColor: classNameColors[className] || '#39393900'
+                    })
                 })
                 const newNewCsisList = []
                 for(let int = 12; int > 0; int--) {
@@ -1045,23 +1028,9 @@ const loadMaps = async (retries = 0) => {
                 })
             })
             watch(jmaTsunamiWarnArea, newVal => {
-                jpTsunamiBaseMap.eachLayer(layer => {
-                    const layerName = layer.feature.properties.name
-                    if(layerName in newVal){
-                        if(layer.options.color != tsunamiColors[newVal[layerName].className]){
-                            layer.setStyle({
-                                color: tsunamiColors[newVal[layerName].className]
-                            })
-                        }
-                    }
-                    else{
-                        if(layer.options.color != '#ffffff00'){
-                            layer.setStyle({
-                                color: '#ffffff00'
-                            })
-                        }
-                    }
-                })
+                jpTsunamiBaseMap.setStyle(feature => ({
+                    color: tsunamiColors[newVal[feature.properties.name]?.className] || '#ffffff00'
+                }))
                 smartSetView()
             }, { deep: true, immediate: true })
         }
@@ -1078,23 +1047,9 @@ const loadMaps = async (retries = 0) => {
                     })
                 })
                 watch(nmefcTsunamiWarnArea, newVal => {
-                    cnTsunamiBaseMap.eachLayer(layer => {
-                        const layerName = layer.feature.properties.name
-                        if(layerName in newVal){
-                            if(layer.options.color != tsunamiColors[newVal[layerName].className]){
-                                layer.setStyle({
-                                    color: tsunamiColors[newVal[layerName].className]
-                                })
-                            }
-                        }
-                        else{
-                            if(layer.options.color != '#ffffff00'){
-                                layer.setStyle({
-                                    color: '#ffffff00'
-                                })
-                            }
-                        }
-                    })
+                    cnTsunamiBaseMap.setStyle(feature => ({
+                        color: tsunamiColors[newVal[feature.properties.name]?.className] || '#ffffff00'
+                    }))
                     smartSetView()
                 }, { deep: true, immediate: true })
             }
