@@ -91,7 +91,7 @@ const update = (intensities) => {
         const count2 = nearbyLevels.filter(level => level >= 4).length
         const counta = nearbyAscends.filter(isAscend => isAscend).length
         const flagl = count1 >= Math.max(0.6 * nearbyLength, 4) || count2 >= Math.max(0.2 * nearbyLength, 2)
-        const flaga = counta >= Math.max(0.6 * nearbyLength, 4)
+        const flaga = counta >= Math.max(0.75 * nearbyLength, 5)
         let flag
         switch(settingsStore.mainSettings.displaySeisNet.kmaSensitivity) {
             case 1: 
