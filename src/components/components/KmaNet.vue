@@ -192,7 +192,7 @@ watch(()=>statusStore.map, newVal=>{
                         else if(j == i) distance = 0
                         else distance = latLngs[i].distanceTo(latLngs[j]) / 1000
                         distMatrix[i][j] = distance
-                        if(distance <= 35) distances.push({ id: j, distance })
+                        if(distance <= 30) distances.push({ id: j, distance })
                     }
                     distances.sort((a, b) => a.distance - b.distance)
                     adjStationIds[i] = distances.map(obj => obj.id)
