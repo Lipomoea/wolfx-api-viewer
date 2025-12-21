@@ -82,28 +82,30 @@ const update = (intensities) => {
     const activeStations = new Set()
     let first = null
     for(let i = 0; i < stationList.length; i++) {
-        if(stations[i].activityLevel < 3) continue
+        if(stations[i].activityLevel < 3 && !stations[i].isAscend) continue
         const nearbyStations = adjStationIds[i].map(id => stations[id])
         const nearbyLevels = nearbyStations.map(station => station.activityLevel)
+        const nearbyAscends = nearbyStations.map(station => station.isAscend)
         const nearbyLength = nearbyLevels.length
         const count1 = nearbyLevels.filter(level => level >= 3).length
         const count2 = nearbyLevels.filter(level => level >= 4).length
-        const flag1 = count1 >= Math.max(0.6 * nearbyLength, 4)
-        const flag2 = count2 >= 2
+        const counta = nearbyAscends.filter(isAscend => isAscend).length
+        const flagl = count1 >= Math.max(0.6 * nearbyLength, 4) || count2 >= Math.max(0.2 * nearbyLength, 2)
+        const flaga = counta >= Math.max(0.6 * nearbyLength, 4)
         let flag
         switch(settingsStore.mainSettings.displaySeisNet.kmaSensitivity) {
             case 1: 
-                flag = flag2
+                flag = flagl
                 break
             case 2: 
-                flag = flag1 || flag2
+                flag = flagl || flaga
                 break
             default:
                 return
         }
         if(flag) {
             nearbyStations.forEach(station => {
-                if(station.activityLevel >= 3 && !activeStations.has(station)) {
+                if((station.activityLevel >= 3 || station.isAscend) && !activeStations.has(station)) {
                     station.setActive()
                     activeStations.add(station)
                     if(!statusStore.isActive.kmaNet && (!first || station.activityLevel > first.activityLevel))
@@ -190,7 +192,7 @@ watch(()=>statusStore.map, newVal=>{
                         else if(j == i) distance = 0
                         else distance = latLngs[i].distanceTo(latLngs[j]) / 1000
                         distMatrix[i][j] = distance
-                        if(distance <= 30) distances.push({ id: j, distance })
+                        if(distance <= 35) distances.push({ id: j, distance })
                     }
                     distances.sort((a, b) => a.distance - b.distance)
                     adjStationIds[i] = distances.map(obj => obj.id)
