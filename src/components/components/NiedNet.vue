@@ -236,8 +236,10 @@ onMounted(()=>{
                     stationData.value = data.realTimeData.intensity.split('')
                     const timeDiff = calcTimeDiff(data.realTimeData.dataTime.slice(0, -6), 9, niedUpdateTime.value, 9)
                     if(timeDiff > 1000) {
-                        const popNum = Math.round(timeDiff / 1000) - 1
+                        const popNum = Math.min(Math.round(timeDiff / 1000) - 1, 60)
+                        const noDataArr = Array(popNum).fill(-1)
                         stations.forEach(station => {
+                            station.recentLevel.unshift(...noDataArr)
                             station.recentLevel.splice(-popNum, popNum)
                             station.expireSeconds = Math.max(station.expireSeconds - popNum, station.defaultExpireSeconds)
                         })
