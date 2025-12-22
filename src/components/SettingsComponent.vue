@@ -163,6 +163,7 @@
                                     <el-option label="关" :value=0 />
                                     <el-option label="低" :value=1 />
                                     <el-option label="中" :value=2 />
+                                    <el-option label="高" :value=3 />
                                 </el-select>
                             </div>
                             <div class="switch-full pl-4">

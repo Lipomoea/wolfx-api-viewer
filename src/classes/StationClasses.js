@@ -508,9 +508,9 @@ export class KmaStation {
         this.recentLevel = []
         this.recentSeconds = 60
         this.activityLevel = this.level
-        this.activitySeconds = 10
+        this.activitySeconds = 12
         this.holdLevel = this.level
-        this.isAscend = false
+        this.ascend = false
         this.intensity = getMmiFromKmaLevel(this.holdLevel)
         this.isActive = isActive
         this.render()
@@ -519,10 +519,11 @@ export class KmaStation {
         this.level = intensity + 2
         this.recentLevel.unshift(this.level)
         this.recentLevel.splice(this.recentSeconds)
-        this.activityLevel = Math.max(...this.recentLevel.slice(0, this.activitySeconds), -1)
+        const activityArr = this.recentLevel.slice(0, this.activitySeconds)
         const pastArr = this.recentLevel.slice(this.activitySeconds)
-        this.pastLevel = pastArr.length >= this.activitySeconds * 4 ? Math.max(...pastArr, -1) : -1
-        this.isAscend = this.activityLevel >= 0 && this.pastLevel >= 0 && this.activityLevel - this.pastLevel > 0
+        this.activityLevel = Math.max(...activityArr, -1)
+        const pastLevel = pastArr.length >= this.activitySeconds * 3.5 ? Math.max(...pastArr, -1) : -1
+        this.ascend = pastLevel >= 0 ? activityArr.filter(level => level > pastLevel).length : 0
         const holdLevel = Math.max(...this.recentLevel.slice(0, settingsStore.mainSettings.displaySeisNet.kmaIntHold), -1)
         if(holdLevel != this.holdLevel) {
             this.holdLevel = holdLevel

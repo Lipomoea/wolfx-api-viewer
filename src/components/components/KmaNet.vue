@@ -82,30 +82,35 @@ const update = (intensities) => {
     const activeStations = new Set()
     let first = null
     for(let i = 0; i < stationList.length; i++) {
-        if(stations[i].activityLevel < 3 && !stations[i].isAscend) continue
+        if(stations[i].activityLevel < 3 && !stations[i].ascend) continue
         const nearbyStations = adjStationIds[i].map(id => stations[id])
         const nearbyLevels = nearbyStations.map(station => station.activityLevel)
-        const nearbyAscends = nearbyStations.map(station => station.isAscend)
+        const nearbyAscends = nearbyStations.map(station => station.ascend)
         const nearbyLength = nearbyLevels.length
-        const count1 = nearbyLevels.filter(level => level >= 3).length
-        const count2 = nearbyLevels.filter(level => level >= 4).length
-        const counta = nearbyAscends.filter(isAscend => isAscend).length
-        const flagl = count1 >= Math.max(0.6 * nearbyLength, 4) || count2 >= Math.max(0.2 * nearbyLength, 2)
-        const flaga = counta >= Math.max(0.75 * nearbyLength, 5)
+        const countInt1 = nearbyLevels.filter(level => level >= 3).length
+        const countInt2 = nearbyLevels.filter(level => level >= 4).length
+        const countAsc1 = nearbyAscends.filter(ascend => ascend >= 1).length
+        const countAsc2 = nearbyAscends.filter(ascend => ascend >= 2).length
+        const flag1 = countInt1 >= Math.max(0.6 * nearbyLength, 4) || countInt2 >= Math.max(0.15 * nearbyLength, 2)
+        const flag2 = countAsc2 >= Math.max(0.6 * nearbyLength, 4)
+        const flag3 = countAsc1 >= Math.max(0.8 * nearbyLength, 5)
         let flag
         switch(settingsStore.mainSettings.displaySeisNet.kmaSensitivity) {
             case 1: 
-                flag = flagl
+                flag = flag1
                 break
             case 2: 
-                flag = flagl || flaga
+                flag = flag1 || flag2
+                break
+            case 3: 
+                flag = flag1 || flag2 || flag3
                 break
             default:
                 return
         }
         if(flag) {
             nearbyStations.forEach(station => {
-                if((station.activityLevel >= 3 || station.isAscend) && !activeStations.has(station)) {
+                if((station.activityLevel >= 3 || station.ascend) && !activeStations.has(station)) {
                     station.setActive()
                     activeStations.add(station)
                     if(!statusStore.isActive.kmaNet && (!first || station.activityLevel > first.activityLevel))
@@ -147,7 +152,7 @@ onMounted(()=>{
                         const noDataArr = Array(popNum).fill(-1)
                         stations.forEach(station => {
                             station.recentLevel.unshift(...noDataArr)
-                            station.recentLevel.splice(-popNum, popNum)
+                            station.recentLevel.splice(station.recentSeconds)
                         })
                     }
                     kmaUpdateTime.value = timestamp

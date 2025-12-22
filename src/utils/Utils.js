@@ -379,7 +379,12 @@ export const calcCsis = (m, dep = 10, dis = 0) => {
   dep = isNaN(dep) || dep === null || dep < 10 ? 10 : dep;
   const lineDis = calcLineDis(dep, dis);
   const long = 10 ** ((m - 3.821) / 1.86);
-  const hypoDis = Math.max(lineDis - 10 - long, dis - long, 0.2 * (lineDis - 10), 0);
+  const hypoDis = Math.max(
+    lineDis - 10 - long,
+    dis - long,
+    0.2 * (lineDis - 10),
+    0
+  );
   const ceaCsis1 = calcCeaCsis(m, dis);
   const ceaCsis2 = calcCeaCsis(m, hypoDis);
   return (ceaCsis1 + ceaCsis2) / 2;

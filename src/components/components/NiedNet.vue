@@ -240,7 +240,7 @@ onMounted(()=>{
                         const noDataArr = Array(popNum).fill(-1)
                         stations.forEach(station => {
                             station.recentLevel.unshift(...noDataArr)
-                            station.recentLevel.splice(-popNum, popNum)
+                            station.recentLevel.splice(station.maxExpireSeconds)
                             station.expireSeconds = Math.max(station.expireSeconds - popNum, station.defaultExpireSeconds)
                         })
                     }
