@@ -8,7 +8,7 @@
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, inject } from 'vue';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
-import { seisNetUrls } from '@/utils/Urls';
+import { iconUrls, seisNetUrls } from '@/utils/Urls';
 import { playSound, sendMyNotification, calcTimeDiff, focusWindow, getMmiFromKmaLevel } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -73,12 +73,12 @@ const currentMaxShindo = computed(()=>{
 const update = (intensities) => {
     const render = document.visibilityState === 'visible'
     if(!render) pendingRender = true
-    let maxInt = 0
+    let maxLevel = -1
     stations.forEach((station, index) => {
         station.update(intensities[index], render)
-        if(station.intensity > maxInt) maxInt = station.intensity
+        if(station.holdLevel > maxLevel) maxLevel = station.holdLevel
     })
-    kmaMaxInt.value = maxInt.toString()
+    kmaMaxInt.value = getMmiFromKmaLevel(maxLevel)
     const activeStations = new Set()
     let first = null
     for(let i = 0; i < stationList.length; i++) {
