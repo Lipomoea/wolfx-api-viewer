@@ -146,7 +146,7 @@ onMounted(()=>{
                 const { timestamp, mmi } = Data
                 const timeDiff = calcTimeDiff(timestamp, 9, kmaUpdateTime.value, 9)
                 if(timeDiff > 0) {
-                    if(mmi.length != stations.length) return
+                    if(mmi.length != stations.length || mmi.some(int => int == -3)) return
                     if(timeDiff > 1000) {
                         const popNum = Math.min(Math.round(timeDiff / 1000) - 1, 60)
                         const noDataArr = Array(popNum).fill(-1)
