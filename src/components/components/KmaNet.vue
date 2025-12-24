@@ -263,7 +263,7 @@ watch(()=>statusStore.map, newVal=>{
         )
     }
 }, { immediate: true })
-watch(()=>(statusStore.isActive.kmaNet), newVal=>{
+watch(()=>(statusStore.isActive.kmaEew || statusStore.isActive.kmaNet), newVal=>{
     if(newVal){
         if(periodMaxLevel == -1){
             periodMaxLevel = 0

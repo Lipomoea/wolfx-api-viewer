@@ -12,6 +12,7 @@ import { presimplify, simplify } from "topojson-simplify";
 import { cnSeisIntLoc, cnSeisIntLocBush } from "./CnSeisIntLoc";
 import { around } from "geokdbush";
 import { jmaSeisIntLoc } from "./JmaSeisIntLoc";
+import { krSeisIntLoc, krSeisIntLocBush } from "./KrSeisIntLoc";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -352,6 +353,22 @@ export const pointDistToCnArea = (pointLngLat, feature) => {
     const kdbush = cnSeisIntLocBush[name];
     const nearestPoint = around(kdbush, pointLngLat[0], pointLngLat[1], 1).map(
       index => cnSeisIntLoc[name][index]
+    )[0];
+    const minDist = distance(turfPoint, point(nearestPoint), {
+      units: "kilometers",
+    });
+    return minDist;
+  }
+};
+export const pointDistToKrArea = (pointLngLat, feature) => {
+  const turfPoint = point(pointLngLat);
+  if (booleanPointInPolygon(turfPoint, feature)) {
+    return 0;
+  } else {
+    const name = feature.properties.name;
+    const kdbush = krSeisIntLocBush[name];
+    const nearestPoint = around(kdbush, pointLngLat[0], pointLngLat[1], 1).map(
+      index => krSeisIntLoc[name][index]
     )[0];
     const minDist = distance(turfPoint, point(nearestPoint), {
       units: "kilometers",

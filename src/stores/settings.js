@@ -13,6 +13,7 @@ export const useSettingsStore = defineStore('settingsStore', {
                 iclEew: false,
                 scEew: true,
                 fjEew: true,
+                kmaEew: false,
                 gqEew: false,
                 jmaEqlist: false,
                 cwaEqlist: false,

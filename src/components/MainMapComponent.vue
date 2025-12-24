@@ -351,7 +351,7 @@ import { useSettingsStore } from '@/stores/settings';
 import { useTimeStore } from '@/stores/time';
 import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
-import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToCnArea, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone, simplifyTopoJson, formatCsis, csisRomanArray, formatShindo } from '@/utils/Utils';
+import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToCnArea, pointDistToKrArea, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone, simplifyTopoJson, formatCsis, csisRomanArray, formatShindo } from '@/utils/Utils';
 import { topojsonUrls } from '@/utils/Urls';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { isTauri } from '@tauri-apps/api/core';
@@ -369,7 +369,7 @@ classNameArray.forEach(color => tsunamiColors[color] = style.getPropertyValue(`-
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 const timeStore = useTimeStore()
-let map, jpEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap, cnTsunamiBaseMap, labelLayer1, labelLayer2, terminatorLayer, terminatorFillLayer, cnFaultBaseMap
+let map, jpEewBaseMap, krEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap, cnTsunamiBaseMap, labelLayer1, labelLayer2, terminatorLayer, terminatorFillLayer, cnFaultBaseMap
 let eewMarkerPane, eqlistMarkerPane, historyMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, kmaGridPane, eewBasePane, tsunamiBasePane, labelPane1, labelPane2
 let userMarker
 const defaultLatLng = [38.1, 104.6]
@@ -757,7 +757,7 @@ onMounted(()=>{
             waveFillPane.style.opacity = 0.3
             niedGridPane.style.opacity = 0.3 * (blinkStatus.value && !statusStore.isActive.jmaEew ? 1 : 0)
             tremGridPane.style.opacity = 0.3 * (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0)
-            kmaGridPane.style.opacity = 0.3 * (blinkStatus.value ? 1 : 0)
+            kmaGridPane.style.opacity = 0.3 * (blinkStatus.value && !statusStore.isActive.kmaEew ? 1 : 0)
         }
         else{
             eewMarkerPane.style.opacity = 1 * (blinkStatus.value ? 1 : 0)
@@ -765,7 +765,7 @@ onMounted(()=>{
             waveFillPane.style.opacity = 1
             niedGridPane.style.opacity = 1 * (blinkStatus.value && !statusStore.isActive.jmaEew ? 1 : 0)
             tremGridPane.style.opacity = 1 * (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0)
-            kmaGridPane.style.opacity = 1 * (blinkStatus.value ? 1 : 0)
+            kmaGridPane.style.opacity = 1 * (blinkStatus.value && !statusStore.isActive.kmaEew ? 1 : 0)
         }
         simpleIcon.value = newVal == 'eqlists'
     }, { immediate: true })
@@ -876,14 +876,22 @@ const loadMaps = async (retries = 0) => {
         promises = Object.keys(topojsonUrls).map(key=>fetch(topojsonUrls[key]).then(res=>res?.json()))
     }
     const resps = await Promise.all(promises)
-    const [global, cn, cn_eew, cn_fault, jp, jp_eew, jp_tsunami, cn_tsunami] = resps
-    if(global && cn && cn_eew && cn_fault && jp && jp_eew && jp_tsunami){
+    const [global, cn, cn_eew, cn_fault, jp, jp_eew, jp_tsunami, kr_eew, cn_tsunami] = resps
+    if(global && cn && cn_eew && cn_fault && jp && jp_eew && kr_eew && jp_tsunami){
         clearTimeout(msgTimer)
         loadBaseMap(global, 'basePane')
         loadBaseMap(jp, 'basePane')
         loadBaseMap(cn, 'basePane')
         jpEewBaseMap = settingsStore.mainSettings.disableEewBaseMap 
         ? null : loadBaseMap(jp_eew, 'eewBasePane', false, {
+            color: '#bbbbbb00',
+            opacity: 1,
+            fillColor: '#39393900',
+            fillOpacity: 1,
+            weight: 1,
+        })
+        krEewBaseMap = settingsStore.mainSettings.disableEewBaseMap 
+        ? null : loadBaseMap(kr_eew, 'eewBasePane', false, {
             color: '#bbbbbb00',
             opacity: 1,
             fillColor: '#39393900',
@@ -978,9 +986,9 @@ const loadMaps = async (retries = 0) => {
             })
         }, { deep: true, immediate: true })
         if(settingsStore.advancedSettings.forceCalcInt){
-            watch(cnEewInfoList, newVal=>{
+            watch(eewInfoList, newVal=>{
                 const newCsisList = {}
-                const areaClass = {}
+                const cnAreaClass = {}, krAreaClass = {}
                 cnEewBaseMap?.eachLayer(layer=>{
                     let maxInt = 0
                     newVal.forEach(info=>{
@@ -991,13 +999,35 @@ const loadMaps = async (retries = 0) => {
                     if(maxInt > 0){
                         const className = setClassName(maxInt, false)
                         const layerName = layer.feature.properties.name
-                        areaClass[layerName] = className
+                        cnAreaClass[layerName] = className
+                        if(!(maxInt in newCsisList)) newCsisList[maxInt] = []
+                        newCsisList[maxInt].push(layerName)
+                    }
+                })
+                krEewBaseMap?.eachLayer(layer=>{
+                    let maxInt = 0
+                    newVal.forEach(info=>{
+                        const dist = pointDistToKrArea([info.lng, info.lat], layer.feature)
+                        const int = Number(calcCsisLevel(info.magnitude, info.depth, dist))
+                        if(int > maxInt) maxInt = int
+                    })
+                    if(maxInt > 0){
+                        const className = setClassName(maxInt, false)
+                        const layerName = layer.feature.properties.name
+                        krAreaClass[layerName] = className
                         if(!(maxInt in newCsisList)) newCsisList[maxInt] = []
                         newCsisList[maxInt].push(layerName)
                     }
                 })
                 cnEewBaseMap?.setStyle(feature => {
-                    const className = areaClass[feature.properties.name]
+                    const className = cnAreaClass[feature.properties.name]
+                    return ({
+                        color: className ? '#bbbbbb' : '#bbbbbb00',
+                        fillColor: classNameColors[className] || '#39393900'
+                    })
+                })
+                krEewBaseMap?.setStyle(feature => {
+                    const className = krAreaClass[feature.properties.name]
                     return ({
                         color: className ? '#bbbbbb' : '#bbbbbb00',
                         fillColor: classNameColors[className] || '#39393900'
@@ -1083,7 +1113,7 @@ const intervalEvents = ()=>{
     eewMarkerPane.style.opacity = (blinkStatus.value ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
     niedGridPane.style.opacity = (blinkStatus.value && !statusStore.isActive.jmaEew ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
     tremGridPane.style.opacity = (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
-    kmaGridPane.style.opacity = (blinkStatus.value ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
+    kmaGridPane.style.opacity = (blinkStatus.value && !statusStore.isActive.kmaEew ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
     tsunamiBasePane.style.opacity = (tsunamiFlickerCounter ? 1 : 0) * (menuId.value == 'eews' ? 0.3 : 1)
     isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
     isTremDelayed.value = !verifyUpToDate(tremUpdateTime.value, 8, 10000)
@@ -1190,7 +1220,9 @@ const setView = () => {
                             }
                             break
                         case 'kmaGridPane':
-                            shouldExtend = true
+                            if(!statusStore.isActive.kmaEew) {
+                                shouldExtend = true
+                            }
                             break
                     }
                     if(shouldExtend) {
@@ -1504,7 +1536,7 @@ const jpEewInfoList = computed(()=>{
     })
     return jpEewInfoList
 })
-const cnEewInfoList = computed(()=>{
+const eewInfoList = computed(()=>{
     const cnEewList = menuId.value == 'eqlists'
         ? historyList.length > 0
         ? historyList.filter(event => event.hypoMarker && !event.eqMessage.isCanceled)
@@ -1514,11 +1546,11 @@ const cnEewInfoList = computed(()=>{
         : activeEqlistList.value.filter(event=>event.hypoMarker && !event.eqMessage.isCanceled)
         : eqlistList.filter(event=>event.hypoMarker && !event.eqMessage.isCanceled)
         : activeEewList.filter(event=>!(event.eqMessage.isCanceled || event.eqMessage.isAssumption))
-    const cnEewInfoList = cnEewList.map(event=>{
+    const eewInfoList = cnEewList.map(event=>{
         const { magnitude, depth, lat, lng } = event.eqMessage
         return { magnitude, depth, lat, lng }
     })
-    return cnEewInfoList
+    return eewInfoList
 })
 onBeforeUnmount(()=>{
     clearInterval(mainInterval)

@@ -45,6 +45,10 @@
                             <div>日本気象庁: 緊急地震速報</div>
                             <el-switch v-model="settingsStore.mainSettings.source.jmaEew" @change="handleNeedReload" />
                         </div>
+                        <div class="switch-full">
+                            <div>기상청: 지진 조기 경보</div>
+                            <el-switch v-model="settingsStore.mainSettings.source.kmaEew" @change="handleNeedReload" />
+                        </div>
                         <div class="switch-full" v-if="settingsStore.advancedSettings.enableGqEew">
                             <div>GlobalQuake: 地震预警</div>
                             <el-switch v-model="settingsStore.mainSettings.source.gqEew" @change="handleNeedReload" />
