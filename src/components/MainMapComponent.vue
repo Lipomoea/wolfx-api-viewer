@@ -1187,6 +1187,16 @@ const setView = () => {
                         }
                     }
                 })
+                krEewBaseMap?.eachLayer(layer => {
+                    if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
+                        if(layer.getBounds){
+                            bounds.extend(layer.getBounds())
+                        }
+                        else if(layer.getLatLng){
+                            bounds.extend(layer.getLatLng())
+                        }
+                    }
+                })
                 cnEewBaseMap?.eachLayer(layer => {
                     if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
                         if(layer.getBounds){
@@ -1252,6 +1262,16 @@ const setView = () => {
                         }
                     }
                 })
+                krEewBaseMap?.eachLayer(layer => {
+                    if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
+                        if(layer.getBounds){
+                            bounds.extend(layer.getBounds())
+                        }
+                        else if(layer.getLatLng){
+                            bounds.extend(layer.getLatLng())
+                        }
+                    }
+                })
                 cnEewBaseMap?.eachLayer(layer => {
                     if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
                         if(layer.getBounds){
@@ -1292,6 +1312,16 @@ const setView = () => {
                         }
                     })
                     jpEewBaseMap?.eachLayer(layer => {
+                        if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
+                            if(layer.getBounds){
+                                bounds.extend(layer.getBounds())
+                            }
+                            else if(layer.getLatLng){
+                                bounds.extend(layer.getLatLng())
+                            }
+                        }
+                    })
+                    krEewBaseMap?.eachLayer(layer => {
                         if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
                             if(layer.getBounds){
                                 bounds.extend(layer.getBounds())
