@@ -416,7 +416,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.magnitude = data.magnitude
                                 eqMessage.magnitudeText = '規模: ' + eqMessage.magnitude.toFixed(1)
                                 eqMessage.useShindo = true
-                                eqMessage.maxIntensity = shindoScaleKanji[data.maxIntensity] || '不明'
+                                eqMessage.maxIntensity = shindoScaleKanji[data.epiIntensity] || '不明'
                                 eqMessage.maxIntensityText = '預估最大震度: ' + eqMessage.maxIntensity
                                 eqMessage.isWarn = eqMessage.maxIntensity >= '5'
                                 break
