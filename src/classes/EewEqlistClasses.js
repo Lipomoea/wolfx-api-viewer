@@ -298,7 +298,7 @@ export class EewEvent {
             else {
                 Object.assign(this.eqMessage, eqMessage)
                 this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
-                this.maxWaveRadius = 250 * 2 ** Math.min(Math.max(this.eqMessage.magnitude - 3, 0), 3)
+                this.maxWaveRadius = Math.min(Math.max(50 * this.eqMessage.magnitude ** 2, 200), 2000)
                 if(this.isValidUserLatLng) {
                     this.userDist = L.latLng(this.hypoLatLng).distanceTo(L.latLng(this.userLatLng)) / 1000
                     this.pReachTime = calcReachTime(this.userDist <= this.maxRadius1 ? travelTimes.jma2001 : travelTimes.jb, true, this.eqMessage.depth, this.userDist)

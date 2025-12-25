@@ -171,14 +171,14 @@
                                 </el-select>
                             </div>
                             <div class="switch-full pl-4">
-                                <span>加速度保持时间</span>
+                                <span>加速度保持</span>
                                 <el-select 
                                     v-model="settingsStore.mainSettings.displaySeisNet.kmaIntHold"
                                     size="small"
                                     :disabled="!settingsStore.mainSettings.displaySeisNet.kmaNet"
                                     style="width: 72px;"
                                 >
-                                    <el-option label="关" :value="1" />
+                                    <el-option label="实时" :value="1" />
                                     <el-option label="5秒" :value="5" />
                                     <el-option label="10秒" :value="10" />
                                     <el-option label="30秒" :value="30" />
