@@ -73,8 +73,9 @@ export class EewEvent {
             lastSecondsCount: settingsStore.mainSettings.countdownStart + 1
         }
         this.hypoMarker = null
-        this.maxRadius = 2000
-        this.maxCountdownRadius = 10000
+        this.maxRadius1 = 2000
+        this.maxRadius2 = 10000
+        this.maxWaveRadius = 2000
         this.handleTempEqlists = handleTempEqlists
         this.smartSetView = smartSetView
     }
@@ -137,18 +138,16 @@ export class EewEvent {
     }
     switchDrawWaves(passedTime){
         let p_reach, p_radius, s_reach, s_radius
-        const maxRadius = this.maxRadius
-        const maxRadius2 = this.maxCountdownRadius
         let p_info = calcWaveDistance(travelTimes.jma2001, true, this.eqMessage.depth, passedTime)
-        if(p_info.radius > maxRadius) p_info = calcWaveDistance(travelTimes.jb, true, this.eqMessage.depth, passedTime)
+        if(p_info.radius > this.maxRadius1) p_info = calcWaveDistance(travelTimes.jb, true, this.eqMessage.depth, passedTime)
         p_reach = p_info.reach
         p_radius = p_info.radius
         let s_info = calcWaveDistance(travelTimes.jma2001, false, this.eqMessage.depth, passedTime)
-        if(s_info.radius > maxRadius) s_info = calcWaveDistance(travelTimes.jb, false, this.eqMessage.depth, passedTime)
+        if(s_info.radius > this.maxRadius1) s_info = calcWaveDistance(travelTimes.jb, false, this.eqMessage.depth, passedTime)
         s_reach = s_info.reach
         s_radius = s_info.radius
-        if(p_radius > 0 && p_radius <= maxRadius2) {
-            const opacity = p_radius <= maxRadius ? this.calcOpacity(p_radius, 0, maxRadius, 0.25, 1) : this.calcOpacity(p_radius, maxRadius, maxRadius2, 0, 0.25)
+        if(p_radius > 0 && p_radius <= this.maxRadius2) {
+            const opacity = p_radius <= this.maxWaveRadius ? this.calcOpacity(p_radius, 0, this.maxWaveRadius, 0.25, 1) : this.calcOpacity(p_radius, this.maxWaveRadius, this.maxRadius2, 0, 0.25)
             if(!this.pWave) {
                 this.pWave = L.circle(this.hypoLatLng, {
                     color: 'white',
@@ -220,8 +219,8 @@ export class EewEvent {
                 }
                 break
         }
-        if(s_radius > 0 && s_radius <= maxRadius2) {
-            const opacity = s_radius <= maxRadius ? this.calcOpacity(s_radius, 0, maxRadius, 0.25, 1) : this.calcOpacity(s_radius, maxRadius, maxRadius2, 0, 0.25)
+        if(s_radius > 0 && s_radius <= this.maxRadius2) {
+            const opacity = s_radius <= this.maxWaveRadius ? this.calcOpacity(s_radius, 0, this.maxWaveRadius, 0.25, 1) : this.calcOpacity(s_radius, this.maxWaveRadius, this.maxRadius2, 0, 0.25)
             if(!this.sWave) {
                 this.sWave = L.circle(this.hypoLatLng, {
                     color,
@@ -246,8 +245,8 @@ export class EewEvent {
                 this.sWave = null
             }
         }
-        if(s_radius > 0 && s_radius <= maxRadius) {
-            const fillOpacity = this.calcOpacity(s_radius, 0, maxRadius, 0, 0.25)
+        if(s_radius > 0 && s_radius <= this.maxWaveRadius) {
+            const fillOpacity = this.calcOpacity(s_radius, 0, this.maxWaveRadius, 0, 0.25)
             if(!this.sWaveFill) {
                 this.sWaveFill = L.circle(this.hypoLatLng, {
                     fillColor: color,
@@ -273,11 +272,11 @@ export class EewEvent {
         }
     }
     calcOpacity(radius, minRadius, maxRadius, minOpacity = 0, maxOpacity = 1){
-        if(radius <= minRadius * 0.1 + maxRadius * 0.9) return maxOpacity
+        if(radius <= minRadius * 0.2 + maxRadius * 0.8) return maxOpacity
         else if(radius >= maxRadius) return minOpacity
         else {
-            const k = 10 * (minOpacity - maxOpacity) / (maxRadius - minRadius)
-            const b = (10 * maxOpacity * maxRadius - 9 * minOpacity * maxRadius - minOpacity * minRadius) / (maxRadius - minRadius)
+            const k = 5 * (minOpacity - maxOpacity) / (maxRadius - minRadius)
+            const b = (5 * maxOpacity * maxRadius - 4 * minOpacity * maxRadius - minOpacity * minRadius) / (maxRadius - minRadius)
             return k * radius + b
         }
     }
@@ -299,10 +298,11 @@ export class EewEvent {
             else {
                 Object.assign(this.eqMessage, eqMessage)
                 this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
+                this.maxWaveRadius = 250 * 2 ** Math.min(Math.max(this.eqMessage.magnitude - 3, 0), 3)
                 if(this.isValidUserLatLng) {
                     this.userDist = L.latLng(this.hypoLatLng).distanceTo(L.latLng(this.userLatLng)) / 1000
-                    this.pReachTime = calcReachTime(this.userDist <= this.maxRadius ? travelTimes.jma2001 : travelTimes.jb, true, this.eqMessage.depth, this.userDist)
-                    this.sReachTime = calcReachTime(this.userDist <= this.maxRadius ? travelTimes.jma2001 : travelTimes.jb, false, this.eqMessage.depth, this.userDist)
+                    this.pReachTime = calcReachTime(this.userDist <= this.maxRadius1 ? travelTimes.jma2001 : travelTimes.jb, true, this.eqMessage.depth, this.userDist)
+                    this.sReachTime = calcReachTime(this.userDist <= this.maxRadius1 ? travelTimes.jma2001 : travelTimes.jb, false, this.eqMessage.depth, this.userDist)
                     this.userCsis = settingsStore.advancedSettings.forceCalcInt && !this.eqMessage.isAssumption ? 
                         calcCsisLevel(this.eqMessage.magnitude, this.eqMessage.depth, this.userDist) : '?'
                     this.userShindo = 
@@ -439,7 +439,7 @@ export class EewEvent {
         this.handleTempEqlists(0)
     }
     handleCountdown(passedTime){
-        if(settingsStore.mainSettings.displayCountdown && this.isValidUserLatLng && (this.userDist <= this.maxCountdownRadius && !this.eqMessage.isAssumption || settingsStore.mainSettings.forceDisplayCountdown)){
+        if(settingsStore.mainSettings.displayCountdown && this.isValidUserLatLng && (this.userDist <= this.maxRadius2 && !this.eqMessage.isAssumption || settingsStore.mainSettings.forceDisplayCountdown)){
             this.countdown = Math.max(this.sReachTime - passedTime, 0)
             this.pCountdown = Math.max(this.pReachTime - passedTime, 0)
             if(settingsStore.mainSettings.playCountdownSound && this.shouldAction && !this.mute && (
