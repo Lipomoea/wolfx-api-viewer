@@ -1135,6 +1135,7 @@ const setView = () => {
     if(!map) return
     if(document.visibilityState === 'visible') {
         const bounds = L.latLngBounds([])
+        let stableMode = false
         //临时Eqlist
         if(settingsStore.mainSettings.cinemaMode && tempEqlists.value && menuId.value == 'eqlists' && historyList.length == 0) {
             if(tempEqlists.value == 'jmaTsunami') {
@@ -1212,22 +1213,15 @@ const setView = () => {
                     let shouldExtend = false
                     switch(layer.options.pane) {
                         case 'eewMarkerPane':
-                        case 'waveFillPane':
                             shouldExtend = true
                             break
                         case 'niedGridPane':
-                            if(!statusStore.isActive.jmaEew) {
-                                shouldExtend = true
-                            }
-                            break
                         case 'tremGridPane':
-                            if(!statusStore.isActive.cwaEew) {
-                                shouldExtend = true
-                            }
-                            break
                         case 'kmaGridPane':
-                            if(!statusStore.isActive.kmaEew) {
+                            // 密码的，SVG渲染器残留不要触发stableMode
+                            if(layer.options.color) {
                                 shouldExtend = true
+                                stableMode = true
                             }
                             break
                     }
@@ -1239,6 +1233,27 @@ const setView = () => {
                             bounds.extend(layer.getLatLng())
                         }
                     }
+                })
+                activeEewList.forEach(event => {
+                    let sWaveFill = null
+                    switch(event.eqMessage.source) {
+                        case 'jmaEew':
+                            if(!statusStore.isActive.niedNet)
+                                sWaveFill = event.sWaveFill
+                            break
+                        case 'cwaEew':
+                            if(!statusStore.isActive.tremNet)
+                                sWaveFill = event.sWaveFill
+                            break
+                        case 'kmaEew':
+                            if(!statusStore.isActive.kmaNet)
+                                sWaveFill = event.sWaveFill
+                            break
+                        default:
+                            sWaveFill = event.sWaveFill
+                            break
+                    }
+                    if(sWaveFill) bounds.extend(sWaveFill.getBounds())
                 })
             }
             //历史地震
@@ -1397,6 +1412,8 @@ const setView = () => {
         }
         const currCenter = map.getCenter()
         const currZoom = map.getZoom()
+        if(stableMode && currZoom == targetZoom && map.getBounds().contains(bounds))
+            return
         const err = 1 / 2 ** targetZoom
         if(currZoom != targetZoom || Math.abs(currCenter.lat - targetCenter.lat) >= err || Math.abs(currCenter.lng - targetCenter.lng) >= err)
             map.setView(targetCenter, targetZoom, { animate: true })
