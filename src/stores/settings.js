@@ -28,6 +28,7 @@ export const useSettingsStore = defineStore('settingsStore', {
                 style: 'nied',
                 hideNoData: false,
                 displayShindo0: false,
+                alwaysDisplayGrid: false,
                 delay: 0,
                 niedNet: false,
                 niedSensitivity: 2,

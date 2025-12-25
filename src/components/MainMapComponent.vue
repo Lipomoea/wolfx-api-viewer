@@ -752,20 +752,12 @@ onMounted(()=>{
             tsunamiBasePane.style.opacity = 1 * (tsunamiFlickerCounter ? 1 : 0)
         }
         if(newVal == 'eqlists'){
-            eewMarkerPane.style.opacity = 0.3 * (blinkStatus.value ? 1 : 0)
             wavePane.style.opacity = 0.3
             waveFillPane.style.opacity = 0.3
-            niedGridPane.style.opacity = 0.3 * (blinkStatus.value && !statusStore.isActive.jmaEew ? 1 : 0)
-            tremGridPane.style.opacity = 0.3 * (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0)
-            kmaGridPane.style.opacity = 0.3 * (blinkStatus.value && !statusStore.isActive.kmaEew ? 1 : 0)
         }
         else{
-            eewMarkerPane.style.opacity = 1 * (blinkStatus.value ? 1 : 0)
             wavePane.style.opacity = 1
             waveFillPane.style.opacity = 1
-            niedGridPane.style.opacity = 1 * (blinkStatus.value && !statusStore.isActive.jmaEew ? 1 : 0)
-            tremGridPane.style.opacity = 1 * (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0)
-            kmaGridPane.style.opacity = 1 * (blinkStatus.value && !statusStore.isActive.kmaEew ? 1 : 0)
         }
         simpleIcon.value = newVal == 'eqlists'
     }, { immediate: true })
@@ -1106,14 +1098,18 @@ const loadMaps = async (retries = 0) => {
         }
     }
 }
+watchEffect(() => {
+    const blinkOpac = blinkStatus.value ? 1 : 0
+    const menuOpac = menuId.value == 'eqlists' ? 0.3 : 1
+    if(eewMarkerPane) eewMarkerPane.style.opacity = blinkOpac * menuOpac
+    if(niedGridPane) niedGridPane.style.opacity = blinkOpac * menuOpac * (!statusStore.isActive.jmaEew || settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid ? 1 : 0)
+    if(tremGridPane) tremGridPane.style.opacity = blinkOpac * menuOpac * (!statusStore.isActive.cwaEew || settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid ? 1 : 0)
+    if(kmaGridPane) kmaGridPane.style.opacity = blinkOpac * menuOpac * (!statusStore.isActive.kmaEew || settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid ? 1 : 0)
+})
 const intervalEvents = ()=>{
     blinkStatus.value = !blinkStatus.value
     tsunamiFlickerCounter = (tsunamiFlickerCounter + 1) % 6
     infoPageCounter.value = (infoPageCounter.value + 1) % 25200
-    eewMarkerPane.style.opacity = (blinkStatus.value ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
-    niedGridPane.style.opacity = (blinkStatus.value && !statusStore.isActive.jmaEew ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
-    tremGridPane.style.opacity = (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
-    kmaGridPane.style.opacity = (blinkStatus.value && !statusStore.isActive.kmaEew ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
     tsunamiBasePane.style.opacity = (tsunamiFlickerCounter ? 1 : 0) * (menuId.value == 'eews' ? 0.3 : 1)
     isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
     isTremDelayed.value = !verifyUpToDate(tremUpdateTime.value, 8, 10000)
