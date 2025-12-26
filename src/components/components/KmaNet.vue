@@ -82,35 +82,40 @@ const update = (intensities) => {
     const activeStations = new Set()
     let first = null
     for(let i = 0; i < stationList.length; i++) {
-        if(stations[i].activityLevel < 3 && !stations[i].ascend) continue
-        const nearbyStations = adjStationIds[i].map(id => stations[id])
-        const nearbyLevels = nearbyStations.map(station => station.activityLevel)
-        const nearbyAscends = nearbyStations.map(station => station.ascend)
-        const nearbyLength = nearbyLevels.length
-        const countInt1 = nearbyLevels.filter(level => level >= 3).length
-        const countInt2 = nearbyLevels.filter(level => level >= 4).length
-        const countAsc1 = nearbyAscends.filter(ascend => ascend >= 1).length
-        const countAsc2 = nearbyAscends.filter(ascend => ascend >= 2).length
-        const flag1 = countInt1 >= Math.max(0.6 * nearbyLength, 4) || countInt2 >= Math.max(0.15 * nearbyLength, 2)
-        const flag2 = countAsc2 >= Math.max(0.6 * nearbyLength, 4)
-        const flag3 = countAsc1 >= Math.max(0.8 * nearbyLength, 5)
-        let flag
-        switch(settingsStore.mainSettings.displaySeisNet.kmaSensitivity) {
-            case 1: 
-                flag = flag1
-                break
-            case 2: 
-                flag = flag1 || flag2
-                break
-            case 3: 
-                flag = flag1 || flag2 || flag3
-                break
-            default:
-                return
+        const station = stations[i]
+        let flag = false
+        if(station.isActive && station.ascend > 0) {
+            flag = true
+        }
+        else if(station.isActive || station.ascend > 0) {
+            const nearbyStations = adjStationIds[i].map(id => stations[id])
+            const nearbyLevels = nearbyStations.filter(station => station.isActive || station.ascend > 0).map(station => station.activityLevel)
+            const nearbyAscends = nearbyStations.map(station => station.ascend)
+            const nearbyNum = nearbyStations.length
+            const countInt1 = nearbyLevels.filter(level => level >= 3).length
+            const countInt2 = nearbyLevels.filter(level => level >= 4).length
+            const countAsc1 = nearbyAscends.filter(ascend => ascend >= 1).length
+            const countAsc2 = nearbyAscends.filter(ascend => ascend >= 2).length
+            const flag1 = countInt1 >= Math.max(0.6 * nearbyNum, 4) || countInt2 >= Math.max(0.15 * nearbyNum, 2)
+            const flag2 = countAsc2 >= Math.max(0.6 * nearbyNum, 4)
+            const flag3 = countAsc1 >= Math.max(0.8 * nearbyNum, 5)
+            switch(settingsStore.mainSettings.displaySeisNet.kmaSensitivity) {
+                case 1: 
+                    flag = flag1
+                    break
+                case 2: 
+                    flag = flag1 || flag2
+                    break
+                case 3: 
+                    flag = flag1 || flag2 || flag3
+                    break
+                default:
+                    return
+            }
         }
         if(flag) {
             nearbyStations.forEach(station => {
-                if((station.activityLevel >= 3 || station.ascend) && !activeStations.has(station)) {
+                if((station.isActive || station.ascend > 0) && !activeStations.has(station)) {
                     station.setActive()
                     activeStations.add(station)
                     if(!statusStore.isActive.kmaNet && (!first || station.activityLevel > first.activityLevel))
