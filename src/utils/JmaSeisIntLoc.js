@@ -1764,10 +1764,10 @@ export const jmaSeisIntLoc = {
     sect: "青森県津軽北部",
     arv: 1.49,
   },
-  蓬田村蓬田: {
-    location: [40.97, 140.66],
+  蓬田村阿弥陀川: {
+    location: [40.97, 140.65],
     sect: "青森県津軽北部",
-    arv: 1.44,
+    arv: 1.13,
   },
   外ヶ浜町平舘: {
     location: [41.15, 140.63],
@@ -6704,15 +6704,15 @@ export const jmaSeisIntLoc = {
     sect: "千葉県南部",
     arv: 1.84,
   },
-  いすみ市国府台: {
-    location: [35.28, 140.31],
-    sect: "千葉県南部",
-    arv: 1.43,
-  },
   いすみ市岬町長者: {
     location: [35.3, 140.38],
     sect: "千葉県南部",
     arv: 2.06,
+  },
+  いすみ市弥正: {
+    location: [35.29, 140.31],
+    sect: "千葉県南部",
+    arv: 1.69,
   },
   大多喜町大多喜: {
     location: [35.29, 140.25],
@@ -7724,10 +7724,10 @@ export const jmaSeisIntLoc = {
     sect: "神奈川県東部",
     arv: 1.76,
   },
-  三浦市城山町: {
-    location: [35.14, 139.62],
+  三浦市三崎町: {
+    location: [35.16, 139.64],
     sect: "神奈川県東部",
-    arv: 1.33,
+    arv: 1.19,
   },
   大和市下鶴間: {
     location: [35.49, 139.46],
@@ -10820,9 +10820,9 @@ export const jmaSeisIntLoc = {
     arv: 0.75,
   },
   郡上市美並町: {
-    location: [35.66, 136.96],
+    location: [35.67, 136.96],
     sect: "岐阜県美濃中西部",
-    arv: 0.8,
+    arv: 0.83,
   },
   海津市海津町: {
     location: [35.22, 136.64],
@@ -12829,11 +12829,6 @@ export const jmaSeisIntLoc = {
     sect: "滋賀県南部",
     arv: 0.84,
   },
-  東近江市八日市緑町: {
-    location: [35.11, 136.21],
-    sect: "滋賀県南部",
-    arv: 1.13,
-  },
   東近江市池庄町: {
     location: [35.13, 136.25],
     sect: "滋賀県南部",
@@ -12863,6 +12858,11 @@ export const jmaSeisIntLoc = {
     location: [35.18, 136.16],
     sect: "滋賀県南部",
     arv: 1.94,
+  },
+  東近江市八日市緑町: {
+    location: [35.11, 136.21],
+    sect: "滋賀県南部",
+    arv: 1.13,
   },
   滋賀日野町河原: {
     location: [35.02, 136.25],
@@ -16794,6 +16794,11 @@ export const jmaSeisIntLoc = {
     sect: "香川県東部",
     arv: 0.57,
   },
+  さぬき市大川町: {
+    location: [34.26, 134.23],
+    sect: "香川県東部",
+    arv: 0.89,
+  },
   東かがわ市西村: {
     location: [34.25, 134.32],
     sect: "香川県東部",
@@ -17599,10 +17604,10 @@ export const jmaSeisIntLoc = {
     sect: "高知県中部",
     arv: 0.97,
   },
-  宿毛市片島: {
-    location: [32.92, 132.7],
+  宿毛市小筑紫町田ノ浦: {
+    location: [32.91, 132.72],
     sect: "高知県西部",
-    arv: 1.48,
+    arv: 1.75,
   },
   宿毛市桜町: {
     location: [32.94, 132.73],
@@ -18403,6 +18408,11 @@ export const jmaSeisIntLoc = {
     location: [33.66, 131.06],
     sect: "福岡県北九州",
     arv: 1.84,
+  },
+  築上町築城: {
+    location: [33.67, 131.03],
+    sect: "福岡県北九州",
+    arv: 1.06,
   },
   直方市新町: {
     location: [33.74, 130.73],
@@ -19594,15 +19604,15 @@ export const jmaSeisIntLoc = {
     sect: "熊本県熊本",
     arv: 0.78,
   },
-  八代市泉支所: {
-    location: [32.55, 130.815],
-    sect: "熊本県熊本",
-    arv: 0.78,
-  },
   八代市坂本町: {
     location: [32.44, 130.67],
     sect: "熊本県熊本",
     arv: 0.57,
+  },
+  八代市泉支所: {
+    location: [32.55, 130.815],
+    sect: "熊本県熊本",
+    arv: 0.78,
   },
   荒尾市宮内出目: {
     location: [32.99, 130.43],
@@ -21334,15 +21344,15 @@ export const jmaSeisIntLoc = {
     sect: "鹿児島県奄美北部",
     arv: 0.57,
   },
-  瀬戸内町加計呂麻島: {
-    location: [28.12, 129.25],
-    sect: "鹿児島県奄美北部",
-    arv: 0.57,
-  },
   瀬戸内町与路島: {
     location: [28.04, 129.16],
     sect: "鹿児島県奄美北部",
     arv: 1.37,
+  },
+  瀬戸内町加計呂麻島: {
+    location: [28.12, 129.25],
+    sect: "鹿児島県奄美北部",
+    arv: 0.57,
   },
   龍郷町屋入: {
     location: [28.42, 129.6],
