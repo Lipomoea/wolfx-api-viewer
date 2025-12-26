@@ -83,12 +83,12 @@ const update = (intensities) => {
     let first = null
     for(let i = 0; i < stationList.length; i++) {
         const station = stations[i]
+        const nearbyStations = adjStationIds[i].map(id => stations[id])
         let flag = false
         if(station.isActive && station.ascend > 0) {
             flag = true
         }
         else if(station.isActive || station.ascend > 0) {
-            const nearbyStations = adjStationIds[i].map(id => stations[id])
             const nearbyLevels = nearbyStations.filter(station => station.isActive || station.ascend > 0).map(station => station.activityLevel)
             const nearbyAscends = nearbyStations.map(station => station.ascend)
             const nearbyNum = nearbyStations.length
@@ -96,18 +96,15 @@ const update = (intensities) => {
             const countInt2 = nearbyLevels.filter(level => level >= 4).length
             const countAsc1 = nearbyAscends.filter(ascend => ascend >= 1).length
             const countAsc2 = nearbyAscends.filter(ascend => ascend >= 2).length
-            const flag1 = countInt1 >= Math.max(0.6 * nearbyNum, 4) || countInt2 >= Math.max(0.15 * nearbyNum, 2)
-            const flag2 = countAsc2 >= Math.max(0.6 * nearbyNum, 4)
-            const flag3 = countAsc1 >= Math.max(0.8 * nearbyNum, 5)
             switch(settingsStore.mainSettings.displaySeisNet.kmaSensitivity) {
                 case 1: 
-                    flag = flag1
+                    flag = countInt1 >= Math.max(0.6 * nearbyNum, 4) || countInt2 >= Math.max(0.2 * nearbyNum, 2) || countAsc2 >= Math.max(0.7 * nearbyNum, 4)
                     break
                 case 2: 
-                    flag = flag1 || flag2
+                    flag = countInt1 >= Math.max(0.5 * nearbyNum, 3) || countInt2 >= Math.max(0.15 * nearbyNum, 2) || countAsc2 >= Math.max(0.6 * nearbyNum, 4)
                     break
                 case 3: 
-                    flag = flag1 || flag2 || flag3
+                    flag = countInt1 >= Math.max(0.5 * nearbyNum, 3) || countInt2 >= Math.max(0.15 * nearbyNum, 2) || countAsc2 >= Math.max(0.6 * nearbyNum, 4) || countAsc1 >= Math.max(0.8 * nearbyNum, 5)
                     break
                 default:
                     return
