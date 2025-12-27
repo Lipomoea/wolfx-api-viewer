@@ -393,9 +393,9 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.magnitude = data.Magunitude
                                 eqMessage.magnitudeText = '規模: ' + data.Magunitude.toFixed(1)
                                 eqMessage.useShindo = true
-                                eqMessage.maxIntensity = data.MaxIntensity
-                                eqMessage.maxIntensityText = '預估最大震度: ' + data.MaxIntensity
-                                eqMessage.isWarn = eqMessage.maxIntensity >= '5'
+                                eqMessage.maxIntensity = data.MaxIntensity || '不明'
+                                eqMessage.maxIntensityText = '預估最大震度: ' + eqMessage.maxIntensity
+                                eqMessage.isWarn = eqMessage.maxIntensity >= '5' && eqMessage.maxIntensity != '不明'
                                 break
                             case 1:
                                 eqMessage.id = data.id
@@ -418,7 +418,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.useShindo = true
                                 eqMessage.maxIntensity = shindoScaleKanji[data.epiIntensity] || '不明'
                                 eqMessage.maxIntensityText = '預估最大震度: ' + eqMessage.maxIntensity
-                                eqMessage.isWarn = eqMessage.maxIntensity >= '5'
+                                eqMessage.isWarn = eqMessage.maxIntensity >= '5' && eqMessage.maxIntensity != '不明'
                                 break
                         }
                         break
@@ -585,7 +585,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.magnitudeText = '震级: ' + data.Magunitude.toFixed(1)
                                 eqMessage.maxIntensity = calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
                                 eqMessage.maxIntensityText = '预估最大烈度: ' + eqMessage.maxIntensity
-                                eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 7.5
+                                eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 6.5
                                 break
                             case 1:
                                 eqMessage.id = data.eventId.split('_')[0]
@@ -606,7 +606,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.magnitudeText = '震级: ' + data.magnitude.toFixed(1)
                                 eqMessage.maxIntensity = calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
                                 eqMessage.maxIntensityText = '预估最大烈度: ' + eqMessage.maxIntensity
-                                eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 7.5
+                                eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 6.5
                                 break
                         }
                         break
