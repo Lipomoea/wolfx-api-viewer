@@ -130,7 +130,7 @@ const renderAll = ()=>{
 }
 let kmaSocket = null
 onMounted(()=>{
-    kmaSocket = new WebSocketObj([seisNetUrls.kma], ['ping'])
+    kmaSocket = new WebSocketObj(seisNetUrls.kma, ['ping'])
     kmaSocket.setMessageHandler(e => {
         const data = JSON.parse(e.data)
         const type = data?.type
