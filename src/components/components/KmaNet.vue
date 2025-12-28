@@ -277,7 +277,7 @@ watch(()=>(statusStore.isActive.kmaEew || statusStore.isActive.kmaNet), newVal=>
         kmaPeriodMaxInt.value = getMmiFromKmaLevel(periodMaxLevel)
     }
 }, { immediate: true })
-watch(() => Object.keys(grids.value).length, smartSetView)
+watch(() => Object.keys(grids.value).length, () => smartSetView())
 let shake1Notified = false, shake2Notified = false
 let focused = false
 watch(currentMaxShindo, (newVal, oldVal)=>{

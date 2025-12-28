@@ -226,7 +226,7 @@ watch(()=>(statusStore.isActive.cwaEew || statusStore.isActive.tremNet), newVal=
         tremPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel)
     }
 }, { immediate: true })
-watch(() => Object.keys(grids.value).length, smartSetView)
+watch(() => Object.keys(grids.value).length, () => smartSetView())
 let shake1Notified = false, shake2Notified = false
 let focused = false
 watch(currentMaxShindo, (newVal, oldVal)=>{

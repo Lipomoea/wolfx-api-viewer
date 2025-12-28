@@ -387,7 +387,7 @@ const handleTempEqlists = (time, source = '') => {
         tempEqlists.value = source
         tempEqlistsTimer = setTimeout(() => {
             tempEqlists.value = ''
-            smartSetView()
+            smartSetView(true)
         }, time);
     }
     else {
@@ -444,7 +444,7 @@ const handleManual = ()=>{
 }
 const handleHome = ()=>{
     isAutoZoom.value = true
-    setView()
+    setView(true)
 }
 const handleMenu = (index)=>{
     const shouldHandleHome = menuId.value == index
@@ -725,7 +725,7 @@ onMounted(()=>{
                 menuId.value = newVal
                 setTimeout(() => {
                     map.invalidateSize()
-                    setView()
+                    setView(true)
                 }, 0);
             }
         }, { immediate: true })
@@ -1131,7 +1131,7 @@ const setMapHeight = (height) => {
     }, 0);
 }
 let pendingSetView = false
-const setView = () => {
+const setView = (force = false) => {
     if(!map) return
     if(document.visibilityState === 'visible') {
         const bounds = L.latLngBounds([])
@@ -1412,7 +1412,7 @@ const setView = () => {
         }
         const currCenter = map.getCenter()
         const currZoom = map.getZoom()
-        if(stableMode && currZoom == targetZoom && map.getBounds().contains(bounds))
+        if(!force && stableMode && currZoom == targetZoom && map.getBounds().contains(bounds))
             return
         const err = 1 / 2 ** targetZoom
         if(currZoom != targetZoom || Math.abs(currCenter.lat - targetCenter.lat) >= err || Math.abs(currCenter.lng - targetCenter.lng) >= err)
@@ -1422,9 +1422,9 @@ const setView = () => {
         pendingSetView = true
     }
 }
-const smartSetView = () => {
+const smartSetView = (force = false) => {
     setTimeout(() => {
-        if(isAutoZoom.value) setView()
+        if(isAutoZoom.value) setView(force)
     }, 0);
 }
 provide('smartSetView', smartSetView)
