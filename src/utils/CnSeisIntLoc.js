@@ -104185,14 +104185,11 @@ export const cnSeisIntLoc = {
 
 export const cnSeisIntLocBush = Object.fromEntries(
   Object.entries(cnSeisIntLoc).map(([key, value]) => {
-    const kdbush = new KDBush(value.length, 16, Float32Array)
+    const kdbush = new KDBush(value.length, 16, Float32Array);
     value.forEach(lngLat => {
-      kdbush.add(lngLat[0], lngLat[1])
-    })
-    kdbush.finish()
-    return [
-      key,
-      kdbush
-    ];
+      kdbush.add(lngLat[0], lngLat[1]);
+    });
+    kdbush.finish();
+    return [key, kdbush];
   })
 );
