@@ -798,8 +798,7 @@ function handleKeydown(event) {
                     handleManual()
                 }
                 else {
-                    isAutoZoom.value = true
-                    setView()
+                    handleHome()
                 }
                 break
             case 'x':
