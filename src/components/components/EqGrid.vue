@@ -52,8 +52,8 @@ watch(eqMessage, (newVal)=>{
     let time
     if(newVal.isEew){
         if(newVal.isCanceled) time = 20 * 1000
-        else if(newVal.isWarn || newVal.magnitude >= 6.0) time = Math.max(newVal.magnitude, 6) * 60 * 1000
-        else time = 240 * 1000
+        else if(newVal.isWarn) time = Math.max(newVal.magnitude, 6) * 60 * 1000
+        else time = Math.max(newVal.magnitude, 3) * 60 * 1000
     }
     else{
         time = 300 * 1000
