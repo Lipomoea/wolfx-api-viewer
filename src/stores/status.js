@@ -877,7 +877,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 const { geometry, properties } = data
                                 const [lng, lat, depth] = geometry.coordinates
                                 tempMsg.id = properties.code
-                                tempMsg.title = 'USGS' + (properties.status == 'reviewed' ? '正式' : '自动') + '测定'
+                                tempMsg.title = 'USGS' + (properties.status.toLowerCase() == 'reviewed' ? '正式' : '自动') + '测定'
                                 tempMsg.titleText = tempMsg.title
                                 tempMsg.hypocenter = getFEName(lat, lng) || properties.place
                                 tempMsg.hypocenterText = '震中: ' + tempMsg.hypocenter
@@ -899,7 +899,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 break
                             case 1:
                                 tempMsg.id = data.id
-                                tempMsg.title = 'USGS' + (data.infoTypeName == 'reviewed' ? '正式' : '自动') + '测定'
+                                tempMsg.title = 'USGS' + (data.infoTypeName.toLowerCase() == 'reviewed' ? '正式' : '自动') + '测定'
                                 tempMsg.titleText = tempMsg.title
                                 tempMsg.hypocenter = getFEName(data.latitude, data.longitude) || data.placeName
                                 tempMsg.hypocenterText = '震中: ' + tempMsg.hypocenter
