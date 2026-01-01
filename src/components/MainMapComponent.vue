@@ -387,7 +387,7 @@ const handleTempEqlists = (time, source = '') => {
         tempEqlists.value = source
         tempEqlistsTimer = setTimeout(() => {
             tempEqlists.value = ''
-            smartSetView(true)
+            smartSetView()
         }, time);
     }
     else {
