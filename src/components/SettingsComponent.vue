@@ -1182,10 +1182,10 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false" append-to-body>
-            <div class="header">要石 v2.3.0</div>
+            <div class="header">要石 v2.3.1</div>
             <div class="title">使用方法</div>
             <div class="about">
-                <p>主要功能：接收中国地震局、四川地震局、福建地震局、台湾中央气象署、日本气象厅地震预警信息，中国地震台网、日本气象厅、韩国气象厅、美国地质调查局（USGS）、FAN Studio地震网络（FSSN）地震信息，日本气象厅海啸信息，NIED強震モニタ、KMA-PEWS测站数据。</p>
+                <p>主要功能：接收中国地震局、四川地震局、福建地震局、台湾中央气象署、日本气象厅、韩国气象厅地震预警信息，中国地震台网、日本气象厅、韩国气象厅、美国地质调查局（USGS）、FAN Studio地震网络（FSSN）地震信息，日本气象厅海啸信息，NIED強震モニタ、KMA-PEWS测站数据。</p>
                 <p>Chrome/Edge推荐设置（以Chrome为例，Edge方法类似）：</p>
                 <ul>
                     <li>保持后台刷新：浏览器访问chrome://flags - Calculate window occlusion on Windows - Disabled - 右下角重新启动</li>

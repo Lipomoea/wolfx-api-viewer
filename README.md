@@ -24,6 +24,7 @@ icon是《铃芽之旅》的草太さん（椅子形态）。
 * 中国断层：[国家地震科学数据中心](https://data.earthquake.cn/datashare/report.shtml?PAGEID=datasourcelist&dt=ff808082845b8fd401845bf036a1000c)
 * 中国地图注记：[中国城市经纬度坐标点集](https://gitcode.com/Open-source-documentation-tutorial/a0d83)
 * 日本地图：[日本気象庁](https://www.data.jma.go.jp/developer/gis.html)（注意钓鱼岛地区处理）
+* 韩国地图：[NGII](https://www.ngii.go.kr/world/mapdownload05_en.html)
 * 世界地图：[GeoJSON Maps of the globe](https://geojson-maps.kyd.au/)（注意甄别争议地区）
 * SREV音效：[scratch-realtime-earthquake-viewer-page](https://github.com/kotoho7/scratch-realtime-earthquake-viewer-page)
 * 中文倒计时播报素材：[地牛Wake Up！](https://eew.earthquake.tw/)
@@ -40,6 +41,7 @@ icon是《铃芽之旅》的草太さん（椅子形态）。
 * [azzbm](https://space.bilibili.com/702013828)
 * [不知道要取什么系列](https://space.bilibili.com/499911115)
 * [Andyli](https://space.bilibili.com/401770455)
+* [PopSlime](https://github.com/PopSlime)
 * 各位提供帮助的EEW爱好者
 ## 版权声明
 本项目参考了以下项目的源代码。
