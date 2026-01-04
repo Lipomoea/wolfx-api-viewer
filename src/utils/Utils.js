@@ -222,11 +222,13 @@ export const playSound = type => {
     chimeUrls.general[type] ||
     chimeUrls[soundEffect][type];
   const audio = new Audio(url);
+  audio.volume = settingsStore.mainSettings.masterVolume / 100;
   audio.play().catch(async _ => {
     const response = await fetch(url);
     const blob = await response.blob();
     const objectUrl = URL.createObjectURL(blob);
     const audio = new Audio(objectUrl);
+    audio.volume = settingsStore.mainSettings.masterVolume / 100;
     audio.play().catch(_ => console.log("不支持的音频"));
   });
 };

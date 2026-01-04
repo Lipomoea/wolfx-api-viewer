@@ -78,6 +78,7 @@ export const useSettingsStore = defineStore('settingsStore', {
                 sound: false,
                 focus:false,
             },
+            masterVolume: 100,
             muteNotification: true,
             soundEffect: 'srev',
             userLatLng: [0, 0],

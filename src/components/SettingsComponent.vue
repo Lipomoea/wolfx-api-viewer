@@ -573,6 +573,15 @@
                 <div class="group">
                     <div class="switch-group">
                         <div class="switch-full">
+                            <span style="width: 7rem;">主音量：{{ settingsStore.mainSettings.masterVolume }}%</span>
+                            <el-slider
+                                v-model="settingsStore.mainSettings.masterVolume"
+                                :min="0" :max="100"
+                                :step="5"
+                                size="small"
+                            />
+                        </div>
+                        <div class="switch-full">
                             <span>关闭默认通知音</span>
                             <el-switch v-model="settingsStore.mainSettings.muteNotification" />
                         </div>
@@ -678,7 +687,7 @@
                                 <el-switch v-model="settingsStore.mainSettings.countdownSpeech" :disabled="!(settingsStore.mainSettings.displayCountdown && settingsStore.mainSettings.playCountdownSound)" />
                             </div>
                             <div class="switch-full pl-8">
-                                <span>剩余{{ settingsStore.mainSettings.countdownStart }}秒时开始播放</span>
+                                <span style="width: 10rem;">剩余{{ settingsStore.mainSettings.countdownStart }}秒时开始播放</span>
                                 <el-slider
                                     v-model="settingsStore.mainSettings.countdownStart"
                                     :disabled="!(settingsStore.mainSettings.displayCountdown && settingsStore.mainSettings.playCountdownSound)"
@@ -890,7 +899,7 @@
                 <div class="group">
                     <div class="switch-group">
                         <div class="switch-full">
-                            <span>地震波最大渲染速率：{{ settingsStore.mainSettings.maxWaveRenderRate }}次/秒</span>
+                            <span style="width: 14rem;">地震波最大渲染速率：{{ settingsStore.mainSettings.maxWaveRenderRate }}次/秒</span>
                             <el-slider
                                 v-model="settingsStore.mainSettings.maxWaveRenderRate"
                                 :min="1" :max="20"
