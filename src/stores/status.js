@@ -1178,7 +1178,7 @@ export const useStatusStore = defineStore('statusStore', {
                             originTime: stampToTime(properties.time, 8),
                             lat,
                             lng,
-                            hypocenter: (properties.status == 'reviewed' ? '' : '(A)') + (getFEName(lat, lng) || properties.place),
+                            hypocenter: (properties.status.toLowerCase() == 'reviewed' ? '' : '(A)') + (getFEName(lat, lng) || properties.place),
                             depth,
                             magnitude,
                             maxIntensity,
