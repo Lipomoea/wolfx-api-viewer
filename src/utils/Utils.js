@@ -431,7 +431,7 @@ export const calcJmaShindo = (mj, dep, hypoLat, hypoLng, loc) => {
       Math.log10(x + 0.0028 * 10 ** (0.5 * mw)) -
       0.002 * x);
   const arv = Number(loc.arv);
-  const pgv400 = pgv600 * 1.31;
+  const pgv400 = pgv600 * 1.307;
   const pgv = pgv400 * arv;
   const instShindo = 2.68 + 1.72 * Math.log10(pgv);
   return instShindo;
