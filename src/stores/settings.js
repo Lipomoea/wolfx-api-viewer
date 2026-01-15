@@ -123,6 +123,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             enableMultiApi: false,
             enableMockEew: false,
             provinceCeaEew: false,
+            defaultFanServer: 0,
             tokens: {
                 fan_dev: ''
             },

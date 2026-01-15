@@ -130,7 +130,10 @@ const renderAll = ()=>{
 }
 let kmaSocket = null
 onMounted(()=>{
-    kmaSocket = new WebSocketObj(seisNetUrls.kma, ['ping'])
+    const url = [...seisNetUrls.kma]
+    const defaultId = settingsStore.advancedSettings.defaultFanServer
+    url.unshift(...url.splice(defaultId, 1))
+    kmaSocket = new WebSocketObj(url, ['ping'])
     kmaSocket.setMessageHandler(e => {
         const data = JSON.parse(e.data)
         const type = data?.type

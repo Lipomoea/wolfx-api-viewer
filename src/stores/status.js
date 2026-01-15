@@ -1327,7 +1327,10 @@ export const useStatusStore = defineStore('statusStore', {
                         autoMsg.push('fssnlist')
                         initMsg.push('fssnlist')
                     }
-                    this.fanSocket = new WebSocketObj([eqUrls.fan_ws, eqUrls.fan2_ws], autoMsg, initMsg)
+                    const fanUrls = [...eqUrls.fan_ws]
+                    const defaultId = settingsStore.advancedSettings.defaultFanServer
+                    fanUrls.unshift(...fanUrls.splice(defaultId, 1))
+                    this.fanSocket = new WebSocketObj(fanUrls, autoMsg, initMsg)
                     this.fanSocket.setMessageHandler((e)=>{
                         const data = JSON.parse(e.data)
                         if(data.type == 'initial_all' || data.type == 'query_response') {

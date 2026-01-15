@@ -5,8 +5,7 @@ export const eqUrls = {
   usgsEqlist_http:
     "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson",
   wolfx_ws: "wss://ws-api.wolfx.jp/all_eew",
-  fan_ws: "wss://ws.fanstudio.tech/all",
-  fan2_ws: "wss://ws.fanstudio.hk/all",
+  fan_ws: ["wss://ws.fanstudio.tech/all", "wss://ws.fanstudio.hk/all"],
   p2pquake_ws: "wss://api.p2pquake.net/v2/ws",
 };
 export const tsunamiUrls = {
