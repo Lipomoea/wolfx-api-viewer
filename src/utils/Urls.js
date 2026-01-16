@@ -4,9 +4,9 @@ export const eqUrls = {
   jmaEqlist_http: "https://api.p2pquake.net/v2/history?codes=551&limit=1",
   usgsEqlist_http:
     "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson",
-  wolfx_ws: "wss://ws-api.wolfx.jp/all_eew",
+  wolfx_ws: ["wss://ws-api.wolfx.jp/all_eew"],
   fan_ws: ["wss://ws.fanstudio.tech/all", "wss://ws.fanstudio.hk/all"],
-  p2pquake_ws: "wss://api.p2pquake.net/v2/ws",
+  p2pquake_ws: ["wss://api.p2pquake.net/v2/ws"],
 };
 export const tsunamiUrls = {
   jmaTsunami_http: "https://api.p2pquake.net/v2/history?codes=552&limit=1",

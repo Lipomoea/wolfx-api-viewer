@@ -1,5 +1,6 @@
 class WebSocketObj {
     constructor(urls, autoMessages = [], initMessages = [...autoMessages]) {
+        if(typeof(urls) == 'string') urls = [urls]
         this.urls = urls
         this.urlIndex = 0
         this.url = this.urls[this.urlIndex]
