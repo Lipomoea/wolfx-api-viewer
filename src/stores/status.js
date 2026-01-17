@@ -530,8 +530,8 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.hypocenterText = '震中: ' + data.HypoCenter
                                 eqMessage.lat = data.Latitude
                                 eqMessage.lng = data.Longitude
-                                eqMessage.depth = data.Depth ?? 10
-                                eqMessage.depthText = '深度: ' + (data.Depth == null ? '不明' : data.Depth + 'km')
+                                eqMessage.depth = data.Depth || 10
+                                eqMessage.depthText = '深度: ' + (data.Depth ? data.Depth + 'km' : '不明')
                                 eqMessage.originTime = data.OriginTime
                                 eqMessage.originTimeText = '发震时间: ' + data.OriginTime
                                 eqMessage.magnitude = data.Magunitude
