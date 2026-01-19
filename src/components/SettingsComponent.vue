@@ -987,8 +987,8 @@
                                 style="width: 72px;"
                                 @change="handleNeedReload"
                             >
-                                <el-option label="成都" :value="0" />
-                                <el-option label="香港" :value="1" />
+                                <el-option label=".tech" :value="0" />
+                                <el-option label=".hk" :value="1" />
                             </el-select>
                         </div>
                         <div class="switch-full">
