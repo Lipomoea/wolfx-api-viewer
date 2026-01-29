@@ -63,7 +63,7 @@ export const tsunamiSources = ['jmaTsunami', 'nmefcTsunami']
 export const seisNetSources = ['niedNet', 'tremNet', 'kmaNet']
 
 const useWolfxSocket = ['jmaEew', 'cwaEew', 'ceaEew', 'scEew', 'fjEew', 'jmaEqlist', 'cencEqlist']
-const useFanSocket = ['jmaEew', 'cwaEew', 'ceaEew', 'iclEew', 'scEew', 'fjEew', 'kmaEew', 'cencEqlist', 'kmaEqlist', 'usgsEqlist', 'fssnEqlist', 'nmefcTsunami']
+const useFanSocket = ['jmaEew', 'cwaEew', 'ceaEew', 'iclEew', 'scEew', 'fjEew', 'kmaEew', 'cwaEqlist', 'cencEqlist', 'kmaEqlist', 'usgsEqlist', 'fssnEqlist', 'nmefcTsunami']
 const useP2pquakeSocket = ['jmaEqlist', 'jmaTsunami']
 
 const wolfx2Source = {
@@ -77,11 +77,12 @@ const wolfx2Source = {
 }
 const source2Fan = {
     'jmaEew': 'jma',
-    'cwaEew': 'cwa',
+    'cwaEew': 'cwa-eew',
     'iclEew': 'icl',
     'scEew': 'sichuan',
     'fjEew': 'fujian',
     'kmaEew': 'kma-eew',
+    'cwaEqlist': 'cwa',
     'cencEqlist': 'cenc',
     'kmaEqlist': 'kma',
     'usgsEqlist': 'usgs',
@@ -90,11 +91,12 @@ const source2Fan = {
 }
 const fan2Source = {
     'jma': 'jmaEew',
-    'cwa': 'cwaEew',
+    'cwa-eew': 'cwaEew',
     'icl': 'iclEew',
     'sichuan': 'scEew',
     'fujian': 'fjEew',
     'kma-eew': 'kmaEew',
+    'cwa': 'cwaEqlist',
     'cenc': 'cencEqlist',
     'kma': 'kmaEqlist',
     'usgs': 'usgsEqlist',
@@ -147,7 +149,8 @@ export const sourceTypes = {
         0: 'P2PQ'
     },
     cwaEqlist: {
-        0: 'TREM'
+        0: 'TREM',
+        1: 'FAN'
     },
     cencEqlist: {
         0: 'Wolfx',
@@ -784,24 +787,48 @@ export const useStatusStore = defineStore('statusStore', {
                         break
                     }
                     case 'cwaEqlist':{
-                        eqMessage.id = data.id
-                        eqMessage.reportTime = stampToTime(data.time + 300 * 1000, 8)
-                        eqMessage.titleText = '中央氣象署地震報告'
-                        const start = data.loc.indexOf('(位於')
-                        const end = data.loc.indexOf(')')
-                        eqMessage.hypocenter = start == -1 || end == -1 || start + 3 >= end ? data.loc : data.loc.slice(start + 3, end)
-                        eqMessage.hypocenterText = '震央: ' + eqMessage.hypocenter
-                        eqMessage.lat = data.lat
-                        eqMessage.lng = data.lon
-                        eqMessage.depth = data.depth
-                        eqMessage.depthText = '深度: ' + data.depth.toFixed(0) + 'km'
-                        eqMessage.originTime = stampToTime(data.time, 8)
-                        eqMessage.originTimeText = '時間: ' + eqMessage.originTime
-                        eqMessage.magnitude = data.mag
-                        eqMessage.magnitudeText = '規模: ' + data.mag.toFixed(1)
                         eqMessage.useShindo = true
-                        eqMessage.maxIntensity = shindoScaleKanji[data.int]
-                        eqMessage.maxIntensityText = '最大震度: ' + eqMessage.maxIntensity
+                        eqMessage.titleText = '中央氣象署地震報告'
+                        switch(type) {
+                            case 0: {
+                                eqMessage.id = data.id
+                                eqMessage.reportTime = stampToTime(data.time + 300 * 1000, 8)
+                                const start = data.loc.indexOf('(位於')
+                                const end = data.loc.indexOf(')')
+                                eqMessage.hypocenter = start == -1 || end == -1 || start + 3 >= end ? data.loc : data.loc.slice(start + 3, end)
+                                eqMessage.hypocenterText = '震央: ' + eqMessage.hypocenter
+                                eqMessage.lat = data.lat
+                                eqMessage.lng = data.lon
+                                eqMessage.depth = data.depth
+                                eqMessage.depthText = '深度: ' + data.depth.toFixed(0) + 'km'
+                                eqMessage.originTime = stampToTime(data.time, 8)
+                                eqMessage.originTimeText = '時間: ' + eqMessage.originTime
+                                eqMessage.magnitude = data.mag
+                                eqMessage.magnitudeText = '規模: ' + data.mag.toFixed(1)
+                                eqMessage.maxIntensity = shindoScaleKanji[data.int] || '不明'
+                                eqMessage.maxIntensityText = '最大震度: ' + eqMessage.maxIntensity
+                                break
+                            }
+                            case 1: {
+                                eqMessage.id = data.id
+                                eqMessage.reportTime = dayjs(data.shockTime, 'YYYY-MM-DD HH:mm:ss').add(5, 'minutes').format('YYYY-MM-DD HH:mm:ss')
+                                const start = data.placeName.indexOf('(位於')
+                                const end = data.placeName.indexOf(')')
+                                eqMessage.hypocenter = start == -1 || end == -1 || start + 3 >= end ? data.placeName : data.placeName.slice(start + 3, end)
+                                eqMessage.hypocenterText = '震央: ' + eqMessage.hypocenter
+                                eqMessage.lat = data.latitude
+                                eqMessage.lng = data.longitude
+                                eqMessage.depth = data.depth
+                                eqMessage.depthText = '深度: ' + data.depth.toFixed(0) + 'km'
+                                eqMessage.originTime = data.shockTime
+                                eqMessage.originTimeText = '時間: ' + eqMessage.originTime
+                                eqMessage.magnitude = data.magnitude
+                                eqMessage.magnitudeText = '規模: ' + data.magnitude.toFixed(1)
+                                eqMessage.maxIntensity = data.maxIntensity?.replace('級', '') || '不明'
+                                eqMessage.maxIntensityText = '最大震度: ' + eqMessage.maxIntensity
+                                break
+                            }
+                        }
                         break
                     }
                     case 'cencEqlist':{

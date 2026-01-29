@@ -60,7 +60,7 @@
                             <div>中国地震台网: 地震测定</div>
                             <el-switch v-model="settingsStore.mainSettings.source.cencEqlist" @change="handleNeedReload" />
                         </div>
-                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableTremFunctions">
+                        <div class="switch-full">
                             <div>臺灣中央氣象署: 地震報告</div>
                             <el-switch v-model="settingsStore.mainSettings.source.cwaEqlist" @change="handleNeedReload" />
                         </div>
@@ -1206,7 +1206,7 @@
             <div class="header">要石 v2.3.2</div>
             <div class="title">使用方法</div>
             <div class="about">
-                <p>主要功能：接收中国地震局、四川地震局、福建地震局、台湾中央气象署、日本气象厅、韩国气象厅地震预警信息，中国地震台网、日本气象厅、韩国气象厅、美国地质调查局（USGS）、FAN Studio地震网络（FSSN）地震信息，日本气象厅海啸信息，NIED強震モニタ、KMA-PEWS测站数据。</p>
+                <p>主要功能：接收中国、日本、韩国地震预警速报，接收中国、日本、韩国等区域性地震信息以及美国地质调查局（USGS）、FAN Studio地震网络（FSSN）等机构的全球性地震信息，接收日本的海啸信息，显示日本、韩国部分机构的实时地震监测网络并提示可能的地震事件。</p>
                 <p>Chrome/Edge推荐设置（以Chrome为例，Edge方法类似）：</p>
                 <ul>
                     <li>保持后台刷新：浏览器访问chrome://flags - Calculate window occlusion on Windows - Disabled - 右下角重新启动</li>
@@ -1234,7 +1234,7 @@
             </div>
             <div class="title">注意事项</div>
             <div class="about">
-                <p>关于烈度：中国大陆（含港澳）、韩国使用烈度制（12度表，I ~ XII），日本、中国台湾地区使用震度制（10度表，0 ~ 7，其中震度5、6两级分为强/弱）。部分数值为预估值，非实测值。</p>
+                <p>关于烈度：中国大陆及港澳、韩国使用烈度制（12度表，I ~ XII），日本、中国台湾地区使用震度制（10度表，0 ~ 7，其中震度5、6两级分为强/弱）。部分数值为预估值，非实测值。</p>
                 <p>关于时间：除全球性台网（USGS、FSSN）显示为中国标准时间，其他均显示为发报机构当地时间。</p>
                 <p>关于延迟：受API及服务器限制，部分资料具有延迟是正常现象。</p>
                 <p>关于地图：由于服务器带宽限制，进入页面后需要一定时间加载地图。如长时间未加载地图，请刷新页面。</p>
@@ -1459,6 +1459,7 @@ const handleAdvance = (val)=>{
             if(settingsStore.mainSettings.source.iclEew) handleNeedReload()
             settingsStore.advancedSettings.enableIclEew = false
             settingsStore.mainSettings.source.iclEew = false
+            localStorage.removeItem('iclUrl')
             ElMessage({
                 message: '功能已关闭',
                 type: 'success'
@@ -1466,10 +1467,9 @@ const handleAdvance = (val)=>{
             break
         }
         case 'disableTremFunctions': {
-            if(settingsStore.mainSettings.source.cwaEqlist) handleNeedReload()
             settingsStore.advancedSettings.enableTremFunctions = false
-            settingsStore.mainSettings.source.cwaEqlist = false
             settingsStore.mainSettings.displaySeisNet.tremNet = false
+            localStorage.removeItem('tremUrl')
             ElMessage({
                 message: '功能已关闭',
                 type: 'success'
@@ -1480,6 +1480,7 @@ const handleAdvance = (val)=>{
             if(settingsStore.mainSettings.source.gqEew) handleNeedReload()
             settingsStore.advancedSettings.enableGqEew = false
             settingsStore.mainSettings.source.gqEew = false
+            localStorage.removeItem('gqUrl')
             ElMessage({
                 message: '功能已关闭',
                 type: 'success'
@@ -1490,6 +1491,7 @@ const handleAdvance = (val)=>{
             if(settingsStore.advancedSettings.multiApi) handleNeedReload()
             settingsStore.advancedSettings.enableMultiApi = false
             settingsStore.advancedSettings.multiApi = false
+            localStorage.removeItem('multiApi')
             ElMessage({
                 message: '功能已关闭',
                 type: 'success'
@@ -1500,6 +1502,7 @@ const handleAdvance = (val)=>{
             if(settingsStore.mainSettings.source.nmefcTsunami) handleNeedReload()
             settingsStore.advancedSettings.enableNmefcTsunami = false
             settingsStore.mainSettings.source.nmefcTsunami = false
+            localStorage.removeItem('nmefcTsunami')
             ElMessage({
                 message: '功能已关闭',
                 type: 'success'

@@ -16,7 +16,7 @@ export const useSettingsStore = defineStore('settingsStore', {
                 kmaEew: false,
                 gqEew: false,
                 jmaEqlist: false,
-                cwaEqlist: false,
+                cwaEqlist: true,
                 cencEqlist: true,
                 kmaEqlist: false,
                 usgsEqlist: false,

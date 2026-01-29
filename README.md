@@ -9,16 +9,16 @@ icon是《铃芽之旅》的草太さん（椅子形态）。
 * [应用程序下载](https://github.com/Lipomoea/kanameishi/releases)
 * [应用程序下载（备用）](https://gitee.com/lipomoea/kanameishi/releases)
 ## 主要功能  
-* 接收日本气象厅、台湾省中央气象署、中国地震局（包括各省分局）、四川省地震局、福建省地震局地震预警信息。
-* 接收日本气象厅、中国地震台网地震信息。
+* 接收中国地震局（包括各省分局）、台湾省中央气象署、日本气象厅地震预警速报。
+* 接收中国地震台网、台湾省中央气象署、日本气象厅地震信息。
 * 接收日本气象厅海啸情报。
-* 获取NIED強震モニタ测站数据。
+* 获取NIED強震モニタ、KMA-PEWS测站数据并检测。
 ## 注意事项
 * 使用本网页前，请详细阅读网页“设置”-“帮助&关于”中的内容。
 ## 数据来源
-* 地震预警（JMA/CWA/CEA/SC/FJ）、地震信息（CENC）、地震列表（JMA）、IP定位：[Wolfx Open API](https://wolfx.jp/apidoc)（请注意参考接口文档）
+* 地震预警（CEA/SC/FJ/CWA/JMA）、地震信息（CENC）、地震列表（JMA）、IP定位：[Wolfx Open API](https://wolfx.jp/apidoc)（请注意参考接口文档）
 * 地震信息（JMA）、海啸信息（JMA）：[P2PQuake](https://www.p2pquake.net/develop/json_api_v2/#/P2P%E5%9C%B0%E9%9C%87%E6%83%85%E5%A0%B1%20API/get_history)
-* 地震预警（CEA/SC/FJ）、地震信息（CENC/USGS/FSSN）、地震列表（CENC/FSSN）、NTP时间：[FAN Studio API](https://api.fanstudio.tech/doc/wsapi/)
+* 地震预警（CEA/SC/FJ）、地震信息（CENC/CWA/USGS/FSSN）、地震列表（CENC/FSSN）、NTP时间：[FAN Studio API](https://api.fanstudio.tech/doc/wsapi/)
 * 中国大陆地图：[阿里云DataV.GeoAtlas](https://datav.aliyun.com/portal/school/atlas/area_selector)
 * 中国台湾地图：[GeoJSON](https://geojson.cn/)
 * 中国断层：[国家地震科学数据中心](https://data.earthquake.cn/datashare/report.shtml?PAGEID=datasourcelist&dt=ff808082845b8fd401845bf036a1000c)
