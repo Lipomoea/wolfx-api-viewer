@@ -249,6 +249,7 @@ export const useStatusStore = defineStore('statusStore', {
         setEqMessage(source, data, type = 0) {
             try{
                 const eqMessage = this.eqMessage[source]
+                const oldType = eqMessage.type
                 eqMessage.source = source
                 eqMessage.type = type
                 switch(source){
@@ -376,10 +377,11 @@ export const useStatusStore = defineStore('statusStore', {
                         break
                     }
                     case 'cwaEew':{
+                        eqMessage.isEew = true
+                        eqMessage.useShindo = true
                         switch(type) {
                             case 0:
                                 eqMessage.id = data.ID
-                                eqMessage.isEew = true
                                 eqMessage.reportNum = data.ReportNum
                                 eqMessage.reportNumText = '第' + data.ReportNum + '報'
                                 eqMessage.reportTime = data.ReportTime
@@ -395,14 +397,16 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.originTimeText = '時間: ' + data.OriginTime
                                 eqMessage.magnitude = data.Magunitude
                                 eqMessage.magnitudeText = '規模: ' + data.Magunitude.toFixed(1)
-                                eqMessage.useShindo = true
                                 eqMessage.maxIntensity = data.MaxIntensity || '不明'
                                 eqMessage.maxIntensityText = '預估最大震度: ' + eqMessage.maxIntensity
                                 eqMessage.isWarn = eqMessage.maxIntensity >= '5' && eqMessage.maxIntensity != '不明'
                                 break
                             case 1:
+                                if(data.id == eqMessage.id && oldType == 0) {
+                                    eqMessage.type = oldType
+                                    break
+                                }
                                 eqMessage.id = data.id
-                                eqMessage.isEew = true
                                 eqMessage.reportNum = data.updates
                                 eqMessage.reportNumText = '第' + data.updates + '報'
                                 eqMessage.reportTime = data.createTime || data.shockTime
@@ -418,8 +422,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.originTimeText = '時間: ' + eqMessage.originTime
                                 eqMessage.magnitude = data.magnitude
                                 eqMessage.magnitudeText = '規模: ' + eqMessage.magnitude.toFixed(1)
-                                eqMessage.useShindo = true
-                                eqMessage.maxIntensity = shindoScaleKanji[data.epiIntensity] || '不明'
+                                eqMessage.maxIntensity = data.maxIntensity?.replace('級', '') || '不明'
                                 eqMessage.maxIntensityText = '預估最大震度: ' + eqMessage.maxIntensity
                                 eqMessage.isWarn = eqMessage.maxIntensity >= '5' && eqMessage.maxIntensity != '不明'
                                 break
