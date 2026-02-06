@@ -135,7 +135,7 @@
                             <div class="bar" :class="statusStore.tsunamiMessage.nmefcTsunami.className">
                                 <div><WarnTriangleFilled style="width: 1em; height: 1em; margin-right: 0.25em;" />{{ statusStore.tsunamiMessage.nmefcTsunami.titleText }}</div>
                             </div>
-                            <div class="tsunami-info">
+                            <div class="tsunami-info" v-if="cnTsunamiBaseMap">
                                 <div class="background" :class="statusStore.tsunamiMessage.nmefcTsunami.className"></div>
                                 <div v-show="statusStore.tsunamiMessage.nmefcTsunami.status >= 3" class="legend tsunami-purple"></div>
                                 <div v-show="statusStore.tsunamiMessage.nmefcTsunami.status >= 3" class="text">大海啸警报</div>
@@ -143,6 +143,11 @@
                                 <div v-show="statusStore.tsunamiMessage.nmefcTsunami.status >= 2" class="text">海啸警报</div>
                                 <div v-show="statusStore.tsunamiMessage.nmefcTsunami.status >= 1" class="legend tsunami-yellow"></div>
                                 <div v-show="statusStore.tsunamiMessage.nmefcTsunami.status >= 1" class="text">海啸注意报</div>
+                            </div>
+                            <div class="tsunami-info" v-else>
+                                <div class="background" :class="statusStore.tsunamiMessage.nmefcTsunami.className"></div>
+                                <div class="text" style="justify-self: end; text-align: right;">无地图显示</div>
+                                <div class="text">请查看侧栏信息</div>
                             </div>
                         </div>
                     </div>
@@ -1055,7 +1060,7 @@ const loadMaps = async (retries = 0) => {
                 smartSetView()
             }, { deep: true, immediate: true })
         }
-        if(settingsStore.mainSettings.source.nmefcTsunami) {
+        if(settingsStore.mainSettings.source.nmefcTsunami && settingsStore.advancedSettings.enableNmefcTsunami && 'cn_tsunami' in topojsonUrls) {
             if(cn_tsunami) {
                 cnTsunamiBaseMap = loadBaseMap(cn_tsunami, 'tsunamiBasePane', false, {
                     color: '#ffffff00',

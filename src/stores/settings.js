@@ -22,7 +22,7 @@ export const useSettingsStore = defineStore('settingsStore', {
                 usgsEqlist: false,
                 fssnEqlist: false,
                 jmaTsunami: false,
-                nmefcTsunami: false,
+                nmefcTsunami: true,
             },
             displaySeisNet: {
                 style: 'nied',

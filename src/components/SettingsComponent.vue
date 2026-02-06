@@ -84,12 +84,12 @@
                     <div class="switch-group">
                         <span class="font-bold w-full">海啸信息</span>
                         <div class="switch-full">
-                            <div>日本気象庁: 津波情報</div>
-                            <el-switch v-model="settingsStore.mainSettings.source.jmaTsunami" @change="handleNeedReload" />
-                        </div>
-                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableNmefcTsunami">
                             <div>自然资源部: 海啸预警</div>
                             <el-switch v-model="settingsStore.mainSettings.source.nmefcTsunami" @change="handleNeedReload" />
+                        </div>
+                        <div class="switch-full">
+                            <div>日本気象庁: 津波情報</div>
+                            <el-switch v-model="settingsStore.mainSettings.source.jmaTsunami" @change="handleNeedReload" />
                         </div>
                     </div>
                 </div>
@@ -248,7 +248,7 @@
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayShindo0" />
                             </div>
                             <div class="switch-full">
-                                <span>始终显示摇晃检知框</span>
+                                <span>地震预警时也显示摇晃检知框</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid" />
                             </div>
                         </div>
@@ -310,17 +310,17 @@
                                         <template #reference>
                                             <question-filled width="1em" height="1em" />
                                         </template>
-                                        <p><strong>需要启用“软件估算烈度/震度”。</strong></p>
+                                        <p><strong>需要启用“强制估算烈度/震度（低精度）”。</strong></p>
                                         <p>地震预警事件中，仅在预估本地烈度达到阈值时进行提醒。</p>
                                         <p>对日本以外地区生效。</p>
                                         <p>设置为“0”表示不作筛选。</p>
                                         <p>参考：</p>
-                                        <p> - 1度及以下：基本无感</p>
-                                        <p> - 2~3度：敏感或位于高层的人群静止下有感；悬挂物轻微晃动</p>
-                                        <p> - 4~5度：绝大部分人群静止时有感，少部分人从睡梦中被唤醒；悬挂物显著晃动</p>
-                                        <p> - 6~7度：所有人有感，大部分人从睡梦中被唤醒；稳定性差的摆件倾倒；抗震性差的房屋可能出现破坏</p>
-                                        <p> - 8~9度：行走困难；家具倾倒；抗震性差的房屋可能倒塌，抗震性好的房屋可能损坏</p>
-                                        <p> - 10度及以上：无法行走，有抛起感；房屋大规模倒塌；山崩地裂</p>
+                                        <p> - 1度及以下：低层基本无感，高层轻微有感。</p>
+                                        <p> - 2~3度：低层轻微有感，高层轻微或显著有感；悬挂物轻微晃动。</p>
+                                        <p> - 4~5度：所有人群静止时有感，睡眠中的一部分人被摇醒；悬挂物显著晃动。</p>
+                                        <p> - 6~7度：令人感到恐惧，睡眠中的大部分人被摇醒；部分物件倾倒；抗震性差的房屋可能出现破坏。</p>
+                                        <p> - 8~9度：行走困难；家具倾倒；抗震性差的房屋可能倒塌，抗震性好的房屋可能损坏。</p>
+                                        <p> - 10度及以上：难以站立，有抛起感；房屋大规模倒塌；山河易形。</p>
                                     </el-popover>
                                 </span>
                                 <div class="int" :class="setClassName(settingsStore.mainSettings.actionLocalCsis, false)">
@@ -351,19 +351,19 @@
                                         <template #reference>
                                             <question-filled width="1em" height="1em" />
                                         </template>
-                                        <p><strong>需要启用“软件估算烈度/震度”。</strong></p>
+                                        <p><strong>需要启用“强制估算烈度/震度（低精度）”。</strong></p>
                                         <p>地震预警事件中，仅在预估本地震度达到阈值时进行提醒。</p>
                                         <p>对附近包含震度观测点的日本地区生效。</p>
                                         <p>设置为“0”表示不作筛选。</p>
                                         <p>参考：</p>
-                                        <p> - 震度0：基本无感</p>
-                                        <p> - 震度1：敏感人群静止时有感</p>
-                                        <p> - 震度2：大部分人群静止时有感；悬挂物轻微晃动</p>
-                                        <p> - 震度3：绝大部分人群静止时有感；一部分人从睡梦中被唤醒；悬挂物显著晃动</p>
-                                        <p> - 震度4：所有人有感，大部分人从睡梦中被唤醒；稳定性差的摆件倾倒</p>
-                                        <p> - 震度5弱~5强：大多数人有恐惧感；部分家具倾倒</p>
-                                        <p> - 震度6弱~6强：行走困难；家具大规模倾倒；抗震性差的房屋出现损坏甚至倒塌</p>
-                                        <p> - 震度7：无法行走，有抛起感；房屋大规模倒塌；山崩地裂</p>
+                                        <p> - 震度0：基本无感。</p>
+                                        <p> - 震度1：少数人群静止时有感。</p>
+                                        <p> - 震度2：大部分人群静止时有感；悬挂物轻微晃动。</p>
+                                        <p> - 震度3：所有人静止时有感；睡眠中的一部分人被摇醒；悬挂物显著晃动。</p>
+                                        <p> - 震度4：令人感到恐惧，睡眠中的大部分人被摇醒；部分物件倾倒。</p>
+                                        <p> - 震度5弱~5强：行走出现障碍；部分家具倾倒。</p>
+                                        <p> - 震度6弱~6强：行走困难；家具大规模倾倒；抗震性差的房屋出现损坏甚至倒塌。</p>
+                                        <p> - 震度7：难以站立，有抛起感；房屋大规模倒塌；山河易形。</p>
                                     </el-popover>
                                 </span>
                                 <div class="int" :class="setClassName(shindoScale[settingsStore.mainSettings.actionLocalShindo], true)">
@@ -652,7 +652,7 @@
                             >自动定位</el-button>
                         </div>
                         <div class="switch-full">
-                            <span>清除经纬度</span>
+                            <span>清除所在地经纬度</span>
                             <el-button
                                 size="small"
                                 @click="clearUserLatLng"
@@ -671,7 +671,7 @@
                                 <el-switch v-model="settingsStore.mainSettings.displayCountdown" />
                             </div>
                             <div class="switch-full pl-4">
-                                <span>强制计算倒计时</span>
+                                <span>强制计算倒计时（即使低精度）</span>
                                 <el-switch v-model="settingsStore.mainSettings.forceDisplayCountdown" :disabled="!settingsStore.mainSettings.displayCountdown" />
                             </div>
                             <div class="switch-full pl-4">
@@ -771,7 +771,7 @@
                             >设置</el-button>
                         </div>
                         <div class="switch-full">
-                            <span>清除经纬度</span>
+                            <span>清除视野经纬度</span>
                             <el-button
                                 size="small"
                                 @click="clearViewLatLng"
@@ -1012,7 +1012,7 @@
                         </div>
                         <div class="switch-full">
                             <span>
-                                软件估算烈度/震度
+                                强制估算烈度/震度（低精度）
                                 <el-popover
                                     placement="top"
                                     :width="300"
@@ -1021,10 +1021,11 @@
                                     <template #reference>
                                         <question-filled width="1em" height="1em" />
                                     </template>
-                                    <p>在软件内部估算以下数据：</p>
+                                    <p>软件自行估算以下数据：</p>
                                     <p> - 本地烈度/震度</p>
-                                    <p> - 中国各区划预警和信息下最大烈度</p>
-                                    <p> - 日本各区划预警下最大震度（融合数据源）</p>
+                                    <p> - 中国/韩国各区划地震预警和地震信息时的最大烈度</p>
+                                    <p> - 日本各区划地震预警时的最大震度（与数据源信息合并）</p>
+                                    <p> - 部分数据源显示的最大烈度</p>
                                     <p>估算结果与数据源显示可能有差异。</p>
                                     <strong>
                                         <p>低精度（尤其是深源地震）。</p>
@@ -1203,7 +1204,7 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false" append-to-body>
-            <div class="header">要石 v2.3.2</div>
+            <div class="header">要石 v2.4.0</div>
             <div class="title">使用方法</div>
             <div class="about">
                 <p>主要功能：接收中国、日本、韩国地震预警速报，接收中国、日本、韩国等区域性地震信息以及美国地质调查局（USGS）、FAN Studio地震网络（FSSN）等机构的全球性地震信息，接收日本的海啸信息，显示日本、韩国部分机构的实时地震监测网络并提示可能的地震事件。</p>
@@ -1499,10 +1500,9 @@ const handleAdvance = (val)=>{
             break
         }
         case 'disableNmefcTsunami': {
-            if(settingsStore.mainSettings.source.nmefcTsunami) handleNeedReload()
             settingsStore.advancedSettings.enableNmefcTsunami = false
-            settingsStore.mainSettings.source.nmefcTsunami = false
             localStorage.removeItem('nmefcTsunami')
+            handleNeedReload()
             ElMessage({
                 message: '功能已关闭',
                 type: 'success'
@@ -1620,6 +1620,7 @@ const postVerify = async (type = verifyType)=>{
             if(res && res.success){
                 settingsStore.advancedSettings.enableNmefcTsunami = true
                 localStorage.setItem('nmefcTsunami', JSON.stringify(res.data))
+                handleNeedReload()
                 verifyDialog.value = false
                 ElMessage({
                     message: '认证成功',
