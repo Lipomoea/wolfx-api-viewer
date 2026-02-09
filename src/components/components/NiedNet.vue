@@ -179,44 +179,42 @@ let fetchStationInterval, requestInterval, delayInterval
 const fetchStationList = async () => {
     try {
         const res = await Http.get(seisNetUrls.nied.stationList + `?time=${Date.now()}`)
-        if(res && res.siteConfigId) {
+        if(res && res.siteConfigId && res.items?.length > 0) {
             clearInterval(fetchStationInterval)
-            stationList = res.items
             siteConfigId.value = res.siteConfigId
-            if(stationList.length > 0){
-                let latLngs = []
-                for(let i = 0; i < stationList.length; i++){
-                    latLngs[i] = L.latLng(stationList[i])
-                }
-                for(let i = 0; i < stationList.length; i++){
-                    const distances = []
-                    let candidate = {
-                        id: null,
-                        distance: 40
-                    }
-                    distMatrix[i] = []
-                    for(let j = 0; j < stationList.length; j++){
-                        let distance
-                        if(j < i) distance = distMatrix[j][i]
-                        else if(j == i) distance = 0
-                        else distance = latLngs[i].distanceTo(latLngs[j]) / 1000
-                        distMatrix[i][j] = distance
-                        if(distance <= 30) distances.push({ id: j, distance })
-                        else if(distance <= candidate.distance) candidate = { id: j, distance }
-                    }
-                    if(distances.length <= 1 && candidate.id !== null) {
-                        distances.push(candidate)
-                    }
-                    distances.sort((a, b) => a.distance - b.distance).splice(nearbyLength)
-                    adjStationIds[i] = distances.map(obj => obj.id)
-                    const maxDist = distances[distances.length - 1].distance
-                    expireSeconds[i] = Math.max(Math.round(maxDist / 3.5), 5)
-                }
-                stationList.forEach((latLng, index)=>{
-                    const station = reactive(new NiedStation(map, index, latLng, 'c', expireSeconds[index]))
-                    stations.push(station)
-                })
+            stationList = res.items
+            let latLngs = []
+            for(let i = 0; i < stationList.length; i++){
+                latLngs[i] = L.latLng(stationList[i])
             }
+            for(let i = 0; i < stationList.length; i++){
+                const distances = []
+                let candidate = {
+                    id: null,
+                    distance: 40
+                }
+                distMatrix[i] = []
+                for(let j = 0; j < stationList.length; j++){
+                    let distance
+                    if(j < i) distance = distMatrix[j][i]
+                    else if(j == i) distance = 0
+                    else distance = latLngs[i].distanceTo(latLngs[j]) / 1000
+                    distMatrix[i][j] = distance
+                    if(distance <= 30) distances.push({ id: j, distance })
+                    else if(distance <= candidate.distance) candidate = { id: j, distance }
+                }
+                if(distances.length <= 1 && candidate.id !== null) {
+                    distances.push(candidate)
+                }
+                distances.sort((a, b) => a.distance - b.distance).splice(nearbyLength)
+                adjStationIds[i] = distances.map(obj => obj.id)
+                const maxDist = distances[distances.length - 1].distance
+                expireSeconds[i] = Math.max(Math.round(maxDist / 3.5), 5)
+            }
+            stationList.forEach((latLng, index)=>{
+                const station = reactive(new NiedStation(map, index, latLng, 'c', expireSeconds[index]))
+                stations.push(station)
+            })
         }
     } catch (err) {
         console.log(err);
