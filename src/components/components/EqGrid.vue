@@ -2,7 +2,7 @@
     <div class="outer2">
         <div class="container" @contextmenu.prevent="handleCopy">
             <div class="bg" :class="className"></div>
-            <div class="intensity" :class="fontClass">{{ eqMessage.useShindo ? eqMessage.maxIntensity : formatCsis(eqMessage.maxIntensity, settingsStore.mainSettings.useRomanCsis) }}</div>
+            <div class="intensity" :class="fontClass">{{ eqMessage.useShindo ? eqMessage.maxIntensity : formatCsis(eqMessage.maxIntensity) }}</div>
             <div class="text title" :class="fontClass">{{ formatText(eqMessage.titleText) }}</div>
             <div class="text" :class="fontClass" v-if="eqMessage.isEew">{{ formatText(eqMessage.reportNumText) }}</div>
             <div class="text" :class="fontClass">{{ formatText(eqMessage.hypocenterText) }}</div>

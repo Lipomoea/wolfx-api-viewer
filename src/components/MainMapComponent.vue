@@ -28,7 +28,7 @@
                                         'scale-75': event.eqMessage.maxIntensity == '8',
                                         'scale-9': event.eqMessage.maxIntensity == '7' || event.eqMessage.maxIntensity == '12'
                                     }">
-                                        {{ formatCsis(event.eqMessage.maxIntensity, settingsStore.mainSettings.useRomanCsis) }}
+                                        {{ formatCsis(event.eqMessage.maxIntensity) }}
                                     </div>
                                 </div>
                                 <div class="right">
@@ -71,7 +71,7 @@
                                         'scale-75': event.userCsis == '8',
                                         'scale-9': event.userCsis == '7' || event.userCsis == '12'
                                     }">
-                                        {{ formatCsis(event.userCsis, settingsStore.mainSettings.useRomanCsis) }}
+                                        {{ formatCsis(event.userCsis) }}
                                     </div>
                                 </div>
                             </div>
@@ -101,7 +101,7 @@
                                         'scale-75': event.eqMessage.maxIntensity == '8',
                                         'scale-9': event.eqMessage.maxIntensity == '7' || event.eqMessage.maxIntensity == '12'
                                     }">
-                                        {{ formatCsis(event.eqMessage.maxIntensity, settingsStore.mainSettings.useRomanCsis) }}
+                                        {{ formatCsis(event.eqMessage.maxIntensity) }}
                                     </div>
                                 </div>
                                 <div class="right">
@@ -222,7 +222,7 @@
                                         'scale-75': kmaMaxInt == '8',
                                         'scale-9': kmaMaxInt == '7' || kmaMaxInt == '12'
                                     }">
-                                        {{ formatCsis(kmaMaxInt, settingsStore.mainSettings.useRomanCsis) }}
+                                        {{ formatCsis(kmaMaxInt) }}
                                     </div>
                                 </div>
                             </div>
@@ -237,7 +237,7 @@
                                         'scale-75': kmaPeriodMaxInt == '8',
                                         'scale-9': kmaPeriodMaxInt == '7' || kmaPeriodMaxInt == '12'
                                     }">
-                                        {{ formatCsis(kmaPeriodMaxInt, settingsStore.mainSettings.useRomanCsis) }}
+                                        {{ formatCsis(kmaPeriodMaxInt) }}
                                     </div>
                                 </div>
                             </div>
@@ -283,7 +283,7 @@
                                 <div class="csis" :class="{
                                     'roman': settingsStore.mainSettings.useRomanCsis,
                                     'scale-9': item.intensity == '8'
-                                }">{{ formatCsis(item.intensity, settingsStore.mainSettings.useRomanCsis) }}</div>
+                                }">{{ formatCsis(item.intensity) }}</div>
                             </div>
                         </div>
                     </div>

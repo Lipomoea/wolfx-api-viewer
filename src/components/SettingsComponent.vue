@@ -327,7 +327,7 @@
                                     <div class="csis" :class="{
                                         'roman': settingsStore.mainSettings.useRomanCsis,
                                         'scale-9': settingsStore.mainSettings.actionLocalCsis == 8
-                                    }">{{ formatCsis(settingsStore.mainSettings.actionLocalCsis.toString(), settingsStore.mainSettings.useRomanCsis) }}</div>
+                                    }">{{ formatCsis(settingsStore.mainSettings.actionLocalCsis.toString()) }}</div>
                                 </div>
                             </div>
                             <el-slider
@@ -390,7 +390,7 @@
                                     <div class="csis" :class="{
                                         'roman': settingsStore.mainSettings.useRomanCsis,
                                         'scale-9': settingsStore.mainSettings.intenseLocalCsis == 8
-                                    }">{{ formatCsis(settingsStore.mainSettings.intenseLocalCsis.toString(), settingsStore.mainSettings.useRomanCsis) }}</div>
+                                    }">{{ formatCsis(settingsStore.mainSettings.intenseLocalCsis.toString()) }}</div>
                                 </div>
                                 <div v-else class="int" :class="setClassName(shindoScale[settingsStore.mainSettings.intenseLocalShindo], true)">
                                     <div class="shindo">{{ shindoScale[settingsStore.mainSettings.intenseLocalShindo] }}</div>

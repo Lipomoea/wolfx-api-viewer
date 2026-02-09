@@ -18,7 +18,7 @@
                         'scale-75': item.maxIntensity == '8',
                         'scale-9': item.maxIntensity == '7' || item.maxIntensity == '12'
                     }">
-                        {{ formatCsis(item.maxIntensity, settingsStore.mainSettings.useRomanCsis) }}
+                        {{ formatCsis(item.maxIntensity) }}
                     </div>
                 </div>
                 <div class="right">

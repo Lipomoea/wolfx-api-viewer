@@ -279,7 +279,7 @@ export const extractNumbers = str => {
 export const getTimeNumberString = (timeZone, offset) => {
   if (!timeStore) timeStore = useTimeStore();
   const now = new Date(
-    timeStore.getTimeStamp() + timeZone * 3600 * 1000 + offset
+    timeStore.getTimeStamp() + timeZone * 3600 * 1000 + offset,
   );
   const year = now.getUTCFullYear();
   const month = String(now.getUTCMonth() + 1).padStart(2, "0");
@@ -354,7 +354,7 @@ export const pointDistToCnArea = (pointLngLat, feature) => {
     const name = feature.properties.name;
     const kdbush = cnSeisIntLocBush[name];
     const nearestPoint = around(kdbush, pointLngLat[0], pointLngLat[1], 1).map(
-      index => cnSeisIntLoc[name][index]
+      index => cnSeisIntLoc[name][index],
     )[0];
     const minDist = distance(turfPoint, point(nearestPoint), {
       units: "kilometers",
@@ -370,7 +370,7 @@ export const pointDistToKrArea = (pointLngLat, feature) => {
     const name = feature.properties.name;
     const kdbush = krSeisIntLocBush[name];
     const nearestPoint = around(kdbush, pointLngLat[0], pointLngLat[1], 1).map(
-      index => krSeisIntLoc[name][index]
+      index => krSeisIntLoc[name][index],
     )[0];
     const minDist = distance(turfPoint, point(nearestPoint), {
       units: "kilometers",
@@ -402,7 +402,7 @@ export const calcCsis = (m, dep = 10, dis = 0) => {
     lineDis - 10 - long,
     dis - long,
     0.2 * (lineDis - 10),
-    0
+    0,
   );
   const ceaCsis1 = calcCeaCsis(m, dis);
   const ceaCsis2 = calcCeaCsis(m, hypoDis);
@@ -442,7 +442,7 @@ export const calcJmaShindoLevel = (
   hypoLat,
   hypoLng,
   loc,
-  useSymbol = true
+  useSymbol = true,
 ) => {
   const instShindo = calcJmaShindo(mj, dep, hypoLat, hypoLng, loc);
   const instShindo1 = Math.floor(Math.round(instShindo * 100) / 10) / 10;
@@ -467,9 +467,10 @@ export const simplifyTopoJson = (topojson, factor) => {
     return simplified;
   }
 };
-export const formatCsis = (value, useRoman) => {
+export const formatCsis = value => {
+  if (!settingsStore) settingsStore = useSettingsStore();
   if (!value) return;
-  if (useRoman) {
+  if (settingsStore.mainSettings.useRomanCsis) {
     switch (value) {
       case "0":
         return "N";
@@ -514,16 +515,16 @@ export const calcMaxJmaShindoLevel = (
   dep,
   hypoLat,
   hypoLng,
-  useSymbol = true
+  useSymbol = true,
 ) => {
   const locList = Object.keys(jmaSeisIntLoc);
   const maxInt = locList.reduce(
     (maxInt, currLoc) =>
       Math.max(
         calcJmaShindo(mj, dep, hypoLat, hypoLng, jmaSeisIntLoc[currLoc]),
-        maxInt
+        maxInt,
       ),
-    -Infinity
+    -Infinity,
   );
   const maxInt1 = Math.floor(Math.round(maxInt * 100) / 10) / 10;
   if (maxInt1 < 0.5) return "0";
