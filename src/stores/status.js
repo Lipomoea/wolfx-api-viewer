@@ -620,7 +620,7 @@ export const useStatusStore = defineStore('statusStore', {
                     case 'kmaEew': {
                         eqMessage.id = data.id
                         eqMessage.isEew = true
-                        eqMessage.reportNum = 1
+                        eqMessage.reportNum = data.updates || 1
                         eqMessage.reportNumText = '제' + eqMessage.reportNum + '보'
                         eqMessage.reportTime = data.createTime
                         eqMessage.titleText = '기상청 지진 조기 경보'
