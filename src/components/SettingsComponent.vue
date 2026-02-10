@@ -251,6 +251,14 @@
                                 <span>地震预警时也显示摇晃检知框</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid" />
                             </div>
+                            <div class="switch-full">
+                                <span>显示最大实时烈度/震度</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayMaxInt" />
+                            </div>
+                            <div class="switch-full">
+                                <span>显示最大区间烈度/震度</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayPeriodMaxInt" />
+                            </div>
                         </div>
                     </div>
                 </div>

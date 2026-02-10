@@ -168,7 +168,7 @@
                         </div>
                     </div>
                     <div class="event">
-                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.niedNet && settingsStore.mainSettings.displaySeisNet.displayNiedShindo">
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.displayMaxInt && settingsStore.mainSettings.displaySeisNet.niedNet && settingsStore.mainSettings.displaySeisNet.displayNiedShindo">
                             <div class="shindo-bar gray">NIED实时</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(niedMaxShindo, true)">
@@ -179,7 +179,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.niedNet && settingsStore.mainSettings.displaySeisNet.displayNiedShindo && niedPeriodMaxShindo != '?'">
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.displayPeriodMaxInt && settingsStore.mainSettings.displaySeisNet.niedNet && settingsStore.mainSettings.displaySeisNet.displayNiedShindo && niedPeriodMaxShindo != '?'">
                             <div class="shindo-bar" :class="niedPeriodBarClass">NIED区间</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(niedPeriodMaxShindo, true)">
@@ -190,7 +190,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.tremNet && settingsStore.mainSettings.displaySeisNet.displayTremShindo">
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.displayMaxInt && settingsStore.mainSettings.displaySeisNet.tremNet && settingsStore.mainSettings.displaySeisNet.displayTremShindo">
                             <div class="shindo-bar gray">TREM实时</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(tremMaxShindo, true)">
@@ -201,7 +201,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.tremNet && settingsStore.mainSettings.displaySeisNet.displayTremShindo && tremPeriodMaxShindo != '?'">
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.displayPeriodMaxInt && settingsStore.mainSettings.displaySeisNet.tremNet && settingsStore.mainSettings.displaySeisNet.displayTremShindo && tremPeriodMaxShindo != '?'">
                             <div class="shindo-bar" :class="tremPeriodBarClass">TREM区间</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(tremPeriodMaxShindo, true)">
@@ -212,7 +212,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.kmaNet && settingsStore.mainSettings.displaySeisNet.displayKmaInt">
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.displayMaxInt && settingsStore.mainSettings.displaySeisNet.kmaNet && settingsStore.mainSettings.displaySeisNet.displayKmaInt">
                             <div class="shindo-bar gray">KMA实时</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(kmaMaxInt, false)">
@@ -227,7 +227,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.kmaNet && settingsStore.mainSettings.displaySeisNet.displayKmaInt && kmaPeriodMaxInt != '?'">
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.displayPeriodMaxInt && settingsStore.mainSettings.displaySeisNet.kmaNet && settingsStore.mainSettings.displaySeisNet.displayKmaInt && kmaPeriodMaxInt != '?'">
                             <div class="shindo-bar" :class="kmaPeriodBarClass">KMA区间</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(kmaPeriodMaxInt, false)">

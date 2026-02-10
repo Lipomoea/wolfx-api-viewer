@@ -2,7 +2,7 @@
 
 ## 简介
 要石(kanameishi)是一个基于多重API制作的地震预警和地震信息可视化Web应用，基于Vite+Vue3+Leaflet开发。  
-提供基于Tauri构建的Windows及macOS应用程序，推荐Windows 10、macOS 11及以上系统使用。  
+提供基于Tauri构建的Windows及macOS应用程序，推荐Windows 10、macOS 11 (arm64) 及以上系统使用。  
 icon是《铃芽之旅》的草太さん（椅子形态）。  
 * [Web版](https://kanameishi.lipomoea.tech/)
 * [Web版备用](https://kanameishi.pages.dev/)（使用CloudFlare托管，速度更快，但国内可能需要代理访问。）
