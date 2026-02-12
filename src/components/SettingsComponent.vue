@@ -1479,6 +1479,7 @@ const handleAdvance = (val)=>{
             settingsStore.advancedSettings.enableTremFunctions = false
             settingsStore.mainSettings.displaySeisNet.tremNet = false
             localStorage.removeItem('tremUrl')
+            handleNeedReload()
             ElMessage({
                 message: '功能已关闭',
                 type: 'success'
@@ -1571,6 +1572,7 @@ const postVerify = async (type = verifyType)=>{
             if(res && res.success){
                 settingsStore.advancedSettings.enableTremFunctions = true
                 localStorage.setItem('tremUrl', JSON.stringify(res.data))
+                handleNeedReload()
                 verifyDialog.value = false
                 ElMessage({
                     message: '认证成功',
