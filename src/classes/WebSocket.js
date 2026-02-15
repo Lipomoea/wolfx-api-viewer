@@ -1,6 +1,6 @@
 class WebSocketObj {
     constructor(urls, autoMessages = [], initMessages = [...autoMessages]) {
-        if(typeof(urls) == 'string') urls = [urls]
+        if (typeof (urls) == 'string') urls = [urls]
         this.urls = urls
         this.urlIndex = 0
         this.url = this.urls[this.urlIndex]
@@ -15,27 +15,34 @@ class WebSocketObj {
         this.setupWebSocket()
     }
     async sendMessages(messages) {
-        for(const msg of messages) {
+        const currentSocket = this.socket
+        for (const msg of messages) {
+            if (currentSocket != this.socket) return
             this.send(msg)
             await new Promise(resolve => setTimeout(resolve, Math.min(this.autoSendInterval / messages.length, 2000)))
         }
     }
     setupWebSocket() {
         clearInterval(this.msgTimer)
+        this.connectTimer = setTimeout(() => {
+            if (this.socket.readyState == 0) this.socket.close()
+        }, 10000);
         this.socket.onopen = () => {
             this.sendMessages(this.initMessages)
             this.retryInterval = this.minRetryInterval
-        }
-        if (this.autoMessages.length > 0) {
-            this.msgTimer = setInterval(() => this.sendMessages(this.autoMessages), this.autoSendInterval)
+            clearTimeout(this.connectTimer)
+            if (this.autoMessages.length > 0) {
+                this.msgTimer = setInterval(() => this.sendMessages(this.autoMessages), this.autoSendInterval)
+            }
         }
         this.socket.onclose = () => {
-            clearTimeout(this.timer)
-            if(this.retryInterval == this.maxRetryInterval) {
+            clearTimeout(this.reconnectTimer)
+            clearTimeout(this.connectTimer)
+            if (this.retryInterval >= this.maxRetryInterval) {
                 this.urlIndex = (this.urlIndex + 1) % this.urls.length
                 this.url = this.urls[this.urlIndex]
             }
-            this.timer = setTimeout(() => {
+            this.reconnectTimer = setTimeout(() => {
                 if (this.shouldConnect) this.reconnect()
             }, this.retryInterval);
             this.retryInterval = Math.min(this.retryInterval + 1000, this.maxRetryInterval)
@@ -47,7 +54,9 @@ class WebSocketObj {
         this.messageHandler = this.socket.onmessage = handler
     }
     reconnect() {
-        clearTimeout(this.timer)
+        clearTimeout(this.reconnectTimer)
+        clearInterval(this.msgTimer)
+        clearTimeout(this.connectTimer)
         if (this.socket) {
             this.socket.onopen = null
             this.socket.onclose = null
@@ -60,8 +69,9 @@ class WebSocketObj {
     }
     close() {
         this.shouldConnect = false
-        clearTimeout(this.timer)
+        clearTimeout(this.reconnectTimer)
         clearInterval(this.msgTimer)
+        clearTimeout(this.connectTimer)
         if (this.socket) {
             this.socket.onopen = null
             this.socket.onclose = null
