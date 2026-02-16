@@ -47,9 +47,15 @@ pub fn run() {
             }
             let quit = MenuItemBuilder::with_id("quit", "退出").build(app)?;
             let menu = MenuBuilder::new(app).items(&[&quit]).build()?;
+            let icon = app.default_window_icon().cloned().ok_or_else(|| {
+                std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    "default window icon is required for tray icon",
+                )
+            })?;
             let _ = TrayIconBuilder::new()
                 .menu(&menu)
-                .icon(app.default_window_icon().unwrap().clone())
+                .icon(icon)
                 .tooltip("要石 v2.4.0")
                 .on_menu_event(move |tray, event| match event.id().as_ref() {
                     "quit" => {
@@ -88,7 +94,13 @@ pub fn run() {
                 }
                 #[cfg(target_os = "macos")]
                 {
-                    tauri::AppHandle::hide(window.app_handle()).unwrap();
+                    if let Err(primary_err) = tauri::AppHandle::hide(window.app_handle()) {
+                        if let Err(fallback_err) = window.hide() {
+                            panic!(
+                                "failed to hide app on macOS: {primary_err}; fallback window.hide failed: {fallback_err}"
+                            );
+                        }
+                    }
                 }
             }
         })

@@ -37,3 +37,6 @@ tauri-plugin-clipboard-manager = "2"
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-autostart = "2"
 tauri-plugin-window-state = "2"
+
+[patch.crates-io]
+tao = { path = "../vendor/tao" }
