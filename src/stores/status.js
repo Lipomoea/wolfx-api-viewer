@@ -1003,7 +1003,7 @@ export const useStatusStore = defineStore('statusStore', {
                             tsunamiMessage.title = '津波警報・注意報なし'
                             tsunamiMessage.titleText = '津波警報・注意報なし'
                             tsunamiMessage.status = 0
-                            tsunamiMessage.className = 'white'
+                            tsunamiMessage.className = 'gray'
                         }
                         else {
                             switch(data.areas[0].grade) {
@@ -1057,12 +1057,6 @@ export const useStatusStore = defineStore('statusStore', {
                         tsunamiMessage.id = data.timeInfo.updateDate.replace(/[^0-9]/g, '')
                         tsunamiMessage.reportTime = data.timeInfo.updateDate
                         switch(data.warningInfo.level) {
-                            case '解除':
-                                tsunamiMessage.title = '海啸预警已解除'
-                                tsunamiMessage.titleText = '海啸预警已解除'
-                                tsunamiMessage.status = 0
-                                tsunamiMessage.className = 'white'
-                                break        
                             case '黄色':
                                 tsunamiMessage.title = '海啸注意报'
                                 tsunamiMessage.titleText = '现正发布海啸注意报'
@@ -1080,6 +1074,12 @@ export const useStatusStore = defineStore('statusStore', {
                                 tsunamiMessage.titleText = '现正发布大海啸警报'
                                 tsunamiMessage.status = 3
                                 tsunamiMessage.className = 'purple'
+                                break
+                            default:
+                                tsunamiMessage.title = '海啸预警已解除'
+                                tsunamiMessage.titleText = '海啸预警已解除'
+                                tsunamiMessage.status = 0
+                                tsunamiMessage.className = 'gray'
                                 break
                         }    
                         tsunamiMessage.warnArea = JSON.stringify(data.forecasts.map(item => {
