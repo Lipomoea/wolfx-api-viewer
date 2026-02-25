@@ -1087,10 +1087,45 @@
                             @change="handleNeedReload" />
                         </div>
                         <div class="switch-full" v-if="settingsStore.advancedSettings.enableMockEew">
-                            <span>模拟地震预警</span>
+                            <span>
+                                模拟地震预警
+                                <el-popover
+                                    placement="top"
+                                    :width="300"
+                                    trigger="hover"
+                                >
+                                    <template #reference>
+                                        <question-filled width="1em" height="1em" />
+                                    </template>
+                                    <p>开启后，可通过“状态面板”或快捷键[M]打开模拟地震预警面板。</p>
+                                    <p><strong>此功能仅作为教育功能，因滥用此功能造成的不良后果由您本人承担。</strong></p>
+                                    <p><strong>此功能需重新加载页面后生效。</strong></p>
+                                </el-popover>
+                            </span>
                             <el-switch 
                             v-model="settingsStore.advancedSettings.mockEew"
                             @change="handleNeedReload" />
+                        </div>
+                        <div class="switch-full pl-4" v-if="settingsStore.advancedSettings.enableMockEew">
+                            <span>
+                                回放测站时创建模拟预警
+                                <el-popover
+                                    placement="top"
+                                    :width="300"
+                                    trigger="hover"
+                                >
+                                    <template #reference>
+                                        <question-filled width="1em" height="1em" />
+                                    </template>
+                                    <p>开启后，在历史地震列表中点击“测站回放”时自动创建一个对应参数的模拟地震预警。</p>
+                                    <p><strong>部分机构提供的地震时间与实际发震时间有偏差（如日本气象厅采用检出时间），此时模拟预警无法正确还原发震时间。</strong></p>
+                                    <p><strong>此功能创建的地震预警发震时间为虚拟时间。</strong></p>
+                                    <p><strong>由此功能创建的地震预警不会自动更新。</strong></p>
+                                </el-popover>
+                            </span>
+                            <el-switch 
+                            v-model="settingsStore.advancedSettings.mockOnReplay"
+                            :disabled="!settingsStore.advancedSettings.mockEew" />
                         </div>
                         <div class="switch-full">
                             <span>状态面板</span>
@@ -1533,6 +1568,7 @@ const handleAdvance = (val)=>{
             }).catch(()=>{
                 if(settingsStore.advancedSettings.mockEew) handleNeedReload()
                 settingsStore.advancedSettings.mockEew = false
+                settingsStore.advancedSettings.mockOnReplay = false
                 settingsStore.advancedSettings.enableMockEew = false
             })
             break
@@ -1540,6 +1576,7 @@ const handleAdvance = (val)=>{
         case 'disableMockEew': {
             if(settingsStore.advancedSettings.mockEew) handleNeedReload()
             settingsStore.advancedSettings.mockEew = false
+            settingsStore.advancedSettings.mockOnReplay = false
             settingsStore.advancedSettings.enableMockEew = false
             break
         }

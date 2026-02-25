@@ -198,6 +198,7 @@ const generateEqMessage = (form, index, id) => {
     const eqMessage = {
         id,
         isEew: true,
+        timeZone: 8,
         reportNum,
         reportNumText,
         reportTime,

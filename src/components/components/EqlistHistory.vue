@@ -50,6 +50,12 @@ import { useTimeStore } from '@/stores/time';
 import { HistoryEvent } from '@/classes/EewEqlistClasses';
 import { isTauri } from '@tauri-apps/api/core';
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
@@ -65,6 +71,9 @@ const eqlists = computed(() => sorted.value.filter(item => settingsStore.mainSet
 const handleReplay = (item) => {
     const passedTime = Math.max(calcPassedTime(item.originTime, item.timeZone) / 60000 + 0.1, 0)
     settingsStore.mainSettings.displaySeisNet.delay = passedTime
+    if (settingsStore.advancedSettings.mockOnReplay && settingsStore.advancedSettings.mockEew) {
+        createMockEew(item)
+    }
 }
 const handleCopy = async (item) => {
     const content = `${item.hypocenter} ${item.originTime} (UTC${formatTimeZone(item.timeZone)}) M${item.magnitude ? item.magnitude.toFixed(1) : '不明'} ${item.depth.toFixed(0)}km ${item.useShindo ? ('最大震度' + formatShindo(item.maxIntensity, false)) : ('预估最大烈度' + item.maxIntensity)}`
@@ -104,6 +113,40 @@ const displayOnMap = (item) => {
         historyList.unshift(newEvent)
         newEvent.update(eqMessage)
     }
+}
+const createMockEew = (item) => {
+    const now = timeStore.getTimeStamp()
+    const originTime = dayjs(now).add(6, 'seconds').utcOffset(item.timeZone * 60).format('YYYY-MM-DD HH:mm:ss')
+    const eqMessage = {
+        id: item.id,
+        isEew: true,
+        timeZone: item.timeZone,
+        reportNum: 1,
+        reportNumText: '第1报（最终）',
+        reportTime: originTime,
+        isAssumption: false,
+        isWarn: item.useShindo ? item.maxIntensity >= '5' : item.maxIntensity >= 6.5,
+        isFinal: true,
+        isCanceled: false,
+        title: `模拟回放·${item.source}`,
+        titleText: `模拟回放·${item.source}`,
+        hypocenter: '模拟·' + item.hypocenter,
+        hypocenterText: '震中: 模拟·' + item.hypocenter,
+        lat: item.lat,
+        lng: item.lng,
+        depth: item.depth,
+        depthText: '深度: ' + item.depth.toFixed(0) + 'km',
+        originTime,
+        originTimeText: '发震时间: ' + originTime,
+        magnitude: item.magnitude,
+        magnitudeText: '震级: ' + item.magnitude.toFixed(1),
+        useShindo: item.useShindo,
+        maxIntensity: item.maxIntensity,
+        maxIntensityText: (item.useShindo ? '推定最大震度: ' : '预估最大烈度: ') + item.maxIntensity
+    }
+    setTimeout(() => {
+        statusStore.setEqMessage('mockEew', eqMessage)
+    }, 6000);
 }
 </script>
 

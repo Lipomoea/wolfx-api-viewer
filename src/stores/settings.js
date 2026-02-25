@@ -134,7 +134,8 @@ export const useSettingsStore = defineStore('settingsStore', {
             forceCalcInt: false,
             useClassicMapLoader: false,
             preventFlickerMode: false,
-            mockEew: false
+            mockEew: false,
+            mockOnReplay: false
         }
     }),
     getters: {
