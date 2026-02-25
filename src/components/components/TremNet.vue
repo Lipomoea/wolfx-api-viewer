@@ -266,7 +266,7 @@ watch(currentMaxShindo, (newVal, oldVal)=>{
         focused = false
     }
 })
-const stationDataUrl = computed(() => seisNetUrls?.trem.stationData.replace('api-2', settingsStore.mainSettings.displaySeisNet.tremApi))
+const stationDataUrl = computed(() => delay.value > 0 ? seisNetUrls?.trem.stationData : seisNetUrls?.trem.stationData.replace('api-2', settingsStore.mainSettings.displaySeisNet.tremApi))
 onBeforeUnmount(()=>{
     clearInterval(fetchStationInterval)
     clearInterval(requestInterval)
