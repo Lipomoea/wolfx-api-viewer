@@ -171,8 +171,6 @@ export const sourceTypes = {
     }
 }
 
-const maxHistoryNumber = 100
-
 let usgsCache = null
 
 export const useStatusStore = defineStore('statusStore', {
@@ -1131,7 +1129,7 @@ export const useStatusStore = defineStore('statusStore', {
                     keys = Object.keys(data)
                     break
             }
-            for (let i = 0; i < Math.min(keys.length, maxHistoryNumber); i++) {
+            for (let i = 0; i < keys.length; i++) {
                 switch (source) {
                     case 'jmaEqlist': {
                         const id = data[keys[i]].EventID
