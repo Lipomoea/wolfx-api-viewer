@@ -118,7 +118,7 @@ const createMockEew = (item) => {
     const now = timeStore.getTimeStamp()
     const originTime = dayjs(now).add(6, 'seconds').utcOffset(item.timeZone * 60).format('YYYY-MM-DD HH:mm:ss')
     const eqMessage = {
-        id: item.id,
+        id: now,
         isEew: true,
         timeZone: item.timeZone,
         reportNum: 1,
