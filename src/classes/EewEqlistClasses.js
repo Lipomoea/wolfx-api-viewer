@@ -108,7 +108,7 @@ export class EewEvent {
         if(this.reachBarMarker && this.map.hasLayer(this.reachBarMarker)) this.map.removeLayer(this.reachBarMarker)
         this.reachBarMarker = null
     }
-    drawReachBar(p_reach, s_reach, color, updated) {
+    drawReachBar(p_reach, s_reach, updated) {
         if(updated) {
             this.clearReachBar()
         }
@@ -116,9 +116,10 @@ export class EewEvent {
             this.clearReachBar()
         }
         else {
-            const size = 60
-            const radius = 28
-            const strokeWidth = 4
+            const size = 54
+            const radius = 24
+            const pStrokeWidth = 6
+            const sStrokeWidth = 4
             const perimeter = 2 * Math.PI * radius
             const dasharray1 = perimeter * p_reach
             const dasharray2 = perimeter * (1 - p_reach)
@@ -134,7 +135,7 @@ export class EewEvent {
                         fill="none"
                         stroke="white"
                         stroke-linecap="round"
-                        stroke-width="${strokeWidth}"
+                        stroke-width="${pStrokeWidth}"
                         stroke-dasharray="var(--dasharray1) var(--dasharray2)"
                         transform="rotate(-90 ${size / 2} ${size / 2})"
                     />
@@ -145,7 +146,7 @@ export class EewEvent {
                         fill="none"
                         stroke="currentColor"
                         stroke-linecap="round"
-                        stroke-width="${strokeWidth}"
+                        stroke-width="${sStrokeWidth}"
                         stroke-dasharray="var(--dasharray3) var(--dasharray4)"
                         transform="rotate(-90 ${size / 2} ${size / 2})"
                     />
@@ -167,7 +168,7 @@ export class EewEvent {
             el.style.setProperty('--dasharray2', dasharray2)
             el.style.setProperty('--dasharray3', dasharray3)
             el.style.setProperty('--dasharray4', dasharray4)
-            el.style.color = color
+            el.style.color = this.eqMessage.isWarn ? 'var(--swave-red)' : 'var(--swave-orange)'
         }
     }
     clearWaves() {
@@ -336,7 +337,7 @@ export class EewEvent {
                 this.sWaveFill = null
             }
         }
-        this.drawReachBar(p_reach, s_reach, color, updated)
+        this.drawReachBar(p_reach, s_reach, updated)
     }
     calcOpacity(radius, minRadius, maxRadius, minOpacity = 0, maxOpacity = 1){
         if(radius <= minRadius * 0.2 + maxRadius * 0.8) return maxOpacity
