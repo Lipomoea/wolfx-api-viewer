@@ -810,13 +810,14 @@
                         <div class="switch-full">
                             <span>UI缩放比例</span>
                             <el-select
-                                style="width: 72px;"
+                                style="width: 120px;"
                                 v-model="settingsStore.mainSettings.uiScale"
                                 size="small"
                             >
+                                <el-option label="自动" :value=-1 />
                                 <el-option label="50%" :value=0.5 />
                                 <el-option label="75%" :value=0.75 />
-                                <el-option label="默认" :value=1 />
+                                <el-option label="100%（推荐）" :value=1 />
                                 <el-option label="125%" :value=1.25 />
                                 <el-option label="150%" :value=1.5 />
                                 <el-option label="200%" :value=2 />
@@ -936,7 +937,7 @@
                         </div>
                         <div class="switch-full">
                             <span>
-                                使用位图渲染器
+                                位图渲染
                                 <el-popover
                                     placement="top"
                                     :width="300"
@@ -945,8 +946,8 @@
                                     <template #reference>
                                         <question-filled width="1em" height="1em" />
                                     </template>
-                                    <p>部分图层使用Canvas（而不是SVG）渲染器加载。</p>
-                                    <p>可小幅提升流畅性，但是部分情况下图形边缘可能模糊。</p>
+                                    <p>部分图层使用Canvas渲染器加载。</p>
+                                    <p>可提升性能，但部分情况下图形边缘可能模糊。</p>
                                     <p>开启后无法使用“悬浮时显示地名”功能。</p>
                                     <p><strong>需重新加载页面后生效。</strong></p>
                                 </el-popover>
@@ -1076,8 +1077,8 @@
                                     <template #reference>
                                         <question-filled width="1em" height="1em" />
                                     </template>
-                                    <p>开启后：使用常规GeoJSON图层渲染底图，支持鼠标悬浮底图显示地名，部分情况下图形边缘更清晰；不支持拖动时加载，不支持循环显示地图。</p>
-                                    <p>关闭后：使用VectorGrid图层渲染底图，支持拖动时加载，支持循环显示地图；不支持鼠标悬浮底图显示地名，部分情况下图形边缘可能模糊。</p>
+                                    <p>开启后：可解决部分情况下地图出现网格状的问题；不支持拖动时加载，不支持循环显示地图。</p>
+                                    <p>关闭后：支持拖动时加载，支持循环显示地图，但部分情况下地图可能出现网格状。</p>
                                     <p><strong>此功能需重新加载页面后生效。</strong></p>
                                 </el-popover>
                             </span>

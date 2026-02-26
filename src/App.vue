@@ -10,7 +10,7 @@
 
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
-import { onBeforeMount, onMounted, onBeforeUnmount, watch } from 'vue'
+import { computed, onBeforeMount, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useTimeStore } from './stores/time';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from './stores/settings';
@@ -58,6 +58,16 @@ async function getGeojson(retries = 0){
     }
   }
 }
+const autoScale = ref(1)
+let resizeTimer
+const calcAutoScale = () => {
+  clearTimeout(resizeTimer)
+  resizeTimer = setTimeout(() => {
+    autoScale.value = Math.min(window.innerWidth / 1800, window.innerHeight / 1000)
+  }, 20);
+}
+const scale = computed(() => settingsStore.mainSettings.uiScale > 0 ? settingsStore.mainSettings.uiScale : autoScale.value)
+const supportsZoom = CSS.supports('zoom', '1')
 
 onBeforeMount(async () => {
   settingsStore.setMainSettings(localStorage.getItem('mainSettings'))
@@ -69,6 +79,7 @@ onBeforeMount(async () => {
   statusStore.enabledSource = Object.keys(settingsStore.mainSettings.source).filter(source => settingsStore.mainSettings.source[source])
   statusStore.multiApi = settingsStore.advancedSettings.multiApi
   statusStore.startUpdatingEqMessage()
+  autoScale.value = Math.min(window.innerWidth / 1800, window.innerHeight / 1000)
   getGeojson()
   if('Notification' in window){
     if (Notification.permission !== 'granted') {
@@ -87,14 +98,22 @@ onBeforeMount(async () => {
   }
 })
 onMounted(() => {
-  watch(() => settingsStore.mainSettings.uiScale, scale => {
-    container.value.style.transform = `scale(${scale})`
-    container.value.style.width = `${100 / scale}%`
+  window.addEventListener('resize', calcAutoScale)
+  watch(scale, scale => {
+    if(supportsZoom) {
+      container.value.style.zoom = scale
+    }
+    else {
+      container.value.style.transform = `scale(${scale})`
+    }
+    container.value.style.width = `${100 / scale}vw`
     container.value.style.height = `${100 / scale}vh`
     statusStore.map?.invalidateSize()
   }, { immediate: true })
 })
 onBeforeUnmount(() => {
+  clearTimeout(resizeTimer)
+  window.removeEventListener('resize', calcAutoScale)
   timeStore.stopUpdatingTime()
   statusStore.disconnect()
   unlistenTrayGameMode?.()
@@ -113,7 +132,7 @@ watch(() => settingsStore.mainSettings.gameMode, (enabled) => {
 
 <style lang="scss" scoped>
 .container {
-  width: 100%;
+  width: 100vw;
   height: 100vh;
   position: absolute;
   transform-origin: top left;

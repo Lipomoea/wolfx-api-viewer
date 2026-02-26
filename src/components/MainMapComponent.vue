@@ -914,7 +914,7 @@ const loadMaps = async (retries = 0) => {
         }, { immediate: true })
         if(settingsStore.mainSettings.displayPlaceName) {
             const createTextIcon = (text, fontSize = 15) => {
-                const dpr = settingsStore.mainSettings.uiScale * (window.devicePixelRatio || 1);
+                const dpr = 2 * (window.devicePixelRatio || 1);
                 const tempCanvas = document.createElement('canvas');
                 const tempCtx = tempCanvas.getContext('2d');
                 tempCtx.font = `${fontSize}px Arial`;
