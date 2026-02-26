@@ -75,16 +75,19 @@ export const calcTimeDiff = (time1, timeZone1, time2, timeZone2) => {
   return stamp1 - stamp2;
 };
 export const sendMyNotification = (title, body, icon, silent) => {
+  if (!settingsStore) settingsStore = useSettingsStore();
   if ("Notification" in window) {
     if (Notification.permission == "granted") {
-      const notification = new Notification(title, {
-        body,
-        icon,
-        silent,
-      });
-      notification.onclick = () => {
-        window.focus();
-      };
+      if (!settingsStore.mainSettings.gameMode) {
+        const notification = new Notification(title, {
+          body,
+          icon,
+          silent,
+        });
+        notification.onclick = () => {
+          window.focus();
+        };
+      }
     }
   }
 };
@@ -340,7 +343,8 @@ export const judgeSameEvent = (eqMessage1, eqMessage2) => {
   else return false;
 };
 export const focusWindow = async () => {
-  if (isTauri()) {
+  if (!settingsStore) settingsStore = useSettingsStore();
+  if (isTauri() && !settingsStore.mainSettings.gameMode) {
     await getCurrentWindow().show();
     await getCurrentWindow().unminimize();
     await getCurrentWindow().setFocus();

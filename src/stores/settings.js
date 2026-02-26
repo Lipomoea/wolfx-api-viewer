@@ -115,6 +115,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             minimizeOnLaunch: false,
             autoCheckNewVersion: false,
             checkPrerelease: false,
+            gameMode: false,
             autoRefresh: false
         },
         advancedSettings: {

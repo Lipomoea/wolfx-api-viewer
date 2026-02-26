@@ -264,6 +264,25 @@
                 </div>
                 <span class="sub-title">行为</span>
                 <div class="group">
+                    <div class="switch-group">
+                        <div class="switch-full">
+                            <span>
+                                游戏模式
+                                <el-popover
+                                    placement="top"
+                                    :width="280"
+                                    trigger="hover"
+                                >
+                                    <template #reference>
+                                        <question-filled width="1em" height="1em" />
+                                    </template>
+                                    <p>游戏模式下将不会发送通知和弹出窗口。</p>
+                                    <p v-if="isTauri">可在托盘图标菜单快速切换。</p>
+                                </el-popover>
+                            </span>
+                            <el-switch v-model="settingsStore.mainSettings.gameMode" />
+                        </div>
+                    </div>
                     <span class="font-bold w-full">
                         过滤设置
                         <el-popover

@@ -17,17 +17,30 @@ import { useSettingsStore } from './stores/settings';
 import { eqUrls, topojsonUrls } from './utils/Urls';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { platform } from '@tauri-apps/plugin-os';
-import { isTauri } from '@tauri-apps/api/core';
+import { invoke, isTauri } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import Http from './classes/Http';
 
 const timeStore = useTimeStore()
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
+const inTauri = isTauri()
 
 const container = ref()
+const TRAY_GAME_MODE_EVENT = 'tray-game-mode-changed'
+let unlistenTrayGameMode
+
+async function syncTrayGameModeMenu(enabled) {
+  if(!inTauri) return
+  try {
+    await invoke('set_tray_game_mode', { enabled })
+  } catch (err) {
+    console.error('failed to sync tray game mode state', err)
+  }
+}
 
 async function getGeojson(retries = 0){
-  if(!isTauri() && ('caches' in window)){
+  if(!inTauri && ('caches' in window)){
     try {
       const promises = Object.keys(topojsonUrls).map(async name => {
         const data = await Http.get(topojsonUrls[name], { timeout: 0 })
@@ -62,7 +75,11 @@ onBeforeMount(async () => {
       Notification.requestPermission()
     }
   }
-  if(isTauri()) {
+  if(inTauri) {
+    unlistenTrayGameMode = await listen(TRAY_GAME_MODE_EVENT, event => {
+      settingsStore.mainSettings.gameMode = Boolean(event.payload)
+    })
+    await syncTrayGameModeMenu(settingsStore.mainSettings.gameMode)
     const thisPlatform = platform()
     if(thisPlatform == 'windows' && settingsStore.mainSettings.minimizeOnLaunch) {
       await getCurrentWindow().hide()
@@ -80,6 +97,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   timeStore.stopUpdatingTime()
   statusStore.disconnect()
+  unlistenTrayGameMode?.()
 })
 watch(() => settingsStore.mainSettings, (newValue) => {
   localStorage.setItem('mainSettings', JSON.stringify(newValue))
@@ -87,6 +105,9 @@ watch(() => settingsStore.mainSettings, (newValue) => {
 watch(() => settingsStore.advancedSettings, (newValue) => {
   localStorage.setItem('advancedSettings', JSON.stringify(newValue))
 }, { deep: true })
+watch(() => settingsStore.mainSettings.gameMode, (enabled) => {
+  void syncTrayGameModeMenu(enabled)
+})
 
 </script>
 
