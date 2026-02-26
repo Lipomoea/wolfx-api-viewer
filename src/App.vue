@@ -54,7 +54,6 @@ const calcAutoScale = () => {
   }, 20);
 }
 const scale = computed(() => settingsStore.mainSettings.uiScale > 0 ? settingsStore.mainSettings.uiScale : autoScale.value)
-const supportsZoom = CSS.supports('zoom', '1')
 
 onBeforeMount(async () => {
   settingsStore.setMainSettings(localStorage.getItem('mainSettings'))
@@ -66,7 +65,7 @@ onBeforeMount(async () => {
   statusStore.enabledSource = Object.keys(settingsStore.mainSettings.source).filter(source => settingsStore.mainSettings.source[source])
   statusStore.multiApi = settingsStore.advancedSettings.multiApi
   statusStore.startUpdatingEqMessage()
-  autoScale.value = Math.min(window.innerWidth / 1800, window.innerHeight / 1000)
+  autoScale.value = Math.min(window.innerWidth / 1800, window.innerHeight / 1100)
   getGeojson()
   if('Notification' in window){
     if (Notification.permission !== 'granted') {
@@ -83,12 +82,7 @@ onBeforeMount(async () => {
 onMounted(() => {
   window.addEventListener('resize', calcAutoScale)
   watch(scale, scale => {
-    if(supportsZoom) {
-      container.value.style.zoom = scale
-    }
-    else {
-      container.value.style.transform = `scale(${scale})`
-    }
+    container.value.style.transform = `scale(${scale})`
     container.value.style.width = `${100 / scale}vw`
     container.value.style.height = `${100 / scale}vh`
     statusStore.map?.invalidateSize()
