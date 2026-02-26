@@ -112,7 +112,7 @@ export class EewEvent {
         if(updated) {
             this.clearReachBar()
         }
-        if(s_reach >= 1) {
+        if(p_reach >= 1 && s_reach >= 1) {
             this.clearReachBar()
         }
         else {
