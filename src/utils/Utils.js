@@ -236,6 +236,8 @@ export const playSound = type => {
   });
 };
 export const calcWaveDistance = (travelTime, isPWave, depth, time) => {
+  if (depth < 0) depth = 0;
+  if (time < 0) time = 0;
   const { depths, distances, p_times, s_times } = travelTime;
   const data = isPWave ? p_times : s_times;
   let i = 1;
@@ -246,15 +248,17 @@ export const calcWaveDistance = (travelTime, isPWave, depth, time) => {
   for (let j = 0; j < distances.length; j++) {
     times[j] = (k1 * data[i - 1][j] + k2 * data[i][j]) / (k1 + k2);
   }
-  if (time <= times[0]) return { reach: times[0] - time, radius: 0 };
+  if (time <= times[0]) return { reach: time / times[0], radius: 0 };
   let j = 1;
   while (times[j] < time && j < times.length - 1) j++;
   const k = (distances[j] - distances[j - 1]) / (times[j] - times[j - 1]);
   const b = distances[j] - k * times[j];
   const distance = k * time + b;
-  return { reach: 0, radius: distance };
+  return { reach: 1, radius: distance };
 };
 export const calcReachTime = (travelTime, isPWave, depth, distance) => {
+  if (depth < 0) depth = 0;
+  if (distance < 0) distance = 0;
   const { depths, distances, p_times, s_times } = travelTime;
   const data = isPWave ? p_times : s_times;
   let i = 1;

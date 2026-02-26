@@ -336,6 +336,7 @@ onBeforeUnmount(()=>{
             map.removeLayer(layer)
         }
     })
+    statusStore.isActive.kmaNet = false
 })
 </script>
 

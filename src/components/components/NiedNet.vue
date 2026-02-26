@@ -420,6 +420,7 @@ onBeforeUnmount(()=>{
             map.removeLayer(layer)
         }
     })
+    statusStore.isActive.niedNet = false
 })
 </script>
 

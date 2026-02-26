@@ -104,6 +104,72 @@ export class EewEvent {
             this.hypoMarker.addTo(this.map)
         }
     }
+    clearReachBar() {
+        if(this.reachBarMarker && this.map.hasLayer(this.reachBarMarker)) this.map.removeLayer(this.reachBarMarker)
+        this.reachBarMarker = null
+    }
+    drawReachBar(p_reach, s_reach, color, updated) {
+        if(updated) {
+            this.clearReachBar()
+        }
+        if(s_reach >= 1) {
+            this.clearReachBar()
+        }
+        else {
+            const size = 60
+            const radius = 28
+            const strokeWidth = 4
+            const perimeter = 2 * Math.PI * radius
+            const dasharray1 = perimeter * p_reach
+            const dasharray2 = perimeter * (1 - p_reach)
+            const dasharray3 = perimeter * s_reach
+            const dasharray4 = perimeter * (1 - s_reach)
+            if(!this.reachBarMarker) {
+                const html = `
+                    <svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
+                    <circle
+                        cx="${size / 2}"
+                        cy="${size / 2}"
+                        r="${radius}"
+                        fill="none"
+                        stroke="white"
+                        stroke-linecap="round"
+                        stroke-width="${strokeWidth}"
+                        stroke-dasharray="var(--dasharray1) var(--dasharray2)"
+                        transform="rotate(-90 ${size / 2} ${size / 2})"
+                    />
+                    <circle
+                        cx="${size / 2}"
+                        cy="${size / 2}"
+                        r="${radius}"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-width="${strokeWidth}"
+                        stroke-dasharray="var(--dasharray3) var(--dasharray4)"
+                        transform="rotate(-90 ${size / 2} ${size / 2})"
+                    />
+                    </svg>
+                `
+                this.reachBarMarker = L.marker(this.hypoLatLng, {
+                    icon: L.divIcon({
+                        html,
+                        className: '',
+                        iconSize: [size, size],
+                        iconAnchor: [size / 2, size / 2]
+                    }),
+                    pane: 'eewReachPane',
+                    interactive: false
+                }).addTo(this.map)
+            }
+            const el = this.reachBarMarker.getElement()
+            el.style.setProperty('--dasharray1', dasharray1)
+            el.style.setProperty('--dasharray2', dasharray2)
+            el.style.setProperty('--dasharray3', dasharray3)
+            el.style.setProperty('--dasharray4', dasharray4)
+            el.style.color = color
+        }
+    }
     clearWaves() {
         if(this.pWave && this.map.hasLayer(this.pWave)) {
             this.map.removeLayer(this.pWave)
@@ -123,8 +189,7 @@ export class EewEvent {
         const passedTime = calcPassedTime(this.eqMessage.originTime, this.eqMessage.timeZone) / 1000
         this.handleCountdown(passedTime)
         if(this.hypoLatLng && !this.eqMessage.isAssumption){
-            if(updated) this.clearWaves()
-            this.switchDrawWaves(passedTime)
+            this.switchDrawWaves(passedTime, updated)
         }
         else{
             this.clearWaves()
@@ -136,7 +201,7 @@ export class EewEvent {
             this.drawWaves()
         }, 1000 / settingsStore.mainSettings.maxWaveRenderRate - used);
     }
-    switchDrawWaves(passedTime){
+    switchDrawWaves(passedTime, updated){
         let p_reach, p_radius, s_reach, s_radius
         let p_info = calcWaveDistance(travelTimes.jma2001, true, this.eqMessage.depth, passedTime)
         if(p_info.radius > this.maxRadius1) p_info = calcWaveDistance(travelTimes.jb, true, this.eqMessage.depth, passedTime)
@@ -146,6 +211,7 @@ export class EewEvent {
         if(s_info.radius > this.maxRadius1) s_info = calcWaveDistance(travelTimes.jb, false, this.eqMessage.depth, passedTime)
         s_reach = s_info.reach
         s_radius = s_info.radius
+        if(updated) this.clearWaves()
         if(p_radius > 0 && p_radius <= this.maxRadius2) {
             const opacity = p_radius <= this.maxWaveRadius ? this.calcOpacity(p_radius, 0, this.maxWaveRadius, 0.25, 1) : this.calcOpacity(p_radius, this.maxWaveRadius, this.maxRadius2, 0, 0.25)
             if(!this.pWave) {
@@ -270,6 +336,7 @@ export class EewEvent {
                 this.sWaveFill = null
             }
         }
+        this.drawReachBar(p_reach, s_reach, color, updated)
     }
     calcOpacity(radius, minRadius, maxRadius, minOpacity = 0, maxOpacity = 1){
         if(radius <= minRadius * 0.2 + maxRadius * 0.8) return maxOpacity
@@ -284,6 +351,7 @@ export class EewEvent {
         clearTimeout(this.drawWavesTimer)
         this.removeMark()
         this.clearWaves()
+        this.clearReachBar()
     }
     update(eqMessage, time, isFirst = false){
         if(isFirst || eqMessage.reportNum > this.eqMessage.reportNum || 

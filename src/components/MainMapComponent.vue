@@ -631,10 +631,13 @@ onMounted(()=>{
     labelPane2.style.zIndex = 190
     map.createPane('eqlistMarkerPane')
     eqlistMarkerPane = map.getPane('eqlistMarkerPane')
-    eqlistMarkerPane.style.zIndex = 198
+    eqlistMarkerPane.style.zIndex = 197
     map.createPane('historyMarkerPane')
     historyMarkerPane = map.getPane('historyMarkerPane')
-    historyMarkerPane.style.zIndex = 199
+    historyMarkerPane.style.zIndex = 198
+    map.createPane('eewReachPane')
+    eewMarkerPane = map.getPane('eewReachPane')
+    eewMarkerPane.style.zIndex = 199
     map.createPane('eewMarkerPane')
     eewMarkerPane = map.getPane('eewMarkerPane')
     eewMarkerPane.style.zIndex = 200

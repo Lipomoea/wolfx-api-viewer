@@ -283,6 +283,7 @@ onBeforeUnmount(()=>{
             map.removeLayer(layer)
         }
     })
+    statusStore.isActive.tremNet = false
 })
 </script>
 
