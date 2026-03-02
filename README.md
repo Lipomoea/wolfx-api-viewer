@@ -8,13 +8,16 @@ icon是《铃芽之旅》的草太さん（椅子形态）。
 * [Web版备用](https://kanameishi.pages.dev/)（使用CloudFlare托管，速度更快，但国内可能需要代理访问。）
 * [应用程序下载](https://github.com/Lipomoea/kanameishi/releases)
 * [应用程序下载（备用）](https://gitee.com/lipomoea/kanameishi/releases)
+* [开发者bilibili](https://space.bilibili.com/316757498)
 ## 主要功能  
 * 接收中国地震局（包括各省分局）、台湾省中央气象署、日本气象厅地震预警速报。
 * 接收中国地震台网、台湾省中央气象署、日本气象厅地震信息。
 * 接收日本气象厅海啸情报。
 * 获取NIED強震モニタ、KMA-PEWS测站数据并检测。
 ## 注意事项
-* 使用本网页前，请详细阅读网页“设置”-“帮助&关于”中的内容。
+* 本应用程序使用的数据源均为非官方数据源，本应用程序仅作为学习使用。
+* 本应用程序为永久免费的不盈利项目，任何以本应用程序为名义索取费用的行为均属诈骗。
+* 使用本应用程序前，请详细阅读网页“设置”-“帮助&关于”中的内容。
 ## 数据来源
 * 地震预警（CEA/SC/FJ/CWA/JMA）、地震信息（CENC）、地震列表（JMA）、IP定位：[Wolfx Open API](https://wolfx.jp/apidoc)（请注意参考接口文档）
 * 地震信息（JMA）、海啸信息（JMA）：[P2PQuake](https://www.p2pquake.net/develop/json_api_v2/#/P2P%E5%9C%B0%E9%9C%87%E6%83%85%E5%A0%B1%20API/get_history)
