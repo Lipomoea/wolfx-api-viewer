@@ -1268,15 +1268,17 @@
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false" append-to-body>
             <div class="header">要石 v2.4.0</div>
+            <div class="title">注意事项</div>
+            <div class="about">
+                <p>本应用程序仅作为学习使用。</p>
+                <p>本应用程序使用非官方数据源，可能出现错误。一切信息请以官方发布为准。</p>
+                <p>本应用程序为永久免费的不盈利项目，不接受任何形式的捐赠。任何以本应用程序为名义索取费用的行为均属诈骗。</p>
+                <p>首次使用本应用程序时，请点击主界面右上角<el-icon><Setting /></el-icon>图标进行个性化设置。</p>
+            </div>
             <div class="title">使用方法</div>
             <div class="about">
+                <p>Windows 10（x64）、macOS（arm64）及以上用户推荐使用应用程序：<a href="https://github.com/Lipomoea/kanameishi/releases" target="_blank">应用程序下载</a>&nbsp;<a href="https://gitee.com/lipomoea/kanameishi/releases" target="_blank">备用链接</a></p>
                 <p>主要功能：接收中国、日本、韩国地震预警速报，接收中国、日本、韩国等区域性地震信息以及美国地质调查局（USGS）、FAN Studio地震网络（FSSN）等机构的全球性地震信息，接收日本的海啸信息，显示日本、韩国部分机构的实时地震监测网络并提示可能的地震事件。</p>
-                <p>Chrome/Edge推荐设置（以Chrome为例，Edge方法类似）：</p>
-                <ul>
-                    <li>保持后台刷新：浏览器访问chrome://flags - Calculate window occlusion on Windows - Disabled - 右下角重新启动</li>
-                    <li>去除网页“不安全”提示（同时解除网页权限设置限制，但浏览器启动时会收到横幅提示）：chrome://flags - Insecure origins treated as secure - 启用 - 输入本网页的链接 - 右下角重新启动</li>
-                    <li>作为网页应用安装：Chrome打开此页面，右上角三点 - 保存并分享 - 将网页作为应用安装。安装一次后刷新页面即可加载最新版本网页，无需重新安装。</li>
-                </ul>
                 <p>通知推送：需授予通知权限。Chrome：点击网页链接左侧按钮-网站设置-通知-允许，刷新页面。</p>
                 <p>播放声音：需开启声音权限。Chrome：点击网页链接左侧按钮-网站设置-声音-允许，刷新页面。</p>
             </div>
@@ -1296,7 +1298,7 @@
                     <li>[,] / [.]：存在多页信息框时轮询信息框</li>
                 </ul>
             </div>
-            <div class="title">注意事项</div>
+            <div class="title">常见问题</div>
             <div class="about">
                 <p>关于烈度：中国大陆及港澳、韩国使用烈度制（12度表，I ~ XII），日本、中国台湾地区使用震度制（10度表，0 ~ 7，其中震度5、6两级分为强/弱）。部分数值为预估值，非实测值。</p>
                 <p>关于时间：除全球性台网（USGS、FSSN）显示为中国标准时间，其他均显示为发报机构当地时间。</p>
@@ -1305,7 +1307,6 @@
             </div>
             <div class="title">关于</div>
             <div class="about">
-                <p>Windows 10（x64）、macOS（arm64）及以上用户推荐使用应用程序：<a href="https://github.com/Lipomoea/kanameishi/releases" target="_blank">应用程序下载</a>&nbsp;<a href="https://gitee.com/lipomoea/kanameishi/releases" target="_blank">备用链接</a></p>
                 <p>联系我：<a href="https://space.bilibili.com/316757498" target="_blank">リッポミャ</a>（哔哩哔哩）</p>
                 <p>Github：<a href="https://github.com/Lipomoea/kanameishi" target="_blank">https://github.com/Lipomoea/kanameishi</a></p>
                 <p>特别鸣谢：</p>
@@ -1334,6 +1335,9 @@ import { exists, mkdir } from "@tauri-apps/plugin-fs";
 import { enable, disable, isEnabled } from '@tauri-apps/plugin-autostart';
 import { platform } from '@tauri-apps/plugin-os';
 import { isTauri as getIsTauri } from '@tauri-apps/api/core';
+import { Setting } from '@element-plus/icons-vue';
+
+const SHOW_ABOUT_FLG = '20260302.00'
 
 const showNotifButton = 'Notification' in window
 const isTauri = getIsTauri()
@@ -1922,6 +1926,9 @@ onMounted(async () => {
         loadAudio()
         isAutoStart.value = await isEnabled()
     }
+    const localFlg = localStorage.getItem('SHOW_ABOUT_FLG') || ''
+    if(localFlg < SHOW_ABOUT_FLG) showAbout.value = true
+    localStorage.setItem('SHOW_ABOUT_FLG', SHOW_ABOUT_FLG)
 })
 onBeforeUnmount(() => {
     clearInterval(autoCheckInterval)
