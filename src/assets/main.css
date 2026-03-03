@@ -43,10 +43,6 @@ path.leaflet-interactive:focus {
   text-align: center;
 }
 
-.el-message-box__message {
-  white-space: pre-line;
-}
-
 /* 滚动条 */
 * {
   scrollbar-width: thin;
@@ -55,4 +51,8 @@ path.leaflet-interactive:focus {
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
+}
+
+.el-message-box__message * {
+  margin: 0.5em 0;
 }

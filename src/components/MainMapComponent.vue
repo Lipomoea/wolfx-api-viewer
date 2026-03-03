@@ -375,7 +375,7 @@ const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 const timeStore = useTimeStore()
 let map, jpEewBaseMap, krEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap, cnTsunamiBaseMap, labelLayer1, labelLayer2, terminatorLayer, terminatorFillLayer, cnFaultBaseMap
-let eewMarkerPane, eqlistMarkerPane, historyMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, kmaGridPane, eewBasePane, tsunamiBasePane, labelPane1, labelPane2
+let eewMarkerPane, eqlistMarkerPane, eewReachPane, historyMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, kmaGridPane, eewBasePane, tsunamiBasePane, labelPane1, labelPane2
 let userMarker
 const defaultLatLng = [38.1, 104.6]
 const { isValidUserLatLng, isValidViewLatLng, isDisplayUser, nearestJmaLoc } = storeToRefs(settingsStore)
@@ -636,8 +636,8 @@ onMounted(()=>{
     historyMarkerPane = map.getPane('historyMarkerPane')
     historyMarkerPane.style.zIndex = 198
     map.createPane('eewReachPane')
-    eewMarkerPane = map.getPane('eewReachPane')
-    eewMarkerPane.style.zIndex = 199
+    eewReachPane = map.getPane('eewReachPane')
+    eewReachPane.style.zIndex = 199
     map.createPane('eewMarkerPane')
     eewMarkerPane = map.getPane('eewMarkerPane')
     eewMarkerPane.style.zIndex = 200
@@ -760,10 +760,12 @@ onMounted(()=>{
             tsunamiBasePane.style.opacity = 1 * (tsunamiFlickerCounter ? 1 : 0)
         }
         if(newVal == 'eqlists'){
+            eewReachPane.style.opacity = 0.3
             wavePane.style.opacity = 0.3
             waveFillPane.style.opacity = 0.3
         }
         else{
+            eewReachPane.style.opacity = 1
             wavePane.style.opacity = 1
             waveFillPane.style.opacity = 1
         }
@@ -1108,6 +1110,7 @@ const loadMaps = async (retries = 0) => {
 watchEffect(() => {
     const blinkOpac = blinkStatus.value ? 1 : 0
     const menuOpac = menuId.value == 'eqlists' ? 0.3 : 1
+    // 你不许使用可选链符号（不然报错）
     if(eewMarkerPane) eewMarkerPane.style.opacity = blinkOpac * menuOpac
     if(niedGridPane) niedGridPane.style.opacity = blinkOpac * menuOpac * (!statusStore.isActive.jmaEew || settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid ? 1 : 0)
     if(tremGridPane) tremGridPane.style.opacity = blinkOpac * menuOpac * (!statusStore.isActive.cwaEew || settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid ? 1 : 0)

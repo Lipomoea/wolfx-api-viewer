@@ -1326,7 +1326,7 @@ import { useSettingsStore } from '@/stores/settings';
 import { useStatusStore } from '@/stores/status';
 import { chimeUrls, utilUrls } from '@/utils/Urls';
 import Http from '@/classes/Http';
-import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
+import { h, ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { QuestionFilled } from '@element-plus/icons-vue';
 import { calcPassedTime, formatCsis, openUrl, playSound, setClassName, shindoScale, calcCsisLevel } from '@/utils/Utils';
 import { join, appDataDir } from "@tauri-apps/api/path";
@@ -1336,6 +1336,7 @@ import { enable, disable, isEnabled } from '@tauri-apps/plugin-autostart';
 import { platform } from '@tauri-apps/plugin-os';
 import { isTauri as getIsTauri } from '@tauri-apps/api/core';
 import { Setting } from '@element-plus/icons-vue';
+import MarkdownIt from 'markdown-it';
 
 const SHOW_ABOUT_FLG = '20260302.00'
 
@@ -1773,16 +1774,28 @@ const checkNewVersion = async (silent = false) => {
                 })
             }
             ElMessageBox.close()
+            const md = new MarkdownIt({ linkify: true })
             if(isTauri) {
                 if(!silent) {
                     ElMessageBox.confirm(
-                        `检查到新版本v${checkedVersion}，是否下载？\r\n${detail}`,
-                        '发现新版本',
+                        h('div', {
+                            innerHTML: md.render(detail),
+                            style: {
+                                listStylePosition: 'inside',
+                                maxHeight: '50vh',
+                                overflow: 'auto',
+                                fontSize: '16px'
+                            }
+                        }),
+                        `发现新版本 v${checkedVersion}`,
                         {
                             confirmButtonText: '下载',
                             cancelButtonText: '关闭',
                             type: '',
-                            showClose: false
+                            showClose: false,
+                            customStyle: {
+                                '--el-messagebox-width': '500px',
+                            }
                         }
                     ).then(()=>{
                         openUrl(downloadUrl)
@@ -1802,15 +1815,26 @@ const checkNewVersion = async (silent = false) => {
                 else {
                     if(!silent) {
                         ElMessageBox.confirm(
-                            `检查到新版本v${checkedVersion}，是否刷新页面？\r\n${detail}`,
-                            '检查更新',
-                            {
-                                confirmButtonText: '确定',
-                                cancelButtonText: '取消',
-                                type: 'info',
-                                showClose: false,
+                        h('div', {
+                            innerHTML: md.render(detail),
+                            style: {
+                                listStylePosition: 'inside',
+                                maxHeight: '50vh',
+                                overflow: 'auto',
+                                fontSize: '16px'
                             }
-                        ).then(()=>{
+                        }),
+                        `发现新版本 v${checkedVersion}`,
+                        {
+                            confirmButtonText: '刷新页面',
+                            cancelButtonText: '关闭',
+                            type: '',
+                            showClose: false,
+                            customStyle: {
+                                '--el-messagebox-width': '500px',
+                            }
+                        }
+                    ).then(()=>{
                             handleReload()
                         })
                     }
