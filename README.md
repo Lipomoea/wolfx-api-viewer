@@ -40,7 +40,7 @@ icon是《铃芽之旅》的草太さん（椅子形态）。
 * [Wolfx Project](https://wolfx.jp/)
 * [TBS](https://space.bilibili.com/652050915/)
 * [FAN](https://www.fanstudio.tech/)
-* Dxr (QQ: 2194362576)
+* [Dxr](https://space.bilibili.com/523564463)
 * HomoOS
 * [azzbm](https://space.bilibili.com/702013828)
 * [不知道要取什么系列](https://space.bilibili.com/499911115)
