@@ -14,11 +14,11 @@ import { seisNetUrls, iconUrls } from '@/utils/Urls';
 import { getTimeNumberString, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromLevel } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { NiedStation, simpleShindo } from '@/classes/StationClasses';
+import { NiedStation, simpleIcon } from '@/classes/StationClasses';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
-const stationList = ref([])
+let stationList = []
 const stationData = ref([])
 const stations = reactive([])
 const siteConfigId = ref('')
@@ -29,8 +29,10 @@ const delay = ref(defaultDelay)
 const niedMaxShindo = inject('niedMaxShindo')
 const niedUpdateTime = inject('niedUpdateTime')
 const niedPeriodMaxShindo = inject('niedPeriodMaxShindo')
+const niedPeriodBarClass = inject('niedPeriodBarClass')
 const handleTempEqlists = inject('handleTempEqlists')
-const periodMaxLevel = ref(-1)
+const smartSetView = inject('smartSetView')
+let periodMaxLevel = -1
 const currentMaxShindo = computed(()=>{
     const currentMaxLevel = Math.max(...Object.keys(grids.value).map(key=>grids.value[key].level), -1)
     if(currentMaxLevel == -1) return -1
@@ -46,19 +48,20 @@ const currentMaxShindo = computed(()=>{
 let adjStationIds = {}
 let expireSeconds = {}
 let distMatrix = [[]]
+let decimal = [0, 0]
+const gridRects = {}
 const activeStations = computed(()=>{
-    let list = []
+    const list = []
     stations.forEach(station=>{
-        if(station.isActive) list.push(station.id)
+        if(station.isActive) list.push(station)
     })
     return list
 })
-let decimal = [0, 0]
 const grids = computed(()=>{
     let grids = {}
-    activeStations.value.forEach(id=>{
-        const latLng = stations[id].latLng.map((l, index) => Math.round(l - decimal[index]) + decimal[index])
-        const level = stations[id].level
+    activeStations.value.forEach(station=>{
+        const latLng = station.latLng.map((l, index) => Math.round(l - decimal[index]) + decimal[index])
+        const level = station.level
         const key = JSON.stringify(latLng)
         if(key in grids){
             if(level > grids[key].level) grids[key].level = level
@@ -72,8 +75,6 @@ const grids = computed(()=>{
     })
     return grids
 })
-const gridRects = {}
-const smartSetView = inject('smartSetView')
 const getData = async (url)=>{
     try {
         const res = await axios.get(url, { timeout: 10000 })
@@ -89,12 +90,12 @@ let pendingRender = false
 const nearbyLength = 6
 const activityThresArr = [Infinity, 9, 12, 14, 15, 16, 16]
 const update = ()=>{
-    if(stationList.value.length == stations.length && stations.length == stationData.value.length){
+    if(stationList.length == stations.length && stations.length == stationData.value.length){
+        const render = document.visibilityState === 'visible'
+        if(!render) pendingRender = true
         let maxLevel = -1
-        for(let i = 0; i < stationList.value.length; i++){
-            const render = document.visibilityState === 'visible'
+        for(let i = 0; i < stationList.length; i++){
             stations[i].update(stationData.value[i], render)
-            if(!render) pendingRender = true
             if(stations[i].level > maxLevel) maxLevel = stations[i].level
         }
         niedMaxShindo.value = getShindoFromLevel(maxLevel)
@@ -178,10 +179,42 @@ let fetchStationInterval, requestInterval, delayInterval
 const fetchStationList = async () => {
     try {
         const res = await Http.get(seisNetUrls.nied.stationList + `?time=${Date.now()}`)
-        if(res && res.siteConfigId) {
-            stationList.value = res.items
-            siteConfigId.value = res.siteConfigId
+        if(res && res.siteConfigId && res.items?.length > 0) {
             clearInterval(fetchStationInterval)
+            siteConfigId.value = res.siteConfigId
+            stationList = res.items
+            let latLngs = []
+            for(let i = 0; i < stationList.length; i++){
+                latLngs[i] = L.latLng(stationList[i])
+            }
+            for(let i = 0; i < stationList.length; i++){
+                const distances = []
+                let candidate = {
+                    id: null,
+                    distance: 40
+                }
+                distMatrix[i] = []
+                for(let j = 0; j < stationList.length; j++){
+                    let distance
+                    if(j < i) distance = distMatrix[j][i]
+                    else if(j == i) distance = 0
+                    else distance = latLngs[i].distanceTo(latLngs[j]) / 1000
+                    distMatrix[i][j] = distance
+                    if(distance <= 30) distances.push({ id: j, distance })
+                    else if(distance <= candidate.distance) candidate = { id: j, distance }
+                }
+                if(distances.length <= 1 && candidate.id !== null) {
+                    distances.push(candidate)
+                }
+                distances.sort((a, b) => a.distance - b.distance).splice(nearbyLength)
+                adjStationIds[i] = distances.map(obj => obj.id)
+                const maxDist = distances[distances.length - 1].distance
+                expireSeconds[i] = Math.max(Math.round(maxDist / 3.5), 5)
+            }
+            stationList.forEach((latLng, index)=>{
+                const station = reactive(new NiedStation(map, index, latLng, 'c', expireSeconds[index]))
+                stations.push(station)
+            })
         }
     } catch (err) {
         console.log(err);
@@ -195,32 +228,34 @@ onMounted(()=>{
             const time = getTimeNumberString(9, -delay.value)
             const date = time.slice(0, 8)
             const res = await getData(`${seisNetUrls.nied.stationData}/${date}/${time}.json`)
-            if(res?.status == 200){
+            if(res?.status == 200) {
                 const data = res.data
-                if(data.realTimeData.siteConfigId == siteConfigId.value){
+                if(data.realTimeData.siteConfigId == siteConfigId.value) {
                     stationData.value = data.realTimeData.intensity.split('')
                     const timeDiff = calcTimeDiff(data.realTimeData.dataTime.slice(0, -6), 9, niedUpdateTime.value, 9)
-                    if(timeDiff > 1000){
-                        const popNum = Math.floor(timeDiff / 1000) - 1
-                        stations.forEach(station=>{
-                            station.recentLevel.splice(-popNum, popNum)
+                    if(timeDiff > 1000) {
+                        const popNum = Math.min(Math.round(timeDiff / 1000) - 1, 60)
+                        const noDataArr = Array(popNum).fill(-1)
+                        stations.forEach(station => {
+                            station.recentLevel.unshift(...noDataArr)
+                            station.recentLevel.splice(station.maxExpireSeconds)
                             station.expireSeconds = Math.max(station.expireSeconds - popNum, station.defaultExpireSeconds)
                         })
                     }
-                    if(timeDiff > 10000){
-                        stations.forEach(station=>{
+                    if(timeDiff > 10000) {
+                        stations.forEach(station => {
                             station.isActive = false
                         })
                     }
-                    if(delay.value > maxDelay && timeDiff < 0){
-                        stations.forEach(station=>{
+                    if(delay.value > maxDelay && timeDiff < 0) {
+                        stations.forEach(station => {
                             station.level = -1
                             station.recentLevel = []
                             station.expireSeconds = station.defaultExpireSeconds
                             station.isActive = false
                         })
                     }
-                    if(delay.value > maxDelay && timeDiff < 0 || timeDiff > 0){
+                    if(delay.value > maxDelay && timeDiff < 0 || timeDiff > 0) {
                         niedUpdateTime.value = data.realTimeData.dataTime.slice(0, -6).replace('T', ' ')
                         update()
                     }
@@ -234,7 +269,7 @@ onMounted(()=>{
                     settingsStore.mainSettings.displaySeisNet.delay = 0
                     setTimeout(() => {
                         settingsStore.mainSettings.displaySeisNet.niedNet = true
-                    }, 1000);
+                    }, 1500);
                 }
             }
         } catch (err) {
@@ -248,49 +283,20 @@ onMounted(()=>{
         }
     })
 })
-let unwatchStationList, unwatchGrids, unwatchRender
+let unwatchGrids, unwatchRender
 watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
         map.on('zoomend', renderAll)
-        unwatchStationList = watch(stationList, newVal=>{
-            if(newVal.length > 0){
-                let latLngs = []
-                for(let i = 0; i < newVal.length; i++){
-                    latLngs[i] = L.latLng(newVal[i])
-                }
-                for(let i = 0; i < newVal.length; i++){
-                    const distances = []
-                    let candidate = {
-                        id: null,
-                        distance: 40
-                    }
-                    distMatrix[i] = []
-                    for(let j = 0; j < newVal.length; j++){
-                        const distance = latLngs[i].distanceTo(latLngs[j]) / 1000
-                        distMatrix[i][j] = distance
-                        if(distance <= 30) distances.push({ id: j, distance })
-                        else if(distance <= candidate.distance) candidate = { id: j, distance }
-                    }
-                    if(distances.length <= 1 && candidate.id !== null) {
-                        distances.push(candidate)
-                    }
-                    distances.sort((a, b) => a.distance - b.distance).splice(nearbyLength)
-                    adjStationIds[i] = distances.map(obj => obj.id)
-                    const maxDist = distances[distances.length - 1].distance
-                    expireSeconds[i] = Math.max(Math.round(maxDist / 3.5), 5)
-                }
-                newVal.forEach((latLng, index)=>{
-                    const station = reactive(new NiedStation(map, index, latLng, 'c', expireSeconds[index]))
-                    stations.push(station)
-                })
-                if(unwatchStationList) unwatchStationList()
-            }
-        }, { immediate: true })
         unwatchGrids = watch(grids, (newVal)=>{
+            let maxLevel = -1, maxColor = 'gray'
             for(let key in newVal) {
                 const item = newVal[key]
                 const color = item.level <= 7 ? 'green' : item.level <= 13 ? 'yellow' : 'red'
+                if(item.level > maxLevel) {
+                    maxLevel = item.level
+                    maxColor = color
+                }
                 if(!(key in gridRects)) {
                     const layer = L.rectangle([item.latLng.map(l => l - 0.495), item.latLng.map(l => l + 0.495)], {
                         color,
@@ -310,7 +316,7 @@ watch(()=>statusStore.map, newVal=>{
                         color
                     })
                 }
-                if(item.level > periodMaxLevel.value) periodMaxLevel.value = item.level
+                if(item.level > periodMaxLevel) periodMaxLevel = item.level
             }
             for(let key in gridRects) {
                 if(!(key in newVal)) {
@@ -318,28 +324,33 @@ watch(()=>statusStore.map, newVal=>{
                     delete gridRects[key]
                 }
             }
-            niedPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel.value)
+            niedPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel)
+            niedPeriodBarClass.value = maxColor
             statusStore.isActive.niedNet = Object.keys(newVal).length > 0
         }, { immediate: true })
         unwatchRender = watch(
-            ()=>`${settingsStore.mainSettings.displaySeisNet.style}|${settingsStore.mainSettings.displaySeisNet.displayNiedShindo}|${settingsStore.mainSettings.displaySeisNet.hideNoData}|${simpleShindo.value}`, 
+            ()=>`${settingsStore.mainSettings.displaySeisNet.style}
+            |${settingsStore.mainSettings.displaySeisNet.displayNiedShindo}
+            |${settingsStore.mainSettings.displaySeisNet.hideNoData}
+            |${simpleIcon.value}
+            |${settingsStore.mainSettings.displaySeisNet.displayShindo0}`, 
             renderAll
         )
     }
 }, { immediate: true })
 watch(()=>(statusStore.isActive.jmaEew || statusStore.isActive.niedNet), newVal=>{
     if(newVal){
-        if(periodMaxLevel.value == -1){
-            periodMaxLevel.value = 0
-            niedPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel.value)
+        if(periodMaxLevel == -1){
+            periodMaxLevel = 0
+            niedPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel)
         }
     }
     else{
-        periodMaxLevel.value = -1
-        niedPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel.value)
+        periodMaxLevel = -1
+        niedPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel)
     }
 }, { immediate: true })
-watch(() => Object.keys(grids.value).length, smartSetView)
+watch(() => Object.keys(grids.value).length, () => smartSetView())
 let shake1Notified = false, shake2Notified = false
 let focused = false
 watch(currentMaxShindo, (newVal, oldVal)=>{
@@ -397,7 +408,6 @@ onBeforeUnmount(()=>{
     clearInterval(requestInterval)
     clearInterval(delayInterval)
     if(map !== null) map.off('zoomend', renderAll)
-    if(unwatchStationList) unwatchStationList()
     if(unwatchGrids) unwatchGrids()
     if(unwatchRender) unwatchRender()
     stations.forEach((station, index)=>{
@@ -410,6 +420,7 @@ onBeforeUnmount(()=>{
             map.removeLayer(layer)
         }
     })
+    statusStore.isActive.niedNet = false
 })
 </script>
 

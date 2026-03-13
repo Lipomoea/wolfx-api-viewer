@@ -12,6 +12,7 @@ import { presimplify, simplify } from "topojson-simplify";
 import { cnSeisIntLoc, cnSeisIntLocBush } from "./CnSeisIntLoc";
 import { around } from "geokdbush";
 import { jmaSeisIntLoc } from "./JmaSeisIntLoc";
+import { krSeisIntLoc, krSeisIntLocBush } from "./KrSeisIntLoc";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -74,16 +75,19 @@ export const calcTimeDiff = (time1, timeZone1, time2, timeZone2) => {
   return stamp1 - stamp2;
 };
 export const sendMyNotification = (title, body, icon, silent) => {
+  if (!settingsStore) settingsStore = useSettingsStore();
   if ("Notification" in window) {
     if (Notification.permission == "granted") {
-      const notification = new Notification(title, {
-        body,
-        icon,
-        silent,
-      });
-      notification.onclick = () => {
-        window.focus();
-      };
+      if (!settingsStore.mainSettings.gameMode) {
+        const notification = new Notification(title, {
+          body,
+          icon,
+          silent,
+        });
+        notification.onclick = () => {
+          window.focus();
+        };
+      }
     }
   }
 };
@@ -196,6 +200,20 @@ export const shindoScaleKanji = [
   "6強",
   "7",
 ];
+export const intScale = [
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  "10",
+  "11",
+  "12",
+];
 export const getClassLevel = className => {
   return classNameArray.indexOf(className);
 };
@@ -207,15 +225,19 @@ export const playSound = type => {
     chimeUrls.general[type] ||
     chimeUrls[soundEffect][type];
   const audio = new Audio(url);
+  audio.volume = settingsStore.mainSettings.masterVolume / 100;
   audio.play().catch(async _ => {
     const response = await fetch(url);
     const blob = await response.blob();
     const objectUrl = URL.createObjectURL(blob);
     const audio = new Audio(objectUrl);
+    audio.volume = settingsStore.mainSettings.masterVolume / 100;
     audio.play().catch(_ => console.log("不支持的音频"));
   });
 };
 export const calcWaveDistance = (travelTime, isPWave, depth, time) => {
+  if (depth < 0) depth = 0;
+  if (time < 0) time = 0;
   const { depths, distances, p_times, s_times } = travelTime;
   const data = isPWave ? p_times : s_times;
   let i = 1;
@@ -226,15 +248,17 @@ export const calcWaveDistance = (travelTime, isPWave, depth, time) => {
   for (let j = 0; j < distances.length; j++) {
     times[j] = (k1 * data[i - 1][j] + k2 * data[i][j]) / (k1 + k2);
   }
-  if (time <= times[0]) return { reach: times[0] - time, radius: 0 };
+  if (time <= times[0]) return { reach: time / times[0], radius: 0 };
   let j = 1;
   while (times[j] < time && j < times.length - 1) j++;
   const k = (distances[j] - distances[j - 1]) / (times[j] - times[j - 1]);
   const b = distances[j] - k * times[j];
   const distance = k * time + b;
-  return { reach: 0, radius: distance };
+  return { reach: 1, radius: distance };
 };
 export const calcReachTime = (travelTime, isPWave, depth, distance) => {
+  if (depth < 0) depth = 0;
+  if (distance < 0) distance = 0;
   const { depths, distances, p_times, s_times } = travelTime;
   const data = isPWave ? p_times : s_times;
   let i = 1;
@@ -262,7 +286,7 @@ export const extractNumbers = str => {
 export const getTimeNumberString = (timeZone, offset) => {
   if (!timeStore) timeStore = useTimeStore();
   const now = new Date(
-    timeStore.getTimeStamp() + timeZone * 3600 * 1000 + offset
+    timeStore.getTimeStamp() + timeZone * 3600 * 1000 + offset,
   );
   const year = now.getUTCFullYear();
   const month = String(now.getUTCMonth() + 1).padStart(2, "0");
@@ -323,7 +347,8 @@ export const judgeSameEvent = (eqMessage1, eqMessage2) => {
   else return false;
 };
 export const focusWindow = async () => {
-  if (isTauri()) {
+  if (!settingsStore) settingsStore = useSettingsStore();
+  if (isTauri() && !settingsStore.mainSettings.gameMode) {
     await getCurrentWindow().show();
     await getCurrentWindow().unminimize();
     await getCurrentWindow().setFocus();
@@ -337,7 +362,23 @@ export const pointDistToCnArea = (pointLngLat, feature) => {
     const name = feature.properties.name;
     const kdbush = cnSeisIntLocBush[name];
     const nearestPoint = around(kdbush, pointLngLat[0], pointLngLat[1], 1).map(
-      index => cnSeisIntLoc[name][index]
+      index => cnSeisIntLoc[name][index],
+    )[0];
+    const minDist = distance(turfPoint, point(nearestPoint), {
+      units: "kilometers",
+    });
+    return minDist;
+  }
+};
+export const pointDistToKrArea = (pointLngLat, feature) => {
+  const turfPoint = point(pointLngLat);
+  if (booleanPointInPolygon(turfPoint, feature)) {
+    return 0;
+  } else {
+    const name = feature.properties.name;
+    const kdbush = krSeisIntLocBush[name];
+    const nearestPoint = around(kdbush, pointLngLat[0], pointLngLat[1], 1).map(
+      index => krSeisIntLoc[name][index],
     )[0];
     const minDist = distance(turfPoint, point(nearestPoint), {
       units: "kilometers",
@@ -365,7 +406,12 @@ export const calcCsis = (m, dep = 10, dis = 0) => {
   dep = isNaN(dep) || dep === null || dep < 10 ? 10 : dep;
   const lineDis = calcLineDis(dep, dis);
   const long = 10 ** ((m - 3.821) / 1.86);
-  const hypoDis = Math.max(lineDis - 10 - long, dis - long, 0);
+  const hypoDis = Math.max(
+    lineDis - 10 - long,
+    dis - long,
+    0.2 * (lineDis - 10),
+    0,
+  );
   const ceaCsis1 = calcCeaCsis(m, dis);
   const ceaCsis2 = calcCeaCsis(m, hypoDis);
   return (ceaCsis1 + ceaCsis2) / 2;
@@ -393,7 +439,7 @@ export const calcJmaShindo = (mj, dep, hypoLat, hypoLng, loc) => {
       Math.log10(x + 0.0028 * 10 ** (0.5 * mw)) -
       0.002 * x);
   const arv = Number(loc.arv);
-  const pgv400 = pgv600 * 1.31;
+  const pgv400 = pgv600 * 1.307;
   const pgv = pgv400 * arv;
   const instShindo = 2.68 + 1.72 * Math.log10(pgv);
   return instShindo;
@@ -404,7 +450,7 @@ export const calcJmaShindoLevel = (
   hypoLat,
   hypoLng,
   loc,
-  useSymbol = true
+  useSymbol = true,
 ) => {
   const instShindo = calcJmaShindo(mj, dep, hypoLat, hypoLng, loc);
   const instShindo1 = Math.floor(Math.round(instShindo * 100) / 10) / 10;
@@ -429,9 +475,10 @@ export const simplifyTopoJson = (topojson, factor) => {
     return simplified;
   }
 };
-export const formatCsis = (value, useRoman) => {
+export const formatCsis = value => {
+  if (!settingsStore) settingsStore = useSettingsStore();
   if (!value) return;
-  if (useRoman) {
+  if (settingsStore.mainSettings.useRomanCsis) {
     switch (value) {
       case "0":
         return "N";
@@ -476,18 +523,20 @@ export const calcMaxJmaShindoLevel = (
   dep,
   hypoLat,
   hypoLng,
-  useSymbol = true
+  useSymbol = true,
 ) => {
   const locList = Object.keys(jmaSeisIntLoc);
   const maxInt = locList.reduce(
     (maxInt, currLoc) =>
       Math.max(
         calcJmaShindo(mj, dep, hypoLat, hypoLng, jmaSeisIntLoc[currLoc]),
-        maxInt
+        maxInt,
       ),
-    -Infinity
+    -Infinity,
   );
   const maxInt1 = Math.floor(Math.round(maxInt * 100) / 10) / 10;
   if (maxInt1 < 0.5) return "0";
   else return getShindoFromInstShindo(maxInt1, useSymbol);
 };
+export const getMmiFromKmaLevel = level =>
+  level == -1 ? "?" : Math.min(Math.max(level - 2, 0), 11).toString();

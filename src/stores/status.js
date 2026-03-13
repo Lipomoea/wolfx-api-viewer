@@ -57,13 +57,13 @@ export const defaultTsunamiMessage = {
     className: ''
 }
 
-export const eewSources = ['jmaEew', 'cwaEew', 'ceaEew', 'iclEew', 'scEew', 'fjEew', 'gqEew']
-export const eqlistSources = ['jmaEqlist', 'cwaEqlist', 'cencEqlist', 'usgsEqlist', 'fssnEqlist']
+export const eewSources = ['jmaEew', 'cwaEew', 'ceaEew', 'iclEew', 'scEew', 'fjEew', 'kmaEew', 'gqEew']
+export const eqlistSources = ['jmaEqlist', 'cwaEqlist', 'cencEqlist', 'kmaEqlist', 'usgsEqlist', 'fssnEqlist']
 export const tsunamiSources = ['jmaTsunami', 'nmefcTsunami']
-export const seisNetSources = ['niedNet', 'tremNet']
+export const seisNetSources = ['niedNet', 'tremNet', 'kmaNet']
 
 const useWolfxSocket = ['jmaEew', 'cwaEew', 'ceaEew', 'scEew', 'fjEew', 'jmaEqlist', 'cencEqlist']
-const useFanSocket = ['jmaEew', 'cwaEew', 'ceaEew', 'iclEew', 'scEew', 'fjEew', 'cencEqlist', 'usgsEqlist', 'fssnEqlist', 'nmefcTsunami']
+const useFanSocket = ['jmaEew', 'cwaEew', 'ceaEew', 'iclEew', 'scEew', 'fjEew', 'kmaEew', 'cwaEqlist', 'cencEqlist', 'kmaEqlist', 'usgsEqlist', 'fssnEqlist', 'nmefcTsunami']
 const useP2pquakeSocket = ['jmaEqlist', 'jmaTsunami']
 
 const wolfx2Source = {
@@ -77,22 +77,28 @@ const wolfx2Source = {
 }
 const source2Fan = {
     'jmaEew': 'jma',
-    'cwaEew': 'cwa',
+    'cwaEew': 'cwa-eew',
     'iclEew': 'icl',
     'scEew': 'sichuan',
     'fjEew': 'fujian',
+    'kmaEew': 'kma-eew',
+    'cwaEqlist': 'cwa',
     'cencEqlist': 'cenc',
+    'kmaEqlist': 'kma',
     'usgsEqlist': 'usgs',
     'fssnEqlist': 'fssn',
     'nmefcTsunami': 'tsunami',
 }
 const fan2Source = {
     'jma': 'jmaEew',
-    'cwa': 'cwaEew',
+    'cwa-eew': 'cwaEew',
     'icl': 'iclEew',
     'sichuan': 'scEew',
     'fujian': 'fjEew',
+    'kma-eew': 'kmaEew',
+    'cwa': 'cwaEqlist',
     'cenc': 'cencEqlist',
+    'kma': 'kmaEqlist',
     'usgs': 'usgsEqlist',
     'fssn': 'fssnEqlist',
     'tsunami': 'nmefcTsunami',
@@ -124,6 +130,9 @@ export const sourceTypes = {
         0: 'Wolfx',
         1: 'FAN'
     },
+    kmaEew: {
+        1: 'FAN'
+    },
     gqEew: {
         0: 'S',
         1: 'A',
@@ -140,10 +149,14 @@ export const sourceTypes = {
         0: 'P2PQ'
     },
     cwaEqlist: {
-        0: 'TREM'
+        0: 'TREM',
+        1: 'FAN'
     },
     cencEqlist: {
         0: 'Wolfx',
+        1: 'FAN'
+    },
+    kmaEqlist: {
         1: 'FAN'
     },
     usgsEqlist: {
@@ -157,8 +170,6 @@ export const sourceTypes = {
         0: ''
     }
 }
-
-const maxHistoryNumber = 100
 
 let usgsCache = null
 
@@ -182,11 +193,13 @@ export const useStatusStore = defineStore('statusStore', {
             iclEew: Object.assign({}, defaultEqMessage),
             scEew: Object.assign({}, defaultEqMessage),
             fjEew: Object.assign({}, defaultEqMessage),
+            kmaEew: Object.assign({}, defaultEqMessage),
             gqEew: Object.assign({}, defaultEqMessage),
             mockEew: Object.assign({}, defaultEqMessage),
             jmaEqlist: Object.assign({}, defaultEqMessage),
             cwaEqlist: Object.assign({}, defaultEqMessage),
             cencEqlist: Object.assign({}, defaultEqMessage),
+            kmaEqlist: Object.assign({}, defaultEqMessage),
             usgsEqlist: Object.assign({}, defaultEqMessage),
             fssnEqlist: Object.assign({}, defaultEqMessage),
         },
@@ -201,17 +214,20 @@ export const useStatusStore = defineStore('statusStore', {
             iclEew: false,
             scEew: false,
             fjEew: false,
+            kmaEew: false,
             gqEew: false,
             mockEew: false,
             jmaEqlist: false,
             cwaEqlist: false,
             cencEqlist: false,
+            kmaEqlist: false,
             usgsEqlist: false,
             fssnEqlist: false,
             jmaTsunami: false,
             nmefcTsunami: false,
             niedNet: false,
             tremNet: false,
+            kmaNet: false,
         },
         history: {
             jmaEqlist: [],
@@ -231,6 +247,7 @@ export const useStatusStore = defineStore('statusStore', {
         setEqMessage(source, data, type = 0) {
             try{
                 const eqMessage = this.eqMessage[source]
+                const oldType = eqMessage.type
                 eqMessage.source = source
                 eqMessage.type = type
                 switch(source){
@@ -358,10 +375,11 @@ export const useStatusStore = defineStore('statusStore', {
                         break
                     }
                     case 'cwaEew':{
+                        eqMessage.isEew = true
+                        eqMessage.useShindo = true
                         switch(type) {
                             case 0:
                                 eqMessage.id = data.ID
-                                eqMessage.isEew = true
                                 eqMessage.reportNum = data.ReportNum
                                 eqMessage.reportNumText = '第' + data.ReportNum + '報'
                                 eqMessage.reportTime = data.ReportTime
@@ -377,20 +395,22 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.originTimeText = '時間: ' + data.OriginTime
                                 eqMessage.magnitude = data.Magunitude
                                 eqMessage.magnitudeText = '規模: ' + data.Magunitude.toFixed(1)
-                                eqMessage.useShindo = true
                                 eqMessage.maxIntensity = data.MaxIntensity || '不明'
                                 eqMessage.maxIntensityText = '預估最大震度: ' + eqMessage.maxIntensity
                                 eqMessage.isWarn = eqMessage.maxIntensity >= '5' && eqMessage.maxIntensity != '不明'
                                 break
                             case 1:
+                                if(data.id == eqMessage.id && oldType == 0) {
+                                    eqMessage.type = oldType
+                                    break
+                                }
                                 eqMessage.id = data.id
-                                eqMessage.isEew = true
                                 eqMessage.reportNum = data.updates
                                 eqMessage.reportNumText = '第' + data.updates + '報'
                                 eqMessage.reportTime = data.createTime || data.shockTime
                                 eqMessage.isCanceled = false
                                 eqMessage.titleText = '中央氣象署強震即時警報'
-                                eqMessage.hypocenter = data.placeName || getFEName(data.latitude, data.longitude)
+                                eqMessage.hypocenter = data.placeName?.replace(/ 外海 \([^)]*\)/g, "外海") || getFEName(data.latitude, data.longitude)
                                 eqMessage.hypocenterText = '震央: ' + eqMessage.hypocenter
                                 eqMessage.lat = data.latitude
                                 eqMessage.lng = data.longitude
@@ -400,8 +420,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.originTimeText = '時間: ' + eqMessage.originTime
                                 eqMessage.magnitude = data.magnitude
                                 eqMessage.magnitudeText = '規模: ' + eqMessage.magnitude.toFixed(1)
-                                eqMessage.useShindo = true
-                                eqMessage.maxIntensity = shindoScaleKanji[data.epiIntensity] || '不明'
+                                eqMessage.maxIntensity = data.maxIntensity?.replace('級', '') || '不明'
                                 eqMessage.maxIntensityText = '預估最大震度: ' + eqMessage.maxIntensity
                                 eqMessage.isWarn = eqMessage.maxIntensity >= '5' && eqMessage.maxIntensity != '不明'
                                 break
@@ -515,8 +534,8 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.hypocenterText = '震中: ' + data.HypoCenter
                                 eqMessage.lat = data.Latitude
                                 eqMessage.lng = data.Longitude
-                                eqMessage.depth = data.Depth ?? 10
-                                eqMessage.depthText = '深度: ' + (data.Depth == null ? '不明' : data.Depth + 'km')
+                                eqMessage.depth = data.Depth || 10
+                                eqMessage.depthText = '深度: ' + (data.Depth ? data.Depth + 'km' : '不明')
                                 eqMessage.originTime = data.OriginTime
                                 eqMessage.originTimeText = '发震时间: ' + data.OriginTime
                                 eqMessage.magnitude = data.Magunitude
@@ -594,6 +613,28 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 6.5
                                 break
                         }
+                        break
+                    }
+                    case 'kmaEew': {
+                        eqMessage.id = data.id
+                        eqMessage.isEew = true
+                        eqMessage.reportNum = data.updates || 1
+                        eqMessage.reportNumText = '제' + eqMessage.reportNum + '보'
+                        eqMessage.reportTime = data.createTime
+                        eqMessage.titleText = '기상청 지진 조기 경보'
+                        eqMessage.hypocenter = data.placeName
+                        eqMessage.hypocenterText = '위치: ' + data.placeName
+                        eqMessage.lat = data.latitude
+                        eqMessage.lng = data.longitude
+                        eqMessage.depth = data.depth || 10
+                        eqMessage.depthText = '깊이: ' + (data.depth ? data.depth + 'km' : '불명')
+                        eqMessage.originTime = data.shockTime
+                        eqMessage.originTimeText = '발생시각: ' + eqMessage.originTime
+                        eqMessage.magnitude = data.magnitude
+                        eqMessage.magnitudeText = '규모: ' + eqMessage.magnitude.toFixed(1)
+                        eqMessage.maxIntensity = data.epiIntensity.toFixed(0)
+                        eqMessage.maxIntensityText = '최대예상진도: ' + eqMessage.maxIntensity
+                        eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 6.5
                         break
                     }
                     case 'gqEew':{
@@ -747,24 +788,48 @@ export const useStatusStore = defineStore('statusStore', {
                         break
                     }
                     case 'cwaEqlist':{
-                        eqMessage.id = data.id
-                        eqMessage.reportTime = stampToTime(data.time + 300 * 1000, 8)
-                        eqMessage.titleText = '中央氣象署地震報告'
-                        const start = data.loc.indexOf('(位於')
-                        const end = data.loc.indexOf(')')
-                        eqMessage.hypocenter = start == -1 || end == -1 || start + 3 >= end ? data.loc : data.loc.slice(start + 3, end)
-                        eqMessage.hypocenterText = '震央: ' + eqMessage.hypocenter
-                        eqMessage.lat = data.lat
-                        eqMessage.lng = data.lon
-                        eqMessage.depth = data.depth
-                        eqMessage.depthText = '深度: ' + data.depth.toFixed(0) + 'km'
-                        eqMessage.originTime = stampToTime(data.time, 8)
-                        eqMessage.originTimeText = '時間: ' + eqMessage.originTime
-                        eqMessage.magnitude = data.mag
-                        eqMessage.magnitudeText = '規模: ' + data.mag.toFixed(1)
                         eqMessage.useShindo = true
-                        eqMessage.maxIntensity = shindoScaleKanji[data.int]
-                        eqMessage.maxIntensityText = '最大震度: ' + eqMessage.maxIntensity
+                        eqMessage.titleText = '中央氣象署地震報告'
+                        switch(type) {
+                            case 0: {
+                                eqMessage.id = data.id
+                                eqMessage.reportTime = stampToTime(data.time + 300 * 1000, 8)
+                                const start = data.loc.indexOf('(位於')
+                                const end = data.loc.indexOf(')')
+                                eqMessage.hypocenter = start == -1 || end == -1 || start + 3 >= end ? data.loc : data.loc.slice(start + 3, end)
+                                eqMessage.hypocenterText = '震央: ' + eqMessage.hypocenter
+                                eqMessage.lat = data.lat
+                                eqMessage.lng = data.lon
+                                eqMessage.depth = data.depth
+                                eqMessage.depthText = '深度: ' + data.depth.toFixed(0) + 'km'
+                                eqMessage.originTime = stampToTime(data.time, 8)
+                                eqMessage.originTimeText = '時間: ' + eqMessage.originTime
+                                eqMessage.magnitude = data.mag
+                                eqMessage.magnitudeText = '規模: ' + data.mag.toFixed(1)
+                                eqMessage.maxIntensity = shindoScaleKanji[data.int] || '不明'
+                                eqMessage.maxIntensityText = '最大震度: ' + eqMessage.maxIntensity
+                                break
+                            }
+                            case 1: {
+                                eqMessage.id = data.id
+                                eqMessage.reportTime = dayjs(data.shockTime, 'YYYY-MM-DD HH:mm:ss').add(5, 'minutes').format('YYYY-MM-DD HH:mm:ss')
+                                const start = data.placeName.indexOf('(位於')
+                                const end = data.placeName.indexOf(')')
+                                eqMessage.hypocenter = start == -1 || end == -1 || start + 3 >= end ? data.placeName : data.placeName.slice(start + 3, end)
+                                eqMessage.hypocenterText = '震央: ' + eqMessage.hypocenter
+                                eqMessage.lat = data.latitude
+                                eqMessage.lng = data.longitude
+                                eqMessage.depth = data.depth
+                                eqMessage.depthText = '深度: ' + data.depth.toFixed(0) + 'km'
+                                eqMessage.originTime = data.shockTime
+                                eqMessage.originTimeText = '時間: ' + eqMessage.originTime
+                                eqMessage.magnitude = data.magnitude
+                                eqMessage.magnitudeText = '規模: ' + data.magnitude.toFixed(1)
+                                eqMessage.maxIntensity = data.maxIntensity?.replace('級', '') || '不明'
+                                eqMessage.maxIntensityText = '最大震度: ' + eqMessage.maxIntensity
+                                break
+                            }
+                        }
                         break
                     }
                     case 'cencEqlist':{
@@ -790,7 +855,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.maxIntensityText = '预估最大烈度: ' + eqMessage.maxIntensity
                                 break
                             case 1:
-                                if(calcTimeDiff(data.createTime, 8, eqMessage.reportTime, 8) < 3000)
+                                if(calcTimeDiff(data.createTime, 8, eqMessage.reportTime, 8) < 30000)
                                     break
                                 eqMessage.id = data.eventId
                                 eqMessage.reportTime = data.createTime
@@ -813,6 +878,26 @@ export const useStatusStore = defineStore('statusStore', {
                         }
                         break
                     }
+                    case 'kmaEqlist':{
+                        eqMessage.timeZone = 9
+                        eqMessage.id = data.id
+                        eqMessage.reportTime = data.createTime
+                        eqMessage.title = '기상청 지진 정보'
+                        eqMessage.titleText = eqMessage.title
+                        eqMessage.hypocenter = data.placeName
+                        eqMessage.hypocenterText = '위치: ' + data.placeName
+                        eqMessage.lat = data.latitude
+                        eqMessage.lng = data.longitude
+                        eqMessage.depth = data.depth || 10
+                        eqMessage.depthText = '깊이: ' + (data.depth ? data.depth + 'km' : '불명')
+                        eqMessage.originTime = data.shockTime
+                        eqMessage.originTimeText = '발생시각: ' + eqMessage.originTime
+                        eqMessage.magnitude = data.magnitude
+                        eqMessage.magnitudeText = '규모: ' + data.magnitude.toFixed(1)
+                        eqMessage.maxIntensity = data.epiIntensity?.toFixed(0) || '불명'
+                        eqMessage.maxIntensityText = '최대진도: ' + eqMessage.maxIntensity
+                        break
+                    }
                     case 'usgsEqlist': {
                         const tempMsg = {}
                         switch(type) {
@@ -820,7 +905,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 const { geometry, properties } = data
                                 const [lng, lat, depth] = geometry.coordinates
                                 tempMsg.id = properties.code
-                                tempMsg.title = 'USGS' + (properties.status == 'reviewed' ? '正式' : '自动') + '测定'
+                                tempMsg.title = 'USGS' + (properties.status.toLowerCase() == 'reviewed' ? '正式' : '自动') + '测定'
                                 tempMsg.titleText = tempMsg.title
                                 tempMsg.hypocenter = getFEName(lat, lng) || properties.place
                                 tempMsg.hypocenterText = '震中: ' + tempMsg.hypocenter
@@ -842,7 +927,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 break
                             case 1:
                                 tempMsg.id = data.id
-                                tempMsg.title = 'USGS' + (data.infoTypeName == 'reviewed' ? '正式' : '自动') + '测定'
+                                tempMsg.title = 'USGS' + (data.infoTypeName.toLowerCase() == 'reviewed' ? '正式' : '自动') + '测定'
                                 tempMsg.titleText = tempMsg.title
                                 tempMsg.hypocenter = getFEName(data.latitude, data.longitude) || data.placeName
                                 tempMsg.hypocenterText = '震中: ' + tempMsg.hypocenter
@@ -916,7 +1001,7 @@ export const useStatusStore = defineStore('statusStore', {
                             tsunamiMessage.title = '津波警報・注意報なし'
                             tsunamiMessage.titleText = '津波警報・注意報なし'
                             tsunamiMessage.status = 0
-                            tsunamiMessage.className = 'white'
+                            tsunamiMessage.className = 'gray'
                         }
                         else {
                             switch(data.areas[0].grade) {
@@ -970,12 +1055,6 @@ export const useStatusStore = defineStore('statusStore', {
                         tsunamiMessage.id = data.timeInfo.updateDate.replace(/[^0-9]/g, '')
                         tsunamiMessage.reportTime = data.timeInfo.updateDate
                         switch(data.warningInfo.level) {
-                            case '解除':
-                                tsunamiMessage.title = '海啸预警已解除'
-                                tsunamiMessage.titleText = '海啸预警已解除'
-                                tsunamiMessage.status = 0
-                                tsunamiMessage.className = 'white'
-                                break        
                             case '黄色':
                                 tsunamiMessage.title = '海啸注意报'
                                 tsunamiMessage.titleText = '现正发布海啸注意报'
@@ -993,6 +1072,12 @@ export const useStatusStore = defineStore('statusStore', {
                                 tsunamiMessage.titleText = '现正发布大海啸警报'
                                 tsunamiMessage.status = 3
                                 tsunamiMessage.className = 'purple'
+                                break
+                            default:
+                                tsunamiMessage.title = '海啸预警已解除'
+                                tsunamiMessage.titleText = '海啸预警已解除'
+                                tsunamiMessage.status = 0
+                                tsunamiMessage.className = 'gray'
                                 break
                         }    
                         tsunamiMessage.warnArea = JSON.stringify(data.forecasts.map(item => {
@@ -1044,7 +1129,7 @@ export const useStatusStore = defineStore('statusStore', {
                     keys = Object.keys(data)
                     break
             }
-            for (let i = 0; i < Math.min(keys.length, maxHistoryNumber); i++) {
+            for (let i = 0; i < keys.length; i++) {
                 switch (source) {
                     case 'jmaEqlist': {
                         const id = data[keys[i]].EventID
@@ -1121,7 +1206,7 @@ export const useStatusStore = defineStore('statusStore', {
                             originTime: stampToTime(properties.time, 8),
                             lat,
                             lng,
-                            hypocenter: (properties.status == 'reviewed' ? '' : '(A)') + (getFEName(lat, lng) || properties.place),
+                            hypocenter: (properties.status.toLowerCase() == 'reviewed' ? '' : '(A)') + (getFEName(lat, lng) || properties.place),
                             depth,
                             magnitude,
                             maxIntensity,
@@ -1226,7 +1311,7 @@ export const useStatusStore = defineStore('statusStore', {
             else if(protocol == 'ws'){
                 if(this.wolfxSocket) this.wolfxSocket.close()
                 if(this.activeWolfxSources.length > 0) {
-                    this.wolfxSocket = new WebSocketObj([eqUrls.wolfx_ws], this.activeWolfxSources.map(source => {
+                    this.wolfxSocket = new WebSocketObj(eqUrls.wolfx_ws, this.activeWolfxSources.map(source => {
                         if(source == 'ceaEew') return 'query_cenceew'
                         else return `query_${source.toLowerCase()}`
                     }))
@@ -1270,7 +1355,10 @@ export const useStatusStore = defineStore('statusStore', {
                         autoMsg.push('fssnlist')
                         initMsg.push('fssnlist')
                     }
-                    this.fanSocket = new WebSocketObj([eqUrls.fan_ws, eqUrls.fan2_ws], autoMsg, initMsg)
+                    const fanUrls = [...eqUrls.fan_ws]
+                    const defaultId = settingsStore.advancedSettings.defaultFanServer
+                    fanUrls.unshift(...fanUrls.splice(defaultId, 1))
+                    this.fanSocket = new WebSocketObj(fanUrls, autoMsg, initMsg)
                     this.fanSocket.setMessageHandler((e)=>{
                         const data = JSON.parse(e.data)
                         if(data.type == 'initial_all' || data.type == 'query_response') {
@@ -1300,7 +1388,7 @@ export const useStatusStore = defineStore('statusStore', {
                 }
                 if(this.p2pquakeSocket) this.p2pquakeSocket.close()
                 if(this.activeP2pquakeSources.length > 0) {
-                    this.p2pquakeSocket = new WebSocketObj([eqUrls.p2pquake_ws], ['ping'])
+                    this.p2pquakeSocket = new WebSocketObj(eqUrls.p2pquake_ws, ['ping'])
                     this.p2pquakeSocket.setMessageHandler((e)=>{
                         const data = JSON.parse(e.data)
                         switch(data.code) {
@@ -1315,7 +1403,7 @@ export const useStatusStore = defineStore('statusStore', {
                 }
                 if(this.gqSocket) this.gqSocket.close()
                 if(this.enabledSource.includes('gqEew') && 'gqEew_ws' in eqUrls) {
-                    this.gqSocket = new WebSocketObj([eqUrls.gqEew_ws], ['ping'])
+                    this.gqSocket = new WebSocketObj(eqUrls.gqEew_ws, ['ping'])
                     this.gqSocket.setMessageHandler((e)=>{
                         const data = JSON.parse(e.data)
                         if(data.RevisionId) this.setEqMessage('gqEew', data)

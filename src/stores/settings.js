@@ -7,31 +7,41 @@ export const useSettingsStore = defineStore('settingsStore', {
     state: ()=>({
         mainSettings: {
             source: {
-                jmaEew: true,
+                jmaEew: false,
                 cwaEew: true,
                 ceaEew: true,
                 iclEew: false,
                 scEew: true,
                 fjEew: true,
+                kmaEew: false,
                 gqEew: false,
-                jmaEqlist: true,
-                cwaEqlist: false,
+                jmaEqlist: false,
+                cwaEqlist: true,
                 cencEqlist: true,
+                kmaEqlist: false,
                 usgsEqlist: false,
                 fssnEqlist: false,
-                jmaTsunami: true,
-                nmefcTsunami: false,
+                jmaTsunami: false,
+                nmefcTsunami: true,
             },
             displaySeisNet: {
                 style: 'nied',
                 hideNoData: false,
+                displayShindo0: false,
+                alwaysDisplayGrid: false,
+                displayMaxInt: false,
+                displayPeriodMaxInt: false,
                 delay: 0,
-                niedNet: true,
+                niedNet: false,
                 niedSensitivity: 2,
                 displayNiedShindo: false,
                 tremNet: false,
                 tremApi: 'lb-1',
-                displayTremShindo: false
+                displayTremShindo: false,
+                kmaNet: false,
+                kmaSensitivity: 2,
+                kmaIntHold: 1,
+                displayKmaInt: false,
             },
             actionMag: 0.0,
             actionLocalCsis: 0,
@@ -70,6 +80,7 @@ export const useSettingsStore = defineStore('settingsStore', {
                 sound: false,
                 focus:false,
             },
+            masterVolume: 100,
             muteNotification: true,
             soundEffect: 'srev',
             userLatLng: [0, 0],
@@ -104,6 +115,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             minimizeOnLaunch: false,
             autoCheckNewVersion: false,
             checkPrerelease: false,
+            gameMode: false,
             autoRefresh: false
         },
         advancedSettings: {
@@ -114,6 +126,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             enableMultiApi: false,
             enableMockEew: false,
             provinceCeaEew: false,
+            defaultFanServer: 0,
             tokens: {
                 fan_dev: ''
             },
@@ -122,7 +135,8 @@ export const useSettingsStore = defineStore('settingsStore', {
             forceCalcInt: false,
             useClassicMapLoader: false,
             preventFlickerMode: false,
-            mockEew: false
+            mockEew: false,
+            mockOnReplay: false
         }
     }),
     getters: {

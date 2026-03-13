@@ -28,7 +28,7 @@
                                         'scale-75': event.eqMessage.maxIntensity == '8',
                                         'scale-9': event.eqMessage.maxIntensity == '7' || event.eqMessage.maxIntensity == '12'
                                     }">
-                                        {{ formatCsis(event.eqMessage.maxIntensity, settingsStore.mainSettings.useRomanCsis) }}
+                                        {{ formatCsis(event.eqMessage.maxIntensity) }}
                                     </div>
                                 </div>
                                 <div class="right">
@@ -71,7 +71,7 @@
                                         'scale-75': event.userCsis == '8',
                                         'scale-9': event.userCsis == '7' || event.userCsis == '12'
                                     }">
-                                        {{ formatCsis(event.userCsis, settingsStore.mainSettings.useRomanCsis) }}
+                                        {{ formatCsis(event.userCsis) }}
                                     </div>
                                 </div>
                             </div>
@@ -101,7 +101,7 @@
                                         'scale-75': event.eqMessage.maxIntensity == '8',
                                         'scale-9': event.eqMessage.maxIntensity == '7' || event.eqMessage.maxIntensity == '12'
                                     }">
-                                        {{ formatCsis(event.eqMessage.maxIntensity, settingsStore.mainSettings.useRomanCsis) }}
+                                        {{ formatCsis(event.eqMessage.maxIntensity) }}
                                     </div>
                                 </div>
                                 <div class="right">
@@ -135,7 +135,7 @@
                             <div class="bar" :class="statusStore.tsunamiMessage.nmefcTsunami.className">
                                 <div><WarnTriangleFilled style="width: 1em; height: 1em; margin-right: 0.25em;" />{{ statusStore.tsunamiMessage.nmefcTsunami.titleText }}</div>
                             </div>
-                            <div class="tsunami-info">
+                            <div class="tsunami-info" v-if="cnTsunamiBaseMap">
                                 <div class="background" :class="statusStore.tsunamiMessage.nmefcTsunami.className"></div>
                                 <div v-show="statusStore.tsunamiMessage.nmefcTsunami.status >= 3" class="legend tsunami-purple"></div>
                                 <div v-show="statusStore.tsunamiMessage.nmefcTsunami.status >= 3" class="text">大海啸警报</div>
@@ -143,6 +143,11 @@
                                 <div v-show="statusStore.tsunamiMessage.nmefcTsunami.status >= 2" class="text">海啸警报</div>
                                 <div v-show="statusStore.tsunamiMessage.nmefcTsunami.status >= 1" class="legend tsunami-yellow"></div>
                                 <div v-show="statusStore.tsunamiMessage.nmefcTsunami.status >= 1" class="text">海啸注意报</div>
+                            </div>
+                            <div class="tsunami-info" v-else>
+                                <div class="background" :class="statusStore.tsunamiMessage.nmefcTsunami.className"></div>
+                                <div class="text" style="justify-self: end; text-align: right;">无地图显示</div>
+                                <div class="text">请查看侧栏信息</div>
                             </div>
                         </div>
                     </div>
@@ -163,7 +168,7 @@
                         </div>
                     </div>
                     <div class="event">
-                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.niedNet && settingsStore.mainSettings.displaySeisNet.displayNiedShindo">
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.displayMaxInt && settingsStore.mainSettings.displaySeisNet.niedNet && settingsStore.mainSettings.displaySeisNet.displayNiedShindo">
                             <div class="shindo-bar gray">NIED实时</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(niedMaxShindo, true)">
@@ -174,8 +179,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.niedNet && settingsStore.mainSettings.displaySeisNet.displayNiedShindo && niedPeriodMaxShindo != '?'">
-                            <div class="shindo-bar gray">NIED区间</div>
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.displayPeriodMaxInt && settingsStore.mainSettings.displaySeisNet.niedNet && settingsStore.mainSettings.displaySeisNet.displayNiedShindo && niedPeriodMaxShindo != '?'">
+                            <div class="shindo-bar" :class="niedPeriodBarClass">NIED区间</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(niedPeriodMaxShindo, true)">
                                     <div class="intensity-title">最大震度</div>
@@ -185,7 +190,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.tremNet && settingsStore.mainSettings.displaySeisNet.displayTremShindo">
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.displayMaxInt && settingsStore.mainSettings.displaySeisNet.tremNet && settingsStore.mainSettings.displaySeisNet.displayTremShindo">
                             <div class="shindo-bar gray">TREM实时</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(tremMaxShindo, true)">
@@ -196,13 +201,43 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.tremNet && settingsStore.mainSettings.displaySeisNet.displayTremShindo && tremPeriodMaxShindo != '?'">
-                            <div class="shindo-bar gray">TREM区间</div>
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.displayPeriodMaxInt && settingsStore.mainSettings.displaySeisNet.tremNet && settingsStore.mainSettings.displaySeisNet.displayTremShindo && tremPeriodMaxShindo != '?'">
+                            <div class="shindo-bar" :class="tremPeriodBarClass">TREM区间</div>
                             <div class="info">
                                 <div class="intensity" :class="setClassName(tremPeriodMaxShindo, true)">
                                     <div class="intensity-title">最大震度</div>
                                     <div :class="tremPeriodMaxShindo != '?'?'shindo':'csis'">
                                         {{ tremPeriodMaxShindo }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.displayMaxInt && settingsStore.mainSettings.displaySeisNet.kmaNet && settingsStore.mainSettings.displaySeisNet.displayKmaInt">
+                            <div class="shindo-bar gray">KMA实时</div>
+                            <div class="info">
+                                <div class="intensity" :class="setClassName(kmaMaxInt, false)">
+                                    <div class="intensity-title">最大烈度</div>
+                                    <div class="csis" :class="{
+                                        'roman': settingsStore.mainSettings.useRomanCsis,
+                                        'scale-75': kmaMaxInt == '8',
+                                        'scale-9': kmaMaxInt == '7' || kmaMaxInt == '12'
+                                    }">
+                                        {{ formatCsis(kmaMaxInt) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.displayPeriodMaxInt && settingsStore.mainSettings.displaySeisNet.kmaNet && settingsStore.mainSettings.displaySeisNet.displayKmaInt && kmaPeriodMaxInt != '?'">
+                            <div class="shindo-bar" :class="kmaPeriodBarClass">KMA区间</div>
+                            <div class="info">
+                                <div class="intensity" :class="setClassName(kmaPeriodMaxInt, false)">
+                                    <div class="intensity-title">最大烈度</div>
+                                    <div class="csis" :class="{
+                                        'roman': settingsStore.mainSettings.useRomanCsis,
+                                        'scale-75': kmaPeriodMaxInt == '8',
+                                        'scale-9': kmaPeriodMaxInt == '7' || kmaPeriodMaxInt == '12'
+                                    }">
+                                        {{ formatCsis(kmaPeriodMaxInt) }}
                                     </div>
                                 </div>
                             </div>
@@ -236,6 +271,9 @@
                     <div class="update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isTremDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.tremNet" @dblclick="resetSeisNetDelay">
                         TREM-Net : {{ tremUpdateTime }} (UTC+8)
                     </div>
+                    <div class="update-time" :class="isKmaDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.kmaNet" @dblclick="resetSeisNetDelay">
+                        KMA-PEWS: {{ kmaUpdateTime }} (UTC+9)
+                    </div>
                 </div>
                 <div class="int-list" v-if="settingsStore.mainSettings.displayAreaIntensities">
                     <div class="csis-list" v-show="csisList.length">
@@ -245,7 +283,7 @@
                                 <div class="csis" :class="{
                                     'roman': settingsStore.mainSettings.useRomanCsis,
                                     'scale-9': item.intensity == '8'
-                                }">{{ formatCsis(item.intensity, settingsStore.mainSettings.useRomanCsis) }}</div>
+                                }">{{ formatCsis(item.intensity) }}</div>
                             </div>
                         </div>
                     </div>
@@ -318,12 +356,12 @@ import { useSettingsStore } from '@/stores/settings';
 import { useTimeStore } from '@/stores/time';
 import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
-import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToCnArea, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone, simplifyTopoJson, formatCsis, csisRomanArray, formatShindo } from '@/utils/Utils';
+import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToCnArea, pointDistToKrArea, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone, simplifyTopoJson, formatCsis, csisRomanArray, formatShindo } from '@/utils/Utils';
 import { topojsonUrls } from '@/utils/Urls';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { isTauri } from '@tauri-apps/api/core';
 import { storeToRefs } from 'pinia';
-import { simpleShindo } from '@/classes/StationClasses';
+import { simpleIcon } from '@/classes/StationClasses';
 import { feature } from 'topojson-client';
 import { cnCityLabels, cnProvinceLabels, jpPrefLabels } from '@/utils/Labels';
 import terminator from '@joergdietrich/leaflet.terminator';
@@ -336,8 +374,8 @@ classNameArray.forEach(color => tsunamiColors[color] = style.getPropertyValue(`-
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 const timeStore = useTimeStore()
-let map, jpEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap, cnTsunamiBaseMap, labelLayer1, labelLayer2, terminatorLayer, terminatorFillLayer, cnFaultBaseMap
-let eewMarkerPane, eqlistMarkerPane, historyMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, eewBasePane, tsunamiBasePane, labelPane1, labelPane2
+let map, jpEewBaseMap, krEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap, cnTsunamiBaseMap, labelLayer1, labelLayer2, terminatorLayer, terminatorFillLayer, cnFaultBaseMap
+let eewMarkerPane, eqlistMarkerPane, eewReachPane, historyMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, kmaGridPane, eewBasePane, tsunamiBasePane, labelPane1, labelPane2
 let userMarker
 const defaultLatLng = [38.1, 104.6]
 const { isValidUserLatLng, isValidViewLatLng, isDisplayUser, nearestJmaLoc } = storeToRefs(settingsStore)
@@ -411,7 +449,7 @@ const handleManual = ()=>{
 }
 const handleHome = ()=>{
     isAutoZoom.value = true
-    setView()
+    setView(true)
 }
 const handleMenu = (index)=>{
     const shouldHandleHome = menuId.value == index
@@ -435,17 +473,30 @@ const gqUrlIndex = ref(0)
 const niedUpdateTime = ref('1970-01-01 09:00:00')
 const niedMaxShindo = ref('?')
 const niedPeriodMaxShindo = ref('?')
+const niedPeriodBarClass = ref('gray')
+const isNiedDelayed = ref(true)
 provide('niedUpdateTime', niedUpdateTime)
 provide('niedMaxShindo', niedMaxShindo)
 provide('niedPeriodMaxShindo', niedPeriodMaxShindo)
-const isNiedDelayed = ref(true)
+provide('niedPeriodBarClass', niedPeriodBarClass)
 const tremUpdateTime = ref('1970-01-01 08:00:00')
 const tremMaxShindo = ref('?')
 const tremPeriodMaxShindo = ref('?')
+const tremPeriodBarClass = ref('gray')
+const isTremDelayed = ref(true)
 provide('tremUpdateTime', tremUpdateTime)
 provide('tremMaxShindo', tremMaxShindo)
 provide('tremPeriodMaxShindo', tremPeriodMaxShindo)
-const isTremDelayed = ref(true)
+provide('tremPeriodBarClass', tremPeriodBarClass)
+const kmaUpdateTime = ref('1970-01-01 09:00:00')
+const kmaMaxInt = ref('?')
+const kmaPeriodMaxInt = ref('?')
+const kmaPeriodBarClass = ref('gray')
+const isKmaDelayed = ref(true)
+provide('kmaUpdateTime', kmaUpdateTime)
+provide('kmaMaxInt', kmaMaxInt)
+provide('kmaPeriodMaxInt', kmaPeriodMaxInt)
+provide('kmaPeriodBarClass', kmaPeriodBarClass)
 const isAutoZoom = ref(true)
 const activeEewList = reactive([])
 const eqlistList = reactive([])
@@ -552,6 +603,10 @@ onMounted(()=>{
         map.createPane(`tremStationPane${i}`)
         map.getPane(`tremStationPane${i}`).style.zIndex = i + 50
     }
+    for(let i = -1; i <= 13; i++){
+        map.createPane(`kmaStationPane${i}`)
+        map.getPane(`kmaStationPane${i}`).style.zIndex = i + 50
+    }
     map.createPane('userPane')
     map.getPane('userPane').style.zIndex = 100
     map.createPane('terminatorPane')
@@ -562,6 +617,9 @@ onMounted(()=>{
     map.createPane('tremGridPane')
     tremGridPane = map.getPane('tremGridPane')
     tremGridPane.style.zIndex = 140
+    map.createPane('kmaGridPane')
+    kmaGridPane = map.getPane('kmaGridPane')
+    kmaGridPane.style.zIndex = 140
     map.createPane('wavePane')
     wavePane = map.getPane('wavePane')
     wavePane.style.zIndex = 150
@@ -573,10 +631,13 @@ onMounted(()=>{
     labelPane2.style.zIndex = 190
     map.createPane('eqlistMarkerPane')
     eqlistMarkerPane = map.getPane('eqlistMarkerPane')
-    eqlistMarkerPane.style.zIndex = 198
+    eqlistMarkerPane.style.zIndex = 197
     map.createPane('historyMarkerPane')
     historyMarkerPane = map.getPane('historyMarkerPane')
-    historyMarkerPane.style.zIndex = 199
+    historyMarkerPane.style.zIndex = 198
+    map.createPane('eewReachPane')
+    eewReachPane = map.getPane('eewReachPane')
+    eewReachPane.style.zIndex = 199
     map.createPane('eewMarkerPane')
     eewMarkerPane = map.getPane('eewMarkerPane')
     eewMarkerPane.style.zIndex = 200
@@ -672,7 +733,7 @@ onMounted(()=>{
                 menuId.value = newVal
                 setTimeout(() => {
                     map.invalidateSize()
-                    setView()
+                    setView(true)
                 }, 0);
             }
         }, { immediate: true })
@@ -699,20 +760,16 @@ onMounted(()=>{
             tsunamiBasePane.style.opacity = 1 * (tsunamiFlickerCounter ? 1 : 0)
         }
         if(newVal == 'eqlists'){
-            eewMarkerPane.style.opacity = 0.3 * (blinkStatus.value ? 1 : 0)
+            eewReachPane.style.opacity = 0.3
             wavePane.style.opacity = 0.3
             waveFillPane.style.opacity = 0.3
-            niedGridPane.style.opacity = 0.3 * (blinkStatus.value && !statusStore.isActive.jmaEew ? 1 : 0)
-            tremGridPane.style.opacity = 0.3 * (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0)
         }
         else{
-            eewMarkerPane.style.opacity = 1 * (blinkStatus.value ? 1 : 0)
+            eewReachPane.style.opacity = 1
             wavePane.style.opacity = 1
             waveFillPane.style.opacity = 1
-            niedGridPane.style.opacity = 1 * (blinkStatus.value && !statusStore.isActive.jmaEew ? 1 : 0)
-            tremGridPane.style.opacity = 1 * (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0)
         }
-        simpleShindo.value = newVal == 'eqlists'
+        simpleIcon.value = newVal == 'eqlists'
     }, { immediate: true })
     intervalEvents()
     mainInterval = setInterval(() => {
@@ -751,8 +808,7 @@ function handleKeydown(event) {
                     handleManual()
                 }
                 else {
-                    isAutoZoom.value = true
-                    setView()
+                    handleHome()
                 }
                 break
             case 'x':
@@ -821,14 +877,22 @@ const loadMaps = async (retries = 0) => {
         promises = Object.keys(topojsonUrls).map(key=>fetch(topojsonUrls[key]).then(res=>res?.json()))
     }
     const resps = await Promise.all(promises)
-    const [global, cn, cn_eew, cn_fault, jp, jp_eew, jp_tsunami, cn_tsunami] = resps
-    if(global && cn && cn_eew && cn_fault && jp && jp_eew && jp_tsunami){
+    const [global, cn, cn_eew, cn_fault, jp, jp_eew, jp_tsunami, kr_eew, cn_tsunami] = resps
+    if(global && cn && cn_eew && cn_fault && jp && jp_eew && kr_eew && jp_tsunami){
         clearTimeout(msgTimer)
         loadBaseMap(global, 'basePane')
         loadBaseMap(jp, 'basePane')
         loadBaseMap(cn, 'basePane')
         jpEewBaseMap = settingsStore.mainSettings.disableEewBaseMap 
         ? null : loadBaseMap(jp_eew, 'eewBasePane', false, {
+            color: '#bbbbbb00',
+            opacity: 1,
+            fillColor: '#39393900',
+            fillOpacity: 1,
+            weight: 1,
+        })
+        krEewBaseMap = settingsStore.mainSettings.disableEewBaseMap 
+        ? null : loadBaseMap(kr_eew, 'eewBasePane', false, {
             color: '#bbbbbb00',
             opacity: 1,
             fillColor: '#39393900',
@@ -855,7 +919,7 @@ const loadMaps = async (retries = 0) => {
         }, { immediate: true })
         if(settingsStore.mainSettings.displayPlaceName) {
             const createTextIcon = (text, fontSize = 15) => {
-                const dpr = settingsStore.mainSettings.uiScale * (window.devicePixelRatio || 1);
+                const dpr = 2 * (window.devicePixelRatio || 1);
                 const tempCanvas = document.createElement('canvas');
                 const tempCtx = tempCanvas.getContext('2d');
                 tempCtx.font = `${fontSize}px Arial`;
@@ -914,29 +978,18 @@ const loadMaps = async (retries = 0) => {
             })
         }
         watch(jmaWarnArea, (newVal)=>{
-            jpEewBaseMap?.eachLayer(layer=>{
-                const layerName = layer.feature.properties.name
-                if(layerName in newVal){
-                    if(layer.options.fillColor != classNameColors[newVal[layerName].className]){
-                        layer.setStyle({
-                            color: '#bbbbbb',
-                            fillColor: classNameColors[newVal[layerName].className]
-                        })
-                    }
-                }
-                else{
-                    if(layer.options.fillColor != '#39393900'){
-                        layer.setStyle({
-                            color: '#bbbbbb00',
-                            fillColor: '#39393900'
-                        })
-                    }
-                }
+            jpEewBaseMap?.setStyle(feature => {
+                const className = newVal[feature.properties.name]?.className
+                return ({
+                    color: className ? '#bbbbbb' : '#bbbbbb00',
+                    fillColor: classNameColors[className] || '#39393900'
+                })
             })
         }, { deep: true, immediate: true })
         if(settingsStore.advancedSettings.forceCalcInt){
-            watch(cnEewInfoList, newVal=>{
+            watch(eewInfoList, newVal=>{
                 const newCsisList = {}
+                const cnAreaClass = {}, krAreaClass = {}
                 cnEewBaseMap?.eachLayer(layer=>{
                     let maxInt = 0
                     newVal.forEach(info=>{
@@ -946,24 +999,40 @@ const loadMaps = async (retries = 0) => {
                     })
                     if(maxInt > 0){
                         const className = setClassName(maxInt, false)
-                        if(layer.options.fillColor != classNameColors[className]){
-                            layer.setStyle({
-                                color: '#bbbbbb',
-                                fillColor: classNameColors[className]
-                            })
-                        }
                         const layerName = layer.feature.properties.name
+                        cnAreaClass[layerName] = className
                         if(!(maxInt in newCsisList)) newCsisList[maxInt] = []
                         newCsisList[maxInt].push(layerName)
                     }
-                    else{
-                        if(layer.options.fillColor != '#39393900'){
-                            layer.setStyle({
-                                color: '#bbbbbb00',
-                                fillColor: '#39393900'
-                            })
-                        }
+                })
+                krEewBaseMap?.eachLayer(layer=>{
+                    let maxInt = 0
+                    newVal.forEach(info=>{
+                        const dist = pointDistToKrArea([info.lng, info.lat], layer.feature)
+                        const int = Number(calcCsisLevel(info.magnitude, info.depth, dist))
+                        if(int > maxInt) maxInt = int
+                    })
+                    if(maxInt > 0){
+                        const className = setClassName(maxInt, false)
+                        const layerName = layer.feature.properties.name
+                        krAreaClass[layerName] = className
+                        if(!(maxInt in newCsisList)) newCsisList[maxInt] = []
+                        newCsisList[maxInt].push(layerName)
                     }
+                })
+                cnEewBaseMap?.setStyle(feature => {
+                    const className = cnAreaClass[feature.properties.name]
+                    return ({
+                        color: className ? '#bbbbbb' : '#bbbbbb00',
+                        fillColor: classNameColors[className] || '#39393900'
+                    })
+                })
+                krEewBaseMap?.setStyle(feature => {
+                    const className = krAreaClass[feature.properties.name]
+                    return ({
+                        color: className ? '#bbbbbb' : '#bbbbbb00',
+                        fillColor: classNameColors[className] || '#39393900'
+                    })
                 })
                 const newNewCsisList = []
                 for(let int = 12; int > 0; int--) {
@@ -990,27 +1059,13 @@ const loadMaps = async (retries = 0) => {
                 })
             })
             watch(jmaTsunamiWarnArea, newVal => {
-                jpTsunamiBaseMap.eachLayer(layer => {
-                    const layerName = layer.feature.properties.name
-                    if(layerName in newVal){
-                        if(layer.options.color != tsunamiColors[newVal[layerName].className]){
-                            layer.setStyle({
-                                color: tsunamiColors[newVal[layerName].className]
-                            })
-                        }
-                    }
-                    else{
-                        if(layer.options.color != '#ffffff00'){
-                            layer.setStyle({
-                                color: '#ffffff00'
-                            })
-                        }
-                    }
-                })
+                jpTsunamiBaseMap.setStyle(feature => ({
+                    color: tsunamiColors[newVal[feature.properties.name]?.className] || '#ffffff00'
+                }))
                 smartSetView()
             }, { deep: true, immediate: true })
         }
-        if(settingsStore.mainSettings.source.nmefcTsunami) {
+        if(settingsStore.mainSettings.source.nmefcTsunami && settingsStore.advancedSettings.enableNmefcTsunami && 'cn_tsunami' in topojsonUrls) {
             if(cn_tsunami) {
                 cnTsunamiBaseMap = loadBaseMap(cn_tsunami, 'tsunamiBasePane', false, {
                     color: '#ffffff00',
@@ -1023,23 +1078,9 @@ const loadMaps = async (retries = 0) => {
                     })
                 })
                 watch(nmefcTsunamiWarnArea, newVal => {
-                    cnTsunamiBaseMap.eachLayer(layer => {
-                        const layerName = layer.feature.properties.name
-                        if(layerName in newVal){
-                            if(layer.options.color != tsunamiColors[newVal[layerName].className]){
-                                layer.setStyle({
-                                    color: tsunamiColors[newVal[layerName].className]
-                                })
-                            }
-                        }
-                        else{
-                            if(layer.options.color != '#ffffff00'){
-                                layer.setStyle({
-                                    color: '#ffffff00'
-                                })
-                            }
-                        }
-                    })
+                    cnTsunamiBaseMap.setStyle(feature => ({
+                        color: tsunamiColors[newVal[feature.properties.name]?.className] || '#ffffff00'
+                    }))
                     smartSetView()
                 }, { deep: true, immediate: true })
             }
@@ -1066,16 +1107,23 @@ const loadMaps = async (retries = 0) => {
         }
     }
 }
+watchEffect(() => {
+    const blinkOpac = blinkStatus.value ? 1 : 0
+    const menuOpac = menuId.value == 'eqlists' ? 0.3 : 1
+    // 你不许使用可选链符号（不然报错）
+    if(eewMarkerPane) eewMarkerPane.style.opacity = blinkOpac * menuOpac
+    if(niedGridPane) niedGridPane.style.opacity = blinkOpac * menuOpac * (!statusStore.isActive.jmaEew || settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid ? 1 : 0)
+    if(tremGridPane) tremGridPane.style.opacity = blinkOpac * menuOpac * (!statusStore.isActive.cwaEew || settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid ? 1 : 0)
+    if(kmaGridPane) kmaGridPane.style.opacity = blinkOpac * menuOpac * (!statusStore.isActive.kmaEew || settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid ? 1 : 0)
+})
 const intervalEvents = ()=>{
     blinkStatus.value = !blinkStatus.value
     tsunamiFlickerCounter = (tsunamiFlickerCounter + 1) % 6
     infoPageCounter.value = (infoPageCounter.value + 1) % 25200
-    eewMarkerPane.style.opacity = (blinkStatus.value ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
-    niedGridPane.style.opacity = (blinkStatus.value && !statusStore.isActive.jmaEew ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
-    tremGridPane.style.opacity = (blinkStatus.value && !statusStore.isActive.cwaEew ? 1 : 0) * (menuId.value == 'eqlists' ? 0.3 : 1)
     tsunamiBasePane.style.opacity = (tsunamiFlickerCounter ? 1 : 0) * (menuId.value == 'eews' ? 0.3 : 1)
     isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
     isTremDelayed.value = !verifyUpToDate(tremUpdateTime.value, 8, 10000)
+    isKmaDelayed.value = !verifyUpToDate(kmaUpdateTime.value, 9, 10000)
     wolfxRS.value = statusStore.wolfxSocket?.socket.readyState ?? 4
     fanRS.value = statusStore.fanSocket?.socket.readyState ?? 4
     p2pquakeRS.value = statusStore.p2pquakeSocket?.socket.readyState ?? 4
@@ -1093,10 +1141,11 @@ const setMapHeight = (height) => {
     }, 0);
 }
 let pendingSetView = false
-const setView = () => {
+const setView = (force = false) => {
     if(!map) return
     if(document.visibilityState === 'visible') {
         const bounds = L.latLngBounds([])
+        let stableMode = false
         //临时Eqlist
         if(settingsStore.mainSettings.cinemaMode && tempEqlists.value && menuId.value == 'eqlists' && historyList.length == 0) {
             if(tempEqlists.value == 'jmaTsunami') {
@@ -1145,6 +1194,16 @@ const setView = () => {
                         }
                     }
                 })
+                krEewBaseMap?.eachLayer(layer => {
+                    if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
+                        if(layer.getBounds){
+                            bounds.extend(layer.getBounds())
+                        }
+                        else if(layer.getLatLng){
+                            bounds.extend(layer.getLatLng())
+                        }
+                    }
+                })
                 cnEewBaseMap?.eachLayer(layer => {
                     if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
                         if(layer.getBounds){
@@ -1164,17 +1223,15 @@ const setView = () => {
                     let shouldExtend = false
                     switch(layer.options.pane) {
                         case 'eewMarkerPane':
-                        case 'waveFillPane':
                             shouldExtend = true
                             break
                         case 'niedGridPane':
-                            if(!statusStore.isActive.jmaEew) {
-                                shouldExtend = true
-                            }
-                            break
                         case 'tremGridPane':
-                            if(!statusStore.isActive.cwaEew) {
+                        case 'kmaGridPane':
+                            // 密码的，SVG渲染器残留不要触发stableMode
+                            if(layer.options.color) {
                                 shouldExtend = true
+                                stableMode = true
                             }
                             break
                     }
@@ -1187,6 +1244,27 @@ const setView = () => {
                         }
                     }
                 })
+                activeEewList.forEach(event => {
+                    let sWaveFill = null
+                    switch(event.eqMessage.source) {
+                        case 'jmaEew':
+                            if(!statusStore.isActive.niedNet)
+                                sWaveFill = event.sWaveFill
+                            break
+                        case 'cwaEew':
+                            if(!statusStore.isActive.tremNet)
+                                sWaveFill = event.sWaveFill
+                            break
+                        case 'kmaEew':
+                            if(!statusStore.isActive.kmaNet)
+                                sWaveFill = event.sWaveFill
+                            break
+                        default:
+                            sWaveFill = event.sWaveFill
+                            break
+                    }
+                    if(sWaveFill) bounds.extend(sWaveFill.getBounds())
+                })
             }
             //历史地震
             if(!bounds.isValid() && menuId.value == 'eqlists' && historyList.length > 0) {
@@ -1196,6 +1274,16 @@ const setView = () => {
                     }
                 })
                 jpEewBaseMap?.eachLayer(layer => {
+                    if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
+                        if(layer.getBounds){
+                            bounds.extend(layer.getBounds())
+                        }
+                        else if(layer.getLatLng){
+                            bounds.extend(layer.getLatLng())
+                        }
+                    }
+                })
+                krEewBaseMap?.eachLayer(layer => {
                     if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
                         if(layer.getBounds){
                             bounds.extend(layer.getBounds())
@@ -1245,6 +1333,16 @@ const setView = () => {
                         }
                     })
                     jpEewBaseMap?.eachLayer(layer => {
+                        if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
+                            if(layer.getBounds){
+                                bounds.extend(layer.getBounds())
+                            }
+                            else if(layer.getLatLng){
+                                bounds.extend(layer.getLatLng())
+                            }
+                        }
+                    })
+                    krEewBaseMap?.eachLayer(layer => {
                         if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
                             if(layer.getBounds){
                                 bounds.extend(layer.getBounds())
@@ -1324,6 +1422,8 @@ const setView = () => {
         }
         const currCenter = map.getCenter()
         const currZoom = map.getZoom()
+        if(!force && stableMode && currZoom == targetZoom && map.getBounds().contains(bounds))
+            return
         const err = 1 / 2 ** targetZoom
         if(currZoom != targetZoom || Math.abs(currCenter.lat - targetCenter.lat) >= err || Math.abs(currCenter.lng - targetCenter.lng) >= err)
             map.setView(targetCenter, targetZoom, { animate: true })
@@ -1332,9 +1432,9 @@ const setView = () => {
         pendingSetView = true
     }
 }
-const smartSetView = () => {
+const smartSetView = (force = false) => {
     setTimeout(() => {
-        if(isAutoZoom.value) setView()
+        if(isAutoZoom.value) setView(force)
     }, 0);
 }
 provide('smartSetView', smartSetView)
@@ -1489,7 +1589,7 @@ const jpEewInfoList = computed(()=>{
     })
     return jpEewInfoList
 })
-const cnEewInfoList = computed(()=>{
+const eewInfoList = computed(()=>{
     const cnEewList = menuId.value == 'eqlists'
         ? historyList.length > 0
         ? historyList.filter(event => event.hypoMarker && !event.eqMessage.isCanceled)
@@ -1499,11 +1599,11 @@ const cnEewInfoList = computed(()=>{
         : activeEqlistList.value.filter(event=>event.hypoMarker && !event.eqMessage.isCanceled)
         : eqlistList.filter(event=>event.hypoMarker && !event.eqMessage.isCanceled)
         : activeEewList.filter(event=>!(event.eqMessage.isCanceled || event.eqMessage.isAssumption))
-    const cnEewInfoList = cnEewList.map(event=>{
+    const eewInfoList = cnEewList.map(event=>{
         const { magnitude, depth, lat, lng } = event.eqMessage
         return { magnitude, depth, lat, lng }
     })
-    return cnEewInfoList
+    return eewInfoList
 })
 onBeforeUnmount(()=>{
     clearInterval(mainInterval)

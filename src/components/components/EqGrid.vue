@@ -1,8 +1,8 @@
 <template>
     <div class="outer2">
-        <div class="container">
+        <div class="container" @contextmenu.prevent="handleCopy">
             <div class="bg" :class="className"></div>
-            <div class="intensity" :class="fontClass">{{ eqMessage.useShindo ? eqMessage.maxIntensity : formatCsis(eqMessage.maxIntensity, settingsStore.mainSettings.useRomanCsis) }}</div>
+            <div class="intensity" :class="fontClass">{{ eqMessage.useShindo ? eqMessage.maxIntensity : formatCsis(eqMessage.maxIntensity) }}</div>
             <div class="text title" :class="fontClass">{{ formatText(eqMessage.titleText) }}</div>
             <div class="text" :class="fontClass" v-if="eqMessage.isEew">{{ formatText(eqMessage.reportNumText) }}</div>
             <div class="text" :class="fontClass">{{ formatText(eqMessage.hypocenterText) }}</div>
@@ -22,6 +22,8 @@ import { EewEvent, EqlistEvent, ignoredIds } from '@/classes/EewEqlistClasses';
 import { useTimeStore } from '@/stores/time';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
+import { isTauri } from '@tauri-apps/api/core';
+import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 import '@/assets/background.css';
 import '@/assets/opacity.css';
 
@@ -52,8 +54,8 @@ watch(eqMessage, (newVal)=>{
     let time
     if(newVal.isEew){
         if(newVal.isCanceled) time = 20 * 1000
-        else if(newVal.isWarn || newVal.magnitude >= 6.0) time = Math.max(newVal.magnitude, 6) * 60 * 1000
-        else time = 240 * 1000
+        else if(newVal.isWarn) time = Math.max(newVal.magnitude, 6) * 60 * 1000
+        else time = Math.max(newVal.magnitude, 3) * 60 * 1000
     }
     else{
         time = 300 * 1000
@@ -142,6 +144,27 @@ watch(()=>timeStore.currentTimeStamp, ()=>{
     passedTimeFromOrigin.value = calcPassedTime(eqMessage.value.originTime, eqMessage.value.timeZone)
 })
 
+const handleCopy = async () => {
+    const content = JSON.stringify(eqMessage.value)
+    try {
+        if(isTauri()) {
+            await writeText(content)
+        }
+        else {
+            await navigator.clipboard.writeText(content)
+        }
+        ElMessage({
+            message: '复制成功',
+            type: 'success'
+        })
+    } catch (e) {
+        console.log(e)
+        ElMessage({
+            message: '复制失败',
+            type: 'error'
+        })
+    }
+}
 </script>
 
 <style lang="scss" scoped>

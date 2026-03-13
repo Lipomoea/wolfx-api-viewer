@@ -13,7 +13,7 @@ import { seisNetUrls, iconUrls } from '@/utils/Urls';
 import { playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromInstShindo, stampToTime, getShindoFromLevel } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { simpleShindo, TremStation } from '@/classes/StationClasses';
+import { simpleIcon, TremStation } from '@/classes/StationClasses';
 import { useTimeStore } from '@/stores/time';
 
 const statusStore = useStatusStore()
@@ -29,8 +29,10 @@ const delay = computed(()=>settingsStore.mainSettings.displaySeisNet.delay * 600
 const tremMaxShindo = inject('tremMaxShindo')
 const tremUpdateTime = inject('tremUpdateTime')
 const tremPeriodMaxShindo = inject('tremPeriodMaxShindo')
+const tremPeriodBarClass = inject('tremPeriodBarClass')
 const handleTempEqlists = inject('handleTempEqlists')
-const periodMaxLevel = ref(-1)
+const smartSetView = inject('smartSetView')
+let periodMaxLevel = -1
 const currentMaxShindo = computed(()=>{
     const currentMaxLevel = Math.max(...Object.keys(grids.value).map(key=>grids.value[key].level), -1)
     if(currentMaxLevel == -1) return -1
@@ -43,17 +45,18 @@ const currentMaxShindo = computed(()=>{
     else if(currentMaxLevel <= 19) return 6
     else return 7
 })
-const activeStations = computed(()=>{
-    let list = {}
+const activeStationIds = computed(()=>{
+    const list = []
     Object.keys(stations).forEach(id=>{
-        if(stations[id].isActive) list[id] = stations[id]
+        if(stations[id].isActive) list.push(id)
     })
     return list
 })
 let decimal = [0, 0]
+const gridRects = {}
 const grids = computed(()=>{
     let grids = {}
-    Object.keys(activeStations.value).forEach(id=>{
+    activeStationIds.value.forEach(id=>{
         const latLng = stations[id].latLng.map((l, index) => Math.round(l - decimal[index]) + decimal[index])
         const level = stations[id].level
         const key = JSON.stringify(latLng)
@@ -69,22 +72,20 @@ const grids = computed(()=>{
     })
     return grids
 })
-const gridRects = {}
-const smartSetView = inject('smartSetView')
 let pendingRender = false
 const update = ()=>{
+    const render = document.visibilityState === 'visible'
+    if(!render) pendingRender = true
     let maxInst = -3.1
     let first = null
     Object.keys(stations).forEach(id=>{
         if(id in stationData){
             const alert = !!stationData[id].alert
             const intensity = alert ? stationData[id].I : stationData[id].i
-            const render = document.visibilityState === 'visible'
             stations[id].update(intensity, alert, render)
             if(alert && !statusStore.isActive.tremNet && (!first || intensity > first.intensity)) {
                 first = stations[id]
             }
-            if(!render) pendingRender = true
             if(intensity > maxInst) maxInst = intensity
         }
         else stations[id].update(-3.1, false)
@@ -164,9 +165,14 @@ watch(()=>statusStore.map, newVal=>{
             }
         }, { immediate: true })
         unwatchGrids = watch(grids, (newVal)=>{
+            let maxLevel = -1, maxColor = 'gray'
             for(let key in newVal) {
                 const item = newVal[key]
                 const color = item.level <= 7 ? 'green' : item.level <= 13 ? 'yellow' : 'red'
+                if(item.level > maxLevel) {
+                    maxLevel = item.level
+                    maxColor = color
+                }
                 if(!(key in gridRects)) {
                     const layer = L.rectangle([item.latLng.map(l => l - 0.495), item.latLng.map(l => l + 0.495)], {
                         color,
@@ -186,7 +192,7 @@ watch(()=>statusStore.map, newVal=>{
                         color
                     })
                 }
-                if(item.level > periodMaxLevel.value) periodMaxLevel.value = item.level
+                if(item.level > periodMaxLevel) periodMaxLevel = item.level
             }
             for(let key in gridRects) {
                 if(!(key in newVal)) {
@@ -194,28 +200,33 @@ watch(()=>statusStore.map, newVal=>{
                     delete gridRects[key]
                 }
             }
-            tremPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel.value)
+            tremPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel)
+            tremPeriodBarClass.value = maxColor
             statusStore.isActive.tremNet = Object.keys(newVal).length > 0
         }, { immediate: true })
         unwatchRender = watch(
-            ()=>`${settingsStore.mainSettings.displaySeisNet.style}|${settingsStore.mainSettings.displaySeisNet.displayTremShindo}|${settingsStore.mainSettings.displaySeisNet.hideNoData}|${simpleShindo.value}`, 
+            ()=>`${settingsStore.mainSettings.displaySeisNet.style}
+            |${settingsStore.mainSettings.displaySeisNet.displayTremShindo}
+            |${settingsStore.mainSettings.displaySeisNet.hideNoData}
+            |${simpleIcon.value}
+            |${settingsStore.mainSettings.displaySeisNet.displayShindo0}`, 
             renderAll
         )
     }
 }, { immediate: true })
 watch(()=>(statusStore.isActive.cwaEew || statusStore.isActive.tremNet), newVal=>{
     if(newVal){
-        if(periodMaxLevel.value == -1){
-            periodMaxLevel.value = 0
-            tremPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel.value)
+        if(periodMaxLevel == -1){
+            periodMaxLevel = 0
+            tremPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel)
         }
     }
     else{
-        periodMaxLevel.value = -1
-        tremPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel.value)
+        periodMaxLevel = -1
+        tremPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel)
     }
 }, { immediate: true })
-watch(() => Object.keys(grids.value).length, smartSetView)
+watch(() => Object.keys(grids.value).length, () => smartSetView())
 let shake1Notified = false, shake2Notified = false
 let focused = false
 watch(currentMaxShindo, (newVal, oldVal)=>{
@@ -255,7 +266,7 @@ watch(currentMaxShindo, (newVal, oldVal)=>{
         focused = false
     }
 })
-const stationDataUrl = computed(() => seisNetUrls?.trem.stationData.replace('api-2', settingsStore.mainSettings.displaySeisNet.tremApi))
+const stationDataUrl = computed(() => delay.value > 0 ? seisNetUrls?.trem.stationData : seisNetUrls?.trem.stationData.replace('api-2', settingsStore.mainSettings.displaySeisNet.tremApi))
 onBeforeUnmount(()=>{
     clearInterval(fetchStationInterval)
     clearInterval(requestInterval)
@@ -272,6 +283,7 @@ onBeforeUnmount(()=>{
             map.removeLayer(layer)
         }
     })
+    statusStore.isActive.tremNet = false
 })
 </script>
 

@@ -22,66 +22,74 @@
                     <div class="switch-group">
                         <span class="font-bold w-full">地震预警</span>
                         <div class="switch-full">
-                            <div>中国地震局：地震预警</div>
+                            <div>中国地震局: 地震预警</div>
                             <el-switch v-model="settingsStore.mainSettings.source.ceaEew" @change="handleNeedReload" />
                         </div>
                         <div class="switch-full" v-if="settingsStore.advancedSettings.enableIclEew">
-                            <div>成都高新减灾研究所：地震预警</div>
+                            <div>成都高新减灾研究所: 地震预警</div>
                             <el-switch v-model="settingsStore.mainSettings.source.iclEew" @change="handleNeedReload" />
                         </div>
                         <div class="switch-full">
-                            <div>四川地震局：地震预警</div>
+                            <div>四川地震局: 地震预警</div>
                             <el-switch v-model="settingsStore.mainSettings.source.scEew" @change="handleNeedReload" />
                         </div>
                         <div class="switch-full">
-                            <div>福建地震局：地震预警</div>
+                            <div>福建地震局: 地震预警</div>
                             <el-switch v-model="settingsStore.mainSettings.source.fjEew" @change="handleNeedReload" />
                         </div>
                         <div class="switch-full">
-                            <div>臺灣中央氣象署：強震即時警報</div>
+                            <div>臺灣中央氣象署: 強震即時警報</div>
                             <el-switch v-model="settingsStore.mainSettings.source.cwaEew" @change="handleNeedReload" />
                         </div>
                         <div class="switch-full">
-                            <div>日本気象庁：緊急地震速報</div>
+                            <div>日本気象庁: 緊急地震速報</div>
                             <el-switch v-model="settingsStore.mainSettings.source.jmaEew" @change="handleNeedReload" />
                         </div>
+                        <div class="switch-full">
+                            <div>기상청: 지진 조기 경보</div>
+                            <el-switch v-model="settingsStore.mainSettings.source.kmaEew" @change="handleNeedReload" />
+                        </div>
                         <div class="switch-full" v-if="settingsStore.advancedSettings.enableGqEew">
-                            <div>GlobalQuake：地震预警</div>
+                            <div>GlobalQuake: 地震预警</div>
                             <el-switch v-model="settingsStore.mainSettings.source.gqEew" @change="handleNeedReload" />
                         </div>
                     </div>
                     <div class="switch-group">
                         <span class="font-bold w-full">地震信息</span>
                         <div class="switch-full">
-                            <div>中国地震台网：地震测定</div>
+                            <div>中国地震台网: 地震测定</div>
                             <el-switch v-model="settingsStore.mainSettings.source.cencEqlist" @change="handleNeedReload" />
                         </div>
-                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableTremFunctions">
-                            <div>臺灣中央氣象署：地震報告</div>
+                        <div class="switch-full">
+                            <div>臺灣中央氣象署: 地震報告</div>
                             <el-switch v-model="settingsStore.mainSettings.source.cwaEqlist" @change="handleNeedReload" />
                         </div>
                         <div class="switch-full">
-                            <div>日本気象庁：地震情報</div>
+                            <div>日本気象庁: 地震情報</div>
                             <el-switch v-model="settingsStore.mainSettings.source.jmaEqlist" @change="handleNeedReload" />
                         </div>
                         <div class="switch-full">
-                            <div>USGS：地震测定</div>
+                            <div>기상청: 지진 정보</div>
+                            <el-switch v-model="settingsStore.mainSettings.source.kmaEqlist" @change="handleNeedReload" />
+                        </div>
+                        <div class="switch-full">
+                            <div>USGS: 地震测定</div>
                             <el-switch v-model="settingsStore.mainSettings.source.usgsEqlist" @change="handleNeedReload" />
                         </div>
                         <div class="switch-full">
-                            <div>FSSN：地震测定</div>
+                            <div>FSSN: 地震测定</div>
                             <el-switch v-model="settingsStore.mainSettings.source.fssnEqlist" @change="handleFssnEqlist" />
                         </div>
                     </div>
                     <div class="switch-group">
                         <span class="font-bold w-full">海啸信息</span>
                         <div class="switch-full">
-                            <div>日本気象庁：津波情報</div>
-                            <el-switch v-model="settingsStore.mainSettings.source.jmaTsunami" @change="handleNeedReload" />
-                        </div>
-                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableNmefcTsunami">
-                            <div>自然资源部：海啸预警</div>
+                            <div>自然资源部: 海啸预警</div>
                             <el-switch v-model="settingsStore.mainSettings.source.nmefcTsunami" @change="handleNeedReload" />
+                        </div>
+                        <div class="switch-full">
+                            <div>日本気象庁: 津波情報</div>
+                            <el-switch v-model="settingsStore.mainSettings.source.jmaTsunami" @change="handleNeedReload" />
                         </div>
                     </div>
                 </div>
@@ -91,8 +99,12 @@
                     <div class="switch-group">
                         <div class="w-full">
                             <div class="switch-full">
-                                <span>強震モニタ</span>
+                                <span>強震モニタ・震度（日本）</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.niedNet" />
+                            </div>
+                            <div class="switch-full pl-4">
+                                <span>解析震度阶</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayNiedShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.niedNet" />
                             </div>
                             <div class="switch-full pl-4">
                                 <span>检知灵敏度</span>
@@ -108,15 +120,15 @@
                                     <el-option label="高" :value=3 />
                                 </el-select>
                             </div>
-                            <div class="switch-full pl-4">
-                                <span>解析震度阶</span>
-                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayNiedShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.niedNet" />
-                            </div>
                         </div>
                         <div class="w-full" v-if="settingsStore.advancedSettings.enableTremFunctions">
                             <div class="switch-full">
-                                <span>TREM-Net</span>
+                                <span>TREM-Net・震度（台湾）</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.tremNet" />
+                            </div>
+                            <div class="switch-full pl-4">
+                                <span>解析震度阶</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayTremShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.tremNet" />
                             </div>
                             <div class="switch-full pl-4">
                                 <span>API</span>
@@ -134,9 +146,44 @@
                                     <el-option label="lb-4" value="lb-4" />
                                 </el-select>
                             </div>
+                        </div>
+                        <div class="w-full">
+                            <div class="switch-full">
+                                <span>KMA-PEWS・加速度（韩国）</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.kmaNet" />
+                            </div>
                             <div class="switch-full pl-4">
-                                <span>解析震度阶</span>
-                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayTremShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.tremNet" />
+                                <span>转换为烈度（MMI）</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayKmaInt" :disabled="!settingsStore.mainSettings.displaySeisNet.kmaNet" />
+                            </div>
+                            <div class="switch-full pl-4">
+                                <span>检知灵敏度</span>
+                                <el-select 
+                                    v-model="settingsStore.mainSettings.displaySeisNet.kmaSensitivity"
+                                    size="small"
+                                    :disabled="!settingsStore.mainSettings.displaySeisNet.kmaNet"
+                                    style="width: 48px;"
+                                >
+                                    <el-option label="关" :value=0 />
+                                    <el-option label="低" :value=1 />
+                                    <el-option label="中" :value=2 />
+                                    <el-option label="高" :value=3 />
+                                </el-select>
+                            </div>
+                            <div class="switch-full pl-4">
+                                <span>加速度保持</span>
+                                <el-select 
+                                    v-model="settingsStore.mainSettings.displaySeisNet.kmaIntHold"
+                                    size="small"
+                                    :disabled="!settingsStore.mainSettings.displaySeisNet.kmaNet"
+                                    style="width: 72px;"
+                                >
+                                    <el-option label="实时" :value="1" />
+                                    <el-option label="5秒" :value="5" />
+                                    <el-option label="10秒" :value="10" />
+                                    <el-option label="30秒" :value="30" />
+                                    <el-option label="60秒" :value="60" />
+                                </el-select>
                             </div>
                         </div>
                     </div>
@@ -196,11 +243,46 @@
                                 <span>隐藏无数据测站</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.hideNoData" />
                             </div>
+                            <div class="switch-full">
+                                <span>显示震度0/烈度1图标</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayShindo0" />
+                            </div>
+                            <div class="switch-full">
+                                <span>地震预警时也显示摇晃检知框</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid" />
+                            </div>
+                            <div class="switch-full">
+                                <span>显示最大实时烈度/震度</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayMaxInt" />
+                            </div>
+                            <div class="switch-full">
+                                <span>显示最大区间烈度/震度</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayPeriodMaxInt" />
+                            </div>
                         </div>
                     </div>
                 </div>
                 <span class="sub-title">行为</span>
                 <div class="group">
+                    <div class="switch-group">
+                        <div class="switch-full">
+                            <span>
+                                游戏模式
+                                <el-popover
+                                    placement="top"
+                                    :width="280"
+                                    trigger="hover"
+                                >
+                                    <template #reference>
+                                        <question-filled width="1em" height="1em" />
+                                    </template>
+                                    <p>游戏模式下将不会发送通知和弹出窗口。</p>
+                                    <p v-if="isTauri">可在托盘图标菜单快速切换。</p>
+                                </el-popover>
+                            </span>
+                            <el-switch v-model="settingsStore.mainSettings.gameMode" />
+                        </div>
+                    </div>
                     <span class="font-bold w-full">
                         过滤设置
                         <el-popover
@@ -255,24 +337,24 @@
                                         <template #reference>
                                             <question-filled width="1em" height="1em" />
                                         </template>
-                                        <p><strong>需要启用“软件估算烈度/震度”。</strong></p>
+                                        <p><strong>需要启用“强制估算烈度/震度（低精度）”。</strong></p>
                                         <p>地震预警事件中，仅在预估本地烈度达到阈值时进行提醒。</p>
                                         <p>对日本以外地区生效。</p>
                                         <p>设置为“0”表示不作筛选。</p>
                                         <p>参考：</p>
-                                        <p> - 1度及以下：基本无感</p>
-                                        <p> - 2~3度：敏感或位于高层的人群静止下有感；悬挂物轻微晃动</p>
-                                        <p> - 4~5度：绝大部分人群静止时有感，少部分人从睡梦中被唤醒；悬挂物显著晃动</p>
-                                        <p> - 6~7度：所有人有感，大部分人从睡梦中被唤醒；稳定性差的摆件倾倒；抗震性差的房屋可能出现破坏</p>
-                                        <p> - 8~9度：行走困难；家具倾倒；抗震性差的房屋可能倒塌，抗震性好的房屋可能损坏</p>
-                                        <p> - 10度及以上：无法行走，有抛起感；房屋大规模倒塌；山崩地裂</p>
+                                        <p> - 1度及以下：低层基本无感，高层轻微有感。</p>
+                                        <p> - 2~3度：低层轻微有感，高层轻微或显著有感；悬挂物轻微晃动。</p>
+                                        <p> - 4~5度：所有人群静止时有感，睡眠中的一部分人被摇醒；悬挂物显著晃动。</p>
+                                        <p> - 6~7度：令人感到恐惧，睡眠中的大部分人被摇醒；部分物件倾倒；抗震性差的房屋可能出现破坏。</p>
+                                        <p> - 8~9度：行走困难；家具倾倒；抗震性差的房屋可能倒塌，抗震性好的房屋可能损坏。</p>
+                                        <p> - 10度及以上：难以站立，有抛起感；房屋大规模倒塌；山河易形。</p>
                                     </el-popover>
                                 </span>
                                 <div class="int" :class="setClassName(settingsStore.mainSettings.actionLocalCsis, false)">
                                     <div class="csis" :class="{
                                         'roman': settingsStore.mainSettings.useRomanCsis,
                                         'scale-9': settingsStore.mainSettings.actionLocalCsis == 8
-                                    }">{{ formatCsis(settingsStore.mainSettings.actionLocalCsis.toString(), settingsStore.mainSettings.useRomanCsis) }}</div>
+                                    }">{{ formatCsis(settingsStore.mainSettings.actionLocalCsis.toString()) }}</div>
                                 </div>
                             </div>
                             <el-slider
@@ -296,19 +378,19 @@
                                         <template #reference>
                                             <question-filled width="1em" height="1em" />
                                         </template>
-                                        <p><strong>需要启用“软件估算烈度/震度”。</strong></p>
+                                        <p><strong>需要启用“强制估算烈度/震度（低精度）”。</strong></p>
                                         <p>地震预警事件中，仅在预估本地震度达到阈值时进行提醒。</p>
                                         <p>对附近包含震度观测点的日本地区生效。</p>
                                         <p>设置为“0”表示不作筛选。</p>
                                         <p>参考：</p>
-                                        <p> - 震度0：基本无感</p>
-                                        <p> - 震度1：敏感人群静止时有感</p>
-                                        <p> - 震度2：大部分人群静止时有感；悬挂物轻微晃动</p>
-                                        <p> - 震度3：绝大部分人群静止时有感；一部分人从睡梦中被唤醒；悬挂物显著晃动</p>
-                                        <p> - 震度4：所有人有感，大部分人从睡梦中被唤醒；稳定性差的摆件倾倒</p>
-                                        <p> - 震度5弱~5强：大多数人有恐惧感；部分家具倾倒</p>
-                                        <p> - 震度6弱~6强：行走困难；家具大规模倾倒；抗震性差的房屋出现损坏甚至倒塌</p>
-                                        <p> - 震度7：无法行走，有抛起感；房屋大规模倒塌；山崩地裂</p>
+                                        <p> - 震度0：基本无感。</p>
+                                        <p> - 震度1：少数人群静止时有感。</p>
+                                        <p> - 震度2：大部分人群静止时有感；悬挂物轻微晃动。</p>
+                                        <p> - 震度3：所有人静止时有感；睡眠中的一部分人被摇醒；悬挂物显著晃动。</p>
+                                        <p> - 震度4：令人感到恐惧，睡眠中的大部分人被摇醒；部分物件倾倒。</p>
+                                        <p> - 震度5弱~5强：行走出现障碍；部分家具倾倒。</p>
+                                        <p> - 震度6弱~6强：行走困难；家具大规模倾倒；抗震性差的房屋出现损坏甚至倒塌。</p>
+                                        <p> - 震度7：难以站立，有抛起感；房屋大规模倒塌；山河易形。</p>
                                     </el-popover>
                                 </span>
                                 <div class="int" :class="setClassName(shindoScale[settingsStore.mainSettings.actionLocalShindo], true)">
@@ -335,7 +417,7 @@
                                     <div class="csis" :class="{
                                         'roman': settingsStore.mainSettings.useRomanCsis,
                                         'scale-9': settingsStore.mainSettings.intenseLocalCsis == 8
-                                    }">{{ formatCsis(settingsStore.mainSettings.intenseLocalCsis.toString(), settingsStore.mainSettings.useRomanCsis) }}</div>
+                                    }">{{ formatCsis(settingsStore.mainSettings.intenseLocalCsis.toString()) }}</div>
                                 </div>
                                 <div v-else class="int" :class="setClassName(shindoScale[settingsStore.mainSettings.intenseLocalShindo], true)">
                                     <div class="shindo">{{ shindoScale[settingsStore.mainSettings.intenseLocalShindo] }}</div>
@@ -518,6 +600,15 @@
                 <div class="group">
                     <div class="switch-group">
                         <div class="switch-full">
+                            <span style="width: 7rem;">主音量：{{ settingsStore.mainSettings.masterVolume }}%</span>
+                            <el-slider
+                                v-model="settingsStore.mainSettings.masterVolume"
+                                :min="0" :max="100"
+                                :step="5"
+                                size="small"
+                            />
+                        </div>
+                        <div class="switch-full">
                             <span>关闭默认通知音</span>
                             <el-switch v-model="settingsStore.mainSettings.muteNotification" />
                         </div>
@@ -588,7 +679,7 @@
                             >自动定位</el-button>
                         </div>
                         <div class="switch-full">
-                            <span>清除经纬度</span>
+                            <span>清除所在地经纬度</span>
                             <el-button
                                 size="small"
                                 @click="clearUserLatLng"
@@ -607,7 +698,7 @@
                                 <el-switch v-model="settingsStore.mainSettings.displayCountdown" />
                             </div>
                             <div class="switch-full pl-4">
-                                <span>强制计算倒计时</span>
+                                <span>强制计算倒计时（即使低精度）</span>
                                 <el-switch v-model="settingsStore.mainSettings.forceDisplayCountdown" :disabled="!settingsStore.mainSettings.displayCountdown" />
                             </div>
                             <div class="switch-full pl-4">
@@ -623,7 +714,7 @@
                                 <el-switch v-model="settingsStore.mainSettings.countdownSpeech" :disabled="!(settingsStore.mainSettings.displayCountdown && settingsStore.mainSettings.playCountdownSound)" />
                             </div>
                             <div class="switch-full pl-8">
-                                <span>剩余{{ settingsStore.mainSettings.countdownStart }}秒时开始播放</span>
+                                <span style="width: 10rem;">剩余{{ settingsStore.mainSettings.countdownStart }}秒时开始播放</span>
                                 <el-slider
                                     v-model="settingsStore.mainSettings.countdownStart"
                                     :disabled="!(settingsStore.mainSettings.displayCountdown && settingsStore.mainSettings.playCountdownSound)"
@@ -707,7 +798,7 @@
                             >设置</el-button>
                         </div>
                         <div class="switch-full">
-                            <span>清除经纬度</span>
+                            <span>清除视野经纬度</span>
                             <el-button
                                 size="small"
                                 @click="clearViewLatLng"
@@ -719,13 +810,14 @@
                         <div class="switch-full">
                             <span>UI缩放比例</span>
                             <el-select
-                                style="width: 72px;"
+                                style="width: 120px;"
                                 v-model="settingsStore.mainSettings.uiScale"
                                 size="small"
                             >
+                                <el-option label="自动" :value=-1 />
                                 <el-option label="50%" :value=0.5 />
                                 <el-option label="75%" :value=0.75 />
-                                <el-option label="默认" :value=1 />
+                                <el-option label="100%（推荐）" :value=1 />
                                 <el-option label="125%" :value=1.25 />
                                 <el-option label="150%" :value=1.5 />
                                 <el-option label="200%" :value=2 />
@@ -835,7 +927,7 @@
                 <div class="group">
                     <div class="switch-group">
                         <div class="switch-full">
-                            <span>地震波最大渲染速率：{{ settingsStore.mainSettings.maxWaveRenderRate }}次/秒</span>
+                            <span style="width: 14rem;">地震波最大渲染速率：{{ settingsStore.mainSettings.maxWaveRenderRate }}次/秒</span>
                             <el-slider
                                 v-model="settingsStore.mainSettings.maxWaveRenderRate"
                                 :min="1" :max="20"
@@ -845,7 +937,7 @@
                         </div>
                         <div class="switch-full">
                             <span>
-                                使用位图渲染器
+                                位图渲染
                                 <el-popover
                                     placement="top"
                                     :width="300"
@@ -854,8 +946,8 @@
                                     <template #reference>
                                         <question-filled width="1em" height="1em" />
                                     </template>
-                                    <p>部分图层使用Canvas（而不是SVG）渲染器加载。</p>
-                                    <p>可小幅提升流畅性，但是部分情况下图形边缘可能模糊。</p>
+                                    <p>部分图层使用Canvas渲染器加载。</p>
+                                    <p>可提升性能，但部分情况下图形边缘可能模糊。</p>
                                     <p>开启后无法使用“悬浮时显示地名”功能。</p>
                                     <p><strong>需重新加载页面后生效。</strong></p>
                                 </el-popover>
@@ -916,6 +1008,18 @@
                 <div class="group">
                     <div class="switch-group">
                         <div class="switch-full">
+                            <span>首选FAN Studio API服务器</span>
+                            <el-select 
+                                v-model="settingsStore.advancedSettings.defaultFanServer"
+                                size="small"
+                                style="width: 72px;"
+                                @change="handleNeedReload"
+                            >
+                                <el-option label=".tech" :value="0" />
+                                <el-option label=".hk" :value="1" />
+                            </el-select>
+                        </div>
+                        <div class="switch-full">
                             <span>中国地震局预警融合省级源</span>
                             <el-switch v-model="settingsStore.advancedSettings.provinceCeaEew"
                             @change="handleNeedReload" />
@@ -936,7 +1040,7 @@
                         </div>
                         <div class="switch-full">
                             <span>
-                                软件估算烈度/震度
+                                强制估算烈度/震度（低精度）
                                 <el-popover
                                     placement="top"
                                     :width="300"
@@ -945,10 +1049,11 @@
                                     <template #reference>
                                         <question-filled width="1em" height="1em" />
                                     </template>
-                                    <p>在软件内部估算以下数据：</p>
+                                    <p>软件自行估算以下数据：</p>
                                     <p> - 本地烈度/震度</p>
-                                    <p> - 中国各区划预警和信息下最大烈度</p>
-                                    <p> - 日本各区划预警下最大震度（融合数据源）</p>
+                                    <p> - 中国/韩国各区划地震预警和地震信息时的最大烈度</p>
+                                    <p> - 日本各区划地震预警时的最大震度（与数据源信息合并）</p>
+                                    <p> - 部分数据源显示的最大烈度</p>
                                     <p>估算结果与数据源显示可能有差异。</p>
                                     <strong>
                                         <p>低精度（尤其是深源地震）。</p>
@@ -972,8 +1077,8 @@
                                     <template #reference>
                                         <question-filled width="1em" height="1em" />
                                     </template>
-                                    <p>开启后：使用常规GeoJSON图层渲染底图，支持鼠标悬浮底图显示地名，部分情况下图形边缘更清晰；不支持拖动时加载，不支持循环显示地图。</p>
-                                    <p>关闭后：使用VectorGrid图层渲染底图，支持拖动时加载，支持循环显示地图；不支持鼠标悬浮底图显示地名，部分情况下图形边缘可能模糊。</p>
+                                    <p>开启后：可解决部分情况下地图出现网格状的问题；不支持拖动时加载，不支持循环显示地图。</p>
+                                    <p>关闭后：支持拖动时加载，支持循环显示地图，但部分情况下地图可能出现网格状。</p>
                                     <p><strong>此功能需重新加载页面后生效。</strong></p>
                                 </el-popover>
                             </span>
@@ -1002,10 +1107,45 @@
                             @change="handleNeedReload" />
                         </div>
                         <div class="switch-full" v-if="settingsStore.advancedSettings.enableMockEew">
-                            <span>模拟地震预警</span>
+                            <span>
+                                模拟地震预警
+                                <el-popover
+                                    placement="top"
+                                    :width="300"
+                                    trigger="hover"
+                                >
+                                    <template #reference>
+                                        <question-filled width="1em" height="1em" />
+                                    </template>
+                                    <p>开启后，可通过“状态面板”或快捷键[M]打开模拟地震预警面板。</p>
+                                    <p><strong>此功能仅作为教育功能，因滥用此功能造成的不良后果由您本人承担。</strong></p>
+                                    <p><strong>此功能需重新加载页面后生效。</strong></p>
+                                </el-popover>
+                            </span>
                             <el-switch 
                             v-model="settingsStore.advancedSettings.mockEew"
                             @change="handleNeedReload" />
+                        </div>
+                        <div class="switch-full pl-4" v-if="settingsStore.advancedSettings.enableMockEew">
+                            <span>
+                                回放测站时创建模拟预警
+                                <el-popover
+                                    placement="top"
+                                    :width="300"
+                                    trigger="hover"
+                                >
+                                    <template #reference>
+                                        <question-filled width="1em" height="1em" />
+                                    </template>
+                                    <p>开启后，在历史地震列表中点击“测站回放”时自动创建一个对应参数的模拟地震预警。</p>
+                                    <p><strong>部分机构提供的地震时间与实际发震时间有偏差（如日本气象厅采用检出时间），此时模拟预警无法正确还原发震时间。</strong></p>
+                                    <p><strong>此功能创建的地震预警发震时间为虚拟时间。</strong></p>
+                                    <p><strong>由此功能创建的地震预警不会自动更新。</strong></p>
+                                </el-popover>
+                            </span>
+                            <el-switch 
+                            v-model="settingsStore.advancedSettings.mockOnReplay"
+                            :disabled="!settingsStore.advancedSettings.mockEew" />
                         </div>
                         <div class="switch-full">
                             <span>状态面板</span>
@@ -1127,16 +1267,18 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false" append-to-body>
-            <div class="header">要石 v2.2.1</div>
+            <div class="header">要石 v2.4.0</div>
+            <div class="title">注意事项</div>
+            <div class="about">
+                <p>本应用程序仅作为学习使用。</p>
+                <p class="font-red">本应用程序使用非官方数据源，可能出现错误。一切信息请以官方发布为准。</p>
+                <p class="font-red">本应用程序为永久免费的公益性项目，不接受任何形式的捐赠。任何以本应用程序为名义索取费用的行为均属诈骗。严禁将本应用用作商业场合。</p>
+                <p>首次使用本应用程序时，请点击主界面右上角<el-icon><Setting /></el-icon>图标进行个性化设置。</p>
+            </div>
             <div class="title">使用方法</div>
             <div class="about">
-                <p>主要功能：接收日本气象厅、台湾省中央气象署、中国地震局、四川省地震局、福建省地震局地震预警信息，日本气象厅、中国地震台网地震信息，日本气象厅海啸信息，NIED強震モニタ测站数据。</p>
-                <p>Chrome/Edge推荐设置（以Chrome为例，Edge方法类似）：</p>
-                <ul>
-                    <li>保持后台刷新：浏览器访问chrome://flags - Calculate window occlusion on Windows - Disabled - 右下角重新启动</li>
-                    <li>去除网页“不安全”提示（同时解除网页权限设置限制，但浏览器启动时会收到横幅提示）：chrome://flags - Insecure origins treated as secure - 启用 - 输入本网页的链接 - 右下角重新启动</li>
-                    <li>作为网页应用安装：Chrome打开此页面，右上角三点 - 保存并分享 - 将网页作为应用安装。安装一次后刷新页面即可加载最新版本网页，无需重新安装。</li>
-                </ul>
+                <p>Windows 10（x64）、macOS（arm64）及以上用户推荐使用应用程序：<a href="https://github.com/Lipomoea/kanameishi/releases" target="_blank">应用程序下载</a>&nbsp;<a href="https://gitee.com/lipomoea/kanameishi/releases" target="_blank">备用链接</a></p>
+                <p>主要功能：接收中国、日本、韩国地震预警速报，接收中国、日本、韩国等区域性地震信息以及美国地质调查局（USGS）、FAN Studio地震网络（FSSN）等机构的全球性地震信息，接收日本的海啸信息，显示日本、韩国部分机构的实时地震监测网络并提示可能的地震事件。</p>
                 <p>通知推送：需授予通知权限。Chrome：点击网页链接左侧按钮-网站设置-通知-允许，刷新页面。</p>
                 <p>播放声音：需开启声音权限。Chrome：点击网页链接左侧按钮-网站设置-声音-允许，刷新页面。</p>
             </div>
@@ -1156,16 +1298,15 @@
                     <li>[,] / [.]：存在多页信息框时轮询信息框</li>
                 </ul>
             </div>
-            <div class="title">注意事项</div>
+            <div class="title">常见问题</div>
             <div class="about">
-                <p>关于烈度：日本气象厅紧急地震速报（震度），台湾中央气象署（震度），中国地震局（烈度），四川地震局（烈度），福建地震局（烈度），日本气象厅地震情报（震度），中国地震台网地震信息（烈度）。除日本气象厅地震情报外均为预估值。</p>
-                <p>关于时间：显示为发报机构当地时间。</p>
-                <p>关于延迟：受API限制，部分资料具有延迟是正常现象。</p>
+                <p>关于烈度：中国大陆及港澳、韩国使用烈度制（12度表，I ~ XII），日本、中国台湾地区使用震度制（10度表，0 ~ 7，其中震度5、6两级分为强/弱）。部分数值为预估值，非实测值。</p>
+                <p>关于时间：除全球性台网（USGS、FSSN）显示为中国标准时间，其他均显示为发报机构当地时间。</p>
+                <p>关于延迟：受API及服务器限制，部分资料具有延迟是正常现象。</p>
                 <p>关于地图：由于服务器带宽限制，进入页面后需要一定时间加载地图。如长时间未加载地图，请刷新页面。</p>
             </div>
             <div class="title">关于</div>
             <div class="about">
-                <p>Windows 10（x64）、macOS（arm64）及以上用户推荐使用应用程序：<a href="https://github.com/Lipomoea/kanameishi/releases" target="_blank">应用程序下载</a>&nbsp;<a href="https://gitee.com/lipomoea/kanameishi/releases" target="_blank">备用链接</a></p>
                 <p>联系我：<a href="https://space.bilibili.com/316757498" target="_blank">リッポミャ</a>（哔哩哔哩）</p>
                 <p>Github：<a href="https://github.com/Lipomoea/kanameishi" target="_blank">https://github.com/Lipomoea/kanameishi</a></p>
                 <p>特别鸣谢：</p>
@@ -1185,7 +1326,7 @@ import { useSettingsStore } from '@/stores/settings';
 import { useStatusStore } from '@/stores/status';
 import { chimeUrls, utilUrls } from '@/utils/Urls';
 import Http from '@/classes/Http';
-import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
+import { h, ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { QuestionFilled } from '@element-plus/icons-vue';
 import { calcPassedTime, formatCsis, openUrl, playSound, setClassName, shindoScale, calcCsisLevel } from '@/utils/Utils';
 import { join, appDataDir } from "@tauri-apps/api/path";
@@ -1194,6 +1335,10 @@ import { exists, mkdir } from "@tauri-apps/plugin-fs";
 import { enable, disable, isEnabled } from '@tauri-apps/plugin-autostart';
 import { platform } from '@tauri-apps/plugin-os';
 import { isTauri as getIsTauri } from '@tauri-apps/api/core';
+import { Setting } from '@element-plus/icons-vue';
+import MarkdownIt from 'markdown-it';
+
+const SHOW_ABOUT_FLG = '20260313.00'
 
 const showNotifButton = 'Notification' in window
 const isTauri = getIsTauri()
@@ -1383,6 +1528,7 @@ const handleAdvance = (val)=>{
             if(settingsStore.mainSettings.source.iclEew) handleNeedReload()
             settingsStore.advancedSettings.enableIclEew = false
             settingsStore.mainSettings.source.iclEew = false
+            localStorage.removeItem('iclUrl')
             ElMessage({
                 message: '功能已关闭',
                 type: 'success'
@@ -1390,10 +1536,10 @@ const handleAdvance = (val)=>{
             break
         }
         case 'disableTremFunctions': {
-            if(settingsStore.mainSettings.source.cwaEqlist) handleNeedReload()
             settingsStore.advancedSettings.enableTremFunctions = false
-            settingsStore.mainSettings.source.cwaEqlist = false
             settingsStore.mainSettings.displaySeisNet.tremNet = false
+            localStorage.removeItem('tremUrl')
+            handleNeedReload()
             ElMessage({
                 message: '功能已关闭',
                 type: 'success'
@@ -1404,6 +1550,7 @@ const handleAdvance = (val)=>{
             if(settingsStore.mainSettings.source.gqEew) handleNeedReload()
             settingsStore.advancedSettings.enableGqEew = false
             settingsStore.mainSettings.source.gqEew = false
+            localStorage.removeItem('gqUrl')
             ElMessage({
                 message: '功能已关闭',
                 type: 'success'
@@ -1414,6 +1561,7 @@ const handleAdvance = (val)=>{
             if(settingsStore.advancedSettings.multiApi) handleNeedReload()
             settingsStore.advancedSettings.enableMultiApi = false
             settingsStore.advancedSettings.multiApi = false
+            localStorage.removeItem('multiApi')
             ElMessage({
                 message: '功能已关闭',
                 type: 'success'
@@ -1421,9 +1569,9 @@ const handleAdvance = (val)=>{
             break
         }
         case 'disableNmefcTsunami': {
-            if(settingsStore.mainSettings.source.nmefcTsunami) handleNeedReload()
             settingsStore.advancedSettings.enableNmefcTsunami = false
-            settingsStore.mainSettings.source.nmefcTsunami = false
+            localStorage.removeItem('nmefcTsunami')
+            handleNeedReload()
             ElMessage({
                 message: '功能已关闭',
                 type: 'success'
@@ -1445,6 +1593,7 @@ const handleAdvance = (val)=>{
             }).catch(()=>{
                 if(settingsStore.advancedSettings.mockEew) handleNeedReload()
                 settingsStore.advancedSettings.mockEew = false
+                settingsStore.advancedSettings.mockOnReplay = false
                 settingsStore.advancedSettings.enableMockEew = false
             })
             break
@@ -1452,6 +1601,7 @@ const handleAdvance = (val)=>{
         case 'disableMockEew': {
             if(settingsStore.advancedSettings.mockEew) handleNeedReload()
             settingsStore.advancedSettings.mockEew = false
+            settingsStore.advancedSettings.mockOnReplay = false
             settingsStore.advancedSettings.enableMockEew = false
             break
         }
@@ -1484,6 +1634,7 @@ const postVerify = async (type = verifyType)=>{
             if(res && res.success){
                 settingsStore.advancedSettings.enableTremFunctions = true
                 localStorage.setItem('tremUrl', JSON.stringify(res.data))
+                handleNeedReload()
                 verifyDialog.value = false
                 ElMessage({
                     message: '认证成功',
@@ -1541,6 +1692,7 @@ const postVerify = async (type = verifyType)=>{
             if(res && res.success){
                 settingsStore.advancedSettings.enableNmefcTsunami = true
                 localStorage.setItem('nmefcTsunami', JSON.stringify(res.data))
+                handleNeedReload()
                 verifyDialog.value = false
                 ElMessage({
                     message: '认证成功',
@@ -1622,16 +1774,28 @@ const checkNewVersion = async (silent = false) => {
                 })
             }
             ElMessageBox.close()
+            const md = new MarkdownIt({ linkify: true })
             if(isTauri) {
                 if(!silent) {
                     ElMessageBox.confirm(
-                        `检查到新版本v${checkedVersion}，是否下载？\r\n${detail}`,
-                        '发现新版本',
+                        h('div', {
+                            innerHTML: md.render(detail),
+                            style: {
+                                listStylePosition: 'inside',
+                                maxHeight: '50vh',
+                                overflow: 'auto',
+                                fontSize: '16px'
+                            }
+                        }),
+                        `发现新版本 v${checkedVersion}`,
                         {
                             confirmButtonText: '下载',
                             cancelButtonText: '关闭',
                             type: '',
-                            showClose: false
+                            showClose: false,
+                            customStyle: {
+                                '--el-messagebox-width': '500px',
+                            }
                         }
                     ).then(()=>{
                         openUrl(downloadUrl)
@@ -1651,15 +1815,26 @@ const checkNewVersion = async (silent = false) => {
                 else {
                     if(!silent) {
                         ElMessageBox.confirm(
-                            `检查到新版本v${checkedVersion}，是否刷新页面？\r\n${detail}`,
-                            '检查更新',
-                            {
-                                confirmButtonText: '确定',
-                                cancelButtonText: '取消',
-                                type: 'info',
-                                showClose: false,
+                        h('div', {
+                            innerHTML: md.render(detail),
+                            style: {
+                                listStylePosition: 'inside',
+                                maxHeight: '50vh',
+                                overflow: 'auto',
+                                fontSize: '16px'
                             }
-                        ).then(()=>{
+                        }),
+                        `发现新版本 v${checkedVersion}`,
+                        {
+                            confirmButtonText: '刷新页面',
+                            cancelButtonText: '关闭',
+                            type: '',
+                            showClose: false,
+                            customStyle: {
+                                '--el-messagebox-width': '500px',
+                            }
+                        }
+                    ).then(()=>{
                             handleReload()
                         })
                     }
@@ -1775,6 +1950,9 @@ onMounted(async () => {
         loadAudio()
         isAutoStart.value = await isEnabled()
     }
+    const localFlg = localStorage.getItem('SHOW_ABOUT_FLG') || ''
+    if(localFlg < SHOW_ABOUT_FLG) showAbout.value = true
+    localStorage.setItem('SHOW_ABOUT_FLG', SHOW_ABOUT_FLG)
 })
 onBeforeUnmount(() => {
     clearInterval(autoCheckInterval)
@@ -1927,6 +2105,9 @@ ul {
     :deep(.el-input__inner) {
         text-align: right;
     }
+}
+.font-red {
+    color: red;
 }
 </style>
 
