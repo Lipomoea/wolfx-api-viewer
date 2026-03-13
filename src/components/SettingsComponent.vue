@@ -1271,8 +1271,8 @@
             <div class="title">注意事项</div>
             <div class="about">
                 <p>本应用程序仅作为学习使用。</p>
-                <p>本应用程序使用非官方数据源，可能出现错误。一切信息请以官方发布为准。</p>
-                <p>本应用程序为永久免费的不盈利项目，不接受任何形式的捐赠。任何以本应用程序为名义索取费用的行为均属诈骗。</p>
+                <p class="font-red">本应用程序使用非官方数据源，可能出现错误。一切信息请以官方发布为准。</p>
+                <p class="font-red">本应用程序为永久免费的公益性项目，不接受任何形式的捐赠。任何以本应用程序为名义索取费用的行为均属诈骗。严禁将本应用用作商业场合。</p>
                 <p>首次使用本应用程序时，请点击主界面右上角<el-icon><Setting /></el-icon>图标进行个性化设置。</p>
             </div>
             <div class="title">使用方法</div>
@@ -1338,7 +1338,7 @@ import { isTauri as getIsTauri } from '@tauri-apps/api/core';
 import { Setting } from '@element-plus/icons-vue';
 import MarkdownIt from 'markdown-it';
 
-const SHOW_ABOUT_FLG = '20260302.00'
+const SHOW_ABOUT_FLG = '20260313.00'
 
 const showNotifButton = 'Notification' in window
 const isTauri = getIsTauri()
@@ -2105,6 +2105,9 @@ ul {
     :deep(.el-input__inner) {
         text-align: right;
     }
+}
+.font-red {
+    color: red;
 }
 </style>
 
