@@ -20,6 +20,7 @@ import { platform } from '@tauri-apps/plugin-os';
 import { invoke, isTauri } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import Http from './classes/Http';
+import { playTts, voices } from './utils/Utils';
 
 const timeStore = useTimeStore()
 const statusStore = useStatusStore()
@@ -67,7 +68,23 @@ const calcAutoScale = () => {
   }, 20);
 }
 const scale = computed(() => settingsStore.mainSettings.uiScale > 0 ? settingsStore.mainSettings.uiScale : autoScale.value)
-
+function loadVoices() {
+  return new Promise(resolve => {
+    let voices = speechSynthesis.getVoices()
+    if (voices.length) {
+      resolve(voices)
+      return
+    }
+    speechSynthesis.onvoiceschanged = () => {
+      resolve(speechSynthesis.getVoices())
+      speechSynthesis.onvoiceschanged = null
+    }
+    setTimeout(() => {
+      speechSynthesis.onvoiceschanged = null
+      resolve([])
+    }, 500)
+  })
+}
 onBeforeMount(async () => {
   settingsStore.setMainSettings(localStorage.getItem('mainSettings'))
   settingsStore.setAdvancedSettings(localStorage.getItem('advancedSettings'))
@@ -80,6 +97,8 @@ onBeforeMount(async () => {
   statusStore.startUpdatingEqMessage()
   autoScale.value = Math.min(window.innerWidth / 1800, window.innerHeight / 1100)
   getGeojson()
+  voices.length = 0
+  voices.push(...await loadVoices())
   if('Notification' in window){
     if (Notification.permission !== 'granted') {
       Notification.requestPermission()
@@ -104,6 +123,10 @@ onMounted(() => {
     container.value.style.height = `${100 / scale}vh`
     statusStore.map?.invalidateSize()
   }, { immediate: true })
+  // setTimeout(() => {
+  //     playTts('烈度5地震，15秒后抵达', 'zh-CN')
+  //     playTts('震度3の地震、15秒で到達', 'ja-JP')
+  // }, 1000);
 })
 onBeforeUnmount(() => {
   clearTimeout(resizeTimer)

@@ -540,3 +540,20 @@ export const calcMaxJmaShindoLevel = (
 };
 export const getMmiFromKmaLevel = level =>
   level == -1 ? "?" : Math.min(Math.max(level - 2, 0), 11).toString();
+export const voices = [];
+export const playTts = (str, lang) => {
+  const msg = new SpeechSynthesisUtterance(str);
+  msg.lang = lang;
+  let voiceName = null;
+  switch (lang) {
+    case "zh-CN":
+    case "zh-TW":
+      voiceName = "Microsoft Yaoyao - Chinese (Simplified, PRC)";
+      break;
+    case "ja-JP":
+      voiceName = "Microsoft Sayaka - Japanese (Japan)";
+      break;
+  }
+  if (voiceName) msg.voice = voices.find(voice => voice.name == voiceName);
+  speechSynthesis.speak(msg);
+};
