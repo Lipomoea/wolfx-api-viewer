@@ -1109,7 +1109,7 @@ export const jmaSeisIntLoc = {
     sect: "北見地方",
     arv: 0.94,
   },
-  佐呂間町永代町: {
+  佐呂間町西冨: {
     location: [44.02, 143.77],
     sect: "北見地方",
     arv: 1.22,
@@ -3864,11 +3864,6 @@ export const jmaSeisIntLoc = {
     sect: "福島県中通り",
     arv: 1.57,
   },
-  福島伊達市霊山町: {
-    location: [37.78, 140.6],
-    sect: "福島県中通り",
-    arv: 1.03,
-  },
   福島伊達市月舘町: {
     location: [37.73, 140.61],
     sect: "福島県中通り",
@@ -3878,6 +3873,11 @@ export const jmaSeisIntLoc = {
     location: [37.82, 140.51],
     sect: "福島県中通り",
     arv: 1.57,
+  },
+  福島伊達市霊山町: {
+    location: [37.78, 140.59],
+    sect: "福島県中通り",
+    arv: 0.57,
   },
   本宮市本宮: {
     location: [37.51, 140.39],
@@ -5804,7 +5804,7 @@ export const jmaSeisIntLoc = {
     sect: "埼玉県北部",
     arv: 0.81,
   },
-  さいたま西区指扇: {
+  さいたま西区西大宮: {
     location: [35.93, 139.58],
     sect: "埼玉県南部",
     arv: 1.35,
@@ -6159,7 +6159,7 @@ export const jmaSeisIntLoc = {
     sect: "埼玉県秩父",
     arv: 0.63,
   },
-  小鹿野町役場両神庁舎: {
+  小鹿野町両神振興会館: {
     location: [36.01, 138.97],
     sect: "埼玉県秩父",
     arv: 0.67,
@@ -7799,15 +7799,30 @@ export const jmaSeisIntLoc = {
     sect: "神奈川県西部",
     arv: 0.86,
   },
+  相模原緑区橋本: {
+    location: [35.6, 139.35],
+    sect: "神奈川県西部",
+    arv: 1.28,
+  },
   相模原中央区中央: {
     location: [35.57, 139.37],
     sect: "神奈川県西部",
     arv: 1.36,
   },
+  相模原中央区田名: {
+    location: [35.55, 139.34],
+    sect: "神奈川県西部",
+    arv: 1.24,
+  },
   相模原南区磯部: {
     location: [35.5, 139.38],
     sect: "神奈川県西部",
     arv: 1.21,
+  },
+  相模原南区相模大野: {
+    location: [35.53, 139.43],
+    sect: "神奈川県西部",
+    arv: 1.49,
   },
   小田原市久野: {
     location: [35.27, 139.09],
@@ -8309,7 +8324,7 @@ export const jmaSeisIntLoc = {
     sect: "新潟県下越",
     arv: 2.14,
   },
-  新潟西蒲区役所: {
+  新潟西蒲区巻仮設庁舎: {
     location: [37.76, 138.89],
     sect: "新潟県下越",
     arv: 1.89,
@@ -14799,10 +14814,10 @@ export const jmaSeisIntLoc = {
     sect: "和歌山県南部",
     arv: 1.44,
   },
-  串本町古座: {
-    location: [33.51, 135.83],
+  串本町上野山: {
+    location: [33.52, 135.83],
     sect: "和歌山県南部",
-    arv: 0.89,
+    arv: 0.67,
   },
   鳥取市吉方: {
     location: [35.49, 134.24],
@@ -17479,11 +17494,6 @@ export const jmaSeisIntLoc = {
     sect: "高知県中部",
     arv: 1.75,
   },
-  高知香南市吉川町吉原: {
-    location: [33.54, 133.7],
-    sect: "高知県中部",
-    arv: 1.44,
-  },
   高知香南市香我美町下分: {
     location: [33.57, 133.74],
     sect: "高知県中部",
@@ -17503,6 +17513,11 @@ export const jmaSeisIntLoc = {
     location: [33.56, 133.7],
     sect: "高知県中部",
     arv: 1.0,
+  },
+  高知香南市吉川町吉原: {
+    location: [33.54, 133.7],
+    sect: "高知県中部",
+    arv: 1.44,
   },
   香美市土佐山田町宝町: {
     location: [33.6, 133.69],
@@ -18689,11 +18704,6 @@ export const jmaSeisIntLoc = {
     sect: "福岡県筑後",
     arv: 1.21,
   },
-  朝倉市菩提寺: {
-    location: [33.42, 130.67499999999998],
-    sect: "福岡県筑後",
-    arv: 1.2,
-  },
   朝倉市杷木池田: {
     location: [33.36, 130.81],
     sect: "福岡県筑後",
@@ -18703,6 +18713,11 @@ export const jmaSeisIntLoc = {
     location: [33.39, 130.72],
     sect: "福岡県筑後",
     arv: 0.96,
+  },
+  朝倉市甘木: {
+    location: [33.41, 130.66],
+    sect: "福岡県筑後",
+    arv: 1.04,
   },
   みやま市瀬高町: {
     location: [33.15, 130.48],
@@ -19604,15 +19619,15 @@ export const jmaSeisIntLoc = {
     sect: "熊本県熊本",
     arv: 0.78,
   },
-  八代市坂本町: {
-    location: [32.44, 130.67],
-    sect: "熊本県熊本",
-    arv: 0.57,
-  },
   八代市泉支所: {
     location: [32.55, 130.815],
     sect: "熊本県熊本",
     arv: 0.78,
+  },
+  八代市坂本町: {
+    location: [32.43, 130.65],
+    sect: "熊本県熊本",
+    arv: 1.12,
   },
   荒尾市宮内出目: {
     location: [32.99, 130.43],
@@ -20614,11 +20629,6 @@ export const jmaSeisIntLoc = {
     sect: "宮崎県南部平野部",
     arv: 1.0,
   },
-  日南市南郷町南町: {
-    location: [31.53, 131.37],
-    sect: "宮崎県南部平野部",
-    arv: 1.75,
-  },
   日南市中央通: {
     location: [31.6, 131.38],
     sect: "宮崎県南部平野部",
@@ -20628,6 +20638,11 @@ export const jmaSeisIntLoc = {
     location: [31.68, 131.38],
     sect: "宮崎県南部平野部",
     arv: 1.23,
+  },
+  日南市南郷町南町: {
+    location: [31.53, 131.37],
+    sect: "宮崎県南部平野部",
+    arv: 1.75,
   },
   串間市奈留: {
     location: [31.53, 131.27],

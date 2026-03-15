@@ -1106,7 +1106,7 @@
                             v-model="settingsStore.advancedSettings.preventFlickerMode"
                             @change="handleNeedReload" />
                         </div>
-                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableMockEew">
+                        <div class="switch-full">
                             <span>
                                 模拟地震预警
                                 <el-popover
@@ -1124,9 +1124,9 @@
                             </span>
                             <el-switch 
                             v-model="settingsStore.advancedSettings.mockEew"
-                            @change="handleNeedReload" />
+                            @change="handleMockEew" />
                         </div>
-                        <div class="switch-full pl-4" v-if="settingsStore.advancedSettings.enableMockEew">
+                        <div class="switch-full pl-4">
                             <span>
                                 回放测站时创建模拟预警
                                 <el-popover
@@ -1267,12 +1267,12 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false" append-to-body>
-            <div class="header">要石 v2.4.0</div>
+            <div class="header">要石 v2.4.1</div>
             <div class="title">注意事项</div>
             <div class="about">
                 <p>本应用程序仅作为学习使用。</p>
                 <p class="font-red">本应用程序使用非官方数据源，可能出现错误。一切信息请以官方发布为准。</p>
-                <p class="font-red">本应用程序为永久免费的公益性项目，不接受任何形式的捐赠。任何以本应用程序为名义索取费用的行为均属诈骗。严禁将本应用用作商业场合。</p>
+                <p class="font-red">本应用程序为永久免费的公益性项目，不接受任何形式的捐赠。任何以本应用程序为名义索取费用的行为均属诈骗。严禁将本应用用于商业场合。</p>
                 <p>首次使用本应用程序时，请点击主界面右上角<el-icon><Setting /></el-icon>图标进行个性化设置。</p>
             </div>
             <div class="title">使用方法</div>
@@ -1494,10 +1494,30 @@ const handleFssnEqlist = (newVal) => {
                 showClose: false,
             }
         ).then(()=>{
-            settingsStore.mainSettings.source.fssnEqlist = true
             handleNeedReload()
         }).catch(()=>{
             settingsStore.mainSettings.source.fssnEqlist = false
+        })
+    }
+    else {
+        handleNeedReload()
+    }
+}
+const handleMockEew = newVal => {
+    if(newVal) {
+        ElMessageBox.confirm(
+            '此功能意在通过重现或模拟将来可能发生的地震，起到防灾减灾教育效果。因滥用此功能造成的任何后果均由您本人承担。',
+            '启用模拟地震预警',
+            {
+                confirmButtonText: '同意',
+                cancelButtonText: '不同意',
+                type: 'warning',
+                showClose: false,
+            }
+        ).then(()=>{
+            handleNeedReload()
+        }).catch(()=>{
+            settingsStore.advancedSettings.mockEew = false
         })
     }
     else {
@@ -1576,33 +1596,6 @@ const handleAdvance = (val)=>{
                 message: '功能已关闭',
                 type: 'success'
             })
-            break
-        }
-        case 'enableMockEew': {
-            ElMessageBox.confirm(
-                '此功能意在通过重现或模拟将来可能发生的地震，起到防灾减灾教育效果。因滥用此功能造成的任何后果均由您本人承担。',
-                '启用模拟地震预警',
-                {
-                    confirmButtonText: '同意',
-                    cancelButtonText: '不同意',
-                    type: 'warning',
-                    showClose: false,
-                }
-            ).then(()=>{
-                settingsStore.advancedSettings.enableMockEew = true
-            }).catch(()=>{
-                if(settingsStore.advancedSettings.mockEew) handleNeedReload()
-                settingsStore.advancedSettings.mockEew = false
-                settingsStore.advancedSettings.mockOnReplay = false
-                settingsStore.advancedSettings.enableMockEew = false
-            })
-            break
-        }
-        case 'disableMockEew': {
-            if(settingsStore.advancedSettings.mockEew) handleNeedReload()
-            settingsStore.advancedSettings.mockEew = false
-            settingsStore.advancedSettings.mockOnReplay = false
-            settingsStore.advancedSettings.enableMockEew = false
             break
         }
     }

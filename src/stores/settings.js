@@ -124,7 +124,6 @@ export const useSettingsStore = defineStore('settingsStore', {
             enableGqEew: false,
             enableNmefcTsunami: false,
             enableMultiApi: false,
-            enableMockEew: false,
             provinceCeaEew: false,
             defaultFanServer: 0,
             tokens: {
