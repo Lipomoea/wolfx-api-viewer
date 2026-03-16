@@ -68,6 +68,14 @@ const calcAutoScale = () => {
 }
 const scale = computed(() => settingsStore.mainSettings.uiScale > 0 ? settingsStore.mainSettings.uiScale : autoScale.value)
 
+const history2Eqlist = {
+  'CENC': 'cencEqlist',
+  'CWA': 'cwaEqlist',
+  'JMA': 'jmaEqlist',
+  'USGS': 'usgsEqlist',
+  'FSSN': 'fssnEqlist',
+}
+
 onBeforeMount(async () => {
   settingsStore.setMainSettings(localStorage.getItem('mainSettings'))
   settingsStore.setAdvancedSettings(localStorage.getItem('advancedSettings'))
@@ -76,6 +84,7 @@ onBeforeMount(async () => {
   if(settingsStore.advancedSettings.enableNmefcTsunami) Object.assign(topojsonUrls, JSON.parse(localStorage.getItem('nmefcTsunami')))
   timeStore.startUpdatingTime()
   statusStore.enabledSource = Object.keys(settingsStore.mainSettings.source).filter(source => settingsStore.mainSettings.source[source])
+  settingsStore.mainSettings.historySources = settingsStore.mainSettings.historySources.filter(source => statusStore.enabledSource.includes(history2Eqlist[source]))
   statusStore.multiApi = settingsStore.advancedSettings.multiApi
   statusStore.startUpdatingEqMessage()
   autoScale.value = Math.min(window.innerWidth / 1800, window.innerHeight / 1100)
