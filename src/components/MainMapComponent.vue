@@ -501,6 +501,7 @@ const isAutoZoom = ref(true)
 const activeEewList = reactive([])
 const eqlistList = reactive([])
 const historyList = reactive([])
+statusStore.historyList = historyList
 const activeEqlistList = computed(() => eqlistList.filter(event => event.isActive))
 const displayEqlistList = computed(() => historyList.length > 0 ? historyList : eqlistList.filter(event => settingsStore.mainSettings.alwaysDisplayLatestInfo ? event.isActive || event.isLatest : event.isActive))
 provide('activeEewList', activeEewList)
@@ -606,6 +607,10 @@ onMounted(()=>{
     for(let i = -1; i <= 13; i++){
         map.createPane(`kmaStationPane${i}`)
         map.getPane(`kmaStationPane${i}`).style.zIndex = i + 50
+    }
+    for(let i = 0; i <= 12; i++){
+        map.createPane(`intReportStationPane${i}`)
+        map.getPane(`intReportStationPane${i}`).style.zIndex = i + 75
     }
     map.createPane('userPane')
     map.getPane('userPane').style.zIndex = 100
@@ -856,6 +861,10 @@ function handleKeydown(event) {
 }
 const renderers = {}
 const panes = ['basePane', 'eewBasePane', 'tsunamiBasePane', 'faultBasePane']
+const eewBaseMapDefaultFill = '#39393900'
+const eewBaseMapDefaultStroke = '#bbbbbb00'
+const eewBaseMapActiveStroke = '#bbbbbb'
+const tsunamiBaseMapDefaultStroke = '#ffffff00'
 settingsStore.mainSettings.useCanvasRenderer && panes.forEach(pane => renderers[pane] = L.canvas({ pane }))
 const loadMaps = async (retries = 0) => {
     let msgTimer
@@ -885,25 +894,25 @@ const loadMaps = async (retries = 0) => {
         loadBaseMap(cn, 'basePane')
         jpEewBaseMap = settingsStore.mainSettings.disableEewBaseMap 
         ? null : loadBaseMap(jp_eew, 'eewBasePane', false, {
-            color: '#bbbbbb00',
+            color: eewBaseMapDefaultStroke,
             opacity: 1,
-            fillColor: '#39393900',
+            fillColor: eewBaseMapDefaultFill,
             fillOpacity: 1,
             weight: 1,
         })
         krEewBaseMap = settingsStore.mainSettings.disableEewBaseMap 
         ? null : loadBaseMap(kr_eew, 'eewBasePane', false, {
-            color: '#bbbbbb00',
+            color: eewBaseMapDefaultStroke,
             opacity: 1,
-            fillColor: '#39393900',
+            fillColor: eewBaseMapDefaultFill,
             fillOpacity: 1,
             weight: 1,
         })
         cnEewBaseMap = settingsStore.mainSettings.disableEewBaseMap 
         ? null : loadBaseMap(cn_eew, 'eewBasePane', false, {
-            color: '#bbbbbb00',
+            color: eewBaseMapDefaultStroke,
             opacity: 1,
-            fillColor: '#39393900',
+            fillColor: eewBaseMapDefaultFill,
             fillOpacity: 1,
             weight: 1,
         })
@@ -981,8 +990,8 @@ const loadMaps = async (retries = 0) => {
             jpEewBaseMap?.setStyle(feature => {
                 const className = newVal[feature.properties.name]?.className
                 return ({
-                    color: className ? '#bbbbbb' : '#bbbbbb00',
-                    fillColor: classNameColors[className] || '#39393900'
+                    color: className ? eewBaseMapActiveStroke : eewBaseMapDefaultStroke,
+                    fillColor: classNameColors[className] || eewBaseMapDefaultFill
                 })
             })
         }, { deep: true, immediate: true })
@@ -1023,15 +1032,15 @@ const loadMaps = async (retries = 0) => {
                 cnEewBaseMap?.setStyle(feature => {
                     const className = cnAreaClass[feature.properties.name]
                     return ({
-                        color: className ? '#bbbbbb' : '#bbbbbb00',
-                        fillColor: classNameColors[className] || '#39393900'
+                        color: className ? eewBaseMapActiveStroke : eewBaseMapDefaultStroke,
+                        fillColor: classNameColors[className] || eewBaseMapDefaultFill
                     })
                 })
                 krEewBaseMap?.setStyle(feature => {
                     const className = krAreaClass[feature.properties.name]
                     return ({
-                        color: className ? '#bbbbbb' : '#bbbbbb00',
-                        fillColor: classNameColors[className] || '#39393900'
+                        color: className ? eewBaseMapActiveStroke : eewBaseMapDefaultStroke,
+                        fillColor: classNameColors[className] || eewBaseMapDefaultFill
                     })
                 })
                 const newNewCsisList = []
@@ -1049,7 +1058,7 @@ const loadMaps = async (retries = 0) => {
         }
         if(settingsStore.mainSettings.source.jmaTsunami) {
             jpTsunamiBaseMap = loadBaseMap(jp_tsunami, 'tsunamiBasePane', false, {
-                color: '#ffffff00',
+                color: tsunamiBaseMapDefaultStroke,
                 opacity: 1,
                 weight: map.getZoom(),
             })
@@ -1060,7 +1069,7 @@ const loadMaps = async (retries = 0) => {
             })
             watch(jmaTsunamiWarnArea, newVal => {
                 jpTsunamiBaseMap.setStyle(feature => ({
-                    color: tsunamiColors[newVal[feature.properties.name]?.className] || '#ffffff00'
+                    color: tsunamiColors[newVal[feature.properties.name]?.className] || tsunamiBaseMapDefaultStroke
                 }))
                 smartSetView()
             }, { deep: true, immediate: true })
@@ -1068,7 +1077,7 @@ const loadMaps = async (retries = 0) => {
         if(settingsStore.mainSettings.source.nmefcTsunami && settingsStore.advancedSettings.enableNmefcTsunami && 'cn_tsunami' in topojsonUrls) {
             if(cn_tsunami) {
                 cnTsunamiBaseMap = loadBaseMap(cn_tsunami, 'tsunamiBasePane', false, {
-                    color: '#ffffff00',
+                    color: tsunamiBaseMapDefaultStroke,
                     opacity: 1,
                     weight: map.getZoom(),
                 })
@@ -1079,7 +1088,7 @@ const loadMaps = async (retries = 0) => {
                 })
                 watch(nmefcTsunamiWarnArea, newVal => {
                     cnTsunamiBaseMap.setStyle(feature => ({
-                        color: tsunamiColors[newVal[feature.properties.name]?.className] || '#ffffff00'
+                        color: tsunamiColors[newVal[feature.properties.name]?.className] || tsunamiBaseMapDefaultStroke
                     }))
                     smartSetView()
                 }, { deep: true, immediate: true })
@@ -1150,7 +1159,7 @@ const setView = (force = false) => {
         if(settingsStore.mainSettings.cinemaMode && tempEqlists.value && menuId.value == 'eqlists' && historyList.length == 0) {
             if(tempEqlists.value == 'jmaTsunami') {
                 statusStore.isActive.jmaTsunami && jpTsunamiBaseMap?.eachLayer(layer => {
-                    if(layer.options.color && layer.options.color != '#ffffff00') {
+                    if(layer.options.color && layer.options.color != tsunamiBaseMapDefaultStroke) {
                         if(layer.getBounds){
                             bounds.extend(layer.getBounds())
                         }
@@ -1165,7 +1174,7 @@ const setView = (force = false) => {
             }
             else if(tempEqlists.value == 'nmefcTsunami') {
                 statusStore.isActive.nmefcTsunami && cnTsunamiBaseMap?.eachLayer(layer => {
-                    if(layer.options.color && layer.options.color != '#ffffff00') {
+                    if(layer.options.color && layer.options.color != tsunamiBaseMapDefaultStroke) {
                         if(layer.getBounds){
                             bounds.extend(layer.getBounds())
                         }
@@ -1185,7 +1194,7 @@ const setView = (force = false) => {
                     }
                 })
                 jpEewBaseMap?.eachLayer(layer => {
-                    if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
+                    if(layer.options.fillColor && layer.options.fillColor != eewBaseMapDefaultFill) {
                         if(layer.getBounds){
                             bounds.extend(layer.getBounds())
                         }
@@ -1195,7 +1204,7 @@ const setView = (force = false) => {
                     }
                 })
                 krEewBaseMap?.eachLayer(layer => {
-                    if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
+                    if(layer.options.fillColor && layer.options.fillColor != eewBaseMapDefaultFill) {
                         if(layer.getBounds){
                             bounds.extend(layer.getBounds())
                         }
@@ -1205,7 +1214,7 @@ const setView = (force = false) => {
                     }
                 })
                 cnEewBaseMap?.eachLayer(layer => {
-                    if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
+                    if(layer.options.fillColor && layer.options.fillColor != eewBaseMapDefaultFill) {
                         if(layer.getBounds){
                             bounds.extend(layer.getBounds())
                         }
@@ -1268,46 +1277,26 @@ const setView = (force = false) => {
             }
             //历史地震
             if(!bounds.isValid() && menuId.value == 'eqlists' && historyList.length > 0) {
-                historyList.forEach(event => {
-                    if(event.isValidHypo){
-                        bounds.extend(event.hypoLatLng)
-                    }
-                })
-                jpEewBaseMap?.eachLayer(layer => {
-                    if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
-                        if(layer.getBounds){
-                            bounds.extend(layer.getBounds())
-                        }
-                        else if(layer.getLatLng){
-                            bounds.extend(layer.getLatLng())
+                map.eachLayer(layer => {
+                    if(layer.options.pane == 'eewBasePane') {
+                        if(layer.options.fillColor && layer.options.fillColor != eewBaseMapDefaultFill) {
+                            if(layer.getBounds){
+                                bounds.extend(layer.getBounds())
+                            }
+                            else if(layer.getLatLng){
+                                bounds.extend(layer.getLatLng())
+                            }
                         }
                     }
-                })
-                krEewBaseMap?.eachLayer(layer => {
-                    if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
-                        if(layer.getBounds){
-                            bounds.extend(layer.getBounds())
-                        }
-                        else if(layer.getLatLng){
-                            bounds.extend(layer.getLatLng())
-                        }
-                    }
-                })
-                cnEewBaseMap?.eachLayer(layer => {
-                    if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
-                        if(layer.getBounds){
-                            bounds.extend(layer.getBounds())
-                        }
-                        else if(layer.getLatLng){
-                            bounds.extend(layer.getLatLng())
-                        }
+                    else if(layer.options.pane == 'historyMarkerPane' || layer.options.pane.includes('intReportStationPane')) {
+                        bounds.extend(layer.getLatLng())
                     }
                 })
             }
             //活跃的Eqlist和Tsunami
             if(!bounds.isValid() && menuId.value != 'eews') {
                 statusStore.isActive.jmaTsunami && jpTsunamiBaseMap?.eachLayer(layer => {
-                    if(layer.options.color && layer.options.color != '#ffffff00') {
+                    if(layer.options.color && layer.options.color != tsunamiBaseMapDefaultStroke) {
                         if(layer.getBounds){
                             bounds.extend(layer.getBounds())
                         }
@@ -1317,7 +1306,7 @@ const setView = (force = false) => {
                     }
                 })
                 statusStore.isActive.nmefcTsunami && cnTsunamiBaseMap?.eachLayer(layer => {
-                    if(layer.options.color && layer.options.color != '#ffffff00') {
+                    if(layer.options.color && layer.options.color != tsunamiBaseMapDefaultStroke) {
                         if(layer.getBounds){
                             bounds.extend(layer.getBounds())
                         }
@@ -1333,7 +1322,7 @@ const setView = (force = false) => {
                         }
                     })
                     jpEewBaseMap?.eachLayer(layer => {
-                        if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
+                        if(layer.options.fillColor && layer.options.fillColor != eewBaseMapDefaultFill) {
                             if(layer.getBounds){
                                 bounds.extend(layer.getBounds())
                             }
@@ -1343,7 +1332,7 @@ const setView = (force = false) => {
                         }
                     })
                     krEewBaseMap?.eachLayer(layer => {
-                        if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
+                        if(layer.options.fillColor && layer.options.fillColor != eewBaseMapDefaultFill) {
                             if(layer.getBounds){
                                 bounds.extend(layer.getBounds())
                             }
@@ -1353,7 +1342,7 @@ const setView = (force = false) => {
                         }
                     })
                     cnEewBaseMap?.eachLayer(layer => {
-                        if(layer.options.fillColor && layer.options.fillColor != '#39393900') {
+                        if(layer.options.fillColor && layer.options.fillColor != eewBaseMapDefaultFill) {
                             if(layer.getBounds){
                                 bounds.extend(layer.getBounds())
                             }
@@ -1369,7 +1358,7 @@ const setView = (force = false) => {
                 const candidates = []
                 map.eachLayer(layer => {
                     if(layer.options.pane == 'eqlistMarkerPane' || 
-                    layer.options.pane == 'eewBasePane' && layer.options.fillColor && layer.options.fillColor != '#39393900'){
+                    layer.options.pane == 'eewBasePane' && layer.options.fillColor && layer.options.fillColor != eewBaseMapDefaultFill){
                         if(layer.getBounds){
                             bounds.extend(layer.getBounds())
                         }

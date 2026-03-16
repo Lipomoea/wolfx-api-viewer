@@ -363,15 +363,15 @@ watch(currentMaxShindo, (newVal, oldVal)=>{
             if(newVal >= 1 && newVal <= 3 && !shake1Notified){
                 sendMyNotification('揺れを検出', 
                     '揺れに注意してください。', 
-                    iconUrls.caution, 
-                    settingsStore.mainSettings.muteNotification)
+                    iconUrls.caution
+                )
                 shake1Notified = true
             }
             else if(newVal >= 4 && !shake2Notified){
                 sendMyNotification('強い揺れを検出', 
                     '強い揺れに警戒してください。', 
-                    iconUrls.warn, 
-                    settingsStore.mainSettings.muteNotification)
+                    iconUrls.warn
+                )
                 shake1Notified = true
                 shake2Notified = true
             }

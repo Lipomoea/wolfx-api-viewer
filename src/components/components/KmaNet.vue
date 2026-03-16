@@ -293,15 +293,15 @@ watch(currentMaxShindo, (newVal, oldVal)=>{
             if(newVal >= 1 && newVal <= 3 && !shake1Notified){
                 sendMyNotification('흔들림을 감지하다', 
                     '흔들림에 주의하세요.', 
-                    iconUrls.caution, 
-                    settingsStore.mainSettings.muteNotification)
+                    iconUrls.caution
+                )
                 shake1Notified = true
             }
             else if(newVal >= 4 && !shake2Notified){
                 sendMyNotification('강한 흔들림을 감지했습니다', 
                     '강한 흔들림에 주의하세요.', 
-                    iconUrls.warn, 
-                    settingsStore.mainSettings.muteNotification)
+                    iconUrls.warn
+                )
                 shake1Notified = true
                 shake2Notified = true
             }

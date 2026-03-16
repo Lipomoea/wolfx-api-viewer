@@ -10,6 +10,8 @@ import cancelCross from '@/assets/icon/hypocenter/cancelCross.svg';
 import eqlistCross from '@/assets/icon/hypocenter/eqlistCross.svg';
 import eewCircle from '@/assets/icon/hypocenter/eewCircle.svg';
 import cancelCircle from '@/assets/icon/hypocenter/cancelCircle.svg';
+import { intReportStation } from './StationClasses';
+import { useStatusStore } from '@/stores/status';
 
 const iconRadius = 20
 
@@ -43,7 +45,7 @@ const cancelCircleIcon = L.icon({
     iconAnchor: [iconRadius, iconRadius]
 })
 
-let settingsStore
+let settingsStore, statusStore
 export const ignoredIds = {}
 
 export class EewEvent {
@@ -502,8 +504,8 @@ export class EewEvent {
         if(icon){
             sendMyNotification(`${eqMessage.titleText} ${eqMessage.reportNumText}`, 
                 `${eqMessage.hypocenterText}\n${eqMessage.depthText}\n${eqMessage.magnitudeText}\n${eqMessage.maxIntensityText}`, 
-                icon, 
-                settingsStore.mainSettings.muteNotification)
+                icon
+            )
         }
         this.handleTempEqlists(0)
     }
@@ -608,8 +610,6 @@ export class EqlistEvent {
     }
     handleActions(){
         const eqMessage = this.eqMessage
-        let icon = ''
-        if(settingsStore.mainSettings.onReport.notification) icon = iconUrls.info
         if(settingsStore.mainSettings.onReport.sound){
             switch(eqMessage.source){
                 case 'jmaEqlist':{
@@ -668,11 +668,11 @@ export class EqlistEvent {
             }
         }
         if(settingsStore.mainSettings.onReport.focus) focusWindow()
-        if(icon){
+        if(settingsStore.mainSettings.onReport.notification){
             sendMyNotification(`${eqMessage.titleText}`, 
                 `${eqMessage.hypocenterText}\n${eqMessage.depthText}\n${eqMessage.magnitudeText}\n${eqMessage.maxIntensityText}`, 
-                icon, 
-                settingsStore.mainSettings.muteNotification)
+                iconUrls.info
+            )
         }
         this.handleTempEqlists(6500, eqMessage.source)
     }
@@ -699,7 +699,9 @@ export class EqlistEvent {
 export class HistoryEvent extends EqlistEvent {
     constructor(map, eqMessage, smartSetView, historyList){
         super(map, eqMessage, null, smartSetView)
+        if(!statusStore) statusStore = useStatusStore()
         this.historyList = historyList
+        this.renderAllStations = this.renderAllStations.bind(this)
     }
     setMark(){
         this.removeMark()
@@ -723,12 +725,33 @@ export class HistoryEvent extends EqlistEvent {
         this.setMark()
         this.smartSetView()
         this.isActive = true
+        statusStore.getIrDetail(this.eqMessage?.intReportId)
+    }
+    renderAllStations() {
+        this.stations?.forEach(station => station.render())
+    }
+    createStations(data) {
+        this.terminateStations()
+        this.stations = []
+        const stationData = data.instrument_intensity_json
+        stationData.forEach(item => {
+            const station = new intReportStation(this.map, item.stID, [item.stla, item.stlo], item)
+            this.stations.push(station)
+        })
+        this.map.on('zoomend', this.renderAllStations)
+        this.smartSetView()
+    }
+    terminateStations() {
+        this.map.off('zoomend', this.renderAllStations)
+        this.stations?.forEach(station => station.terminate())
+        this.stations = null
     }
     handleActions() {
         return
     }
     deactivate() {
         clearTimeout(this.showMenuTimer)
+        this.terminateStations()
         this.isActive = false
         this.showMenu = false
         this.removeMark()

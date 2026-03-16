@@ -115,7 +115,7 @@ watch(() => statusStore.map, newVal => {
             }
             const { notification, sound, focus } = settingsStore.mainSettings.onTsunami
             if(notification && title) {
-                sendMyNotification(title, body, icon, settingsStore.mainSettings.muteNotification)
+                sendMyNotification(title, body, icon)
             }
             if(sound && speech) {
                 if(playEws) {

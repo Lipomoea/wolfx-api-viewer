@@ -27,7 +27,7 @@
                     <div class="bottom">
                         <div class="magnitude">M{{ item.magnitude ? item.magnitude.toFixed(1) : '不明' }}</div>
                         <div class="depth">{{ item.depth.toFixed(0) }}km</div>
-                        <div class="source">{{ item.source }}</div>
+                        <div class="source">{{ (item.intReportId ? '*' : '') + item.source }}</div>
                     </div>
                 </div>
                 <div class="buttons" @contextmenu.prevent="handleCopy(item)">

@@ -1,6 +1,6 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { getLevelFromInstShindo, getMmiFromKmaLevel, getShindoFromChar, getShindoFromInstShindo, intScale, shindoScale } from '@/utils/Utils';
+import { getCsisLevelFromCsis, getLevelFromInstShindo, getMmiFromKmaLevel, getShindoFromChar, getShindoFromInstShindo, intScale, shindoScale } from '@/utils/Utils';
 import { useSettingsStore } from '@/stores/settings';
 import { ref } from 'vue';
 import '@/assets/background.css';
@@ -14,6 +14,7 @@ import shindo5u from '@/assets/icon/shindo/5+.svg';
 import shindo6l from '@/assets/icon/shindo/6-.svg';
 import shindo6u from '@/assets/icon/shindo/6+.svg';
 import shindo7 from '@/assets/icon/shindo/7.svg';
+import int0 from '@/assets/icon/intensity/0.svg';
 import int1 from '@/assets/icon/intensity/1.svg';
 import int2 from '@/assets/icon/intensity/2.svg';
 import int3 from '@/assets/icon/intensity/3.svg';
@@ -41,6 +42,7 @@ const shindoIconUrls = {
 }
 
 const intIconUrls = {
+    '0': int0,
     '1': int1,
     '2': int2,
     '3': int3,
@@ -226,12 +228,7 @@ export class NiedStation {
         this.setColorRadius()
         const zoom = this.map.getZoom()
         if(settingsStore.mainSettings.displaySeisNet.displayNiedShindo && this.level >= (settingsStore.mainSettings.displaySeisNet.displayShindo0 ? 6 : 8) && zoom >= 4){
-            if(simpleIcon.value && zoom <= 8) {
-                this.markerType = 1
-            }
-            else {
-                this.markerType = 2
-            }
+            this.markerType = simpleIcon.value ? 1 : 2
         }
         else{
             this.markerType = 0
@@ -251,7 +248,7 @@ export class NiedStation {
                     break
                 case 1:
                     const color = shindoColorBand[this.level]
-                    const radius = Math.min(Math.max(this.radius, 2), 4)
+                    const radius = Math.max(this.radius, 2)
                     this.marker = L.circleMarker(this.latLng, {
                         radius: radius * 1.8,
                         opacity: 1,
@@ -287,7 +284,7 @@ export class NiedStation {
                     break
                 case 1:
                     const color = shindoColorBand[this.level]
-                    const radius = Math.min(Math.max(this.radius, 2), 4)
+                    const radius = Math.max(this.radius, 2)
                     this.marker.setStyle({
                         color: '#ffffff',
                         fillColor: color,
@@ -315,7 +312,7 @@ export class NiedStation {
                 else{
                     this.color = colorBand.nied[this.level]
                 }
-                this.radius = (this.level <= 5 ? 2 : 2.5) * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+                this.radius = (this.level <= 5 ? 2 : 2.5) * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
                 break
             case 'srev':
                 if(this.level < 0 || this.level >= colorBand.srev.length){
@@ -324,7 +321,7 @@ export class NiedStation {
                 else{
                     this.color = colorBand.srev[this.level]
                 }
-                this.radius = 2.5 * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+                this.radius = 2.5 * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
                 break
             case 'mix':
                 if(this.level < 0 || this.level >= colorBand.mix.length){
@@ -333,7 +330,7 @@ export class NiedStation {
                 else{
                     this.color = colorBand.mix[this.level]
                 }
-                this.radius = 2.5 * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+                this.radius = 2.5 * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
                 break
         }
     }
@@ -381,12 +378,7 @@ export class TremStation {
         this.setColorRadius()
         const zoom = this.map.getZoom()
         if(settingsStore.mainSettings.displaySeisNet.displayTremShindo && this.level >= (settingsStore.mainSettings.displaySeisNet.displayShindo0 ? 6 : 8) && zoom >= 4){
-            if(simpleIcon.value && zoom <= 8) {
-                this.markerType = 1
-            }
-            else {
-                this.markerType = 2
-            }
+            this.markerType = simpleIcon.value ? 1 : 2
         }
         else{
             this.markerType = 0
@@ -406,7 +398,7 @@ export class TremStation {
                     break
                 case 1:
                     const color = shindoColorBand[this.level]
-                    const radius = Math.min(Math.max(this.radius, 2), 4)
+                    const radius = Math.max(this.radius, 2)
                     this.marker = L.circleMarker(this.latLng, {
                         radius: radius * 1.8,
                         opacity: 1,
@@ -442,7 +434,7 @@ export class TremStation {
                     break
                 case 1:
                     const color = shindoColorBand[this.level]
-                    const radius = Math.min(Math.max(this.radius, 2), 4)
+                    const radius = Math.max(this.radius, 2)
                     this.marker.setStyle({
                         color: '#ffffff',
                         fillColor: color,
@@ -470,7 +462,7 @@ export class TremStation {
                 else{
                     this.color = colorBand.nied[this.level]
                 }
-                this.radius = (this.level <= 5 ? 2 : 2.5) * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+                this.radius = (this.level <= 5 ? 2 : 2.5) * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
                 break
             case 'srev':
                 if(this.level < 0 || this.level >= colorBand.srev.length){
@@ -479,7 +471,7 @@ export class TremStation {
                 else{
                     this.color = colorBand.srev[this.level]
                 }
-                this.radius = 2.5 * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+                this.radius = 2.5 * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
                 break
             case 'mix':
                 if(this.level < 0 || this.level >= colorBand.mix.length){
@@ -488,7 +480,7 @@ export class TremStation {
                 else{
                     this.color = colorBand.mix[this.level]
                 }
-                this.radius = 2.5 * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+                this.radius = 2.5 * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
                 break
         }
     }
@@ -538,12 +530,7 @@ export class KmaStation {
         this.setColorRadius()
         const zoom = this.map.getZoom()
         if(settingsStore.mainSettings.displaySeisNet.displayKmaInt && this.holdLevel >= (settingsStore.mainSettings.displaySeisNet.displayShindo0 ? 3 : 4) && zoom >= 4){
-            if(simpleIcon.value && zoom <= 8) {
-                this.markerType = 1
-            }
-            else {
-                this.markerType = 2
-            }
+            this.markerType = simpleIcon.value ? 1 : 2
         }
         else{
             this.markerType = 0
@@ -563,7 +550,7 @@ export class KmaStation {
                     break
                 case 1:
                     const color = kmaIntColorBand[this.holdLevel]
-                    const radius = Math.min(Math.max(this.radius, 2), 4)
+                    const radius = Math.max(this.radius, 2)
                     this.marker = L.circleMarker(this.latLng, {
                         radius: radius * 1.8,
                         opacity: 1,
@@ -599,7 +586,7 @@ export class KmaStation {
                     break
                 case 1:
                     const color = kmaIntColorBand[this.holdLevel]
-                    const radius = Math.min(Math.max(this.radius, 2), 4)
+                    const radius = Math.max(this.radius, 2)
                     this.marker.setStyle({
                         color: '#ffffff',
                         fillColor: color,
@@ -627,7 +614,7 @@ export class KmaStation {
                 else{
                     this.color = kmaColorBand.nied[this.holdLevel]
                 }
-                this.radius = (this.holdLevel <= 2 ? 2 : 2.5) * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+                this.radius = (this.holdLevel <= 2 ? 2 : 2.5) * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
                 break
             case 'srev':
                 if(this.holdLevel < 0 || this.holdLevel >= kmaColorBand.srev.length){
@@ -636,7 +623,7 @@ export class KmaStation {
                 else{
                     this.color = kmaColorBand.srev[this.holdLevel]
                 }
-                this.radius = 2.5 * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+                this.radius = 2.5 * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
                 break
             case 'mix':
                 if(this.holdLevel < 0 || this.holdLevel >= kmaColorBand.mix.length){
@@ -645,7 +632,7 @@ export class KmaStation {
                 else{
                     this.color = kmaColorBand.mix[this.holdLevel]
                 }
-                this.radius = 2.5 * 2 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+                this.radius = 2.5 * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
                 break
         }
     }
@@ -661,5 +648,52 @@ export class KmaStation {
         this.map = null
         this.marker = null
         clearTimeout(this.activeTimer)
+    }
+}
+export class intReportStation {
+    constructor(map, id, latLng, detail){
+        if(!settingsStore) settingsStore = useSettingsStore()
+        this.map = map
+        this.id = id
+        this.latLng = latLng
+        this.detail = detail
+        this.intensity = getCsisLevelFromCsis(detail.INT)
+        this.render()
+    }
+    render(){
+        const zoom = this.map.getZoom()
+        const iconZoom = Math.min(Math.max(zoom, 6), 10)
+        const intIcon = intIcons[iconZoom][this.intensity]
+        if(this.marker) {
+            this.marker.setIcon(intIcon)
+        }
+        else {
+            this.marker = L.marker(this.latLng, {
+                icon: intIcon,
+                pane: `intReportStationPane${this.intensity}`,
+                interactive: true
+            })
+            this.marker.bindTooltip(`
+                <strong>${this.detail.stName} (${this.detail.stID})</strong>
+                <br>
+                地点: ${this.detail.Province + this.detail.City + this.detail.County + this.detail.Town}
+                <br>
+                经纬度: ${this.detail.stla.toFixed(2)}°N, ${this.detail.stlo.toFixed(2)}°E
+                <br>
+                震中距: ${this.detail.Dist.toFixed(2)} km
+                <br>
+                仪器烈度: ${this.detail.INT.toFixed(1)} (I_PGA: ${this.detail.IPGA.toFixed(1)}, I_PGV: ${this.detail.IPGV.toFixed(1)})
+                <br>
+                PGA: ${this.detail.PGA.toFixed(1)} gal
+                <br>
+                PGV: ${this.detail.PGV.toFixed(1)} kine
+            `, { permanent: false, direction: 'top', className: 'custom-tooltip' })
+            this.marker.addTo(this.map)
+        }
+    }
+    terminate(){
+        if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
+        this.map = null
+        this.marker = null
     }
 }

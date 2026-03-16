@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia';
 import Http from '@/classes/Http';
 import WebSocketObj from '@/classes/WebSocket';
-import { eqUrls, tsunamiUrls } from '@/utils/Urls';
-import { setClassName, calcCsisLevel, stampToTime, getShindoFromInstShindo, shindoScaleKanji, calcTimeDiff, shindoScale } from '@/utils/Utils';
+import { eqUrls, iconUrls, tsunamiUrls } from '@/utils/Urls';
+import { setClassName, calcCsisLevel, stampToTime, getShindoFromInstShindo, shindoScaleKanji, calcTimeDiff, shindoScale, playSound, sendMyNotification, focusWindow } from '@/utils/Utils';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { useSettingsStore } from './settings';
 import { isTauri } from '@tauri-apps/api/core';
@@ -173,6 +173,8 @@ export const sourceTypes = {
 
 let usgsCache = null
 
+const maxIntReportNum = 20
+
 export const useStatusStore = defineStore('statusStore', {
     state: ()=>({
         map: null,
@@ -235,7 +237,9 @@ export const useStatusStore = defineStore('statusStore', {
             cencEqlist: [],
             usgsEqlist: [],
             fssnEqlist: [],
-        }
+        },
+        intReportIds: new Set(),
+        historyList: null,
     }),
     getters: {
         activeWolfxSources: state => useWolfxSocket.filter(source => state.enabledSource.includes(source)),
@@ -1175,6 +1179,7 @@ export const useStatusStore = defineStore('statusStore', {
                         const depth = Number(data[i].depth)
                         const magnitude = Number(data[i].magnitude)
                         const maxIntensity = calcCsisLevel(magnitude, depth)
+                        const intReportId = data[i].shockTime.replace(/[^\d]/g, '')
                         list[i] = {
                             source: 'CENC',
                             id: data[i].id,
@@ -1188,7 +1193,8 @@ export const useStatusStore = defineStore('statusStore', {
                             magnitude,
                             maxIntensity,
                             className: setClassName(maxIntensity, false),
-                            url: 'https://news.ceic.ac.cn/'
+                            url: 'https://news.ceic.ac.cn/',
+                            intReportId: this.intReportIds.has(intReportId) ? intReportId : null
                         }
                         break
                     }
@@ -1266,13 +1272,13 @@ export const useStatusStore = defineStore('statusStore', {
                 clearInterval(this.httpRequest)
                 this.httpRequest = setInterval(async () => {
                     const stamp = Date.now()
-                    status = (status + 1) % 10
+                    status = (status + 1) % 60
                     const promises = this.enabledSource.map(async source=>{
-                        if(source == 'jmaEqlist' && status % 2 == 0 && (!this.eqMessage[source].id || status == 0)) {
+                        if(source == 'jmaEqlist' && status % 2 == 0 && (!this.eqMessage[source].id || status % 10 == 0)) {
                             const data = await Http.get(eqUrls.jmaEqlist_http)
                             if(data && data.length > 0) this.setEqMessage(source, data[0])
                         }
-                        if(source == 'jmaTsunami' && status % 2 == 1 && (!this.tsunamiMessage[source].id || status == 1)) {
+                        if(source == 'jmaTsunami' && status % 2 == 1 && (!this.tsunamiMessage[source].id || status % 10 == 1)) {
                             const data = await Http.get(tsunamiUrls.jmaTsunami_http)
                             if(data && data.length > 0) this.setTsunamiMessage(source, data[0])
                         }
@@ -1283,21 +1289,13 @@ export const useStatusStore = defineStore('statusStore', {
                                 this.setHistory(source, data)
                             }
                         }
-                        if(source == 'usgsEqlist' && status == 0) {
+                        if(source == 'usgsEqlist' && status % 10 == 0) {
                             const data = await Http.get(eqUrls.usgsEqlist_http + `?time=${stamp}`)
                             if(data) {
                                 this.setEqMessage(source, data.features[0])
                                 this.setHistory(source, data.features)
                             }
                         }
-                        // if(source == 'jmaEew' && this.isTauri) {
-                        //     const timeData = await Http.tauriGet(eqUrls.niedLatest + `?time=${stamp}`)
-                        //     if(timeData && timeData.result.status == 'success') {
-                        //         const timeStr = timeData.latest_time.replace(/\D/g, '')
-                        //         const data = await Http.tauriGet(eqUrls.jmaEew2_http + `/${timeStr}.json`)
-                        //         if(data && data.report_id) this.setEqMessage(source, data, 2)
-                        //     }
-                        // }
                         if(this.multiApi) {
                             if(source == 'iclEew' && 'iclEew_http' in eqUrls) {
                                 const data = await Http.get(eqUrls.iclEew_http + `?time=${stamp}`)
@@ -1348,8 +1346,8 @@ export const useStatusStore = defineStore('statusStore', {
                     if(token) initMsg.push(`{"type":"auth","key":"${token}"}`)
                     const autoMsg = ['query']
                     if(this.activeFanSources.includes('cencEqlist')) {
-                        autoMsg.push('cenclist')
-                        initMsg.push('cenclist')
+                        autoMsg.push('cencirlist', 'cenclist')
+                        initMsg.push('cencirlist', 'cenclist')
                     }
                     if(this.activeFanSources.includes('fssnEqlist')) {
                         autoMsg.push('fssnlist')
@@ -1361,28 +1359,66 @@ export const useStatusStore = defineStore('statusStore', {
                     this.fanSocket = new WebSocketObj(fanUrls, autoMsg, initMsg)
                     this.fanSocket.setMessageHandler((e)=>{
                         const data = JSON.parse(e.data)
-                        if(data.type == 'initial_all' || data.type == 'query_response') {
-                            this.activeFanSources.forEach(source => {
-                                const Data = data[source2Fan[source]]?.Data
-                                if(Data)
+                        switch(data.type) {
+                            case 'initial_all': case 'query_response': {
+                                this.activeFanSources.forEach(source => {
+                                    const Data = data[source2Fan[source]]?.Data
+                                    if(Data)
+                                        source.endsWith('Tsunami') ? this.setTsunamiMessage(source, Data) : this.setEqMessage(source, Data, 1)
+                                })
+                                break
+                            }
+                            case 'update': {
+                                const source = fan2Source[data.source]
+                                const Data = data?.Data
+                                if(source && this.activeFanSources.includes(source) && Data)
                                     source.endsWith('Tsunami') ? this.setTsunamiMessage(source, Data) : this.setEqMessage(source, Data, 1)
-                            })
-                        }
-                        else if(data.type == 'update'){
-                            const source = fan2Source[data.source]
-                            const Data = data?.Data
-                            if(source && this.activeFanSources.includes(source) && Data)
-                                source.endsWith('Tsunami') ? this.setTsunamiMessage(source, Data) : this.setEqMessage(source, Data, 1)
-                        }
-                        else if(data.type == 'cenclist_response') {
-                            const source = 'cencEqlist'
-                            const Data = data?.Data
-                            this.setHistory(source, Data)
-                        }
-                        else if(data.type == 'fssnlist_response') {
-                            const source = 'fssnEqlist'
-                            const Data = data?.Data
-                            this.setHistory(source, Data)
+                                break
+                            }
+                            case 'cenclist_response': {
+                                const source = 'cencEqlist'
+                                const Data = data?.Data
+                                this.setHistory(source, Data)
+                                break
+                            }
+                            case 'fssnlist_response': {
+                                const source = 'fssnEqlist'
+                                const Data = data?.Data
+                                this.setHistory(source, Data)
+                                break
+                            }
+                            case 'cencirlist_response': {
+                                const arr = data.Data?.map(item => String(item.id))
+                                const oldNum = this.intReportIds.size
+                                arr?.forEach(id => this.intReportIds.add(id))
+                                const newNum = this.intReportIds.size
+                                if(oldNum != 0 && oldNum < newNum) {
+                                    ElMessage({
+                                        message: '收到新的CENC烈度速报',
+                                        type: 'success',
+                                        duration: 10000,
+                                        showClose: true,
+                                    })
+                                    const settingsStore = useSettingsStore()
+                                    if(settingsStore.mainSettings.onReport.sound) {
+                                        playSound('detail')
+                                    }
+                                    if(settingsStore.mainSettings.onReport.focus) focusWindow()
+                                    if(settingsStore.mainSettings.onReport.notification) {
+                                        sendMyNotification('CENC烈度速报', '收到新的CENC烈度速报', iconUrls.info)
+                                    }
+                                }
+                                while(this.intReportIds.size > maxIntReportNum) {
+                                    const first = this.intReportIds.values().next().value
+                                    this.intReportIds.delete(first)
+                                }
+                                break
+                            }
+                            case 'cencirdetail_response': {
+                                const Data = data?.Data
+                                this.historyList?.find(event => event.eqMessage.intReportId == Data.id).createStations(Data)
+                                break
+                            }
                         }
                     })
                 }
@@ -1412,6 +1448,15 @@ export const useStatusStore = defineStore('statusStore', {
             }
             else{
                 console.log('Unrecognized protocol type.')
+            }
+        },
+        getIrDetail(id) {
+            if(this.fanSocket && id) {
+                const msg = {
+                    type: 'cencirdetail',
+                    id
+                }
+                this.fanSocket.send(JSON.stringify(msg))
             }
         },
         disconnect(){

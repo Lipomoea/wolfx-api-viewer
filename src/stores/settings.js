@@ -100,7 +100,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             placeNameOnHover: false,
             displayCnFault: false,
             displayTerminator: false,
-            useRomanCsis: false,
+            useRomanCsis: true,
             fillSWave: true,
             sWaveColorMode: 0,
             hideDrawer: false,

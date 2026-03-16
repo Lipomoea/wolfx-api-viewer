@@ -74,8 +74,9 @@ export const calcTimeDiff = (time1, timeZone1, time2, timeZone2) => {
   let stamp2 = timeToStamp(time2, timeZone2);
   return stamp1 - stamp2;
 };
-export const sendMyNotification = (title, body, icon, silent) => {
+export const sendMyNotification = (title, body, icon = "") => {
   if (!settingsStore) settingsStore = useSettingsStore();
+  const silent = settingsStore.mainSettings.muteNotification;
   if ("Notification" in window) {
     if (Notification.permission == "granted") {
       if (!settingsStore.mainSettings.gameMode) {
@@ -201,6 +202,7 @@ export const shindoScaleKanji = [
   "7",
 ];
 export const intScale = [
+  "0",
   "1",
   "2",
   "3",
@@ -341,6 +343,8 @@ export const getLevelFromInstShindo = instShindo => {
   else if (instShindo >= 6.5) return 20;
   else return Math.floor(instShindo * 2 + 7);
 };
+export const getCsisLevelFromCsis = csis =>
+  Math.min(Math.max(csis, 0), 12).toFixed(0);
 export const judgeSameEvent = (eqMessage1, eqMessage2) => {
   if (eqMessage1.source == eqMessage2.source && eqMessage1.id == eqMessage2.id)
     return true;
@@ -417,7 +421,7 @@ export const calcCsis = (m, dep = 10, dis = 0) => {
   return (ceaCsis1 + ceaCsis2) / 2;
 };
 export const calcCsisLevel = (m, dep = 10, dis = 0) =>
-  Math.min(Math.max(calcCsis(m, dep, dis), 0), 12).toFixed(0);
+  getCsisLevelFromCsis(calcCsis(m, dep, dis));
 export const formatChineseTaiwan = str =>
   (str.startsWith("台湾") && !(str.includes("市") || str.includes("县"))
     ? "中国"

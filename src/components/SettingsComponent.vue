@@ -843,7 +843,7 @@
                             <el-switch v-model="settingsStore.mainSettings.displayTerminator" />
                         </div>
                         <div class="switch-full">
-                            <span>中国地震烈度使用罗马数字</span>
+                            <span>使用罗马数字显示烈度</span>
                             <el-switch v-model="settingsStore.mainSettings.useRomanCsis" />
                         </div>
                         <div class="switch-full">
@@ -1267,7 +1267,7 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false" append-to-body>
-            <div class="header">要石 v2.4.1</div>
+            <div class="header">要石 v2.5.0</div>
             <div class="title">注意事项</div>
             <div class="about">
                 <p>本应用程序仅作为学习使用。</p>
