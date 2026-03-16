@@ -1416,7 +1416,7 @@ export const useStatusStore = defineStore('statusStore', {
                             }
                             case 'cencirdetail_response': {
                                 const Data = data?.Data
-                                this.historyList?.find(event => event.eqMessage.intReportId == Data.id).createStations(Data)
+                                this.historyList?.find(event => event.eqMessage.intReportId == Data.id)?.createStations(Data)
                                 break
                             }
                         }
