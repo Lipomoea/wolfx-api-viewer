@@ -4,17 +4,53 @@
       <div class="bar">
         <div class="title">地震/海啸信息</div>
         <div class="switch">
-          <div class="mag"
-            :class="setClassName(calcCsisLevel(settingsStore.mainSettings.historyMagThres, 10, 0), false)">
-            {{ settingsStore.mainSettings.historyMagThres.toFixed(1) }}
-          </div>
-          <el-slider v-model="settingsStore.mainSettings.historyMagThres" :min="0" :max="9" :step="0.1" size="small"
-            :show-tooltip="false" />
+          <el-select
+            style="width: 90px;"
+            v-model="settingsStore.mainSettings.historyMagThres"
+            size="small"
+          >
+            <el-option label="所有震级" :value="0" />
+            <el-option label="2.0级以上" :value="2.0" />
+            <el-option label="2.5级以上" :value="2.5" />
+            <el-option label="3.0级以上" :value="3.0" />
+            <el-option label="3.5级以上" :value="3.5" />
+            <el-option label="4.0级以上" :value="4.0" />
+            <el-option label="4.5级以上" :value="4.5" />
+            <el-option label="5.0级以上" :value="5.0" />
+            <el-option label="5.5级以上" :value="5.5" />
+            <el-option label="6.0级以上" :value="6.0" />
+            <el-option label="6.5级以上" :value="6.5" />
+            <el-option label="7.0级以上" :value="7.0" />
+            <el-option label="7.5级以上" :value="7.5" />
+            <el-option label="8.0级以上" :value="8.0" />
+          </el-select>
+          <el-select
+            style="width: 90px;"
+            v-model="settingsStore.mainSettings.historySources"
+            size="small"
+            multiple
+            placeholder=""
+          >
+            <template #tag>
+              <span class="el-select__placeholder" style="display: flex; justify-content: center; align-items: center;">
+                {{ settingsStore.mainSettings.historySources.length }}个数据源
+              </span>
+            </template>
+            <el-option label="CENC" value="CENC" />
+            <el-option label="CWA" value="CWA" />
+            <el-option label="JMA" value="JMA" />
+            <el-option label="USGS" value="USGS" />
+            <el-option label="FSSN" value="FSSN" />
+          </el-select>
         </div>
       </div>
-      <NmefcTsunami v-if="settingsStore.mainSettings.source.nmefcTsunami" v-show="statusStore.isActive.nmefcTsunami" />
-      <JmaTsunami v-if="settingsStore.mainSettings.source.jmaTsunami" v-show="statusStore.isActive.jmaTsunami" />
-      <EqlistHistoryComponent />
+      <div class="content">
+        <div class="wrap">
+          <NmefcTsunami v-if="settingsStore.mainSettings.source.nmefcTsunami" v-show="statusStore.isActive.nmefcTsunami" />
+          <JmaTsunami v-if="settingsStore.mainSettings.source.jmaTsunami" v-show="statusStore.isActive.jmaTsunami" />
+          <EqlistHistoryComponent />
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -25,7 +61,6 @@ import JmaTsunami from './components/JmaTsunami.vue';
 import { useSettingsStore } from '@/stores/settings';
 import { useStatusStore } from '@/stores/status';
 import EqlistHistoryComponent from './components/EqlistHistory.vue';
-import { calcCsisLevel, setClassName } from '@/utils/Utils';
 
 const settingsStore = useSettingsStore()
 const statusStore = useStatusStore()
@@ -35,13 +70,15 @@ const statusStore = useStatusStore()
 <style lang="scss" scoped>
 .outer1 {
   width: 100%;
+  height: 100%;
   .container {
     width: 100%;
+    height: 100%;
     padding: 5px;
-    padding-right: calc(100% - 395px);
+    padding-right: 0;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 5px;
     .bar {
       width: 100%;
       height: 28px;
@@ -57,21 +94,14 @@ const statusStore = useStatusStore()
         display: flex;
         justify-content: space-between;
         align-items: center;
-        .mag {
-          width: 28px;
-          height: 22px;
-          margin-left: 6px;
-          border-radius: 5px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          pointer-events: none;
-          user-select: none;
-        }
-        .el-slider {
-          flex: 1;
-          margin: 0 1rem;
-        }
+      }
+    }
+    .content {
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      .wrap {
+        padding-right: calc(100% - 390px);
       }
     }
   }

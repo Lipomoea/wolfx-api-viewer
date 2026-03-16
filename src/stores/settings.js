@@ -55,6 +55,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             fssnActionType: 1,
             actionWhiteList: '',
             historyMagThres: 0.0,
+            historySources: ['CENC', 'CWA'],
             onEew: {
                 notification: false,
                 sound: false,
@@ -168,7 +169,9 @@ export const useSettingsStore = defineStore('settingsStore', {
     actions: {
         setMainSettings(jsonString){
             if(jsonString){
-                merge(this.mainSettings, JSON.parse(jsonString))
+                const json = JSON.parse(jsonString)
+                if(json.historySources) this.mainSettings.historySources = []
+                merge(this.mainSettings, json)
             }
         },
         setAdvancedSettings(jsonString){
