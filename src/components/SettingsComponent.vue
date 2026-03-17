@@ -1960,6 +1960,7 @@ onBeforeUnmount(() => {
         padding: 5px;
         display: flex;
         flex-direction: column;
+        user-select: none;
         .title{
             font-size: 24px;
             font-weight: 700;

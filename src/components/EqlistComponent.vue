@@ -1,13 +1,14 @@
 <template>
   <div class="outer1">
     <div class="container">
-      <div class="bar">
+      <div class="bar" @click="scrollToTop">
         <div class="title">地震/海啸信息</div>
         <div class="switch">
           <el-select
             style="width: 90px;"
             v-model="settingsStore.mainSettings.historyMagThres"
             size="small"
+            @click.stop
           >
             <el-option label="所有震级" :value="0" />
             <el-option label="2.0级以上" :value="2.0" />
@@ -30,9 +31,10 @@
             size="small"
             multiple
             placeholder=""
+            @click.stop
           >
             <template #tag>
-              <span class="el-select__placeholder" style="display: flex; justify-content: center; align-items: center;">
+              <span class="el-select__placeholder custom-tag">
                 {{ settingsStore.mainSettings.historySources.length }}个数据源
               </span>
             </template>
@@ -44,7 +46,7 @@
           </el-select>
         </div>
       </div>
-      <div class="content">
+      <div class="content" ref="content">
         <div class="wrap">
           <NmefcTsunami v-if="settingsStore.mainSettings.source.nmefcTsunami" v-show="statusStore.isActive.nmefcTsunami" />
           <JmaTsunami v-if="settingsStore.mainSettings.source.jmaTsunami" v-show="statusStore.isActive.jmaTsunami" />
@@ -61,9 +63,15 @@ import JmaTsunami from './components/JmaTsunami.vue';
 import { useSettingsStore } from '@/stores/settings';
 import { useStatusStore } from '@/stores/status';
 import EqlistHistoryComponent from './components/EqlistHistory.vue';
+import { ref, watch, inject } from 'vue';
 
 const settingsStore = useSettingsStore()
 const statusStore = useStatusStore()
+
+const content = ref(null)
+const menuId = inject('menuId')
+const scrollToTop = () => content.value.scrollTop = 0
+watch(() => menuId.value == 'eqlists', scrollToTop)
 
 </script>
 
@@ -79,6 +87,7 @@ const statusStore = useStatusStore()
     display: flex;
     flex-direction: column;
     gap: 5px;
+    user-select: none;
     .bar {
       width: 100%;
       height: 28px;
@@ -94,12 +103,21 @@ const statusStore = useStatusStore()
         display: flex;
         justify-content: space-between;
         align-items: center;
+        :deep(.custom-tag) {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        :deep(.el-select__input) {
+          cursor: pointer;
+        }
       }
     }
     .content {
       width: 100%;
       height: 100%;
       overflow: auto;
+      scroll-behavior: smooth;
       .wrap {
         padding-right: calc(100% - 390px);
       }
