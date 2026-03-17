@@ -1,7 +1,7 @@
 <template>
   <div class="outer1">
     <div class="container">
-      <div class="bar" @click="scrollToTop">
+      <div class="bar" @click="smoothScrollToTop">
         <div class="title">地震/海啸信息</div>
         <div class="switch">
           <el-select
@@ -71,6 +71,12 @@ const statusStore = useStatusStore()
 const content = ref(null)
 const menuId = inject('menuId')
 const scrollToTop = () => content.value.scrollTop = 0
+const smoothScrollToTop = () => {
+  content.value.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  })
+}
 watch(() => menuId.value == 'eqlists', scrollToTop)
 
 </script>
@@ -117,7 +123,6 @@ watch(() => menuId.value == 'eqlists', scrollToTop)
       width: 100%;
       height: 100%;
       overflow: auto;
-      scroll-behavior: smooth;
       .wrap {
         padding-right: calc(100% - 390px);
       }
