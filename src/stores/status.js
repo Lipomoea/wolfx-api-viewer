@@ -1388,13 +1388,22 @@ export const useStatusStore = defineStore('statusStore', {
                                 break
                             }
                             case 'cencirlist_response': {
-                                const arr = data.Data?.map(item => String(item.id))
-                                const oldNum = this.intReportIds.size
-                                arr?.forEach(id => this.intReportIds.add(id))
-                                const newNum = this.intReportIds.size
-                                if(oldNum != 0 && oldNum < newNum) {
+                                const isEmpty = this.intReportIds.size == 0
+                                const arr = data.Data?.map(item => ({
+                                    id: String(item.id),
+                                    msg: `${item.locName}M${item.magnitude}`
+                                }))
+                                const newMsgs = []
+                                arr?.forEach(item => {
+                                    if(!this.intReportIds.has(item.id)) {
+                                        this.intReportIds.add(item.id)
+                                        newMsgs.push(item.msg)
+                                    }
+                                })
+                                if(!isEmpty && newMsgs.length > 0) {
+                                    const message = '收到新的CENC烈度速报: ' + newMsgs.join(' ')
                                     ElMessage({
-                                        message: '收到新的CENC烈度速报',
+                                        message,
                                         type: 'success',
                                         duration: 10000,
                                         showClose: true,
@@ -1405,7 +1414,7 @@ export const useStatusStore = defineStore('statusStore', {
                                     }
                                     if(settingsStore.mainSettings.onReport.focus) focusWindow()
                                     if(settingsStore.mainSettings.onReport.notification) {
-                                        sendMyNotification('CENC烈度速报', '收到新的CENC烈度速报', iconUrls.info)
+                                        sendMyNotification('CENC烈度速报', message, iconUrls.info)
                                     }
                                 }
                                 while(this.intReportIds.size > maxIntReportNum) {
