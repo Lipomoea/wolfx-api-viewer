@@ -55,7 +55,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             fssnActionType: 1,
             actionWhiteList: '',
             historyMagThres: 0.0,
-            historySources: ['CENC', 'CWA'],
+            historySources: ['CENC', 'CWA', 'JMA', 'USGS', 'FSSN'],
             onEew: {
                 notification: false,
                 sound: false,
