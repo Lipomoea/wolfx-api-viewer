@@ -173,7 +173,7 @@ export const sourceTypes = {
 
 let usgsCache = null
 
-const maxIntReportNum = 20
+const maxIntReportNum = 50
 
 export const useStatusStore = defineStore('statusStore', {
     state: ()=>({
