@@ -120,7 +120,7 @@ watch(eqMessage, (newVal)=>{
                 }
             }
         }
-        eqlistList.sort((a, b) => calcTimeDiff(b.eqMessage.reportTime, b.eqMessage.timeZone, a.eqMessage.reportTime, a.eqMessage.timeZone))
+        eqlistList.sort((a, b) => calcTimeDiff(b.eqMessage.reportTime, b.eqMessage.timeZone, a.eqMessage.reportTime, a.eqMessage.timeZone) + (b.eqMessage.source == props.source) - (a.eqMessage.source == props.source))
         eqlistList.forEach((event, index) => {
             if(index == 0) {
                 event.isLatest = true

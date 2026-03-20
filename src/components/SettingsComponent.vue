@@ -808,6 +808,25 @@
                     <span class="font-bold w-full">其他</span>
                     <div class="switch-group">
                         <div class="switch-full">
+                            <span>默认页面</span>
+                            <el-select
+                                style="width: 120px;"
+                                v-model="settingsStore.mainSettings.defaultMenuId"
+                                size="small"
+                            >
+                                <el-option label="主页(全部显示)" value="main" />
+                                <el-option label="地震预警" value="eews" />
+                                <el-option label="地震/海啸信息" value="eqlists" />
+                            </el-select>
+                        </div>
+                        <div class="switch-full">
+                            <span>禁用地震/海啸页面持续显示</span>
+                            <el-switch
+                                v-model="settingsStore.mainSettings.disableLastingEqlists"
+                                :disabled="settingsStore.mainSettings.defaultMenuId == 'eqlists'"
+                            />
+                        </div>
+                        <div class="switch-full">
                             <span>UI缩放比例</span>
                             <el-select
                                 style="width: 120px;"
@@ -824,12 +843,12 @@
                             </el-select>
                         </div>
                         <div class="switch-full">
-                            <span>显示地名</span>
+                            <span>地图显示地名</span>
                             <el-switch v-model="settingsStore.mainSettings.displayPlaceName"
                             @change="handleNeedReload" />
                         </div>
                         <div class="switch-full">
-                            <span>悬浮时显示地名</span>
+                            <span>鼠标悬浮地图时显示地名</span>
                             <el-switch v-model="settingsStore.mainSettings.placeNameOnHover"
                             :disabled="settingsStore.mainSettings.useCanvasRenderer"
                             @change="handleNeedReload" />
@@ -877,33 +896,6 @@
                                 </el-popover>
                             </span>
                             <el-switch v-model="settingsStore.mainSettings.hideDrawer" />
-                        </div>
-                        <div class="w-full">
-                            <div class="switch-full">
-                                <span>
-                                    放映模式
-                                    <el-popover
-                                        placement="top"
-                                        :width="300"
-                                        trigger="hover"
-                                    >
-                                        <template #reference>
-                                            <question-filled width="1em" height="1em" />
-                                        </template>
-                                        <p>收到新的信息时自动切换到对应的菜单栏。</p>
-                                        <strong>
-                                            <p>需重新加载页面后生效。</p>
-                                        </strong>
-                                    </el-popover>
-                                </span>
-                                <el-switch v-model="settingsStore.mainSettings.cinemaMode"
-                                @change="handleNeedReload" />
-                            </div>
-                            <div class="switch-full pl-4">
-                                <span>将地震/海啸信息页面设为默认</span>
-                                <el-switch v-model="settingsStore.mainSettings.eqlistsAsDefault"
-                                :disabled="!settingsStore.mainSettings.cinemaMode" />
-                            </div>
                         </div>
                         <div class="switch-full">
                             <span>地震信息显示模式</span>

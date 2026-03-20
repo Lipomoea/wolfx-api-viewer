@@ -77,7 +77,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="event" v-for="(event, index) of currentEqlistInfoItems" :key="index" v-show="menuId != 'eews'">
+                    <div class="event" v-for="(event, index) of currentEqlistInfoItems" :key="index" v-show="menuId != 'eews'" :class="{ 'midOpacity': tempEqlists && tempEqlists != event.eqMessage.source }">
                         <div class="eew">
                             <div class="bar" :class="getBarClass(event)">
                                 <div><InfoFilled style="width: 1em; height: 1em; margin-right: 0.25em;" />{{ event.eqMessage.titleText }}</div>
@@ -131,7 +131,7 @@
                         </div>
                     </div>
                     <div class="event" v-if="settingsStore.mainSettings.source.nmefcTsunami && statusStore.isActive.nmefcTsunami">
-                        <div class="eew" v-show="menuId != 'eews'">
+                        <div class="eew" v-show="menuId != 'eews'" :class="{ 'midOpacity': tempEqlists && tempEqlists != 'nmefcTsunami' }">
                             <div class="bar" :class="statusStore.tsunamiMessage.nmefcTsunami.className">
                                 <div><WarnTriangleFilled style="width: 1em; height: 1em; margin-right: 0.25em;" />{{ statusStore.tsunamiMessage.nmefcTsunami.titleText }}</div>
                             </div>
@@ -152,7 +152,7 @@
                         </div>
                     </div>
                     <div class="event" v-if="settingsStore.mainSettings.source.jmaTsunami && statusStore.isActive.jmaTsunami">
-                        <div class="eew" v-show="menuId != 'eews'">
+                        <div class="eew" v-show="menuId != 'eews'" :class="{ 'midOpacity': tempEqlists && tempEqlists != 'jmaTsunami' }">
                             <div class="bar" :class="statusStore.tsunamiMessage.jmaTsunami.className">
                                 <div><WarnTriangleFilled style="width: 1em; height: 1em; margin-right: 0.25em;" />{{ statusStore.tsunamiMessage.jmaTsunami.titleText }}</div>
                             </div>
@@ -402,26 +402,24 @@ const handleTempEqlists = (time, source = '') => {
 provide('handleTempEqlists', handleTempEqlists)
 const defaultMenuId = computed(() => {
     let defaultMenuId = 'main'
-    if(settingsStore.mainSettings.cinemaMode) {
-        if(tempEqlists.value) {
+    if(tempEqlists.value) {
+        defaultMenuId = 'eqlists'
+    }
+    else {
+        const isActive = statusStore.isActive
+        const isEewOrNetActive = [...eewSources, ...seisNetSources, 'mockEew'].some(key => isActive[key])
+        const isEqlistOrTsunamiActive = [...eqlistSources, ...tsunamiSources].some(key => isActive[key])
+        if(isEewOrNetActive && isEqlistOrTsunamiActive) {
+            defaultMenuId = 'main'
+        }
+        else if(isEewOrNetActive) {
+            defaultMenuId = 'eews'
+        }
+        else if(isEqlistOrTsunamiActive && !settingsStore.mainSettings.disableLastingEqlists) {
             defaultMenuId = 'eqlists'
         }
         else {
-            const isActive = statusStore.isActive
-            const isEewOrNetActive = [...eewSources, ...seisNetSources, 'mockEew'].some(key => isActive[key])
-            const isEqlistOrTsunamiActive = [...eqlistSources, ...tsunamiSources].some(key => isActive[key])
-            if(isEewOrNetActive && isEqlistOrTsunamiActive) {
-                defaultMenuId = 'main'
-            }
-            else if(isEewOrNetActive) {
-                defaultMenuId = 'eews'
-            }
-            else if(isEqlistOrTsunamiActive) {
-                defaultMenuId = 'eqlists'
-            }
-            else {
-                defaultMenuId = settingsStore.mainSettings.eqlistsAsDefault ? 'eqlists' : 'main'
-            }
+            defaultMenuId = settingsStore.mainSettings.defaultMenuId
         }
     }
     return defaultMenuId
@@ -680,7 +678,7 @@ onMounted(()=>{
     })
     watchEffect(() => {
         if(activeEqlistList.value.length > 0) {
-            if(settingsStore.mainSettings.cinemaMode && tempEqlists.value.endsWith('Eqlist')) {
+            if(tempEqlists.value.endsWith('Eqlist')) {
                 eqlistList.forEach(event => {
                     event.hypoMarker?.setOpacity(tempEqlists.value == event.eqMessage.source ? 1 : 0.3)
                 })
@@ -732,17 +730,15 @@ onMounted(()=>{
             terminatorInterval = setInterval(update, 30000);
         }
     }, { immediate: true })
-    if(settingsStore.mainSettings.cinemaMode) {
-        watch(defaultMenuId, newVal => {
-            if(menuId.value != 'settings' && isAutoZoom.value) {
-                menuId.value = newVal
-                setTimeout(() => {
-                    map.invalidateSize()
-                    setView(true)
-                }, 0);
-            }
-        }, { immediate: true })
-    }
+    watch(defaultMenuId, newVal => {
+        if(menuId.value != 'settings' && isAutoZoom.value) {
+            menuId.value = newVal
+            setTimeout(() => {
+                map.invalidateSize()
+                setView(true)
+            }, 0);
+        }
+    }, { immediate: true })
     watchEffect(() => {
         document.removeEventListener('mousemove', resetDefaultMenuTimer)
         if(menuId.value == defaultMenuId.value){
@@ -754,8 +750,9 @@ onMounted(()=>{
         }
     })
     watch(menuId, (newVal) => {
-        drawer.value.scrollTop = 0
         clearHistoryList()
+        simpleIcon.value = newVal == 'eqlists'
+        drawer.value.scrollTop = 0
         if(newVal == 'eews'){
             eqlistMarkerPane.style.opacity = 0.3
             tsunamiBasePane.style.opacity = 0.3 * (tsunamiFlickerCounter ? 1 : 0)
@@ -774,7 +771,6 @@ onMounted(()=>{
             wavePane.style.opacity = 1
             waveFillPane.style.opacity = 1
         }
-        simpleIcon.value = newVal == 'eqlists'
     }, { immediate: true })
     intervalEvents()
     mainInterval = setInterval(() => {
@@ -1156,7 +1152,7 @@ const setView = (force = false) => {
         const bounds = L.latLngBounds([])
         let stableMode = false
         //临时Eqlist
-        if(settingsStore.mainSettings.cinemaMode && tempEqlists.value && menuId.value == 'eqlists' && historyList.length == 0) {
+        if(tempEqlists.value && menuId.value == 'eqlists' && historyList.length == 0) {
             if(tempEqlists.value == 'jmaTsunami') {
                 statusStore.isActive.jmaTsunami && jpTsunamiBaseMap?.eachLayer(layer => {
                     if(layer.options.color && layer.options.color != tsunamiBaseMapDefaultStroke) {
@@ -1530,7 +1526,7 @@ const jmaWarnArea = computed(()=>{
         const jmaEqlistEvent = historyList.length > 0
         ? null
         : activeEqlistList.value.length > 0
-        ? settingsStore.mainSettings.cinemaMode && tempEqlists.value.endsWith('Eqlist')
+        ? tempEqlists.value.endsWith('Eqlist')
         ? tempEqlists.value == 'jmaEqlist'
         ? activeEqlistList.value.find(event => event.eqMessage.source == 'jmaEqlist')
         : null
@@ -1579,16 +1575,16 @@ const jpEewInfoList = computed(()=>{
     return jpEewInfoList
 })
 const eewInfoList = computed(()=>{
-    const cnEewList = menuId.value == 'eqlists'
+    const eewList = menuId.value == 'eqlists'
         ? historyList.length > 0
         ? historyList.filter(event => event.hypoMarker && !event.eqMessage.isCanceled)
         : activeEqlistList.value.length > 0
-        ? settingsStore.mainSettings.cinemaMode && tempEqlists.value.endsWith('Eqlist')
+        ? tempEqlists.value.endsWith('Eqlist')
         ? activeEqlistList.value.filter(event=>event.eqMessage.source == tempEqlists.value && event.hypoMarker && !event.eqMessage.isCanceled)
         : activeEqlistList.value.filter(event=>event.hypoMarker && !event.eqMessage.isCanceled)
         : eqlistList.filter(event=>event.hypoMarker && !event.eqMessage.isCanceled)
         : activeEewList.filter(event=>!(event.eqMessage.isCanceled || event.eqMessage.isAssumption))
-    const eewInfoList = cnEewList.map(event=>{
+    const eewInfoList = eewList.map(event=>{
         const { magnitude, depth, lat, lng } = event.eqMessage
         return { magnitude, depth, lat, lng }
     })
