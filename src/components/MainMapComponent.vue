@@ -653,7 +653,7 @@ onMounted(()=>{
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible' && pendingSetView) {
             pendingSetView = false
-            setView()
+            setView(true)
         }
     })
     watchEffect(()=>{
