@@ -105,7 +105,7 @@ const displayOnMap = (item) => {
     else {
         const eqMessage = Object.assign({}, defaultEqMessage, item)
         eqMessage.source = 'history'
-        eqMessage.title = eqMessage.titleText = '历史地震' + `(${item.source})`
+        eqMessage.title = eqMessage.titleText = '历史地震 ' + `(${item.source})`
         eqMessage.depthText = '深度: ' + eqMessage.depth.toFixed(0) + 'km'
         eqMessage.reportTime = stampToTime(timeStore.getTimeStamp(), eqMessage.timeZone)
         if(!statusStore.map) return
