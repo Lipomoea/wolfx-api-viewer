@@ -100,7 +100,7 @@
                         <div class="w-full">
                             <div class="switch-full">
                                 <span>強震モニタ・震度（日本）</span>
-                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.niedNet" />
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.niedNet" :disabled="statusStore.isNiedUpdating" />
                             </div>
                             <div class="switch-full pl-4">
                                 <span>解析震度阶</span>

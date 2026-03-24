@@ -225,6 +225,7 @@ onMounted(()=>{
     fetchStationList()
     requestInterval = setInterval(async () => {
         try {
+            const isRealtime = settingsStore.mainSettings.displaySeisNet.delay == 0
             const time = getTimeNumberString(9, -delay.value)
             const date = time.slice(0, 8)
             const res = await getData(`${seisNetUrls.nied.stationData}/${date}/${time}.json`)
@@ -260,16 +261,20 @@ onMounted(()=>{
                         update()
                     }
                 }
-                else if(siteConfigId.value){
+                else if(siteConfigId.value && isRealtime){
+                    clearInterval(requestInterval)
                     ElMessage({
-                        message: '站点数据已更新，正在重新加载…',
+                        message: 'NIED站点数据已更新，正在重新加载。此过程可能重复数次，请耐心等待。',
                         type: 'warning',
                     })
-                    settingsStore.mainSettings.displaySeisNet.niedNet = false
-                    settingsStore.mainSettings.displaySeisNet.delay = 0
+                    setTimeout(() => {
+                        statusStore.isNiedUpdating = true
+                        settingsStore.mainSettings.displaySeisNet.niedNet = false
+                    }, 0);
                     setTimeout(() => {
                         settingsStore.mainSettings.displaySeisNet.niedNet = true
-                    }, 1500);
+                        statusStore.isNiedUpdating = false
+                    }, 5000);
                 }
             }
         } catch (err) {

@@ -188,6 +188,7 @@ export const useStatusStore = defineStore('statusStore', {
         gqSocket: null,
         enabledSource: [],
         multiApi: false,
+        isNiedUpdating: false,
         eqMessage: {
             jmaEew: Object.assign({}, defaultEqMessage),
             cwaEew: Object.assign({}, defaultEqMessage),
