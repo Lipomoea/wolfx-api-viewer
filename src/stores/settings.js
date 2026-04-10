@@ -107,6 +107,8 @@ export const useSettingsStore = defineStore('settingsStore', {
             hideDrawer: false,
             defaultMenuId: 'main',
             disableLastingEqlists: false,
+            tempEqlistDuration: 6.5,
+            tempTsunamiDuration: 15,
             eqlistsDisplayMode: 0,
             alwaysDisplayLatestInfo: false,
             disableEewBaseMap: false,

@@ -674,7 +674,7 @@ export class EqlistEvent {
                 iconUrls.info
             )
         }
-        this.handleTempEqlists(6500, eqMessage.source)
+        this.handleTempEqlists(settingsStore.mainSettings.tempEqlistDuration * 1000, eqMessage.source)
     }
     handleClick() {
         this.showMenu = !this.showMenu

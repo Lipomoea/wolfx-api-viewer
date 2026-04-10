@@ -827,6 +827,24 @@
                             />
                         </div>
                         <div class="switch-full">
+                            <span style="width: 12rem;">地震信息临时显示：{{ settingsStore.mainSettings.tempEqlistDuration > 0 ? settingsStore.mainSettings.tempEqlistDuration + '秒' : '关闭' }}</span>
+                            <el-slider
+                                v-model="settingsStore.mainSettings.tempEqlistDuration"
+                                :min="0" :max="10"
+                                :step="0.5"
+                                size="small"
+                            />
+                        </div>
+                        <div class="switch-full">
+                            <span style="width: 12rem;">海啸信息临时显示：{{ settingsStore.mainSettings.tempTsunamiDuration > 0 ? settingsStore.mainSettings.tempTsunamiDuration + '秒' : '关闭' }}</span>
+                            <el-slider
+                                v-model="settingsStore.mainSettings.tempTsunamiDuration"
+                                :min="0" :max="20"
+                                :step="1"
+                                size="small"
+                            />
+                        </div>
+                        <div class="switch-full">
                             <span>UI缩放比例</span>
                             <el-select
                                 style="width: 120px;"

@@ -133,7 +133,7 @@ watch(() => statusStore.map, newVal => {
             if(focus && shouldFocus) {
                 focusWindow()
             }
-            if(shouldFocus) handleTempEqlists(15000, 'nmefcTsunami')
+            if(shouldFocus) handleTempEqlists(settingsStore.mainSettings.tempTsunamiDuration * 1000, 'nmefcTsunami')
             Object.assign(oldMessage, newMessage)
         }, { immediate: true, deep: true })
     }
