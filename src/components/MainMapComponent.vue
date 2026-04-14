@@ -375,6 +375,7 @@ const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 const timeStore = useTimeStore()
 let map, jpEewBaseMap, krEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap, cnTsunamiBaseMap, labelLayer1, labelLayer2, terminatorLayer, terminatorFillLayer, cnFaultBaseMap
+let eewBaseGroup, tsunamiBaseGroup
 let eewMarkerPane, eqlistMarkerPane, eewReachPane, historyMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, kmaGridPane, eewBasePane, tsunamiBasePane, labelPane1, labelPane2
 let userMarker
 const defaultLatLng = [38.1, 104.6]
@@ -580,6 +581,8 @@ onMounted(()=>{
         this._setPosition(pos);
     }
     statusStore.map = map
+    eewBaseGroup = L.layerGroup().addTo(map)
+    tsunamiBaseGroup = L.layerGroup().addTo(map)
     map.removeControl(map.zoomControl)
     map.createPane('basePane')
     map.getPane('basePane').style.zIndex = 0
@@ -895,7 +898,7 @@ const loadMaps = async (retries = 0) => {
             fillColor: eewBaseMapDefaultFill,
             fillOpacity: 1,
             weight: 1,
-        })
+        }, eewBaseGroup)
         krEewBaseMap = settingsStore.mainSettings.disableEewBaseMap 
         ? null : loadBaseMap(kr_eew, 'eewBasePane', false, {
             color: eewBaseMapDefaultStroke,
@@ -903,7 +906,7 @@ const loadMaps = async (retries = 0) => {
             fillColor: eewBaseMapDefaultFill,
             fillOpacity: 1,
             weight: 1,
-        })
+        }, eewBaseGroup)
         cnEewBaseMap = settingsStore.mainSettings.disableEewBaseMap 
         ? null : loadBaseMap(cn_eew, 'eewBasePane', false, {
             color: eewBaseMapDefaultStroke,
@@ -911,7 +914,7 @@ const loadMaps = async (retries = 0) => {
             fillColor: eewBaseMapDefaultFill,
             fillOpacity: 1,
             weight: 1,
-        })
+        }, eewBaseGroup)
         watch(()=>settingsStore.mainSettings.displayCnFault, newVal => {
             if(cnFaultBaseMap && map.hasLayer(cnFaultBaseMap)) map.removeLayer(cnFaultBaseMap)
             if(newVal) {
@@ -1057,7 +1060,7 @@ const loadMaps = async (retries = 0) => {
                 color: tsunamiBaseMapDefaultStroke,
                 opacity: 1,
                 weight: map.getZoom(),
-            })
+            }, tsunamiBaseGroup)
             map.on('zoomend', () => {
                 jpTsunamiBaseMap.setStyle({
                     weight: map.getZoom()
@@ -1076,7 +1079,7 @@ const loadMaps = async (retries = 0) => {
                     color: tsunamiBaseMapDefaultStroke,
                     opacity: 1,
                     weight: map.getZoom(),
-                })
+                }, tsunamiBaseGroup)
                 map.on('zoomend', () => {
                     cnTsunamiBaseMap.setStyle({
                         weight: map.getZoom()
@@ -1146,6 +1149,7 @@ const setMapHeight = (height) => {
     }, 0);
 }
 let pendingSetView = false
+let largeZoomingTimer
 const setView = (force = false) => {
     if(!map) return
     if(document.visibilityState === 'visible') {
@@ -1189,35 +1193,17 @@ const setView = (force = false) => {
                         bounds.extend(event.hypoLatLng)
                     }
                 })
-                jpEewBaseMap?.eachLayer(layer => {
-                    if(layer.options.fillColor && layer.options.fillColor != eewBaseMapDefaultFill) {
-                        if(layer.getBounds){
-                            bounds.extend(layer.getBounds())
+                eewBaseGroup.eachLayer(baseMap => {
+                    baseMap.eachLayer(layer => {
+                        if(layer.options.fillColor && layer.options.fillColor != eewBaseMapDefaultFill) {
+                            if(layer.getBounds){
+                                bounds.extend(layer.getBounds())
+                            }
+                            else if(layer.getLatLng){
+                                bounds.extend(layer.getLatLng())
+                            }
                         }
-                        else if(layer.getLatLng){
-                            bounds.extend(layer.getLatLng())
-                        }
-                    }
-                })
-                krEewBaseMap?.eachLayer(layer => {
-                    if(layer.options.fillColor && layer.options.fillColor != eewBaseMapDefaultFill) {
-                        if(layer.getBounds){
-                            bounds.extend(layer.getBounds())
-                        }
-                        else if(layer.getLatLng){
-                            bounds.extend(layer.getLatLng())
-                        }
-                    }
-                })
-                cnEewBaseMap?.eachLayer(layer => {
-                    if(layer.options.fillColor && layer.options.fillColor != eewBaseMapDefaultFill) {
-                        if(layer.getBounds){
-                            bounds.extend(layer.getBounds())
-                        }
-                        else if(layer.getLatLng){
-                            bounds.extend(layer.getLatLng())
-                        }
-                    }
+                    })
                 })
             }
         }
@@ -1274,7 +1260,12 @@ const setView = (force = false) => {
             //历史地震
             if(!bounds.isValid() && menuId.value == 'eqlists' && historyList.length > 0) {
                 map.eachLayer(layer => {
-                    if(layer.options.pane == 'eewBasePane') {
+                    if(layer.options.pane == 'historyMarkerPane' || layer.options.pane.includes('intReportStationPane')) {
+                        bounds.extend(layer.getLatLng())
+                    }
+                })
+                eewBaseGroup.eachLayer(baseMap => {
+                    baseMap.eachLayer(layer => {
                         if(layer.options.fillColor && layer.options.fillColor != eewBaseMapDefaultFill) {
                             if(layer.getBounds){
                                 bounds.extend(layer.getBounds())
@@ -1283,10 +1274,7 @@ const setView = (force = false) => {
                                 bounds.extend(layer.getLatLng())
                             }
                         }
-                    }
-                    else if(layer.options.pane == 'historyMarkerPane' || layer.options.pane.includes('intReportStationPane')) {
-                        bounds.extend(layer.getLatLng())
-                    }
+                    })
                 })
             }
             //活跃的Eqlist和Tsunami
@@ -1353,12 +1341,8 @@ const setView = (force = false) => {
             if(!bounds.isValid() && menuId.value == 'eqlists') {
                 const candidates = []
                 map.eachLayer(layer => {
-                    if(layer.options.pane == 'eqlistMarkerPane' || 
-                    layer.options.pane == 'eewBasePane' && layer.options.fillColor && layer.options.fillColor != eewBaseMapDefaultFill){
-                        if(layer.getBounds){
-                            bounds.extend(layer.getBounds())
-                        }
-                        else if(layer.getLatLng){
+                    if(layer.options.pane == 'eqlistMarkerPane'){
+                        if(layer.getLatLng){
                             const latLng = layer.getLatLng()
                             const { lat, lng } = latLng
                             if(
@@ -1373,6 +1357,18 @@ const setView = (force = false) => {
                             }
                         }
                     }
+                })
+                eewBaseGroup.eachLayer(baseMap => {
+                    baseMap.eachLayer(layer => {
+                        if(layer.options.fillColor && layer.options.fillColor != eewBaseMapDefaultFill) {
+                            if(layer.getBounds){
+                                bounds.extend(layer.getBounds())
+                            }
+                            else if(layer.getLatLng){
+                                bounds.extend(layer.getLatLng())
+                            }
+                        }
+                    })
                 })
                 if(!bounds.isValid()) {
                     candidates.forEach(latLng => bounds.extend(latLng))
@@ -1410,8 +1406,23 @@ const setView = (force = false) => {
         if(!force && stableMode && currZoom == targetZoom && map.getBounds().contains(bounds))
             return
         const err = 1 / 2 ** targetZoom
-        if(currZoom != targetZoom || Math.abs(currCenter.lat - targetCenter.lat) >= err || Math.abs(currCenter.lng - targetCenter.lng) >= err)
-            map.setView(targetCenter, targetZoom, { animate: true })
+        if(currZoom != targetZoom || Math.abs(currCenter.lat - targetCenter.lat) >= err || Math.abs(currCenter.lng - targetCenter.lng) >= err) {
+            if(Math.abs(currZoom - targetZoom) > 4) {
+                clearTimeout(largeZoomingTimer)
+                if(map.hasLayer(eewBaseGroup)) map.removeLayer(eewBaseGroup)
+                if(map.hasLayer(tsunamiBaseGroup)) map.removeLayer(tsunamiBaseGroup)
+                map.once('moveend', () => {
+                    largeZoomingTimer = setTimeout(() => {
+                        if(map && !map.hasLayer(eewBaseGroup)) eewBaseGroup.addTo(map)
+                        if(map && !map.hasLayer(tsunamiBaseGroup)) tsunamiBaseGroup.addTo(map)
+                    }, 0);
+                })
+                map.setView(targetCenter, targetZoom, { animate: false })
+            }
+            else {
+                map.setView(targetCenter, targetZoom, { animate: true })
+            }
+        }
     }
     else {
         pendingSetView = true
@@ -1429,7 +1440,7 @@ const loadBaseMap = (topojson, pane, isBaseMap = true, style = {
         fillOpacity: 1,
         weight: 1,
         fill: true
-    })=>{
+    }, target = map)=>{
     if(Object.keys(topojson).length != 0){
         try {
             if(isBaseMap && !settingsStore.advancedSettings.useClassicMapLoader) {
@@ -1442,7 +1453,7 @@ const loadBaseMap = (topojson, pane, isBaseMap = true, style = {
                     },
                     interactive: false
                 });
-                vectorGrid.addTo(map);
+                vectorGrid.addTo(target);
                 return vectorGrid;
             }
             else {
@@ -1456,7 +1467,7 @@ const loadBaseMap = (topojson, pane, isBaseMap = true, style = {
                     interactive: settingsStore.mainSettings.placeNameOnHover && !settingsStore.mainSettings.useCanvasRenderer,
                     onEachFeature: settingsStore.mainSettings.placeNameOnHover && !settingsStore.mainSettings.useCanvasRenderer && onEachFeature
                 })
-                baseMap.addTo(map)
+                baseMap.addTo(target)
                 return baseMap
             }
         } catch (e) {
@@ -1597,6 +1608,7 @@ onBeforeUnmount(()=>{
     clearTimeout(autoZoomTimer)
     clearTimeout(defaultMenuTimer)
     clearTimeout(tempEqlistsTimer)
+    clearTimeout(largeZoomingTimer)
     document.removeEventListener('mousemove', resetDefaultMenuTimer)
     document.removeEventListener('keydown', handleKeydown)
     activeEewList.length = 0
