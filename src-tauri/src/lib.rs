@@ -79,7 +79,7 @@ pub fn run() {
             let _ = TrayIconBuilder::new()
                 .menu(&menu)
                 .icon(icon)
-                .tooltip("要石 v2.5.0")
+                .tooltip("要石 v2.6.0")
                 .on_menu_event(move |tray, event| match event.id().as_ref() {
                     TRAY_GAME_MODE_ID => {
                         if let Ok(checked) = game_mode_item.is_checked() {

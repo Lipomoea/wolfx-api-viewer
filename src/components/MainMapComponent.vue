@@ -1305,35 +1305,17 @@ const setView = (force = false) => {
                             bounds.extend(event.hypoLatLng)
                         }
                     })
-                    jpEewBaseMap?.eachLayer(layer => {
-                        if(layer.options.fillColor && layer.options.fillColor != eewBaseMapDefaultFill) {
-                            if(layer.getBounds){
-                                bounds.extend(layer.getBounds())
+                    eewBaseGroup.eachLayer(baseMap => {
+                        baseMap.eachLayer(layer => {
+                            if(layer.options.fillColor && layer.options.fillColor != eewBaseMapDefaultFill) {
+                                if(layer.getBounds){
+                                    bounds.extend(layer.getBounds())
+                                }
+                                else if(layer.getLatLng){
+                                    bounds.extend(layer.getLatLng())
+                                }
                             }
-                            else if(layer.getLatLng){
-                                bounds.extend(layer.getLatLng())
-                            }
-                        }
-                    })
-                    krEewBaseMap?.eachLayer(layer => {
-                        if(layer.options.fillColor && layer.options.fillColor != eewBaseMapDefaultFill) {
-                            if(layer.getBounds){
-                                bounds.extend(layer.getBounds())
-                            }
-                            else if(layer.getLatLng){
-                                bounds.extend(layer.getLatLng())
-                            }
-                        }
-                    })
-                    cnEewBaseMap?.eachLayer(layer => {
-                        if(layer.options.fillColor && layer.options.fillColor != eewBaseMapDefaultFill) {
-                            if(layer.getBounds){
-                                bounds.extend(layer.getBounds())
-                            }
-                            else if(layer.getLatLng){
-                                bounds.extend(layer.getLatLng())
-                            }
-                        }
+                        })
                     })
                 }
             }
@@ -1413,8 +1395,8 @@ const setView = (force = false) => {
                 if(map.hasLayer(tsunamiBaseGroup)) map.removeLayer(tsunamiBaseGroup)
                 map.once('moveend', () => {
                     largeZoomingTimer = setTimeout(() => {
-                        if(map && !map.hasLayer(eewBaseGroup)) eewBaseGroup.addTo(map)
-                        if(map && !map.hasLayer(tsunamiBaseGroup)) tsunamiBaseGroup.addTo(map)
+                        if(map && eewBaseGroup && !map.hasLayer(eewBaseGroup)) eewBaseGroup.addTo(map)
+                        if(map && tsunamiBaseGroup && !map.hasLayer(tsunamiBaseGroup)) tsunamiBaseGroup.addTo(map)
                     }, 0);
                 })
                 map.setView(targetCenter, targetZoom, { animate: false })
