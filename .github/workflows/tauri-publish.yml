@@ -28,6 +28,11 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     steps:
+      - name: setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10
+
       - uses: actions/checkout@v5
 
       - name: setup node
@@ -35,11 +40,6 @@ jobs:
         with:
           node-version: '24.x'
       
-      - name: setup pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          version: 10
-
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
