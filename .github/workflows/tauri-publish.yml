@@ -34,6 +34,11 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: '24.x'
+      
+      - name: setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
