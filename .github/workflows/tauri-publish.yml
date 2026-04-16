@@ -30,8 +30,6 @@ jobs:
 
       - name: setup pnpm
         uses: pnpm/action-setup@v6
-        with:
-          version: 10
 
       - name: setup node
         uses: actions/setup-node@v5
