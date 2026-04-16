@@ -1181,7 +1181,7 @@
                             <span>开机自启动</span>
                             <el-switch v-model="isAutoStart" @change="handleAutoStart" />
                         </div>
-                        <div class="switch-full" v-if="thisPlatform != 'macos'">
+                        <div class="switch-full" v-if="thisPlatform == 'windows'">
                             <span>最小化启动</span>
                             <el-switch v-model="settingsStore.mainSettings.minimizeOnLaunch" />
                         </div>

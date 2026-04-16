@@ -19,6 +19,31 @@ icon是《铃芽之旅》的草太さん（椅子形态）。
 * 本应用程序使用非官方数据源，可能出现错误。一切信息请以官方发布为准。
 * 本应用程序为永久免费的公益性项目，不接受任何形式的捐赠。任何以本应用程序为名义索取费用的行为均属诈骗。严禁将本应用用于商业场合。
 * 首次使用本应用程序时，请详细阅读“帮助&关于”中的内容。
+## 常见问题
+1. **如何安装/更新kanameishi客户端？**
+    1. 确认你的操作系统是64位操作系统。
+    2. [下载应用程序](https://github.com/Lipomoea/kanameishi/releases)。
+        * Windows (x64)系统请选择以".exe"结尾的文件。
+        * Linux (Ubuntu x64)系统请选择以".deb"结尾的文件。
+        * macOS (Apple处理器)请选择以"aarch64.dmg"结尾的文件。
+        * macOS (Intel处理器)请选择以"x64.dmg"结尾的文件。
+        * 未列入上述清单的操作系统请自行测试兼容性。
+    3. 安装应用程序。
+        * Windows (x64)系统双击启动安装程序，一路点"next"即可完成安装。如您已安装过kanameishi，建议在安装程序中勾选"Uninstall kanameishi"并在下一步**不要勾选**"Delete the application data"，先卸载原来的版本再安装新版本。
+        * Linux用户请根据你的系统情况自行安装。
+        * macOS用户请双击下载的.dmg文件，将"kanameishi"的图标拖拽到"Applications"文件夹图标内完成安装。如您已安装过kanameishi，可直接选择“替换”。启动应用时如遇“文件损坏”提示，请参考下一条。
+2. **macOS提示“kanameishi.app已损坏，无法打开。你应该将它移到废纸篓。”**  
+    这是因为macOS默认阻止了从互联网下载的未经苹果官方开发者签名和公证的.app文件。  
+    请打开系统终端并输入：
+    ```bash
+    sudo xattr -cr /Applications/kanameishi.app
+    ```
+    回车后输入你的用户密码，再次打开kanameishi.app即可正常运行。
+3. **Linux系统下软件界面、托盘菜单等出现乱码。**  
+    由于Linux系统的高自由度，使用系统自带webview运行的Tauri应用无法给出统一的解决方案。请结合你遇到的问题和系统版本对GPT进行提问获取答案。通常可以通过安装字体库等方法解决。
+    ```
+    例：[Ubuntu 22.04系统]下Tauri应用出现[xx语言字体乱码/托盘图标乱码/ElementPlus组件字体乱码]问题如何解决？
+    ```
 ## 数据来源
 * 地震预警（CEA/SC/FJ/CWA/JMA）、地震信息（CENC）、地震列表（JMA）、IP定位：[Wolfx Open API](https://wolfx.jp/apidoc)（请注意参考接口文档）
 * 地震信息（JMA）、海啸信息（JMA）：[P2PQuake](https://www.p2pquake.net/develop/json_api_v2/#/P2P%E5%9C%B0%E9%9C%87%E6%83%85%E5%A0%B1%20API/get_history)
@@ -37,6 +62,7 @@ icon是《铃芽之旅》的草太さん（椅子形态）。
 * [scratch-realtime-earthquake-viewer-page](https://github.com/kotoho7/scratch-realtime-earthquake-viewer-page)
 * [TREM-Lite](https://github.com/ExpTechTW/TREM-Lite)
 ## 特别鸣谢
+* [lxfly2000](https://github.com/lxfly2000)
 * [Wolfx Project](https://wolfx.jp/)
 * [TBS](https://space.bilibili.com/652050915/)
 * [FAN](https://www.fanstudio.tech/)
