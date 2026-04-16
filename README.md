@@ -2,7 +2,7 @@
 
 ## 简介
 要石(kanameishi)是一个基于多重API制作的地震预警和地震信息可视化Web应用，基于Vite+Vue3+Leaflet开发。  
-提供基于Tauri构建的Windows及macOS应用程序，推荐Windows 10、macOS 11 (arm64) 及以上系统使用。  
+提供基于Tauri构建的Windows、macOS、Linux应用程序，推荐Windows 10、macOS 11、Ubuntu 22.04及以上64位系统使用。其他系统请自行测试兼容性。  
 icon是《铃芽之旅》的草太さん（椅子形态）。  
 * [Web版](https://kanameishi.lipomoea.tech/)
 * [Web版备用](https://kanameishi.pages.dev/)（使用CloudFlare托管，速度更快，但国内可能需要代理访问。）
@@ -22,7 +22,7 @@ icon是《铃芽之旅》的草太さん（椅子形态）。
 ## 数据来源
 * 地震预警（CEA/SC/FJ/CWA/JMA）、地震信息（CENC）、地震列表（JMA）、IP定位：[Wolfx Open API](https://wolfx.jp/apidoc)（请注意参考接口文档）
 * 地震信息（JMA）、海啸信息（JMA）：[P2PQuake](https://www.p2pquake.net/develop/json_api_v2/#/P2P%E5%9C%B0%E9%9C%87%E6%83%85%E5%A0%B1%20API/get_history)
-* 地震预警（CEA/SC/FJ/CWA/JMA）、地震信息（CENC/CWA/USGS/FSSN）、地震列表（CENC/FSSN）、NTP时间：[FAN Studio API](https://api.fanstudio.tech)
+* 地震预警（CEA/SC/FJ/CWA/JMA）、地震信息（CENC/CWA/USGS/FSSN）、地震列表（CENC/FSSN）、CENC烈度速报、NTP时间：[FAN Studio API](https://api.fanstudio.tech)
 * 中国大陆地图：[阿里云DataV.GeoAtlas](https://datav.aliyun.com/portal/school/atlas/area_selector)
 * 中国台湾地图：[GeoJSON](https://geojson.cn/)
 * 中国断层：[国家地震科学数据中心](https://data.earthquake.cn/datashare/report.shtml?PAGEID=datasourcelist&dt=ff808082845b8fd401845bf036a1000c)

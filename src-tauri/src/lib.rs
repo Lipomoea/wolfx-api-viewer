@@ -4,10 +4,11 @@ use tauri::{
     Emitter, Manager, WindowEvent,
 };
 use tauri_plugin_autostart::MacosLauncher;
-use tauri_plugin_window_state::{AppHandleExt, StateFlags};
+use tauri_plugin_window_state::{AppHandleExt, StateFlags, WindowExt};
 
 const TRAY_GAME_MODE_ID: &str = "game-mode";
 const TRAY_GAME_MODE_EVENT: &str = "tray-game-mode-changed";
+const TRAY_SHOW_WINDOW_ID: &str = "show-window";
 
 struct TrayMenuState {
     game_mode_item: CheckMenuItem<tauri::Wry>,
@@ -19,6 +20,15 @@ fn set_tray_game_mode(state: tauri::State<'_, TrayMenuState>, enabled: bool) -> 
         .game_mode_item
         .set_checked(enabled)
         .map_err(|err| err.to_string())
+}
+
+fn show_main_window(app: &tauri::AppHandle<tauri::Wry>) {
+    if let Some(webview_window) = app.get_webview_window("main") {
+        let _ = webview_window.restore_state(StateFlags::all());
+        let _ = webview_window.show();
+        let _ = webview_window.unminimize();
+        let _ = webview_window.set_focus();
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -61,11 +71,14 @@ pub fn run() {
                         .build(),
                 )?;
             }
+            let show_window = MenuItemBuilder::with_id(TRAY_SHOW_WINDOW_ID, "显示界面").build(app)?;
             let quit = MenuItemBuilder::with_id("quit", "退出").build(app)?;
             let game_mode = CheckMenuItemBuilder::with_id(TRAY_GAME_MODE_ID, "游戏模式")
                 .checked(false)
                 .build(app)?;
-            let menu = MenuBuilder::new(app).items(&[&game_mode, &quit]).build()?;
+            let menu = MenuBuilder::new(app)
+                .items(&[&show_window, &game_mode, &quit])
+                .build()?;
             app.manage(TrayMenuState {
                 game_mode_item: game_mode.clone(),
             });
@@ -81,6 +94,9 @@ pub fn run() {
                 .icon(icon)
                 .tooltip("要石 v2.6.0")
                 .on_menu_event(move |tray, event| match event.id().as_ref() {
+                    TRAY_SHOW_WINDOW_ID => {
+                        show_main_window(tray.app_handle());
+                    }
                     TRAY_GAME_MODE_ID => {
                         if let Ok(checked) = game_mode_item.is_checked() {
                             let _ = tray.app_handle().emit(TRAY_GAME_MODE_EVENT, checked);
@@ -100,12 +116,7 @@ pub fn run() {
                         ..
                     } => {
                         if button == MouseButton::Left && button_state == MouseButtonState::Up {
-                            let app = tray.app_handle();
-                            if let Some(webview_window) = app.get_webview_window("main") {
-                                let _ = webview_window.show();
-                                let _ = webview_window.unminimize();
-                                let _ = webview_window.set_focus();
-                            }
+                            show_main_window(tray.app_handle());
                         }
                     }
                     _ => (),

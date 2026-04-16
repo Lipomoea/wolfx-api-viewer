@@ -1181,7 +1181,7 @@
                             <span>开机自启动</span>
                             <el-switch v-model="isAutoStart" @change="handleAutoStart" />
                         </div>
-                        <div class="switch-full" v-if="isWindows">
+                        <div class="switch-full" v-if="thisPlatform != 'macos'">
                             <span>最小化启动</span>
                             <el-switch v-model="settingsStore.mainSettings.minimizeOnLaunch" />
                         </div>
@@ -1287,7 +1287,7 @@
             </div>
             <div class="title">使用方法</div>
             <div class="about">
-                <p>Windows 10（x64）、macOS（arm64）及以上用户推荐使用应用程序：<a href="https://github.com/Lipomoea/kanameishi/releases" target="_blank">应用程序下载</a>&nbsp;<a href="https://gitee.com/lipomoea/kanameishi/releases" target="_blank">备用链接</a></p>
+                <p>Windows 10、macOS 11、Ubuntu 22.04及以上64位系统用户推荐使用应用程序：<a href="https://github.com/Lipomoea/kanameishi/releases" target="_blank">应用程序下载</a>&nbsp;<a href="https://gitee.com/lipomoea/kanameishi/releases" target="_blank">备用链接</a></p>
                 <p>主要功能：接收中国、日本、韩国地震预警速报，接收中国、日本、韩国等区域性地震信息以及美国地质调查局（USGS）、FAN Studio地震网络（FSSN）等机构的全球性地震信息，接收日本的海啸信息，显示日本、韩国部分机构的实时地震监测网络并提示可能的地震事件。</p>
                 <p>通知推送：需授予通知权限。Chrome：点击网页链接左侧按钮-网站设置-通知-允许，刷新页面。</p>
                 <p>播放声音：需开启声音权限。Chrome：点击网页链接左侧按钮-网站设置-声音-允许，刷新页面。</p>
@@ -1343,7 +1343,7 @@ import { join, appDataDir } from "@tauri-apps/api/path";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { exists, mkdir } from "@tauri-apps/plugin-fs";
 import { enable, disable, isEnabled } from '@tauri-apps/plugin-autostart';
-import { platform } from '@tauri-apps/plugin-os';
+import { platform, arch } from '@tauri-apps/plugin-os';
 import { isTauri as getIsTauri } from '@tauri-apps/api/core';
 import { Setting } from '@element-plus/icons-vue';
 import MarkdownIt from 'markdown-it';
@@ -1353,7 +1353,7 @@ const SHOW_ABOUT_FLG = '20260313.00'
 const showNotifButton = 'Notification' in window
 const isTauri = getIsTauri()
 const thisPlatform = isTauri ? platform() : ''
-const isWindows = thisPlatform == 'windows'
+const thisArch = isTauri ? arch() : ''
 const simplifyMarks = {
     0: '关闭',
     1: '轻微',
@@ -1739,7 +1739,27 @@ const checkNewVersion = async (silent = false) => {
         const versionInfo = await Http.get('https://api.github.com/repos/Lipomoea/kanameishi/releases')
         let checkedVersion, downloadUrl, detail
         if(isTauri) {
-            const fileType = isWindows ? '.exe' : '.dmg'
+            let fileType
+            if(thisPlatform == 'windows') fileType = '.exe'
+            else if(thisPlatform == 'linux') fileType = '.deb'
+            else if(thisPlatform == 'macos') {
+                if(thisArch == 'aarch64') fileType = 'aarch64.dmg'
+                else if(thisArch == 'x86_64') fileType = 'x64.dmg'
+                else {
+                    ElMessage({
+                        message: '未识别的系统架构',
+                        type: 'error'
+                    })
+                    return
+                }
+            }
+            else {
+                ElMessage({
+                    message: '未识别的平台版本',
+                    type: 'error'
+                })
+                return
+            }
             let i = 0
             let asset = undefined
             while(i < versionInfo.length) {
