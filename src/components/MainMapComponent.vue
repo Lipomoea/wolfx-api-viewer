@@ -1610,7 +1610,7 @@ onBeforeUnmount(()=>{
         .mapContainer{
             height: 100%;
             position: relative;
-            background-color: #282828;
+            background-color: var(--map-background);
             #mainMap{
                 width: 100%;
                 height: 100%;
@@ -1619,7 +1619,7 @@ onBeforeUnmount(()=>{
                 }
             }
             .leaflet-container{
-                background-color: #282828;
+                background-color: var(--map-background);
             }
             .leaflet-grab{
                 cursor: default;
