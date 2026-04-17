@@ -329,7 +329,6 @@ export class EewEvent {
                 //SVG模式渐变
                 const svg = document.querySelector('svg.leaflet-zoom-animated');
                 if (!svg) return;
-                console.log('SVG found for gradient insertion');
                 // 插入渐变定义
                 let defs = svg.querySelector('defs');
                 if (!defs) {
@@ -349,8 +348,6 @@ export class EewEvent {
                 if (circleEl) {
                     circleEl.setAttribute('fill', 'url(#sWaveGradient)');
                 }
-
-                //TODO:Canvas模式渐变
             }
             else {
                 this.sWaveFill.setRadius(s_radius * 1000)
