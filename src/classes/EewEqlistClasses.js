@@ -318,13 +318,39 @@ export class EewEvent {
             const fillOpacity = this.calcOpacity(s_radius, 0, this.maxWaveRadius, 0, 0.25)
             if(!this.sWaveFill) {
                 this.sWaveFill = L.circle(this.hypoLatLng, {
-                    fillColor: color,
+                    fillColor: 'url(#sWaveGradient)',
                     fillOpacity,
                     stroke: false,
                     radius: s_radius * 1000,
                     pane: 'waveFillPane',
                     interactive: false
-                }).addTo(this.map)    
+                }).addTo(this.map)
+
+                //SVG模式渐变
+                const svg = document.querySelector('svg.leaflet-zoom-animated');
+                if (!svg) return;
+                console.log('SVG found for gradient insertion');
+                // 插入渐变定义
+                let defs = svg.querySelector('defs');
+                if (!defs) {
+                    defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                    svg.insertBefore(defs, svg.firstChild);
+                }
+                const grad = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+                grad.setAttribute('id', 'sWaveGradient');
+                grad.innerHTML = `
+                    <stop offset="0%" stop-color="transparent" />
+                    <stop offset="100%" stop-color=${color} />
+                `;
+                defs.appendChild(grad);
+
+                // 设置circle的fill为渐变
+                const circleEl = svg.querySelector('circle[fill]');
+                if (circleEl) {
+                    circleEl.setAttribute('fill', 'url(#sWaveGradient)');
+                }
+
+                //TODO:Canvas模式渐变
             }
             else {
                 this.sWaveFill.setRadius(s_radius * 1000)
