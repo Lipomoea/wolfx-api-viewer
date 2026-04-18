@@ -69,7 +69,7 @@ stations.sort((a, b) => {
 //     jsonOutput[key].push([station.latitude, station.longitude]);
 // });
 
-const finalString = JSON.stringify(stations, null, 2);
+const finalString = JSON.stringify(stations);
 fs.writeFileSync(
   outputFile,
   `export const niedSitePub = ${finalString};`,
