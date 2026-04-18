@@ -48,10 +48,12 @@ const stations = lines.map(line => {
 
 // 按照 network 第一优先级，stationCode 第二优先级的升序排序
 stations.sort((a, b) => {
-  if (a.network !== b.network) {
-    return a.network.localeCompare(b.network);
-  }
-  return a.stationCode.localeCompare(b.stationCode);
+  if (a.network < b.network) return -1;
+  if (a.network > b.network) return 1;
+  // 如果 network 相同，比较 stationCode
+  if (a.stationCode < b.stationCode) return -1;
+  if (a.stationCode > b.stationCode) return 1;
+  return 0;
 });
 
 // const jsonOutput = {};
