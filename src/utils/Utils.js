@@ -544,3 +544,5 @@ export const calcMaxJmaShindoLevel = (
 };
 export const getMmiFromKmaLevel = level =>
   level == -1 ? "?" : Math.min(Math.max(level - 2, 0), 11).toString();
+export const exactRound = (input, digit) =>
+  Number(Math.round(input + "e" + digit) + "e-" + digit);

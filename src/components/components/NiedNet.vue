@@ -11,7 +11,7 @@ import axios from 'axios';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { seisNetUrls, iconUrls } from '@/utils/Urls';
-import { getTimeNumberString, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromLevel } from '@/utils/Utils';
+import { getTimeNumberString, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromLevel, exactRound } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { NiedStation, simpleIcon } from '@/classes/StationClasses';
@@ -177,18 +177,6 @@ const renderAll = ()=>{
     })
 }
 let fetchStationInterval, requestInterval, delayInterval
-const findHighPrecisionStationLatLng = (lat, lng) => {
-    let minDist = Infinity
-    let highPrecisionLatLng = [lat, lng]
-    niedSitePub.forEach(stationJson => {
-        const dist = L.latLng(lat, lng).distanceTo(L.latLng(stationJson.latitude, stationJson.longitude))
-        if(dist < minDist) {
-            minDist = dist
-            highPrecisionLatLng = [stationJson.latitude, stationJson.longitude]
-        }
-    })
-    return highPrecisionLatLng
-}
 const fetchStationList = async () => {
     try {
         const res = await Http.get(seisNetUrls.nied.stationList + `?time=${Date.now()}`)
@@ -200,8 +188,31 @@ const fetchStationList = async () => {
             stationList = res.items
 
             //使用NIED的测站数据提高经纬度精度
+            let k = -1, ko
+            const maxTry = 10
             for(let i = 0; i < stationList.length; i++){
-                stationList[i] = findHighPrecisionStationLatLng(stationList[i][0], stationList[i][1])
+                ko = k
+                const targetLat = exactRound(stationList[i][0], 1)
+                const targetLng = exactRound(stationList[i][1], 1)
+                let possibleSite = null
+                let found = false
+                for(let j = 0; j < maxTry; j++) {
+                    k++
+                    if(k >= niedSitePub.length) break
+                    possibleSite = niedSitePub[k]
+                    const { latitude, longitude } = possibleSite
+                    if(exactRound(latitude, 1) == targetLat && exactRound(longitude, 1) == targetLng) {
+                        found = true
+                        break
+                    }
+                }
+                if(found) {
+                    const { latitude, longitude } = possibleSite
+                    stationList[i] = [latitude, longitude]
+                } else {
+                    k = ko
+                    console.log(`未匹配的测站经纬度: ${stationList[i]}`)
+                }
             }
 
             let latLngs = []
