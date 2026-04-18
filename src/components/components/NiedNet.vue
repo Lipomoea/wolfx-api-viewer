@@ -15,6 +15,7 @@ import { getTimeNumberString, playSound, sendMyNotification, calcTimeDiff, focus
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { NiedStation, simpleIcon } from '@/classes/StationClasses';
+import { niedSitePub } from '@/utils/NiedSitePub';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
@@ -176,13 +177,33 @@ const renderAll = ()=>{
     })
 }
 let fetchStationInterval, requestInterval, delayInterval
+const findHighPrecisionStationLatLng = (lat, lng) => {
+    let minDist = Infinity
+    let highPrecisionLatLng = [lat, lng]
+    niedSitePub.forEach(stationJson => {
+        const dist = L.latLng(lat, lng).distanceTo(L.latLng(stationJson.latitude, stationJson.longitude))
+        if(dist < minDist) {
+            minDist = dist
+            highPrecisionLatLng = [stationJson.latitude, stationJson.longitude]
+        }
+    })
+    return highPrecisionLatLng
+}
 const fetchStationList = async () => {
     try {
         const res = await Http.get(seisNetUrls.nied.stationList + `?time=${Date.now()}`)
         if(res && res.siteConfigId && res.items?.length > 0) {
             clearInterval(fetchStationInterval)
             siteConfigId.value = res.siteConfigId
+            
+            //低精度[[lat, lng], ...]
             stationList = res.items
+
+            //使用NIED的测站数据提高经纬度精度
+            for(let i = 0; i < stationList.length; i++){
+                stationList[i] = findHighPrecisionStationLatLng(stationList[i][0], stationList[i][1])
+            }
+
             let latLngs = []
             for(let i = 0; i < stationList.length; i++){
                 latLngs[i] = L.latLng(stationList[i])
