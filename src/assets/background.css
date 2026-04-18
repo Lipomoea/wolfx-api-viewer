@@ -36,6 +36,8 @@
     --swave-orange: #ffa500;
     --swave-red: #ff0000;
     --swave-purple: #af00af;
+
+    --map-background: #282828;
 }
 .white{
     background-color: var(--white);

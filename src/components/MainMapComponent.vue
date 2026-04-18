@@ -918,11 +918,11 @@ const loadMaps = async (retries = 0) => {
         watch(()=>settingsStore.mainSettings.displayCnFault, newVal => {
             if(cnFaultBaseMap && map.hasLayer(cnFaultBaseMap)) map.removeLayer(cnFaultBaseMap)
             if(newVal) {
-                cnFaultBaseMap = loadBaseMap(cn_fault, 'faultBasePane', true, {
-                    color: 'red',
+                cnFaultBaseMap = loadBaseMap(cn_fault, 'faultBasePane', true, (item) => ({
+                    color: (item.properties ?? item).age == 'Qh' ? 'red' : (item.properties ?? item).age == 'Qp3' ? 'orange' : 'green',
                     opacity: 0.5,
-                    weight: 1,
-                })
+                    weight: 1.5,
+                }))
             }
         }, { immediate: true })
         if(settingsStore.mainSettings.displayPlaceName) {
@@ -1610,7 +1610,7 @@ onBeforeUnmount(()=>{
         .mapContainer{
             height: 100%;
             position: relative;
-            background-color: #282828;
+            background-color: var(--map-background);
             #mainMap{
                 width: 100%;
                 height: 100%;
@@ -1619,7 +1619,7 @@ onBeforeUnmount(()=>{
                 }
             }
             .leaflet-container{
-                background-color: #282828;
+                background-color: var(--map-background);
             }
             .leaflet-grab{
                 cursor: default;

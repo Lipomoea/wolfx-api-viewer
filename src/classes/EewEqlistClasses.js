@@ -78,6 +78,7 @@ export class EewEvent {
         this.maxRadius1 = 2000
         this.maxRadius2 = 10000
         this.maxWaveRadius = 2000
+        this.gradId = `sWaveGradient-${this.eqMessage.id}`
         this.handleTempEqlists = handleTempEqlists
         this.smartSetView = smartSetView
     }
@@ -317,37 +318,31 @@ export class EewEvent {
         if(s_radius > 0 && s_radius <= this.maxWaveRadius) {
             const fillOpacity = this.calcOpacity(s_radius, 0, this.maxWaveRadius, 0, 0.25)
             if(!this.sWaveFill) {
+                const svg = document.querySelector('svg.leaflet-zoom-animated');
+                if (!svg) return;
+                let defs = svg.querySelector('defs');
+                if (!defs) {
+                    defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                    svg.insertBefore(defs, svg.firstChild);
+                }
+                const oldGrad = document.getElementById(this.gradId);
+                if(oldGrad) oldGrad.remove();
+                const grad = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+                grad.setAttribute('id', this.gradId);
+                grad.innerHTML = `
+                    <stop offset="0" stop-color="${color}" stop-opacity="0" />
+                    <stop offset="1" stop-color="${color}" stop-opacity="1" />
+                `;
+                defs.appendChild(grad);
+
                 this.sWaveFill = L.circle(this.hypoLatLng, {
-                    fillColor: 'url(#sWaveGradient)',
+                    fillColor: `url(#${this.gradId})`,
                     fillOpacity,
                     stroke: false,
                     radius: s_radius * 1000,
                     pane: 'waveFillPane',
                     interactive: false
                 }).addTo(this.map)
-
-                //SVG模式渐变
-                const svg = document.querySelector('svg.leaflet-zoom-animated');
-                if (!svg) return;
-                // 插入渐变定义
-                let defs = svg.querySelector('defs');
-                if (!defs) {
-                    defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-                    svg.insertBefore(defs, svg.firstChild);
-                }
-                const grad = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
-                grad.setAttribute('id', 'sWaveGradient');
-                grad.innerHTML = `
-                    <stop offset="0%" stop-color="transparent" />
-                    <stop offset="100%" stop-color=${color} />
-                `;
-                defs.appendChild(grad);
-
-                // 设置circle的fill为渐变
-                const circleEl = svg.querySelector('circle[fill]');
-                if (circleEl) {
-                    circleEl.setAttribute('fill', 'url(#sWaveGradient)');
-                }
             }
             else {
                 this.sWaveFill.setRadius(s_radius * 1000)
@@ -575,6 +570,7 @@ export class EewEvent {
         this.smartSetView()
         const index = this.activeEewList.indexOf(this)
         if(index >= 0) this.activeEewList.splice(index, 1)
+        document.getElementById(this.gradId)?.remove()
         this.map = null
         this.eqMessage = null
         this.activeEewList = null

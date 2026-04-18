@@ -86,7 +86,7 @@ export const topojsonUrls = {
   global: "/json/medium.global.modified.topo.json",
   cn: "/json/cn.province.topo.json",
   cn_eew: "/json/cn.eew.topo.json",
-  cn_fault: "/json/cn.fault.modified.topo.json",
+  cn_fault: "/json/cn.fault.topo.json",
   jp: "/json/jp.pref.topo.json",
   jp_eew: "/json/jp.eew.topo.json",
   jp_tsunami: "/json/jp.tsunami.topo.json",
