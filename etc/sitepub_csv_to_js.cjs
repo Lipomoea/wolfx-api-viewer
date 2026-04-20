@@ -56,21 +56,6 @@ stations.sort((a, b) => {
   return 0;
 });
 
-// const jsonOutput = {};
-
-// stations.forEach(station => {
-//     const latKey = station.latitude.toFixed(1);
-//     const lonKey = station.longitude.toFixed(1);
-
-//     const key = `${latKey},${lonKey}`;
-
-//     if (!jsonOutput[key]) {
-//         jsonOutput[key] = [];
-//     }
-
-//     jsonOutput[key].push([station.latitude, station.longitude]);
-// });
-
 const finalString = JSON.stringify(stations);
 fs.writeFileSync(
   outputFile,

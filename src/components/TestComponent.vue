@@ -10,6 +10,9 @@ import { useStatusStore } from '@/stores/status';
 import Http from '@/classes/Http';
 
 const statusStore = useStatusStore()
+setTimeout(() => {
+    statusStore.disconnect()
+}, 500);
 
 const testJmaEew = true
 const testCwaEew = true
@@ -597,9 +600,6 @@ onMounted(async ()=>{
         }, 2000);
     }
     if(testIclEew){
-        setTimeout(() => {
-            statusStore.disconnect()
-        }, 2000);
         const source = 'iclEew'
         const startAt = Date.now()
         // setTimeout(() => {
@@ -842,9 +842,6 @@ onMounted(async ()=>{
     }
     if(testJmaEqlist){
         const source = 'jmaEqlist'
-        setTimeout(() => {
-            statusStore.disconnect()
-        }, 2000);
         const limit = 20
         const res = await Http.get(`https://api.p2pquake.net/v2/jma/quake?limit=${limit}&order=1&since_date=20240101&until_date=20240101`)
         console.log(res);
@@ -885,9 +882,6 @@ onMounted(async ()=>{
     }
     if(testJmaTsunami){
         const source = 'jmaTsunami'
-        setTimeout(() => {
-            statusStore.disconnect()
-        }, 2000);
         const limit = 20
         const res = await Http.get(`https://api.p2pquake.net/v2/jma/tsunami?limit=${limit}&order=1&since_date=20240101`)
         console.log(res);
@@ -904,9 +898,6 @@ onMounted(async ()=>{
     }
     if(testNmefcTsunami){
         const source = 'nmefcTsunami'
-        setTimeout(() => {
-            statusStore.disconnect()
-        }, 2000);
         const res = await Http.get('https://api.fanstudio.tech/we/nmefc_tsunami.php?year=2025')
         res.reverse()
         console.log(res);

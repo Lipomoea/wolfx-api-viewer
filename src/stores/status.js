@@ -999,122 +999,128 @@ export const useStatusStore = defineStore('statusStore', {
                 tsunamiMessage.source = source
                 switch(source){
                     case 'jmaTsunami': {
-                        tsunamiMessage.id = data.issue.time.replace(/[^0-9]/g, '')
-                        tsunamiMessage.timeZone = 9
-                        tsunamiMessage.reportTime = data.issue.time.replace(/\//g, '-')
-                        if(data.cancelled) {
-                            tsunamiMessage.title = '津波警報・注意報なし'
-                            tsunamiMessage.titleText = '津波警報・注意報なし'
-                            tsunamiMessage.status = 0
-                            tsunamiMessage.className = 'gray'
-                        }
-                        else {
-                            switch(data.areas[0].grade) {
-                                case 'Watch':
-                                    tsunamiMessage.title = '津波注意報'
-                                    tsunamiMessage.titleText = '津波注意報発表中'
-                                    tsunamiMessage.status = 1
-                                    tsunamiMessage.className = 'yellow'
-                                    break
-                                case 'Warning':
-                                    tsunamiMessage.title = '津波警報'
-                                    tsunamiMessage.titleText = '津波警報発表中'
-                                    tsunamiMessage.status = 2
-                                    tsunamiMessage.className = 'red'
-                                    break
-                                case 'MajorWarning':
-                                    tsunamiMessage.title = '大津波警報'
-                                    tsunamiMessage.titleText = '大津波警報発表中'
-                                    tsunamiMessage.status = 3
-                                    tsunamiMessage.className = 'purple'
-                                    break
-                            }    
-                        }
-                        tsunamiMessage.warnArea = JSON.stringify(data.areas.map(item => {
-                            let className = 'gray'
-                            switch(item.grade) {
-                                case 'Watch':
-                                    className = 'yellow'
-                                    break
-                                case 'Warning':
-                                    className = 'red'
-                                    break
-                                case 'MajorWarning':
-                                    className = 'purple'
-                                    break
+                        const reportTime = data.issue.time.replace(/\//g, '-')
+                        if(!tsunamiMessage.reportTime || calcTimeDiff(reportTime, 9, tsunamiMessage.reportTime, 9) > 0) {
+                            tsunamiMessage.id = data.issue.time.replace(/[^0-9]/g, '')
+                            tsunamiMessage.timeZone = 9
+                            tsunamiMessage.reportTime = reportTime
+                            if(data.cancelled) {
+                                tsunamiMessage.title = '津波警報・注意報なし'
+                                tsunamiMessage.titleText = '津波警報・注意報なし'
+                                tsunamiMessage.status = 0
+                                tsunamiMessage.className = 'gray'
                             }
-                            return {
-                                name: item.name,
-                                grade: item.grade,
-                                height: item.maxHeight?.value,
-                                description: item.maxHeight.description,
-                                arrivalTime: item.firstHeight?.arrivalTime,
-                                condition: item.firstHeight?.condition,
-                                className
+                            else {
+                                switch(data.areas[0].grade) {
+                                    case 'Watch':
+                                        tsunamiMessage.title = '津波注意報'
+                                        tsunamiMessage.titleText = '津波注意報発表中'
+                                        tsunamiMessage.status = 1
+                                        tsunamiMessage.className = 'yellow'
+                                        break
+                                    case 'Warning':
+                                        tsunamiMessage.title = '津波警報'
+                                        tsunamiMessage.titleText = '津波警報発表中'
+                                        tsunamiMessage.status = 2
+                                        tsunamiMessage.className = 'red'
+                                        break
+                                    case 'MajorWarning':
+                                        tsunamiMessage.title = '大津波警報'
+                                        tsunamiMessage.titleText = '大津波警報発表中'
+                                        tsunamiMessage.status = 3
+                                        tsunamiMessage.className = 'purple'
+                                        break
+                                }    
                             }
-                        }))
+                            tsunamiMessage.warnArea = JSON.stringify(data.areas.map(item => {
+                                let className = 'gray'
+                                switch(item.grade) {
+                                    case 'Watch':
+                                        className = 'yellow'
+                                        break
+                                    case 'Warning':
+                                        className = 'red'
+                                        break
+                                    case 'MajorWarning':
+                                        className = 'purple'
+                                        break
+                                }
+                                return {
+                                    name: item.name,
+                                    grade: item.grade,
+                                    height: item.maxHeight?.value,
+                                    description: item.maxHeight.description,
+                                    arrivalTime: item.firstHeight?.arrivalTime,
+                                    condition: item.firstHeight?.condition,
+                                    className
+                                }
+                            }))
+                        }
                         this.isActive.jmaTsunami = !!tsunamiMessage.status
                         break
                     }
                     case 'nmefcTsunami': {
-                        tsunamiMessage.id = data.timeInfo.updateDate.replace(/[^0-9]/g, '')
-                        tsunamiMessage.reportTime = data.timeInfo.updateDate
-                        switch(data.warningInfo.level) {
-                            case '黄色':
-                                tsunamiMessage.title = '海啸注意报'
-                                tsunamiMessage.titleText = '现正发布海啸注意报'
-                                tsunamiMessage.status = 1
-                                tsunamiMessage.className = 'yellow'
-                                break
-                            case '橙色':
-                                tsunamiMessage.title = '海啸警报'
-                                tsunamiMessage.titleText = '现正发布海啸警报'
-                                tsunamiMessage.status = 2
-                                tsunamiMessage.className = 'red'
-                                break
-                            case '红色':
-                                tsunamiMessage.title = '大海啸警报'
-                                tsunamiMessage.titleText = '现正发布大海啸警报'
-                                tsunamiMessage.status = 3
-                                tsunamiMessage.className = 'purple'
-                                break
-                            default:
-                                tsunamiMessage.title = '海啸预警已解除'
-                                tsunamiMessage.titleText = '海啸预警已解除'
-                                tsunamiMessage.status = 0
-                                tsunamiMessage.className = 'gray'
-                                break
-                        }    
-                        tsunamiMessage.warnArea = JSON.stringify(data.forecasts.map(item => {
-                            let className = 'gray'
-                            let height = 0
-                            let description = ''
-                            switch(item.warningLevel) {
+                        const reportTime = data.timeInfo.updateDate
+                        if(!tsunamiMessage.reportTime || calcTimeDiff(reportTime, 8, tsunamiMessage.reportTime, 8) > 0) {
+                            tsunamiMessage.id = data.timeInfo.updateDate.replace(/[^0-9]/g, '')
+                            tsunamiMessage.reportTime = reportTime
+                            switch(data.warningInfo.level) {
                                 case '黄色':
-                                    className = 'yellow'
-                                    height = 1
-                                    description = '1m'
+                                    tsunamiMessage.title = '海啸注意报'
+                                    tsunamiMessage.titleText = '现正发布海啸注意报'
+                                    tsunamiMessage.status = 1
+                                    tsunamiMessage.className = 'yellow'
                                     break
                                 case '橙色':
-                                    className = 'red'
-                                    height = 3
-                                    description = '3m'
+                                    tsunamiMessage.title = '海啸警报'
+                                    tsunamiMessage.titleText = '现正发布海啸警报'
+                                    tsunamiMessage.status = 2
+                                    tsunamiMessage.className = 'red'
                                     break
                                 case '红色':
-                                    className = 'purple'
-                                    height = 5
-                                    description = '3m超'
+                                    tsunamiMessage.title = '大海啸警报'
+                                    tsunamiMessage.titleText = '现正发布大海啸警报'
+                                    tsunamiMessage.status = 3
+                                    tsunamiMessage.className = 'purple'
                                     break
-                            }
-                            return {
-                                name: item.forecastArea,
-                                grade: item.warningLevel,
-                                height,
-                                description,
-                                arrivalTime: item.estimatedArrivalTime,
-                                className
-                            }
-                        }))
+                                default:
+                                    tsunamiMessage.title = '海啸预警已解除'
+                                    tsunamiMessage.titleText = '海啸预警已解除'
+                                    tsunamiMessage.status = 0
+                                    tsunamiMessage.className = 'gray'
+                                    break
+                            }    
+                            tsunamiMessage.warnArea = JSON.stringify(data.forecasts.map(item => {
+                                let className = 'gray'
+                                let height = 0
+                                let description = ''
+                                switch(item.warningLevel) {
+                                    case '黄色':
+                                        className = 'yellow'
+                                        height = 1
+                                        description = '1m'
+                                        break
+                                    case '橙色':
+                                        className = 'red'
+                                        height = 3
+                                        description = '3m'
+                                        break
+                                    case '红色':
+                                        className = 'purple'
+                                        height = 5
+                                        description = '3m超'
+                                        break
+                                }
+                                return {
+                                    name: item.forecastArea,
+                                    grade: item.warningLevel,
+                                    height,
+                                    description,
+                                    arrivalTime: item.estimatedArrivalTime,
+                                    className
+                                }
+                            }))
+                        }
                         this.isActive.nmefcTsunami = !!tsunamiMessage.status
                         break
                     }
