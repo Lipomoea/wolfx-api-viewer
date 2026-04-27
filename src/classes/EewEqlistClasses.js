@@ -436,14 +436,14 @@ export class EewEvent {
                 ? (shindoScale.indexOf(this.userShindo) >= settingsStore.mainSettings.intenseLocalShindo)
                 : (Number(this.userCsis) >= settingsStore.mainSettings.intenseLocalCsis)
             ) this.isIntense = true
-            if(this.shouldAction && !isAddition && !this.mute) this.handleActions()
+            if(this.shouldAction && !isAddition && !this.mute) this.handleActions(isFirst)
             clearTimeout(this.terminateTimer)
             this.terminateTimer = setTimeout(() => {
                 this.terminate()
             }, time);
         }
     }
-    handleActions(){
+    handleActions(isFirst = false){
         const eqMessage = this.eqMessage
         let icon = ''
         //是Warn
@@ -525,7 +525,7 @@ export class EewEvent {
                 icon
             )
         }
-        this.handleTempEqlists(0)
+        if(isFirst) this.handleTempEqlists(0)
     }
     handleCountdown(passedTime){
         if(settingsStore.mainSettings.displayCountdown && this.isValidUserLatLng && (this.userDist <= this.maxRadius2 && !this.eqMessage.isAssumption || settingsStore.mainSettings.forceDisplayCountdown)){
