@@ -88,6 +88,12 @@ const getData = async (url)=>{
     }
 }
 let pendingRender = false
+const handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible' && pendingRender) {
+        pendingRender = false
+        renderAll()
+    }
+}
 const nearbyLength = 6
 const activityThresArr = [Infinity, 9, 12, 14, 15, 16, 16]
 const update = ()=>{
@@ -313,12 +319,7 @@ onMounted(()=>{
             console.log(err);
         }
     }, 500);
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible' && pendingRender) {
-            pendingRender = false
-            renderAll()
-        }
-    })
+    document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 let unwatchGrids, unwatchRender
 watch(()=>statusStore.map, newVal=>{
@@ -444,6 +445,7 @@ onBeforeUnmount(()=>{
     clearInterval(fetchStationInterval)
     clearInterval(requestInterval)
     clearInterval(delayInterval)
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
     if(map !== null) map.off('zoomend', renderAll)
     if(unwatchGrids) unwatchGrids()
     if(unwatchRender) unwatchRender()

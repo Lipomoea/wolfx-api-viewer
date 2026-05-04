@@ -73,6 +73,12 @@ const grids = computed(()=>{
     return grids
 })
 let pendingRender = false
+const handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible' && pendingRender) {
+        pendingRender = false
+        renderAll()
+    }
+}
 const update = ()=>{
     const render = document.visibilityState === 'visible'
     if(!render) pendingRender = true
@@ -133,12 +139,7 @@ onMounted(()=>{
             console.log(err);
         }
     }, 1000);
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible' && pendingRender) {
-            pendingRender = false
-            renderAll()
-        }
-    })
+    document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 let unwatchStationList, unwatchGrids, unwatchRender
 watch(()=>statusStore.map, newVal=>{
@@ -270,6 +271,7 @@ const stationDataUrl = computed(() => delay.value > 0 ? seisNetUrls?.trem.statio
 onBeforeUnmount(()=>{
     clearInterval(fetchStationInterval)
     clearInterval(requestInterval)
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
     if(map !== null) map.off('zoomend', renderAll)
     if(unwatchStationList) unwatchStationList()
     if(unwatchGrids) unwatchGrids()

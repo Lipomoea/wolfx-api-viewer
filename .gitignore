@@ -30,4 +30,5 @@ coverage
 *.tsbuildinfo
 
 # dist zip file
-dist.zip
+dist.zip!/
+perf-reports/

@@ -118,7 +118,8 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { getFEName } from '@/utils/FERegions';
 import { Plus } from '@element-plus/icons-vue';
-import { calcCsisLevel, calcMaxJmaShindoLevel } from '@/utils/Utils';
+import { calcCsisLevel } from '@/utils/Utils';
+import { calcMaxJmaShindoLevel } from '@/utils/JmaMaxIntensity';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
