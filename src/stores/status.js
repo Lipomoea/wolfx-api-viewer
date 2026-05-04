@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import Http from '@/classes/Http';
 import WebSocketObj from '@/classes/WebSocket';
 import { eqUrls, iconUrls, tsunamiUrls } from '@/utils/Urls';
-import { setClassName, calcCsisLevel, stampToTime, getShindoFromInstShindo, shindoScaleKanji, calcTimeDiff, shindoScale, playSound, sendMyNotification, focusWindow } from '@/utils/Utils';
+import { setClassName, calcCsisLevel, stampToTime, getShindoFromInstShindo, shindoScaleKanji, calcTimeDiff, playSound, sendMyNotification, focusWindow, formatShindo } from '@/utils/Utils';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { useSettingsStore } from './settings';
 import { isTauri } from '@tauri-apps/api/core';
@@ -425,7 +425,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.originTimeText = '時間: ' + eqMessage.originTime
                                 eqMessage.magnitude = data.magnitude
                                 eqMessage.magnitudeText = '規模: ' + eqMessage.magnitude.toFixed(1)
-                                eqMessage.maxIntensity = data.maxIntensity?.replace('級', '') || '不明'
+                                eqMessage.maxIntensity = formatShindo(data.maxIntensity, false) || '不明'
                                 eqMessage.maxIntensityText = '預估最大震度: ' + eqMessage.maxIntensity
                                 eqMessage.isWarn = eqMessage.maxIntensity >= '5' && eqMessage.maxIntensity != '不明'
                                 break
@@ -1162,22 +1162,24 @@ export const useStatusStore = defineStore('statusStore', {
                         break
                     }
                     case 'cwaEqlist': {
-                        const locStart = data[i].loc.indexOf('(位於')
-                        const locEnd = data[i].loc.indexOf(')')
-                        const hypocenter = locStart == -1 || locEnd == -1 || locStart + 3 >= locEnd ? data[i].loc : data[i].loc.slice(locStart + 3, locEnd)
+                        const placeName = data[i].placeName
+                        const locStart = placeName.indexOf('(位於')
+                        const locEnd = placeName.indexOf(')')
+                        const hypocenter = locStart == -1 || locEnd == -1 || locStart + 3 >= locEnd ? placeName : placeName.slice(locStart + 3, locEnd)
+                        const maxIntensity = formatShindo(data[i].maxIntensity)
                         list[i] = {
                             source: 'CWA',
                             id: data[i].id,
                             timeZone: 8,
                             useShindo: true,
-                            originTime: stampToTime(data[i].time, 8),
-                            lat: data[i].lat,
-                            lng: data[i].lon,
+                            originTime: data[i].shockTime,
+                            lat: data[i].latitude,
+                            lng: data[i].longitude,
                             hypocenter,
                             depth: data[i].depth,
-                            magnitude: data[i].mag,
-                            maxIntensity: shindoScale[data[i].int],
-                            className: setClassName(shindoScale[data[i].int], true),
+                            magnitude: data[i].magnitude,
+                            maxIntensity,
+                            className: setClassName(maxIntensity, true),
                             url: 'https://scweb.cwa.gov.tw/zh-tw/earthquake/data'
                         }
                         break
@@ -1289,11 +1291,10 @@ export const useStatusStore = defineStore('statusStore', {
                             const data = await Http.get(tsunamiUrls.jmaTsunami_http)
                             if(data && data.length > 0) this.setTsunamiMessage(source, data[0])
                         }
-                        if(source == 'cwaEqlist' && 'cwaEqlist_http' in eqUrls && status % 2 == 0) {
+                        if(source == 'cwaEqlist' && 'cwaEqlist_http' in eqUrls) {
                             const data = await Http.get(eqUrls.cwaEqlist_http + `&time=${stamp}`)
                             if(data && data.length > 0) {
                                 this.setEqMessage(source, data[0])
-                                this.setHistory(source, data)
                             }
                         }
                         if(source == 'usgsEqlist' && status % 10 == 0) {
@@ -1352,6 +1353,10 @@ export const useStatusStore = defineStore('statusStore', {
                     const token = settingsStore.advancedSettings.tokens.fan_dev
                     if(token) initMsg.push(`{"type":"auth","key":"${token}"}`)
                     const autoMsg = ['query']
+                    if(this.activeFanSources.includes('cwaEqlist')) {
+                        autoMsg.push('cwalist')
+                        initMsg.push('cwalist')
+                    }
                     if(this.activeFanSources.includes('cencEqlist')) {
                         autoMsg.push('cencirlist', 'cenclist')
                         initMsg.push('cencirlist', 'cenclist')
@@ -1380,6 +1385,12 @@ export const useStatusStore = defineStore('statusStore', {
                                 const Data = data?.Data
                                 if(source && this.activeFanSources.includes(source) && Data)
                                     source.endsWith('Tsunami') ? this.setTsunamiMessage(source, Data) : this.setEqMessage(source, Data, 1)
+                                break
+                            }
+                            case 'cwalist_response': {
+                                const source = 'cwaEqlist'
+                                const Data = data?.Data
+                                this.setHistory(source, Data)
                                 break
                             }
                             case 'cenclist_response': {

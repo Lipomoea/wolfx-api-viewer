@@ -92,7 +92,7 @@ pub fn run() {
             let _ = TrayIconBuilder::new()
                 .menu(&menu)
                 .icon(icon)
-                .tooltip("要石 v2.6.0")
+                .tooltip("要石 v2.7.0")
                 .on_menu_event(move |tray, event| match event.id().as_ref() {
                     TRAY_SHOW_WINDOW_ID => {
                         show_main_window(tray.app_handle());

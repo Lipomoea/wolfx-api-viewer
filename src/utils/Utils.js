@@ -519,9 +519,15 @@ export const formatCsis = value => {
   }
 };
 export const formatShindo = (intensity, useSymbol = true) =>
-  useSymbol
-    ? intensity.replace("強", "+").replace("弱", "-").replace("不明", "?")
-    : intensity.replace("+", "強").replace("-", "弱").replace("?", "不明");
+  intensity
+    ? useSymbol
+      ? intensity
+          .replace("強", "+")
+          .replace("弱", "-")
+          .replace("不明", "?")
+          .replace("級", "")
+      : intensity.replace("+", "強").replace("-", "弱").replace("?", "不明")
+    : undefined;
 export const calcMaxJmaShindoLevel = (
   mj,
   dep,
