@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "wasm:build": "node scripts/build-wasm.mjs",
+    "dev": "node scripts/build-wasm.mjs && vite",
+    "build": "node scripts/build-wasm.mjs && vite build",
     "build:profile": "vite build --sourcemap",
     "preview": "vite preview",
     "tauri:dev": "tauri dev",

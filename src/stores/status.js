@@ -3,7 +3,7 @@ import Http from '@/classes/Http';
 import WebSocketObj from '@/classes/WebSocket';
 import { eqUrls, iconUrls, tsunamiUrls } from '@/utils/Urls';
 import { setClassName, calcCsisLevel, stampToTime, getShindoFromInstShindo, shindoScaleKanji, calcTimeDiff, playSound, sendMyNotification, focusWindow, formatShindo } from '@/utils/Utils';
-import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
+import { loadJmaSeisIntLoc } from '@/utils/JmaSeisIntLocLoader';
 import { useSettingsStore } from './settings';
 import { isTauri } from '@tauri-apps/api/core';
 import { getFEName } from '@/utils/FERegions';
@@ -249,7 +249,7 @@ export const useStatusStore = defineStore('statusStore', {
         activeEqlistSources: state => eqlistSources.filter(source => state.enabledSource.includes(source)),
     },
     actions: {
-        setEqMessage(source, data, type = 0) {
+        async setEqMessage(source, data, type = 0) {
             try{
                 const eqMessage = this.eqMessage[source]
                 const oldType = eqMessage.type
@@ -689,6 +689,7 @@ export const useStatusStore = defineStore('statusStore', {
                         break
                     }
                     case 'jmaEqlist':{
+                        const jmaSeisIntLoc = await loadJmaSeisIntLoc()
                         const isNewEvent = eqMessage.id != data.earthquake.time.replace(/\//g, '-')
                         eqMessage.timeZone = 9
                         eqMessage.id = data.earthquake.time.replace(/\//g, '-')

@@ -359,7 +359,7 @@ import SettingsComponent from './SettingsComponent.vue';
 import { verifyUpToDate, setClassName, getClassLevel, classNameArray, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone, simplifyTopoJson, formatCsis, csisRomanArray, formatShindo } from '@/utils/Utils';
 import { topojsonUrls } from '@/utils/Urls';
 import { loadTopojsonResources } from '@/utils/TopojsonCache';
-import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
+import { loadJmaSeisIntLoc } from '@/utils/JmaSeisIntLocLoader';
 import { isTauri } from '@tauri-apps/api/core';
 import { storeToRefs } from 'pinia';
 import { simpleIcon } from '@/classes/StationClasses';
@@ -1485,6 +1485,7 @@ watch(isAutoZoom, (newVal)=>{
         }, 1000);
     }
 }, { immediate: true })
+const jmaForceCalcWarnArea = ref({})
 const jmaWarnArea = computed(()=>{
     const jmaWarnArea = {}
     if(menuId.value != 'eqlists') {
@@ -1497,25 +1498,11 @@ const jmaWarnArea = computed(()=>{
                 }
             })
         })
-        if(settingsStore.advancedSettings.forceCalcInt) {
-            for(let id in jmaSeisIntLoc) {
-                for(let eew of jpEewInfoList.value) {
-                    const { magnitude, depth, lat, lng } = eew
-                    if(depth > 150) continue
-                    const intensity = calcJmaShindoLevel(magnitude, depth, lat, lng, jmaSeisIntLoc[id], false)
-                    if(intensity < '1') continue
-                    const name = jmaSeisIntLoc[id].sect
-                    const className = setClassName(intensity, true)
-                    if(!jmaWarnArea[name] || getClassLevel(className) > getClassLevel(jmaWarnArea[name].className)) {
-                        jmaWarnArea[name] = {
-                            name,
-                            intensity,
-                            className
-                        }
-                    }
-                }
+        Object.values(jmaForceCalcWarnArea.value).forEach(item => {
+            if(!jmaWarnArea[item.name] || getClassLevel(item.className) > getClassLevel(jmaWarnArea[item.name].className)) {
+                jmaWarnArea[item.name] = item
             }
-        }
+        })
     }
     else {
         const jmaEqlistEvent = historyList.length > 0
@@ -1569,6 +1556,36 @@ const jpEewInfoList = computed(()=>{
     })
     return jpEewInfoList
 })
+let jmaForceCalcRequestId = 0
+watch([() => settingsStore.advancedSettings.forceCalcInt, jpEewInfoList, menuId], async ([forceCalcInt, infoList]) => {
+    const requestId = ++jmaForceCalcRequestId
+    if(!forceCalcInt || menuId.value == 'eqlists' || infoList.length == 0) {
+        jmaForceCalcWarnArea.value = {}
+        return
+    }
+    const jmaSeisIntLoc = await loadJmaSeisIntLoc()
+    const nextWarnArea = {}
+    for(let id in jmaSeisIntLoc) {
+        for(let eew of infoList) {
+            const { magnitude, depth, lat, lng } = eew
+            if(depth > 150) continue
+            const intensity = calcJmaShindoLevel(magnitude, depth, lat, lng, jmaSeisIntLoc[id], false)
+            if(intensity < '1') continue
+            const name = jmaSeisIntLoc[id].sect
+            const className = setClassName(intensity, true)
+            if(!nextWarnArea[name] || getClassLevel(className) > getClassLevel(nextWarnArea[name].className)) {
+                nextWarnArea[name] = {
+                    name,
+                    intensity,
+                    className
+                }
+            }
+        }
+    }
+    if(requestId == jmaForceCalcRequestId) {
+        jmaForceCalcWarnArea.value = nextWarnArea
+    }
+}, { deep: true, immediate: true })
 const eewInfoList = computed(()=>{
     const eewList = menuId.value == 'eqlists'
         ? historyList.length > 0

@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia';
 import merge from 'lodash/merge';
-import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
-import { calcSurfaceDistanceKm } from '@/utils/SeismicCalculations';
+import { findNearestJmaLoc, loadNearestJmaLoc } from '@/utils/JmaSeisIntLocLoader';
 
 export const useSettingsStore = defineStore('settingsStore', {
     state: ()=>({
@@ -115,6 +114,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             mapSimplifyFactor: 0,
             maxWaveRenderRate: 10,
             useCanvasRenderer: false,
+            useWebglWaveRenderer: true,
             minimizeOnLaunch: false,
             autoCheckNewVersion: false,
             checkPrerelease: false,
@@ -139,29 +139,17 @@ export const useSettingsStore = defineStore('settingsStore', {
             preventFlickerMode: false,
             mockEew: false,
             mockOnReplay: false
-        }
+        },
+        nearestJmaLocCache: null
     }),
     getters: {
         isValidUserLatLng: (state) => state.mainSettings.userLatLng.every(item => item || item === 0) && !state.mainSettings.userLatLng.every(item => item === 0),
         isValidViewLatLng: (state) => state.mainSettings.viewLatLng.every(item => item || item === 0) && !state.mainSettings.viewLatLng.every(item => item === 0),
         isDisplayUser(state) { return this.isValidUserLatLng && state.mainSettings.displayUser },
         nearestJmaLoc(state) {
-            if(this.isValidUserLatLng) {
-                const userCoord = [state.mainSettings.userLatLng[1], state.mainSettings.userLatLng[0]]
-                let nearestLoc = null
-                let nearestDist = 30
-                for(let loc in jmaSeisIntLoc) {
-                    const locCoord = [jmaSeisIntLoc[loc].location[1], jmaSeisIntLoc[loc].location[0]]
-                    if(Math.abs(userCoord[0] - locCoord[0]) >= 0.39 || Math.abs(userCoord[1] - locCoord[1]) >= 0.27) continue
-                    const dist = calcSurfaceDistanceKm(userCoord[1], userCoord[0], locCoord[1], locCoord[0])
-                    if(dist < nearestDist) {
-                        nearestDist = dist
-                        nearestLoc = jmaSeisIntLoc[loc]
-                    }
-                }
-                return nearestLoc
-            }
-            else return null
+            return this.isValidUserLatLng
+                ? findNearestJmaLoc(state.mainSettings.userLatLng) || state.nearestJmaLocCache
+                : null
         },
         displayTokenButton: (state) => state.advancedSettings.enableIclEew,
         actionWhiteListArr: (state) => state.mainSettings.actionWhiteList.split('|').filter(key => key)
@@ -178,6 +166,12 @@ export const useSettingsStore = defineStore('settingsStore', {
             if(jsonString){
                 merge(this.advancedSettings, JSON.parse(jsonString))
             }
+        },
+        async refreshNearestJmaLoc(){
+            this.nearestJmaLocCache = this.isValidUserLatLng
+                ? await loadNearestJmaLoc(this.mainSettings.userLatLng)
+                : null
+            return this.nearestJmaLocCache
         },
     }
 })

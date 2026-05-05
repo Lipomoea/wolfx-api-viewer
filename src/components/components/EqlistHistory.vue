@@ -47,7 +47,6 @@ import { useSettingsStore } from '@/stores/settings';
 import { defaultEqMessage, useStatusStore } from '@/stores/status';
 import { openUrl, formatTimeZone, formatCsis, calcTimeDiff, formatShindo, calcPassedTime, stampToTime } from '@/utils/Utils';
 import { useTimeStore } from '@/stores/time';
-import { HistoryEvent } from '@/classes/EewEqlistClasses';
 import { isTauri } from '@tauri-apps/api/core';
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 import dayjs from 'dayjs';
@@ -97,7 +96,12 @@ const handleCopy = async (item) => {
     }
 }
 const displayIds = computed(() => new Set(historyList.map(event => event.eqMessage.id)))
-const displayOnMap = (item) => {
+let historyClassModulePromise
+const loadHistoryClassModule = () => {
+    historyClassModulePromise ||= import('@/classes/EewEqlistClasses')
+    return historyClassModulePromise
+}
+const displayOnMap = async (item) => {
     const event = historyList.find(event => event.eqMessage.id == item.id)
     if(event) {
         event.deactivate()
@@ -109,6 +113,7 @@ const displayOnMap = (item) => {
         eqMessage.depthText = '深度: ' + eqMessage.depth.toFixed(0) + 'km'
         eqMessage.reportTime = stampToTime(timeStore.getTimeStamp(), eqMessage.timeZone)
         if(!statusStore.map) return
+        const { HistoryEvent } = await loadHistoryClassModule()
         const newEvent = reactive(new HistoryEvent(statusStore.map, eqMessage, smartSetView, historyList))
         historyList.unshift(newEvent)
         newEvent.update(eqMessage)

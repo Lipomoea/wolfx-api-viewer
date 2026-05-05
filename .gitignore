@@ -28,6 +28,8 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+frontend-wasm/target
+public/wasm/*.wasm
 
 # dist zip file
 dist.zip!/
