@@ -29,6 +29,30 @@ export default defineConfig({
     minify: !process.env.TAURI_ENV_DEBUG ? 'esbuild' : false,
     // 在 debug 构建中生成 sourcemap
     sourcemap: !!process.env.TAURI_ENV_DEBUG,
+    cssCodeSplit: true,
+    chunkSizeWarningLimit: 1200,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('/src/utils/CnSeisIntLoc')) return 'geo-cn-seis-int'
+          if (id.includes('/src/utils/JmaSeisIntLoc')) return 'geo-jma-seis-int'
+          if (id.includes('/src/utils/TravelTimes')) return 'travel-times'
+          if (id.includes('/src/utils/FERegions')) return 'fe-regions'
+          if (!id.includes('node_modules')) return
+          if (id.includes('element-plus') || id.includes('@element-plus')) return 'ui-vendor'
+          if (id.includes('leaflet')) return 'map-vendor'
+          if (id.includes('@tauri-apps')) return 'tauri-vendor'
+          if (
+            id.includes('@turf') ||
+            id.includes('topojson') ||
+            id.includes('geokdbush') ||
+            id.includes('kdbush')
+          ) return 'geo-vendor'
+          if (id.includes('vue') || id.includes('pinia')) return 'vue-vendor'
+          return 'vendor'
+        },
+      },
+    },
   },
   plugins: [
     vue(),

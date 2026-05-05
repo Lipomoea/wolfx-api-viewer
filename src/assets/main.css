@@ -3,18 +3,21 @@
   src: url('./fonts/HarmonyOS_Sans_Regular.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 @font-face {
   font-family: 'HMOS Sans SC';
   src: url('./fonts/HarmonyOS_SansSC_Regular.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 @font-face {
   font-family: 'HMOS Sans TC';
   src: url('./fonts/HarmonyOS_SansTC_Regular.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
 }
 
 *{

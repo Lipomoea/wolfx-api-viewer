@@ -356,8 +356,9 @@ import { useSettingsStore } from '@/stores/settings';
 import { useTimeStore } from '@/stores/time';
 import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
-import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToCnArea, pointDistToKrArea, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone, simplifyTopoJson, formatCsis, csisRomanArray, formatShindo } from '@/utils/Utils';
+import { verifyUpToDate, setClassName, getClassLevel, classNameArray, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone, simplifyTopoJson, formatCsis, csisRomanArray, formatShindo } from '@/utils/Utils';
 import { topojsonUrls } from '@/utils/Urls';
+import { loadTopojsonResources } from '@/utils/TopojsonCache';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { isTauri } from '@tauri-apps/api/core';
 import { storeToRefs } from 'pinia';
@@ -653,12 +654,7 @@ onMounted(()=>{
         map.on('zoomstart', ()=>{setMapHeight('calc(100% - 1px)');})
         map.on('zoomend', ()=>{setMapHeight('100%');})
     }
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible' && pendingSetView) {
-            pendingSetView = false
-            setView(true)
-        }
-    })
+    document.addEventListener('visibilitychange', handleVisibilityChange)
     watchEffect(()=>{
         if(userMarker && map.hasLayer(userMarker)) map.removeLayer(userMarker)
         if(isDisplayUser.value){
@@ -876,15 +872,14 @@ const loadMaps = async (retries = 0) => {
             firstMsg = true
         }, 1000);
     }
-    let promises, shouldRetry = false
-    if(!isTauri() && ('caches' in window)){
-        const cache = await caches.open('topojson')
-        promises = Object.keys(topojsonUrls).map(key=>cache.match(topojsonUrls[key]).then(res=>res?.json()))
+    let shouldRetry = false
+    let resps = []
+    try {
+        resps = await loadTopojsonResources(topojsonUrls, !isTauri())
+    } catch (err) {
+        console.log(err)
+        shouldRetry = true
     }
-    else{
-        promises = Object.keys(topojsonUrls).map(key=>fetch(topojsonUrls[key]).then(res=>res?.json()))
-    }
-    const resps = await Promise.all(promises)
     const [global, cn, cn_eew, cn_fault, jp, jp_eew, jp_tsunami, kr_eew, cn_tsunami] = resps
     if(global && cn && cn_eew && cn_fault && jp && jp_eew && kr_eew && jp_tsunami){
         clearTimeout(msgTimer)
@@ -995,6 +990,7 @@ const loadMaps = async (retries = 0) => {
             })
         }, { deep: true, immediate: true })
         if(settingsStore.advancedSettings.forceCalcInt){
+            const { pointDistToCnArea, pointDistToKrArea } = await import('@/utils/AreaDistance')
             watch(eewInfoList, newVal=>{
                 const newCsisList = {}
                 const cnAreaClass = {}, krAreaClass = {}
@@ -1149,6 +1145,12 @@ const setMapHeight = (height) => {
     }, 0);
 }
 let pendingSetView = false
+const handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible' && pendingSetView) {
+        pendingSetView = false
+        setView(true)
+    }
+}
 let largeZoomingTimer
 const setView = (force = false) => {
     if(!map) return
@@ -1591,6 +1593,7 @@ onBeforeUnmount(()=>{
     clearTimeout(defaultMenuTimer)
     clearTimeout(tempEqlistsTimer)
     clearTimeout(largeZoomingTimer)
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
     document.removeEventListener('mousemove', resetDefaultMenuTimer)
     document.removeEventListener('keydown', handleKeydown)
     activeEewList.length = 0

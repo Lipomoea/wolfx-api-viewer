@@ -31,6 +31,12 @@ let distMatrix = [[]]
 let adjStationIds = {}
 let map
 let pendingRender = false
+const handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible' && pendingRender) {
+        pendingRender = false
+        renderAll()
+    }
+}
 let decimal = [0, 0]
 const gridRects = {}
 const activeStations = computed(()=>{
@@ -167,12 +173,7 @@ onMounted(()=>{
             }
         }
     })
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible' && pendingRender) {
-            pendingRender = false
-            renderAll()
-        }
-    })
+    document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 let unwatchGrids, unwatchStationList, unwatchRender
 watch(()=>statusStore.map, newVal=>{
@@ -322,6 +323,7 @@ watch(currentMaxShindo, (newVal, oldVal)=>{
 })
 onBeforeUnmount(()=>{
     kmaSocket?.close()
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
     if(map !== null) map.off('zoomend', renderAll)
     if(unwatchGrids) unwatchGrids()
     if(unwatchStationList) unwatchStationList()

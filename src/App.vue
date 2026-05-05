@@ -20,6 +20,7 @@ import { platform } from '@tauri-apps/plugin-os';
 import { invoke, isTauri } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import Http from './classes/Http';
+import { warmTopojsonCache } from './utils/TopojsonCache';
 
 const timeStore = useTimeStore()
 const statusStore = useStatusStore()
@@ -42,12 +43,7 @@ async function syncTrayGameModeMenu(enabled) {
 async function getGeojson(retries = 0){
   if(!inTauri && ('caches' in window)){
     try {
-      const promises = Object.keys(topojsonUrls).map(async name => {
-        const data = await Http.get(topojsonUrls[name], { timeout: 0 })
-        const cache = await caches.open('topojson')
-        await cache.put(topojsonUrls[name], new Response(JSON.stringify(data)))
-      })
-      await Promise.all(promises)
+      await warmTopojsonCache(topojsonUrls, url => Http.get(url, { timeout: 0 }))
     } catch (err) {
       console.log(err);
       if(retries < 3) {
