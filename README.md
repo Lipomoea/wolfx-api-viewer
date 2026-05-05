@@ -63,6 +63,7 @@ icon是《铃芽之旅》的草太さん（椅子形态）。
 * [TREM-Lite](https://github.com/ExpTechTW/TREM-Lite)
 ## 特别鸣谢
 * [lxfly2000](https://github.com/lxfly2000)
+* [BasyacatX](https://github.com/BasyacatX)
 * [Wolfx Project](https://wolfx.jp/)
 * [TBS](https://space.bilibili.com/652050915/)
 * [FAN](https://www.fanstudio.tech/)
