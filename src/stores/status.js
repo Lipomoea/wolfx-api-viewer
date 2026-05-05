@@ -9,10 +9,10 @@ import { isTauri } from '@tauri-apps/api/core';
 import { getFEName } from '@/utils/FERegions';
 import isEqual from 'lodash/isEqual';
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
-dayjs.extend(utc);
-dayjs.extend(timezone);
+// import utc from "dayjs/plugin/utc";
+// import timezone from "dayjs/plugin/timezone";
+// dayjs.extend(utc);
+// dayjs.extend(timezone);
 
 export const defaultEqMessage = {
     source: '',
@@ -1257,7 +1257,7 @@ export const useStatusStore = defineStore('statusStore', {
                             id: data[i].ID,
                             timeZone: 8,
                             useShindo: false,
-                            originTime: dayjs.utc(data[i].shockTime).tz('Asia/Shanghai').format("YYYY-MM-DD HH:mm:ss"),
+                            originTime: data[i].shockTime,
                             lat,
                             lng,
                             hypocenter: infoType + (getFEName(lat, lng) || data[i].placeName_zh || data[i].placeName),
