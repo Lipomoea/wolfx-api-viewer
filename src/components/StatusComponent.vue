@@ -21,12 +21,13 @@
 
 <script setup>
 import EqGrid from "@/components/components/EqGrid.vue";
-import MockEew from "./components/MockEew.vue";
+import { defineAsyncComponent } from "vue";
 import { useSettingsStore } from "@/stores/settings";
 import { eewSources, eqlistSources, useStatusStore } from "@/stores/status";
 import { eqUrls } from "@/utils/Urls";
 import SeisNetComponent from "./SeisNetComponent.vue";
 
+const MockEew = defineAsyncComponent(() => import("./components/MockEew.vue"));
 const settingsStore = useSettingsStore();
 const statusStore = useStatusStore();
 

@@ -4,15 +4,19 @@ import { chimeUrls } from "./Urls";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { isTauri } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-shell";
-import { booleanPointInPolygon, point, distance } from "@turf/turf";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { presimplify, simplify } from "topojson-simplify";
-import { cnSeisIntLoc, cnSeisIntLocBush } from "./CnSeisIntLoc";
-import { around } from "geokdbush";
-import { jmaSeisIntLoc } from "./JmaSeisIntLoc";
-import { krSeisIntLoc, krSeisIntLocBush } from "./KrSeisIntLoc";
+import { calcCsisLevelWasmSync } from "./WasmSeismic";
+import { calcCsis as calcCsisBase } from "./SeismicCalculations";
+export {
+  calcCsis,
+  calcJmaShindo,
+  calcJmaShindoLevel,
+  calcReachTime,
+  calcWaveDistance,
+} from "./SeismicCalculations";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -237,47 +241,6 @@ export const playSound = type => {
     audio.play().catch(_ => console.log("不支持的音频"));
   });
 };
-export const calcWaveDistance = (travelTime, isPWave, depth, time) => {
-  if (depth < 0) depth = 0;
-  if (time < 0) time = 0;
-  const { depths, distances, p_times, s_times } = travelTime;
-  const data = isPWave ? p_times : s_times;
-  let i = 1;
-  while (depths[i] < depth && i < depths.length - 1) i++;
-  const k1 = depths[i] - depth;
-  const k2 = depth - depths[i - 1];
-  const times = [];
-  for (let j = 0; j < distances.length; j++) {
-    times[j] = (k1 * data[i - 1][j] + k2 * data[i][j]) / (k1 + k2);
-  }
-  if (time <= times[0]) return { reach: time / times[0], radius: 0 };
-  let j = 1;
-  while (times[j] < time && j < times.length - 1) j++;
-  const k = (distances[j] - distances[j - 1]) / (times[j] - times[j - 1]);
-  const b = distances[j] - k * times[j];
-  const distance = k * time + b;
-  return { reach: 1, radius: distance };
-};
-export const calcReachTime = (travelTime, isPWave, depth, distance) => {
-  if (depth < 0) depth = 0;
-  if (distance < 0) distance = 0;
-  const { depths, distances, p_times, s_times } = travelTime;
-  const data = isPWave ? p_times : s_times;
-  let i = 1;
-  while (depths[i] < depth && i < depths.length - 1) i++;
-  const k1 = depths[i] - depth;
-  const k2 = depth - depths[i - 1];
-  const times = [];
-  for (let j = 0; j < distances.length; j++) {
-    times[j] = (k1 * data[i - 1][j] + k2 * data[i][j]) / (k1 + k2);
-  }
-  let j = 1;
-  while (distances[j] < distance && j < distances.length - 1) j++;
-  const k = (times[j] - times[j - 1]) / (distances[j] - distances[j - 1]);
-  const b = times[j] - k * distances[j];
-  const time = k * distance + b;
-  return time;
-};
 export const extractNumbers = str => {
   let numberString = "";
   for (let i = 0; i < str.length; i++) {
@@ -358,109 +321,12 @@ export const focusWindow = async () => {
     await getCurrentWindow().setFocus();
   }
 };
-export const pointDistToCnArea = (pointLngLat, feature) => {
-  const turfPoint = point(pointLngLat);
-  if (booleanPointInPolygon(turfPoint, feature)) {
-    return 0;
-  } else {
-    const name = feature.properties.name;
-    const kdbush = cnSeisIntLocBush[name];
-    const nearestPoint = around(kdbush, pointLngLat[0], pointLngLat[1], 1).map(
-      index => cnSeisIntLoc[name][index],
-    )[0];
-    const minDist = distance(turfPoint, point(nearestPoint), {
-      units: "kilometers",
-    });
-    return minDist;
-  }
-};
-export const pointDistToKrArea = (pointLngLat, feature) => {
-  const turfPoint = point(pointLngLat);
-  if (booleanPointInPolygon(turfPoint, feature)) {
-    return 0;
-  } else {
-    const name = feature.properties.name;
-    const kdbush = krSeisIntLocBush[name];
-    const nearestPoint = around(kdbush, pointLngLat[0], pointLngLat[1], 1).map(
-      index => krSeisIntLoc[name][index],
-    )[0];
-    const minDist = distance(turfPoint, point(nearestPoint), {
-      units: "kilometers",
-    });
-    return minDist;
-  }
-};
-const r = 6371;
-const calcLineDis = (dep, dis) => {
-  const theta = dis / r;
-  const a = r - dep;
-  const lineDis = Math.sqrt(a * a + r * r - 2 * a * r * Math.cos(theta));
-  return lineDis;
-};
-const calcCeaCsis = (m, dis = 0) =>
-  1.297 * m - 4.368 * Math.log10(dis + 15) + 5.363;
-const calcIclCsis = (m, dis = 0) =>
-  1.363 * m - 1.494 * Math.log(dis + 7) + 2.941;
-export const calcCsis = (m, dep = 10, dis = 0) => {
-  m = Number(m);
-  dep = Number(dep);
-  dis = Number(dis);
-  if (isNaN(m) || isNaN(dis)) return 0;
-  if (dis > 10000) return 0;
-  dep = isNaN(dep) || dep === null || dep < 10 ? 10 : dep;
-  const lineDis = calcLineDis(dep, dis);
-  const long = 10 ** ((m - 3.821) / 1.86);
-  const hypoDis = Math.max(
-    lineDis - 10 - long,
-    dis - long,
-    0.2 * (lineDis - 10),
-    0,
-  );
-  const ceaCsis1 = calcCeaCsis(m, dis);
-  const ceaCsis2 = calcCeaCsis(m, hypoDis);
-  return (ceaCsis1 + ceaCsis2) / 2;
-};
 export const calcCsisLevel = (m, dep = 10, dis = 0) =>
-  getCsisLevelFromCsis(calcCsis(m, dep, dis));
+  calcCsisLevelWasmSync(m, dep, dis) ?? getCsisLevelFromCsis(calcCsisBase(m, dep, dis));
 export const formatChineseTaiwan = str =>
   (str.startsWith("台湾") && !(str.includes("市") || str.includes("县"))
     ? "中国"
     : "") + str;
-export const calcJmaShindo = (mj, dep, hypoLat, hypoLng, loc) => {
-  const mw = mj - 0.171;
-  const long = 10 ** (0.5 * mw - 1.85) / 2;
-  const locPoint = point([loc.location[1], loc.location[0]]);
-  const hypoPoint = point([hypoLng, hypoLat]);
-  const surfaceDist = distance(hypoPoint, locPoint, { units: "kilometers" });
-  const lineDis = calcLineDis(dep, surfaceDist);
-  const hypoDist = lineDis - long;
-  const x = Math.max(hypoDist, 3);
-  const pgv600 =
-    10 **
-    (0.58 * mw +
-      0.0038 * dep -
-      1.29 -
-      Math.log10(x + 0.0028 * 10 ** (0.5 * mw)) -
-      0.002 * x);
-  const arv = Number(loc.arv);
-  const pgv400 = pgv600 * 1.307;
-  const pgv = pgv400 * arv;
-  const instShindo = 2.68 + 1.72 * Math.log10(pgv);
-  return instShindo;
-};
-export const calcJmaShindoLevel = (
-  mj,
-  dep,
-  hypoLat,
-  hypoLng,
-  loc,
-  useSymbol = true,
-) => {
-  const instShindo = calcJmaShindo(mj, dep, hypoLat, hypoLng, loc);
-  const instShindo1 = Math.floor(Math.round(instShindo * 100) / 10) / 10;
-  if (instShindo1 < 0.5) return "0";
-  else return getShindoFromInstShindo(instShindo1, useSymbol);
-};
 export const openUrl = url => {
   isTauri() ? open(url) : window.open(url, "_blank");
 };
@@ -521,33 +387,9 @@ export const formatCsis = value => {
 export const formatShindo = (intensity, useSymbol = true) =>
   intensity
     ? useSymbol
-      ? intensity
-          .replace("強", "+")
-          .replace("弱", "-")
-          .replace("不明", "?")
-          .replace("級", "")
+      ? intensity.replace("強", "+").replace("弱", "-").replace("不明", "?").replace("級", "")
       : intensity.replace("+", "強").replace("-", "弱").replace("?", "不明")
     : undefined;
-export const calcMaxJmaShindoLevel = (
-  mj,
-  dep,
-  hypoLat,
-  hypoLng,
-  useSymbol = true,
-) => {
-  const locList = Object.keys(jmaSeisIntLoc);
-  const maxInt = locList.reduce(
-    (maxInt, currLoc) =>
-      Math.max(
-        calcJmaShindo(mj, dep, hypoLat, hypoLng, jmaSeisIntLoc[currLoc]),
-        maxInt,
-      ),
-    -Infinity,
-  );
-  const maxInt1 = Math.floor(Math.round(maxInt * 100) / 10) / 10;
-  if (maxInt1 < 0.5) return "0";
-  else return getShindoFromInstShindo(maxInt1, useSymbol);
-};
 export const getMmiFromKmaLevel = level =>
   level == -1 ? "?" : Math.min(Math.max(level - 2, 0), 11).toString();
 export const exactRound = (input, digit) =>

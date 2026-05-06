@@ -18,7 +18,6 @@
 <script setup>
 import { onBeforeUnmount, ref, reactive, computed, watch, inject } from 'vue';
 import { formatText, msToTime, calcPassedTime, judgeSameEvent, calcTimeDiff, formatCsis } from '@/utils/Utils';
-import { EewEvent, EqlistEvent, ignoredIds } from '@/classes/EewEqlistClasses';
 import { useTimeStore } from '@/stores/time';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
@@ -47,65 +46,73 @@ onBeforeUnmount(()=>{
 const className = ref('white midOpacity')
 const fontClass = computed(() => className.value.includes('dark-orange') || className.value.includes('red') || className.value.includes('purple') ? 'font-white' : 'font-black')
 let timer
+let eewClassModulePromise
+const loadEewClassModule = () => {
+    eewClassModulePromise ||= import('@/classes/EewEqlistClasses')
+    return eewClassModulePromise
+}
 
-watch(eqMessage, (newVal)=>{
-    className.value = newVal.className + ' midOpacity'
-    const passedTime = Math.max(calcPassedTime(newVal.reportTime, newVal.timeZone) ?? Infinity, 0)
+watch(eqMessage, async (newVal)=>{
+    const message = Object.assign({}, newVal)
+    className.value = message.className + ' midOpacity'
+    const passedTime = Math.max(calcPassedTime(message.reportTime, message.timeZone) ?? Infinity, 0)
     let time
-    if(newVal.isEew){
-        if(newVal.isCanceled) time = 20 * 1000
-        else if(newVal.isWarn) time = Math.max(newVal.magnitude, 6) * 60 * 1000
-        else time = Math.max(newVal.magnitude, 3) * 60 * 1000
+    if(message.isEew){
+        if(message.isCanceled) time = 20 * 1000
+        else if(message.isWarn) time = Math.max(message.magnitude, 6) * 60 * 1000
+        else time = Math.max(message.magnitude, 3) * 60 * 1000
     }
     else{
         time = 300 * 1000
-        if(newVal.className.includes('orange') || newVal.magnitude >= 6.0){
+        if(message.className.includes('orange') || message.magnitude >= 6.0){
             time = 600 * 1000
         }
-        if(newVal.className.includes('red') || newVal.magnitude >= 7.0){
+        if(message.className.includes('red') || message.magnitude >= 7.0){
             time = 900 * 1000
         }
-        if(newVal.className == 'purple' || newVal.magnitude >= 7.5){
+        if(message.className == 'purple' || message.magnitude >= 7.5){
             time = 1200 * 1000
         }
-        if(newVal.isCanceled) time = 60 * 1000
+        if(message.isCanceled) time = 60 * 1000
     }
     time -= passedTime
-    if(newVal.isEew){
-        if(!(ignoredIds[`${newVal.source}|${newVal.id}`] > newVal.reportNum)) {
+    if(message.isEew){
+        const { EewEvent, ignoredIds } = await loadEewClassModule()
+        if(!(ignoredIds[`${message.source}|${message.id}`] > message.reportNum)) {
             let i = 0
             while(i < activeEewList.length){
-                if(judgeSameEvent(newVal, activeEewList[i].eqMessage)){
-                    activeEewList[i].update(Object.assign({}, newVal), time)
+                if(judgeSameEvent(message, activeEewList[i].eqMessage)){
+                    activeEewList[i].update(Object.assign({}, message), time)
                     break
                 }
                 i++
             }
             if(i == activeEewList.length){
                 if(statusStore.map){
-                    if(time > 0 && (settingsStore.actionWhiteListArr.some(key => newVal.hypocenter.includes(key)) || props.source != 'gqEew' 
-                        || (settingsStore.mainSettings.gqActionMag == 0 || newVal.magnitude >= settingsStore.mainSettings.gqActionMag)
+                    if(time > 0 && (settingsStore.actionWhiteListArr.some(key => message.hypocenter.includes(key)) || props.source != 'gqEew' 
+                        || (settingsStore.mainSettings.gqActionMag == 0 || message.magnitude >= settingsStore.mainSettings.gqActionMag)
                     )) {
-                        const newEvent = reactive(new EewEvent(statusStore.map, Object.assign({}, newVal), activeEewList, handleTempEqlists, smartSetView))
+                        const newEvent = reactive(new EewEvent(statusStore.map, Object.assign({}, message), activeEewList, handleTempEqlists, smartSetView))
                         activeEewList.unshift(newEvent)
-                        newEvent.update(Object.assign({}, newVal), time, true)
+                        newEvent.update(Object.assign({}, message), time, true)
                     }
                 }
             }
         }
     }
     else {
+        const { EqlistEvent } = await loadEewClassModule()
         let i = 0
-        const shouldUpdate = settingsStore.actionWhiteListArr.some(key => newVal.hypocenter.includes(key)) || newVal.source != 'fssnEqlist' && newVal.source != 'usgsEqlist'
-            || newVal.source == 'fssnEqlist'
-            && (newVal.title == 'FSSN正式测定' || newVal.title == 'FSSN自动测定' && settingsStore.mainSettings.fssnActionType == 0)
-            && (settingsStore.mainSettings.fssnActionMag == 0 || newVal.magnitude >= settingsStore.mainSettings.fssnActionMag)
-            || newVal.source == 'usgsEqlist'
-            && (settingsStore.mainSettings.usgsActionMag == 0 || newVal.magnitude >= settingsStore.mainSettings.usgsActionMag)
+        const shouldUpdate = settingsStore.actionWhiteListArr.some(key => message.hypocenter.includes(key)) || message.source != 'fssnEqlist' && message.source != 'usgsEqlist'
+            || message.source == 'fssnEqlist'
+            && (message.title == 'FSSN正式测定' || message.title == 'FSSN自动测定' && settingsStore.mainSettings.fssnActionType == 0)
+            && (settingsStore.mainSettings.fssnActionMag == 0 || message.magnitude >= settingsStore.mainSettings.fssnActionMag)
+            || message.source == 'usgsEqlist'
+            && (settingsStore.mainSettings.usgsActionMag == 0 || message.magnitude >= settingsStore.mainSettings.usgsActionMag)
         while(i < eqlistList.length){
-            if(newVal.source == eqlistList[i].eqMessage.source){
+            if(message.source == eqlistList[i].eqMessage.source){
                 if(shouldUpdate) {
-                    eqlistList[i].update(Object.assign({}, newVal), time)
+                    eqlistList[i].update(Object.assign({}, message), time)
                 }
                 break
             }
@@ -114,9 +121,9 @@ watch(eqMessage, (newVal)=>{
         if(i == eqlistList.length){
             if(statusStore.map){
                 if(shouldUpdate) {
-                    const newEvent = reactive(new EqlistEvent(statusStore.map, Object.assign({}, newVal), handleTempEqlists, smartSetView))
+                    const newEvent = reactive(new EqlistEvent(statusStore.map, Object.assign({}, message), handleTempEqlists, smartSetView))
                     eqlistList.unshift(newEvent)
-                    newEvent.update(Object.assign({}, newVal), time, true)
+                    newEvent.update(Object.assign({}, message), time, true)
                 }
             }
         }
@@ -132,10 +139,10 @@ watch(eqMessage, (newVal)=>{
         })
     }
     if(time > 0) {
-        className.value = newVal.className + ' highOpacity'
+        className.value = message.className + ' highOpacity'
         clearTimeout(timer)
         timer = setTimeout(() => {
-            className.value = newVal.className + ' midOpacity'
+            className.value = message.className + ' midOpacity'
         }, time);
     }
 }, { deep: true })

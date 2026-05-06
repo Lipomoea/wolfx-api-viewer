@@ -34,10 +34,11 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('/src/utils/CnSeisIntLoc')) return 'geo-cn-seis-int'
-          if (id.includes('/src/utils/JmaSeisIntLoc')) return 'geo-jma-seis-int'
-          if (id.includes('/src/utils/TravelTimes')) return 'travel-times'
-          if (id.includes('/src/utils/FERegions')) return 'fe-regions'
+          const normalizedId = id.replace(/\\/g, '/')
+          if (normalizedId.endsWith('/src/utils/CnSeisIntLoc.js')) return 'geo-cn-seis-int'
+          if (normalizedId.endsWith('/src/utils/JmaSeisIntLoc.js')) return 'geo-jma-seis-int'
+          if (normalizedId.endsWith('/src/utils/TravelTimes.js')) return 'travel-times'
+          if (normalizedId.endsWith('/src/utils/FERegions.js')) return 'fe-regions'
           if (!id.includes('node_modules')) return
           if (id.includes('element-plus') || id.includes('@element-plus')) return 'ui-vendor'
           if (id.includes('leaflet')) return 'map-vendor'

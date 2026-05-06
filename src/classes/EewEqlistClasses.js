@@ -12,6 +12,7 @@ import eewCircle from '@/assets/icon/hypocenter/eewCircle.svg';
 import cancelCircle from '@/assets/icon/hypocenter/cancelCircle.svg';
 import { intReportStation } from './StationClasses';
 import { useStatusStore } from '@/stores/status';
+import { getWaveWebglLayer } from './WaveWebglLayer';
 
 const iconRadius = 20
 
@@ -174,7 +175,13 @@ export class EewEvent {
             el.style.color = this.eqMessage.isWarn ? 'var(--swave-red)' : 'var(--swave-orange)'
         }
     }
-    clearWaves() {
+    getWaveId() {
+        return `${this.eqMessage.source}|${this.eqMessage.id}`
+    }
+    clearWebglWave() {
+        this.waveWebglLayer?.removeWave(this.getWaveId())
+    }
+    clearLeafletWaves() {
         if(this.pWave && this.map.hasLayer(this.pWave)) {
             this.map.removeLayer(this.pWave)
             this.pWave = null
@@ -187,6 +194,10 @@ export class EewEvent {
             this.map.removeLayer(this.sWaveFill)
             this.sWaveFill = null
         }
+    }
+    clearWaves() {
+        this.clearLeafletWaves()
+        this.clearWebglWave()
     }
     drawWaves(updated = false){
         const start = Date.now()
@@ -216,32 +227,6 @@ export class EewEvent {
         s_reach = s_info.reach
         s_radius = s_info.radius
         if(updated) this.clearWaves()
-        if(p_radius > 0 && p_radius <= this.maxRadius2) {
-            const opacity = p_radius <= this.maxWaveRadius ? this.calcOpacity(p_radius, 0, this.maxWaveRadius, 0.25, 1) : this.calcOpacity(p_radius, this.maxWaveRadius, this.maxRadius2, 0, 0.25)
-            if(!this.pWave) {
-                this.pWave = L.circle(this.hypoLatLng, {
-                    color: 'white',
-                    opacity,
-                    weight: 2,
-                    fill: false,
-                    radius: p_radius * 1000,
-                    pane: 'wavePane',
-                    interactive: false
-                }).addTo(this.map)
-            }
-            else {
-                this.pWave.setRadius(p_radius * 1000)
-                this.pWave.setStyle({
-                    opacity
-                })
-            }
-        }
-        else {
-            if(this.pWave && this.map.hasLayer(this.pWave)) {
-                this.map.removeLayer(this.pWave)
-                this.pWave = null
-            }
-        }
         let color
         switch(settingsStore.mainSettings.sWaveColorMode) {
             case 0:
@@ -288,6 +273,68 @@ export class EewEvent {
                         break
                 }
                 break
+        }
+        if(settingsStore.mainSettings.useWebglWaveRenderer) {
+            this.waveWebglLayer = this.waveWebglLayer || getWaveWebglLayer(this.map)
+            if(this.waveWebglLayer) {
+                this.clearLeafletWaves()
+                const pVisible = p_radius > 0 && p_radius <= this.maxRadius2
+                const sVisible = s_radius > 0 && s_radius <= this.maxRadius2
+                const fillVisible = s_radius > 0 && s_radius <= this.maxWaveRadius
+                const pOpacity = pVisible
+                    ? p_radius <= this.maxWaveRadius
+                        ? this.calcOpacity(p_radius, 0, this.maxWaveRadius, 0.25, 1)
+                        : this.calcOpacity(p_radius, this.maxWaveRadius, this.maxRadius2, 0, 0.25)
+                    : 0
+                const sOpacity = sVisible
+                    ? s_radius <= this.maxWaveRadius
+                        ? this.calcOpacity(s_radius, 0, this.maxWaveRadius, 0.25, 1)
+                        : this.calcOpacity(s_radius, this.maxWaveRadius, this.maxRadius2, 0, 0.25)
+                    : 0
+                const fillOpacity = fillVisible ? this.calcOpacity(s_radius, 0, this.maxWaveRadius, 0, 0.25) : 0
+                this.waveWebglLayer.setWave(this.getWaveId(), {
+                    lat: this.hypoLatLng[0],
+                    lng: this.hypoLatLng[1],
+                    pRadiusKm: p_radius,
+                    sRadiusKm: s_radius,
+                    pOpacity,
+                    sOpacity,
+                    fillOpacity,
+                    color,
+                    pVisible,
+                    sVisible,
+                    fillVisible,
+                })
+                this.drawReachBar(p_reach, s_reach, updated)
+                return
+            }
+        }
+        this.clearWebglWave()
+        if(p_radius > 0 && p_radius <= this.maxRadius2) {
+            const opacity = p_radius <= this.maxWaveRadius ? this.calcOpacity(p_radius, 0, this.maxWaveRadius, 0.25, 1) : this.calcOpacity(p_radius, this.maxWaveRadius, this.maxRadius2, 0, 0.25)
+            if(!this.pWave) {
+                this.pWave = L.circle(this.hypoLatLng, {
+                    color: 'white',
+                    opacity,
+                    weight: 2,
+                    fill: false,
+                    radius: p_radius * 1000,
+                    pane: 'wavePane',
+                    interactive: false
+                }).addTo(this.map)
+            }
+            else {
+                this.pWave.setRadius(p_radius * 1000)
+                this.pWave.setStyle({
+                    opacity
+                })
+            }
+        }
+        else {
+            if(this.pWave && this.map.hasLayer(this.pWave)) {
+                this.map.removeLayer(this.pWave)
+                this.pWave = null
+            }
         }
         if(s_radius > 0 && s_radius <= this.maxRadius2) {
             const opacity = s_radius <= this.maxWaveRadius ? this.calcOpacity(s_radius, 0, this.maxWaveRadius, 0.25, 1) : this.calcOpacity(s_radius, this.maxWaveRadius, this.maxRadius2, 0, 0.25)
