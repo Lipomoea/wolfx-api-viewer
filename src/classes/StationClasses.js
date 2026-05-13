@@ -153,6 +153,7 @@ for(let zoom = 6; zoom <= 10; zoom ++) {
 }
 
 let settingsStore
+export const abnormalNiedStations = {}
 
 export class NiedStation {
     constructor(map, id, latLng, intensity, expireSeconds){
@@ -161,7 +162,7 @@ export class NiedStation {
         this.id = id
         this.latLng = latLng
         this.defaultExpireSeconds = this.expireSeconds = expireSeconds
-        this.maxExpireSeconds = 30
+        this.maxRecentLength = 50
         this.shindo = getShindoFromChar(intensity)
         this.level = intensity.charCodeAt(0) - 100
         this.ascend = 0
@@ -174,7 +175,7 @@ export class NiedStation {
     update(intensity, render = true){
         const originLevel = intensity.charCodeAt(0) - 100
         const level = originLevel == -1 ? this.recentLevel.slice(0, 4).find(val => val != -1) ?? -1 : originLevel
-        if(level > this.level && this.level != -1) this.expireSeconds = Math.min(this.expireSeconds + 2, this.maxExpireSeconds)
+        if(level > this.level && this.level != -1) this.expireSeconds = Math.min(this.expireSeconds + 1, this.maxRecentLength)
         else if(level < this.level || level == -1) this.expireSeconds = this.defaultExpireSeconds
         if(level != this.level){
             this.shindo = getShindoFromChar(intensity)
@@ -182,21 +183,67 @@ export class NiedStation {
             render && this.render()
         }
         let recentFilter = this.recentLevel.slice(0, this.expireSeconds).filter(val => val != -1)
+        this.recentLevel.unshift(originLevel)
+        this.recentLevel.splice(this.maxRecentLength)
         let ascend = 0
-        if(recentFilter.length > 0){
-            const minRecent = Math.min(...recentFilter)
-            ascend = level - minRecent
+        if(this.isAbnormalStation()) {
+            if(!(this.id in abnormalNiedStations))
+                console.log(`已忽略异常NIED测站: id: ${this.id}, latLng: ${this.latLng}`);
+            abnormalNiedStations[this.id] = 0
+        }
+        else {
+            if(this.id in abnormalNiedStations) {
+                abnormalNiedStations[this.id]++
+                if(abnormalNiedStations[this.id] >= 600) {
+                    delete abnormalNiedStations[this.id]
+                }
+            }
+            else {
+                if(recentFilter.length > 0) {
+                    const minRecent = Math.min(...recentFilter)
+                    ascend = level - minRecent
+                }
+            }
         }
         this.ascend = ascend
         this.activity = this.calcActivity(level, ascend)
-        this.recentLevel.unshift(originLevel)
-        this.recentLevel.splice(this.maxExpireSeconds)
         if(this.expireSeconds > this.defaultExpireSeconds && !this.isActive && this.recentLevel.length >= this.expireSeconds) {
             recentFilter = this.recentLevel.slice(0, this.expireSeconds).filter(val => val != -1)
             if(recentFilter.every(val => val == recentFilter[0])) {
                 this.expireSeconds = this.defaultExpireSeconds
             }
         }
+    }
+    isAbnormalStation() {
+        const recentFilter = this.recentLevel.filter(val => val != -1);
+        if (recentFilter.length < 3) {
+            return false;
+        }
+        let valleyCount = 0;
+        let i = 1;
+        const n = recentFilter.length;
+        while (i < n) {
+            while (i < n && recentFilter[i] >= recentFilter[i - 1]) {
+                i++;
+            }
+            if (i >= n) break; 
+            let leftWall = recentFilter[i - 1]; 
+            let bottom = recentFilter[i];
+            while (i < n && recentFilter[i] <= recentFilter[i - 1]) {
+                bottom = recentFilter[i];
+                i++;
+            }
+            if (i >= n) break; 
+            let rightWall = recentFilter[i];
+            while (i < n && recentFilter[i] >= recentFilter[i - 1]) {
+                rightWall = recentFilter[i];
+                i++;
+            }
+            if (leftWall - bottom >= 2 && rightWall - bottom >= 2) {
+                valleyCount++;
+            }
+        }
+        return valleyCount >= 2;
     }
     calcActivity(level, ascend){
         let levelActivity, ascendActivity

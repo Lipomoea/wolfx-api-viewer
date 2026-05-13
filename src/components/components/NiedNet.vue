@@ -14,7 +14,7 @@ import { seisNetUrls, iconUrls } from '@/utils/Urls';
 import { getTimeNumberString, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromLevel, exactRound } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { NiedStation, simpleIcon } from '@/classes/StationClasses';
+import { abnormalNiedStations, NiedStation, simpleIcon } from '@/classes/StationClasses';
 import { niedSitePub } from '@/utils/NiedSitePub';
 
 const statusStore = useStatusStore()
@@ -51,13 +51,7 @@ let expireSeconds = {}
 let distMatrix = [[]]
 let decimal = [0, 0]
 const gridRects = {}
-const activeStations = computed(()=>{
-    const list = []
-    stations.forEach(station=>{
-        if(station.isActive) list.push(station)
-    })
-    return list
-})
+const activeStations = computed(() => stations.filter(station => station.isActive))
 const grids = computed(()=>{
     let grids = {}
     activeStations.value.forEach(station=>{
@@ -122,7 +116,7 @@ const update = ()=>{
                 switch(settingsStore.mainSettings.displaySeisNet.niedSensitivity) {
                     case 1:
                         numThres = 3
-                        activityThres = activityThresArr[nearbyStations.length] + 2
+                        activityThres = activityThresArr[nearbyStations.length] + 4
                         break
                     case 2:
                         numThres = nearbyStations.length <= 2 ? (nearbyStations.length + 1) / 2 : nearbyStations.length / 2
@@ -155,7 +149,7 @@ const update = ()=>{
                     first = station
                 }
             })
-            if(first) decimal = first.latLng.map(val => Math.round((val + 180) % 1 * 10) / 10)
+            if(first) decimal = first.latLng.map(val => exactRound((val + 180) % 1, 2))
         }
         activeStations.forEach(station=>{
             station.setActive()
@@ -247,17 +241,20 @@ const fetchStationList = async () => {
                 distances.sort((a, b) => a.distance - b.distance).splice(nearbyLength)
                 adjStationIds[i] = distances.map(obj => obj.id)
                 const maxDist = distances[distances.length - 1].distance
-                expireSeconds[i] = Math.max(Math.round(maxDist / 3.5), 5)
+                expireSeconds[i] = Math.max(Math.ceil(maxDist / 3.5), 5)
             }
             stationList.forEach((latLng, index)=>{
                 const station = reactive(new NiedStation(map, index, latLng, 'c', expireSeconds[index]))
                 stations.push(station)
             })
+            clearAbnormalList()
         }
     } catch (err) {
         console.log(err);
     }
 }
+const clearAbnormalList = () => 
+    Object.keys(abnormalNiedStations).forEach(key => delete abnormalNiedStations[key])
 onMounted(()=>{
     fetchStationInterval = setInterval(fetchStationList, 5000);
     fetchStationList()
@@ -277,7 +274,7 @@ onMounted(()=>{
                         const noDataArr = Array(popNum).fill(-1)
                         stations.forEach(station => {
                             station.recentLevel.unshift(...noDataArr)
-                            station.recentLevel.splice(station.maxExpireSeconds)
+                            station.recentLevel.splice(station.maxRecentLength)
                             station.expireSeconds = Math.max(station.expireSeconds - popNum, station.defaultExpireSeconds)
                         })
                     }
@@ -293,6 +290,7 @@ onMounted(()=>{
                             station.expireSeconds = station.defaultExpireSeconds
                             station.isActive = false
                         })
+                        clearAbnormalList()
                     }
                     if(delay.value > maxDelay && timeDiff < 0 || timeDiff > 0) {
                         niedUpdateTime.value = data.realTimeData.dataTime.slice(0, -6).replace('T', ' ')
@@ -454,6 +452,7 @@ onBeforeUnmount(()=>{
         stations[index] = null
     })
     stations.length = 0
+    clearAbnormalList()
     map.eachLayer(layer=>{
         if(layer.options.pane == 'niedGridPane' || layer.options.pane.includes('niedStationPane')){
             map.removeLayer(layer)

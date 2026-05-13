@@ -9,7 +9,7 @@ import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, inject } fr
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { iconUrls, seisNetUrls } from '@/utils/Urls';
-import { playSound, sendMyNotification, calcTimeDiff, focusWindow, getMmiFromKmaLevel } from '@/utils/Utils';
+import { playSound, sendMyNotification, calcTimeDiff, focusWindow, getMmiFromKmaLevel, exactRound } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { KmaStation, simpleIcon } from '@/classes/StationClasses';
@@ -39,13 +39,7 @@ const handleVisibilityChange = () => {
 }
 let decimal = [0, 0]
 const gridRects = {}
-const activeStations = computed(()=>{
-    const list = []
-    stations.forEach(station=>{
-        if(station.isActive) list.push(station)
-    })
-    return list
-})
+const activeStations = computed(() => stations.filter(station => station.isActive))
 const grids = computed(()=>{
     let grids = {}
     activeStations.value.forEach(station=>{
@@ -127,7 +121,7 @@ const update = (intensities) => {
             })
         }
     }
-    if(first) decimal = first.latLng.map(val => Math.round((val + 180) % 1 * 10) / 10)
+    if(first) decimal = first.latLng.map(val => exactRound((val + 180) % 1, 2))
 }
 const renderAll = ()=>{
     stations.forEach(station=>{
