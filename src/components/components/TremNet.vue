@@ -10,7 +10,7 @@ import Http from '@/classes/Http';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { seisNetUrls, iconUrls } from '@/utils/Urls';
-import { playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromInstShindo, stampToTime, getShindoFromLevel } from '@/utils/Utils';
+import { playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromInstShindo, stampToTime, getShindoFromLevel, exactRound } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { simpleIcon, TremStation } from '@/classes/StationClasses';
@@ -45,13 +45,7 @@ const currentMaxShindo = computed(()=>{
     else if(currentMaxLevel <= 19) return 6
     else return 7
 })
-const activeStationIds = computed(()=>{
-    const list = []
-    Object.keys(stations).forEach(id=>{
-        if(stations[id].isActive) list.push(id)
-    })
-    return list
-})
+const activeStationIds = computed(() => Object.keys(stations).filter(id => stations[id].isActive))
 let decimal = [0, 0]
 const gridRects = {}
 const grids = computed(()=>{
@@ -90,7 +84,7 @@ const update = ()=>{
         }
         else stations[id].update(-3.1, false)
     })
-    if(first) decimal = first.latLng.map(val => Math.round((val + 180) % 1 * 10) / 10)
+    if(first) decimal = first.latLng.map(val => exactRound((val + 180) % 1, 2))
     tremMaxShindo.value = getShindoFromInstShindo(maxInst)
 }
 const renderAll = ()=>{
