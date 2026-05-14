@@ -162,7 +162,7 @@ export class NiedStation {
         this.id = id
         this.latLng = latLng
         this.defaultExpireSeconds = this.expireSeconds = expireSeconds
-        this.maxRecentLength = 50
+        this.maxRecentLength = 60
         this.shindo = getShindoFromChar(intensity)
         this.level = intensity.charCodeAt(0) - 100
         this.ascend = 0
@@ -215,35 +215,36 @@ export class NiedStation {
         }
     }
     isAbnormalStation() {
+        // 如果近期数据出现3个及以上的高峰视为异常数据
         const recentFilter = this.recentLevel.filter(val => val != -1);
         if (recentFilter.length < 3) {
             return false;
         }
-        let valleyCount = 0;
+        let peakCount = 0;
         let i = 1;
         const n = recentFilter.length;
         while (i < n) {
-            while (i < n && recentFilter[i] >= recentFilter[i - 1]) {
-                i++;
-            }
-            if (i >= n) break; 
-            let leftWall = recentFilter[i - 1]; 
-            let bottom = recentFilter[i];
             while (i < n && recentFilter[i] <= recentFilter[i - 1]) {
-                bottom = recentFilter[i];
                 i++;
             }
             if (i >= n) break; 
-            let rightWall = recentFilter[i];
+            let leftBottom = recentFilter[i - 1]; 
+            let top = recentFilter[i];
             while (i < n && recentFilter[i] >= recentFilter[i - 1]) {
-                rightWall = recentFilter[i];
+                top = recentFilter[i];
                 i++;
             }
-            if (leftWall - bottom >= 2 && rightWall - bottom >= 2) {
-                valleyCount++;
+            if (i >= n) break; 
+            let rightBottom = recentFilter[i];
+            while (i < n && recentFilter[i] <= recentFilter[i - 1]) {
+                rightBottom = recentFilter[i];
+                i++;
+            }
+            if (top - leftBottom >= 4 && top - rightBottom >= 4) {
+                peakCount++;
             }
         }
-        return valleyCount >= 2;
+        return peakCount >= 3;
     }
     calcActivity(level, ascend){
         let levelActivity, ascendActivity
