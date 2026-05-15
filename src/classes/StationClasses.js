@@ -562,7 +562,7 @@ export class KmaStation {
         const activityArr = this.recentLevel.slice(0, this.activitySeconds)
         const pastArr = this.recentLevel.slice(this.activitySeconds)
         this.activityLevel = Math.max(...activityArr, -1)
-        const pastLevel = pastArr.filter(level => level >= 0).length >= this.activitySeconds * 3.5 ? Math.max(...pastArr, -1) : -1
+        const pastLevel = pastArr.filter(level => level >= 0).length >= this.activitySeconds * 3 ? Math.max(...pastArr, -1) : -1
         this.ascend = pastLevel >= 0 ? activityArr.filter(level => level > pastLevel).length : 0
         const holdLevel = Math.max(...this.recentLevel.slice(0, settingsStore.mainSettings.displaySeisNet.kmaIntHold), -1)
         if(holdLevel != this.holdLevel) {
