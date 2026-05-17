@@ -13,6 +13,7 @@ import cancelCircle from '@/assets/icon/hypocenter/cancelCircle.svg';
 import { intReportStation } from './StationClasses';
 import { useStatusStore } from '@/stores/status';
 import { getWaveWebglLayer } from './WaveWebglLayer';
+import { WebglWaveBoundsProxy, isWebglWaveBoundsProxy } from './WaveBoundsProxy';
 
 const iconRadius = 20
 
@@ -181,19 +182,43 @@ export class EewEvent {
     clearWebglWave() {
         this.waveWebglLayer?.removeWave(this.getWaveId())
     }
+    clearLeafletLayer(key) {
+        if(this[key] && this.map?.hasLayer(this[key])) {
+            this.map.removeLayer(this[key])
+        }
+        this[key] = null
+    }
     clearLeafletWaves() {
-        if(this.pWave && this.map.hasLayer(this.pWave)) {
-            this.map.removeLayer(this.pWave)
-            this.pWave = null
+        this.clearLeafletLayer('pWave')
+        this.clearLeafletLayer('sWave')
+        this.clearLeafletLayer('sWaveFill')
+    }
+    ensureWebglBoundsProxy(key, radiusKm, pane) {
+        if(!isWebglWaveBoundsProxy(this[key])) {
+            this.clearLeafletLayer(key)
+            this[key] = new WebglWaveBoundsProxy(this.hypoLatLng, radiusKm * 1000, {
+                pane,
+                interactive: false,
+            }).addTo(this.map)
         }
-        if(this.sWave && this.map.hasLayer(this.sWave)) {
-            this.map.removeLayer(this.sWave)
-            this.sWave = null
+        else {
+            this[key].setLatLng(this.hypoLatLng)
+            this[key].setRadius(radiusKm * 1000)
         }
-        if(this.sWaveFill && this.map.hasLayer(this.sWaveFill)) {
-            this.map.removeLayer(this.sWaveFill)
-            this.sWaveFill = null
-        }
+    }
+    updateWebglBoundsProxies({ pVisible, sVisible, fillVisible, pRadiusKm, sRadiusKm }) {
+        // WebGL只画像素；自动视野还得读Leaflet图层边界。
+        if(pVisible) this.ensureWebglBoundsProxy('pWave', pRadiusKm, 'wavePane')
+        else this.clearLeafletLayer('pWave')
+        if(sVisible) this.ensureWebglBoundsProxy('sWave', sRadiusKm, 'wavePane')
+        else this.clearLeafletLayer('sWave')
+        if(fillVisible) this.ensureWebglBoundsProxy('sWaveFill', sRadiusKm, 'waveFillPane')
+        else this.clearLeafletLayer('sWaveFill')
+    }
+    clearWebglBoundsProxies() {
+        if(isWebglWaveBoundsProxy(this.pWave)) this.clearLeafletLayer('pWave')
+        if(isWebglWaveBoundsProxy(this.sWave)) this.clearLeafletLayer('sWave')
+        if(isWebglWaveBoundsProxy(this.sWaveFill)) this.clearLeafletLayer('sWaveFill')
     }
     clearWaves() {
         this.clearLeafletWaves()
@@ -277,7 +302,6 @@ export class EewEvent {
         if(settingsStore.mainSettings.useWebglWaveRenderer) {
             this.waveWebglLayer = this.waveWebglLayer || getWaveWebglLayer(this.map)
             if(this.waveWebglLayer) {
-                this.clearLeafletWaves()
                 const pVisible = p_radius > 0 && p_radius <= this.maxRadius2
                 const sVisible = s_radius > 0 && s_radius <= this.maxRadius2
                 const fillVisible = s_radius > 0 && s_radius <= this.maxWaveRadius
@@ -292,6 +316,13 @@ export class EewEvent {
                         : this.calcOpacity(s_radius, this.maxWaveRadius, this.maxRadius2, 0, 0.25)
                     : 0
                 const fillOpacity = fillVisible ? this.calcOpacity(s_radius, 0, this.maxWaveRadius, 0, 0.25) : 0
+                this.updateWebglBoundsProxies({
+                    pVisible,
+                    sVisible,
+                    fillVisible,
+                    pRadiusKm: p_radius,
+                    sRadiusKm: s_radius,
+                })
                 this.waveWebglLayer.setWave(this.getWaveId(), {
                     lat: this.hypoLatLng[0],
                     lng: this.hypoLatLng[1],
@@ -310,6 +341,7 @@ export class EewEvent {
             }
         }
         this.clearWebglWave()
+        this.clearWebglBoundsProxies()
         if(p_radius > 0 && p_radius <= this.maxRadius2) {
             const opacity = p_radius <= this.maxWaveRadius ? this.calcOpacity(p_radius, 0, this.maxWaveRadius, 0.25, 1) : this.calcOpacity(p_radius, this.maxWaveRadius, this.maxRadius2, 0, 0.25)
             if(!this.pWave) {

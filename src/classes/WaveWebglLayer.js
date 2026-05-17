@@ -3,7 +3,7 @@ import L from 'leaflet';
 const SEGMENTS = 160;
 const RING_WIDTH_PX = 2;
 
-const vertexShaderSource = `
+const strokeVertexShaderSource = `
 attribute vec2 a_position;
 attribute float a_alphaScale;
 varying float v_alphaScale;
@@ -13,12 +13,32 @@ void main() {
 }
 `;
 
-const fragmentShaderSource = `
+const strokeFragmentShaderSource = `
 precision mediump float;
 uniform vec4 u_color;
 varying float v_alphaScale;
 void main() {
   gl_FragColor = vec4(u_color.rgb, u_color.a * v_alphaScale);
+}
+`;
+
+const fillVertexShaderSource = `
+attribute vec2 a_position;
+attribute vec2 a_unitPosition;
+varying vec2 v_unitPosition;
+void main() {
+  v_unitPosition = a_unitPosition;
+  gl_Position = vec4(a_position, 0.0, 1.0);
+}
+`;
+
+const fillFragmentShaderSource = `
+precision mediump float;
+uniform vec4 u_color;
+varying vec2 v_unitPosition;
+void main() {
+  float alphaScale = clamp(length(v_unitPosition), 0.0, 1.0);
+  gl_FragColor = vec4(u_color.rgb, u_color.a * alphaScale);
 }
 `;
 
@@ -42,13 +62,29 @@ const parseHexColor = color => {
   ];
 };
 
+const parseRgbColor = color => {
+  const match = color
+    ?.trim()
+    ?.match(/^rgba?\(([^)]+)\)$/);
+  if (!match) return null;
+  const channels = match[1]
+    .split(",")
+    .slice(0, 3)
+    .map(channel => Number.parseFloat(channel.trim()));
+  if (channels.some(channel => !Number.isFinite(channel))) return null;
+  return channels.map(channel => Math.min(Math.max(channel, 0), 255) / 255);
+};
+
+const parseCssColor = color =>
+  parseRgbColor(color) || parseHexColor(color || "#ffffff");
+
 const resolveCssColor = color => {
   const match = color?.match?.(/^var\((--[^)]+)\)$/);
-  if (!match) return parseHexColor(color || "#ffffff");
+  if (!match) return parseCssColor(color);
   const resolved = getComputedStyle(document.documentElement)
     .getPropertyValue(match[1])
     .trim();
-  return parseHexColor(resolved);
+  return parseCssColor(resolved);
 };
 
 const compileShader = (gl, type, source) => {
@@ -61,10 +97,10 @@ const compileShader = (gl, type, source) => {
   return shader;
 };
 
-const createProgram = gl => {
+const createProgram = (gl, vertexSource, fragmentSource) => {
   const program = gl.createProgram();
-  gl.attachShader(program, compileShader(gl, gl.VERTEX_SHADER, vertexShaderSource));
-  gl.attachShader(program, compileShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource));
+  gl.attachShader(program, compileShader(gl, gl.VERTEX_SHADER, vertexSource));
+  gl.attachShader(program, compileShader(gl, gl.FRAGMENT_SHADER, fragmentSource));
   gl.linkProgram(program);
   if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
     throw new Error(gl.getProgramInfoLog(program));
@@ -90,7 +126,7 @@ class WaveWebglLayer {
 
     if (this.supported) {
       this.renderers = {
-        fill: this.createRenderer(this.contexts.fill),
+        fill: this.createFillRenderer(this.contexts.fill),
         stroke: this.createRenderer(this.contexts.stroke),
       };
       this.map.on("move zoom resize viewreset", this.reset, this);
@@ -117,13 +153,25 @@ class WaveWebglLayer {
   }
 
   createRenderer(gl) {
-    const program = createProgram(gl);
+    const program = createProgram(gl, strokeVertexShaderSource, strokeFragmentShaderSource);
     return {
       gl,
       program,
       buffer: gl.createBuffer(),
       positionLocation: gl.getAttribLocation(program, "a_position"),
       alphaLocation: gl.getAttribLocation(program, "a_alphaScale"),
+      colorLocation: gl.getUniformLocation(program, "u_color"),
+    };
+  }
+
+  createFillRenderer(gl) {
+    const program = createProgram(gl, fillVertexShaderSource, fillFragmentShaderSource);
+    return {
+      gl,
+      program,
+      buffer: gl.createBuffer(),
+      positionLocation: gl.getAttribLocation(program, "a_position"),
+      unitPositionLocation: gl.getAttribLocation(program, "a_unitPosition"),
       colorLocation: gl.getUniformLocation(program, "u_color"),
     };
   }
@@ -192,16 +240,18 @@ class WaveWebglLayer {
     const center = this.map.latLngToContainerPoint([wave.lat, wave.lng]);
     const radiusPx = this.radiusToPixels(wave.lat, wave.lng, wave.sRadiusKm);
     const vertices = [];
-    vertices.push(...toNdc(center, size), 0);
+    vertices.push(...toNdc(center, size), 0, 0);
     for (let i = 0; i <= SEGMENTS; i++) {
       const angle = (i / SEGMENTS) * Math.PI * 2;
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
       const point = L.point(
-        center.x + Math.cos(angle) * radiusPx,
-        center.y + Math.sin(angle) * radiusPx,
+        center.x + cos * radiusPx,
+        center.y + sin * radiusPx,
       );
-      vertices.push(...toNdc(point, size), 1);
+      vertices.push(...toNdc(point, size), cos, sin);
     }
-    this.drawVertices(renderer, vertices, wave.color, wave.fillOpacity, renderer.gl.TRIANGLE_FAN);
+    this.drawFillVertices(renderer, vertices, wave.color, wave.fillOpacity);
   }
 
   drawRing(renderer, wave, radiusKm, opacity, color, size) {
@@ -233,6 +283,27 @@ class WaveWebglLayer {
     gl.vertexAttribPointer(alphaLocation, 1, gl.FLOAT, false, 12, 8);
     gl.uniform4f(colorLocation, rgb[0], rgb[1], rgb[2], opacity);
     gl.drawArrays(mode, 0, vertices.length / 3);
+  }
+
+  drawFillVertices(renderer, vertices, color, opacity) {
+    const {
+      gl,
+      program,
+      buffer,
+      positionLocation,
+      unitPositionLocation,
+      colorLocation,
+    } = renderer;
+    const rgb = resolveCssColor(color);
+    gl.useProgram(program);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STREAM_DRAW);
+    gl.enableVertexAttribArray(positionLocation);
+    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 16, 0);
+    gl.enableVertexAttribArray(unitPositionLocation);
+    gl.vertexAttribPointer(unitPositionLocation, 2, gl.FLOAT, false, 16, 8);
+    gl.uniform4f(colorLocation, rgb[0], rgb[1], rgb[2], opacity);
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, vertices.length / 4);
   }
 }
 
