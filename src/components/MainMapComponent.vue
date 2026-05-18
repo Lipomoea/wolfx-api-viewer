@@ -58,7 +58,7 @@
                             <div class="info" v-if="event.nearestJmaLoc">
                                 <div class="intensity" :class="setClassName(event.userShindo, true, event.eqMessage.isCanceled)">
                                     <div class="intensity-title">本地震度</div>
-                                    <div :class="event.userShindo != '?'?'shindo':'csis'">
+                                    <div :c lass="event.userShindo != '?'?'shindo':'csis'">
                                         {{ event.userShindo }}
                                     </div>
                                 </div>
@@ -591,7 +591,7 @@ onMounted(()=>{
     map.getPane('terminatorFillPane').style.zIndex = 9
     map.createPane('waveFillPane')
     waveFillPane = map.getPane('waveFillPane')
-    waveFillPane.style.zIndex = 10
+    waveFillPane.style.zIndex = 45
     map.createPane('eewBasePane')
     eewBasePane = map.getPane('eewBasePane')
     eewBasePane.style.zIndex = 20

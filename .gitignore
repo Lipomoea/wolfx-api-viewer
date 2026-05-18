@@ -19,7 +19,7 @@ coverage
 
 # Editor directories and files
 .vscode/*
-!.vscode/extensions.json
+.vscode/extensions.json
 .idea
 *.suo
 *.ntvs*
@@ -33,4 +33,5 @@ public/wasm/*.wasm
 
 # dist zip file
 dist.zip!/
-perf-reports/
+perf-reports
+.omx
