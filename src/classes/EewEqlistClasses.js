@@ -299,46 +299,44 @@ export class EewEvent {
                 }
                 break
         }
-        if(settingsStore.mainSettings.useWebglWaveRenderer) {
-            this.waveWebglLayer = this.waveWebglLayer || getWaveWebglLayer(this.map)
-            if(this.waveWebglLayer) {
-                const pVisible = p_radius > 0 && p_radius <= this.maxRadius2
-                const sVisible = s_radius > 0 && s_radius <= this.maxRadius2
-                const fillVisible = s_radius > 0 && s_radius <= this.maxWaveRadius
-                const pOpacity = pVisible
-                    ? p_radius <= this.maxWaveRadius
-                        ? this.calcOpacity(p_radius, 0, this.maxWaveRadius, 0.25, 1)
-                        : this.calcOpacity(p_radius, this.maxWaveRadius, this.maxRadius2, 0, 0.25)
-                    : 0
-                const sOpacity = sVisible
-                    ? s_radius <= this.maxWaveRadius
-                        ? this.calcOpacity(s_radius, 0, this.maxWaveRadius, 0.25, 1)
-                        : this.calcOpacity(s_radius, this.maxWaveRadius, this.maxRadius2, 0, 0.25)
-                    : 0
-                const fillOpacity = fillVisible ? this.calcOpacity(s_radius, 0, this.maxWaveRadius, 0, 0.25) : 0
-                this.updateWebglBoundsProxies({
-                    pVisible,
-                    sVisible,
-                    fillVisible,
-                    pRadiusKm: p_radius,
-                    sRadiusKm: s_radius,
-                })
-                this.waveWebglLayer.setWave(this.getWaveId(), {
-                    lat: this.hypoLatLng[0],
-                    lng: this.hypoLatLng[1],
-                    pRadiusKm: p_radius,
-                    sRadiusKm: s_radius,
-                    pOpacity,
-                    sOpacity,
-                    fillOpacity,
-                    color,
-                    pVisible,
-                    sVisible,
-                    fillVisible,
-                })
-                this.drawReachBar(p_reach, s_reach, updated)
-                return
-            }
+        this.waveWebglLayer = this.waveWebglLayer || getWaveWebglLayer(this.map)
+        if(this.waveWebglLayer) {
+            const pVisible = p_radius > 0 && p_radius <= this.maxRadius2
+            const sVisible = s_radius > 0 && s_radius <= this.maxRadius2
+            const fillVisible = s_radius > 0 && s_radius <= this.maxWaveRadius
+            const pOpacity = pVisible
+                ? p_radius <= this.maxWaveRadius
+                    ? this.calcOpacity(p_radius, 0, this.maxWaveRadius, 0.25, 1)
+                    : this.calcOpacity(p_radius, this.maxWaveRadius, this.maxRadius2, 0, 0.25)
+                : 0
+            const sOpacity = sVisible
+                ? s_radius <= this.maxWaveRadius
+                    ? this.calcOpacity(s_radius, 0, this.maxWaveRadius, 0.25, 1)
+                    : this.calcOpacity(s_radius, this.maxWaveRadius, this.maxRadius2, 0, 0.25)
+                : 0
+            const fillOpacity = fillVisible ? this.calcOpacity(s_radius, 0, this.maxWaveRadius, 0, 0.25) : 0
+            this.updateWebglBoundsProxies({
+                pVisible,
+                sVisible,
+                fillVisible,
+                pRadiusKm: p_radius,
+                sRadiusKm: s_radius,
+            })
+            this.waveWebglLayer.setWave(this.getWaveId(), {
+                lat: this.hypoLatLng[0],
+                lng: this.hypoLatLng[1],
+                pRadiusKm: p_radius,
+                sRadiusKm: s_radius,
+                pOpacity,
+                sOpacity,
+                fillOpacity,
+                color,
+                pVisible,
+                sVisible,
+                fillVisible,
+            })
+            this.drawReachBar(p_reach, s_reach, updated)
+            return
         }
         this.clearWebglWave()
         this.clearWebglBoundsProxies()

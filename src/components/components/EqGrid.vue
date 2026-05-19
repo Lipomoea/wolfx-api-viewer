@@ -21,8 +21,7 @@ import { formatText, msToTime, calcPassedTime, judgeSameEvent, calcTimeDiff, for
 import { useTimeStore } from '@/stores/time';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
-import { isTauri } from '@tauri-apps/api/core';
-import { writeText } from '@tauri-apps/plugin-clipboard-manager';
+import { copyText } from '@/utils/Clipboard';
 import '@/assets/background.css';
 import '@/assets/opacity.css';
 
@@ -154,12 +153,7 @@ watch(()=>timeStore.currentTimeStamp, ()=>{
 const handleCopy = async () => {
     const content = JSON.stringify(eqMessage.value)
     try {
-        if(isTauri()) {
-            await writeText(content)
-        }
-        else {
-            await navigator.clipboard.writeText(content)
-        }
+        await copyText(content)
         ElMessage({
             message: '复制成功',
             type: 'success'

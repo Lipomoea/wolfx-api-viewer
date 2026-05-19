@@ -42,6 +42,21 @@ void main() {
 }
 `;
 
+export const canUseWaveWebgl = () => {
+  if (typeof document === "undefined") return false;
+  const canvas = document.createElement("canvas");
+  const gl = canvas.getContext("webgl", {
+    alpha: true,
+    antialias: true,
+    depth: false,
+    premultipliedAlpha: false,
+    stencil: false,
+  });
+  if (!gl) return false;
+  gl.getExtension("WEBGL_lose_context")?.loseContext();
+  return true;
+};
+
 const toNdc = (point, size) => [
   (point.x / size.x) * 2 - 1,
   1 - (point.y / size.y) * 2,

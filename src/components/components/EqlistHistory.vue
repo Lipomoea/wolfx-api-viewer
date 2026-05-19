@@ -47,8 +47,7 @@ import { useSettingsStore } from '@/stores/settings';
 import { defaultEqMessage, useStatusStore } from '@/stores/status';
 import { openUrl, formatTimeZone, formatCsis, calcTimeDiff, formatShindo, calcPassedTime, stampToTime } from '@/utils/Utils';
 import { useTimeStore } from '@/stores/time';
-import { isTauri } from '@tauri-apps/api/core';
-import { writeText } from '@tauri-apps/plugin-clipboard-manager';
+import { copyText } from '@/utils/Clipboard';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -101,12 +100,7 @@ onBeforeUnmount(stopReplay)
 const handleCopy = async (item) => {
     const content = `${item.hypocenter} ${item.originTime} (UTC${formatTimeZone(item.timeZone)}) M${item.magnitude ? item.magnitude.toFixed(1) : '不明'} ${item.depth.toFixed(0)}km ${item.useShindo ? ('最大震度' + formatShindo(item.maxIntensity, false)) : ('预估最大烈度' + item.maxIntensity)}`
     try {
-        if(isTauri()) {
-            await writeText(content)
-        }
-        else {
-            await navigator.clipboard.writeText(content)
-        }
+        await copyText(content)
         ElMessage({
             message: '复制成功',
             type: 'success'

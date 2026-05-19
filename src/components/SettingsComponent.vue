@@ -967,23 +967,6 @@
                         </div>
                         <div class="switch-full">
                             <span>
-                                WebGL地震波渲染
-                                <el-popover
-                                    placement="top"
-                                    :width="320"
-                                    trigger="hover"
-                                >
-                                    <template #reference>
-                                        <question-filled width="1em" height="1em" />
-                                    </template>
-                                    <p>使用WebGL绘制地震波圆环和填充层，减少高频Leaflet SVG图层更新。</p>
-                                    <p>不支持WebGL时会自动回退到原渲染方式。</p>
-                                </el-popover>
-                            </span>
-                            <el-switch v-model="settingsStore.mainSettings.useWebglWaveRenderer" />
-                        </div>
-                        <div class="switch-full">
-                            <span>
                                 禁用烈度图层
                                 <el-popover
                                     placement="top"

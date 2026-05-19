@@ -114,7 +114,6 @@ export const useSettingsStore = defineStore('settingsStore', {
             mapSimplifyFactor: 0,
             maxWaveRenderRate: 10,
             useCanvasRenderer: false,
-            useWebglWaveRenderer: true,
             minimizeOnLaunch: false,
             autoCheckNewVersion: false,
             checkPrerelease: false,

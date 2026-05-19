@@ -58,7 +58,7 @@
                             <div class="info" v-if="event.nearestJmaLoc">
                                 <div class="intensity" :class="setClassName(event.userShindo, true, event.eqMessage.isCanceled)">
                                     <div class="intensity-title">本地震度</div>
-                                    <div :c lass="event.userShindo != '?'?'shindo':'csis'">
+                                    <div :class="event.userShindo != '?'?'shindo':'csis'">
                                         {{ event.userShindo }}
                                     </div>
                                 </div>
@@ -258,6 +258,7 @@
                         </div>
                         <div class="legend-title">地图颜色</div>
                     </div>
+                    <div class="webgl-badge" v-if="webglWaveAvailable">[WebGL]</div>
                     <div class="ws-status">
                         <div>WebSocket状态: </div>
                         <div :class="'s' + wolfxRS">Wolfx{{ wolfxUrlIndex ? '(B)' : '' }}</div>
@@ -367,6 +368,7 @@ import { feature } from 'topojson-client';
 import { cnCityLabels, cnProvinceLabels, jpPrefLabels } from '@/utils/Labels';
 import terminator from '@joergdietrich/leaflet.terminator';
 import StatusComponent from './StatusComponent.vue';
+import { canUseWaveWebgl } from '@/classes/WaveWebglLayer';
 
 const style = window.getComputedStyle(document.body)
 const classNameColors = {}, tsunamiColors = {}
@@ -466,6 +468,7 @@ const wolfxRS = ref(4)
 const fanRS = ref(4)
 const p2pquakeRS = ref(4)
 const gqRS = ref(4)
+const webglWaveAvailable = ref(false)
 const wolfxUrlIndex = ref(0)
 const fanUrlIndex = ref(0)
 const p2pquakeUrlIndex = ref(0)
@@ -551,6 +554,7 @@ const getBarClass = (event)=>{
 }
 let mainInterval, terminatorInterval
 onMounted(()=>{
+    webglWaveAvailable.value = canUseWaveWebgl()
     map = L.map('mainMap', {
         attributionControl: false,
         center: defaultLatLng,
@@ -591,7 +595,8 @@ onMounted(()=>{
     map.getPane('terminatorFillPane').style.zIndex = 9
     map.createPane('waveFillPane')
     waveFillPane = map.getPane('waveFillPane')
-    waveFillPane.style.zIndex = 10
+    // 填色要盖过烈度面，但不要压住断层、台站和标记。
+    waveFillPane.style.zIndex = 25
     map.createPane('eewBasePane')
     eewBasePane = map.getPane('eewBasePane')
     eewBasePane.style.zIndex = 20
@@ -1924,6 +1929,19 @@ onBeforeUnmount(()=>{
                     .s4{
                         color: white;
                     }
+                }
+                .webgl-badge{
+                    width: fit-content;
+                    margin-top: 0.25rem;
+                    padding: 2px 6px;
+                    border: 1px solid #1fd45f;
+                    border-radius: 4px;
+                    background-color: rgba(0, 0, 0, 0.65);
+                    color: #1fd45f;
+                    font-size: 14px;
+                    font-weight: 700;
+                    line-height: 1.1;
+                    letter-spacing: 0;
                 }
                 .update-time{
                     pointer-events: auto;
