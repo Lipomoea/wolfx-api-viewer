@@ -34,4 +34,5 @@ public/wasm/*.wasm
 # dist zip file
 dist.zip!/
 perf-reports
+outputs
 .omx

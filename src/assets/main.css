@@ -38,6 +38,10 @@ body{
   mix-blend-mode: multiply;
 }
 
+.leaflet-waveFill-pane canvas.leaflet-wave-webgl-layer {
+  mix-blend-mode: multiply;
+}
+
 path.leaflet-interactive:focus {
   outline: none;
 }
