@@ -5,21 +5,6 @@
   font-style: normal;
   font-display: swap;
 }
-@font-face {
-  font-family: 'HMOS Sans SC';
-  src: url('./fonts/HarmonyOS_SansSC_Regular.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'HMOS Sans TC';
-  src: url('./fonts/HarmonyOS_SansTC_Regular.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
 *{
   padding: 0;
   margin: 0;
@@ -28,7 +13,7 @@
 
 body{
   background-color: #fff;
-  font-family: 'HMOS Sans', 'HMOS Sans SC', 'HMOS Sans TC', Arial, Helvetica, sans-serif;
+  font-family: 'HMOS Sans', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'PingFang TC', 'Microsoft YaHei', 'Noto Sans CJK SC', Arial, Helvetica, sans-serif;
 }
 
 .leaflet-wave-pane path,
