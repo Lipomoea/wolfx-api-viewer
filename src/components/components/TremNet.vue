@@ -14,6 +14,7 @@ import { playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFrom
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { simpleIcon, TremStation } from '@/classes/StationClasses';
+import { getStationWebglLayer } from '@/classes/StationWebglLayer';
 import { useTimeStore } from '@/stores/time';
 
 const statusStore = useStatusStore()
@@ -157,6 +158,7 @@ watch(()=>statusStore.map, newVal=>{
                     const station = reactive(new TremStation(map, id, latLng, -3.1, false))
                     stations[id] = station
                 })
+                getStationWebglLayer(map)?.setStations('trem', stations)
             }
         }, { immediate: true })
         unwatchGrids = watch(grids, (newVal)=>{
@@ -270,6 +272,7 @@ onBeforeUnmount(()=>{
     if(unwatchStationList) unwatchStationList()
     if(unwatchGrids) unwatchGrids()
     if(unwatchRender) unwatchRender()
+    getStationWebglLayer(map)?.removeSource('trem')
     Object.keys(stations).forEach(id=>{
         stations[id].terminate()
         delete stations[id]

@@ -15,6 +15,7 @@ import { getTimeNumberString, playSound, sendMyNotification, calcTimeDiff, focus
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { abnormalNiedStations, NiedStation, simpleIcon } from '@/classes/StationClasses';
+import { getStationWebglLayer } from '@/classes/StationWebglLayer';
 import { niedSitePub } from '@/utils/NiedSitePub';
 
 const statusStore = useStatusStore()
@@ -247,6 +248,7 @@ const fetchStationList = async () => {
                 const station = reactive(new NiedStation(map, index, latLng, 'c', expireSeconds[index]))
                 stations.push(station)
             })
+            getStationWebglLayer(map)?.setStations('nied', stations)
             clearAbnormalList()
         }
     } catch (err) {
@@ -447,6 +449,7 @@ onBeforeUnmount(()=>{
     if(map !== null) map.off('zoomend', renderAll)
     if(unwatchGrids) unwatchGrids()
     if(unwatchRender) unwatchRender()
+    getStationWebglLayer(map)?.removeSource('nied')
     stations.forEach((station, index)=>{
         station.terminate()
         stations[index] = null

@@ -4,6 +4,7 @@ import { getCsisLevelFromCsis, getLevelFromInstShindo, getMmiFromKmaLevel, getSh
 import { useSettingsStore } from '@/stores/settings';
 import { ref } from 'vue';
 import '@/assets/background.css';
+import { getStationWebglLayer } from './StationWebglLayer';
 import shindo0 from '@/assets/icon/shindo/0.svg';
 import shindo1 from '@/assets/icon/shindo/1.svg';
 import shindo2 from '@/assets/icon/shindo/2.svg';
@@ -155,6 +156,17 @@ for(let zoom = 6; zoom <= 10; zoom ++) {
 let settingsStore
 export const abnormalNiedStations = {}
 
+const setWebglStyle = (station, style) => {
+    station.webglStyle = style
+}
+
+const clearLeafletMarker = station => {
+    if(station.marker && station.map.hasLayer(station.marker)) station.map.removeLayer(station.marker)
+    station.marker = null
+}
+
+const requestStationWebglRender = station => getStationWebglLayer(station.map)?.requestRender()
+
 export class NiedStation {
     constructor(map, id, latLng, intensity, expireSeconds){
         if(!settingsStore) settingsStore = useSettingsStore()
@@ -282,6 +294,25 @@ export class NiedStation {
             this.markerType = 0
         }
         if(this.markerType == oldMarkerType && this.color == oldColor && this.radius == oldRadius) return
+        if(this.markerType == 2) {
+            setWebglStyle(this, null)
+            requestStationWebglRender(this)
+        }
+        else {
+            const radius = this.markerType == 1 ? Math.max(this.radius, 2) : this.radius
+            setWebglStyle(this, {
+                radius: this.markerType == 1 ? radius * 1.8 : radius,
+                fillColor: this.markerType == 1 ? shindoColorBand[this.level] : this.color,
+                strokeColor: this.markerType == 1 ? '#ffffff' : this.color,
+                strokeWidth: this.markerType == 1 ? radius * 0.4 : 0,
+                zIndex: this.level + 50,
+            })
+            if(getStationWebglLayer(this.map)) {
+                clearLeafletMarker(this)
+                requestStationWebglRender(this)
+                return
+            }
+        }
         if((this.markerType == 2) != (oldMarkerType == 2) || this.color != oldColor) {
             if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
             switch(this.markerType) {
@@ -390,9 +421,12 @@ export class NiedStation {
         }, 10500);
     }
     terminate(){
+        const stationWebglLayer = getStationWebglLayer(this.map)
         if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
         this.map = null
         this.marker = null
+        this.webglStyle = null
+        stationWebglLayer?.requestRender()
         clearTimeout(this.activeTimer)
     }
 }
@@ -432,6 +466,25 @@ export class TremStation {
             this.markerType = 0
         }
         if(this.markerType == oldMarkerType && this.color == oldColor && this.radius == oldRadius) return
+        if(this.markerType == 2) {
+            setWebglStyle(this, null)
+            requestStationWebglRender(this)
+        }
+        else {
+            const radius = this.markerType == 1 ? Math.max(this.radius, 2) : this.radius
+            setWebglStyle(this, {
+                radius: this.markerType == 1 ? radius * 1.8 : radius,
+                fillColor: this.markerType == 1 ? shindoColorBand[this.level] : this.color,
+                strokeColor: this.markerType == 1 ? '#ffffff' : this.color,
+                strokeWidth: this.markerType == 1 ? radius * 0.4 : 0,
+                zIndex: this.level + 50,
+            })
+            if(getStationWebglLayer(this.map)) {
+                clearLeafletMarker(this)
+                requestStationWebglRender(this)
+                return
+            }
+        }
         if((this.markerType == 2) != (oldMarkerType == 2) || this.color != oldColor) {
             if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
             switch(this.markerType) {
@@ -533,9 +586,12 @@ export class TremStation {
         }
     }
     terminate(){
+        const stationWebglLayer = getStationWebglLayer(this.map)
         if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
         this.map = null
         this.marker = null
+        this.webglStyle = null
+        stationWebglLayer?.requestRender()
     }
 }
 export class KmaStation {
@@ -584,6 +640,25 @@ export class KmaStation {
             this.markerType = 0
         }
         if(this.markerType == oldMarkerType && this.color == oldColor && this.radius == oldRadius) return
+        if(this.markerType == 2) {
+            setWebglStyle(this, null)
+            requestStationWebglRender(this)
+        }
+        else {
+            const radius = this.markerType == 1 ? Math.max(this.radius, 2) : this.radius
+            setWebglStyle(this, {
+                radius: this.markerType == 1 ? radius * 1.8 : radius,
+                fillColor: this.markerType == 1 ? kmaIntColorBand[this.holdLevel] : this.color,
+                strokeColor: this.markerType == 1 ? '#ffffff' : this.color,
+                strokeWidth: this.markerType == 1 ? radius * 0.4 : 0,
+                zIndex: this.holdLevel + 50,
+            })
+            if(getStationWebglLayer(this.map)) {
+                clearLeafletMarker(this)
+                requestStationWebglRender(this)
+                return
+            }
+        }
         if((this.markerType == 2) != (oldMarkerType == 2) || this.color != oldColor) {
             if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
             switch(this.markerType) {
@@ -692,9 +767,12 @@ export class KmaStation {
         }, 12500);
     }
     terminate(){
+        const stationWebglLayer = getStationWebglLayer(this.map)
         if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
         this.map = null
         this.marker = null
+        this.webglStyle = null
+        stationWebglLayer?.requestRender()
         clearTimeout(this.activeTimer)
     }
 }
