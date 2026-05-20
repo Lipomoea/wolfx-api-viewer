@@ -1,3 +1,7 @@
+mod travel_times;
+
+use travel_times::{travel_time_model, TravelTimeModel};
+
 const EARTH_RADIUS_KM: f64 = 6371.0;
 
 fn calc_line_dis(dep: f64, dis: f64) -> f64 {
@@ -37,6 +41,58 @@ fn jma_shindo_to_level(inst_shindo: f64) -> i32 {
     } else {
         9
     }
+}
+
+fn wave_time_at(
+    model: &TravelTimeModel,
+    is_p_wave: bool,
+    depth_index: usize,
+    distance_index: usize,
+    depth: f64,
+) -> f64 {
+    let data = if is_p_wave {
+        model.p_times
+    } else {
+        model.s_times
+    };
+    let k1 = model.depths[depth_index] - depth;
+    let k2 = depth - model.depths[depth_index - 1];
+    let prev = (depth_index - 1) * model.distance_len + distance_index;
+    let curr = depth_index * model.distance_len + distance_index;
+    (k1 * data[prev] + k2 * data[curr]) / (k1 + k2)
+}
+
+fn wave_depth_index(model: &TravelTimeModel, depth: f64) -> usize {
+    let mut i = 1;
+    while model.depths[i] < depth && i < model.depths.len() - 1 {
+        i += 1;
+    }
+    i
+}
+
+fn calc_wave_distance(model: i32, is_p_wave: bool, depth: f64, time: f64) -> (f64, f64) {
+    let model = travel_time_model(model);
+    let depth = if depth < 0.0 { 0.0 } else { depth };
+    let time = if time < 0.0 { 0.0 } else { time };
+    let i = wave_depth_index(model, depth);
+    let times_0 = wave_time_at(model, is_p_wave, i, 0, depth);
+
+    if time <= times_0 {
+        return (time / times_0, 0.0);
+    }
+
+    let mut j = 1;
+    while wave_time_at(model, is_p_wave, i, j, depth) < time && j < model.distances.len() - 1 {
+        j += 1;
+    }
+
+    let time_prev = wave_time_at(model, is_p_wave, i, j - 1, depth);
+    let time_curr = wave_time_at(model, is_p_wave, i, j, depth);
+    let distance_prev = model.distances[j - 1];
+    let distance_curr = model.distances[j];
+    let k = (distance_curr - distance_prev) / (time_curr - time_prev);
+    let b = distance_curr - k * time_curr;
+    (1.0, k * time + b)
 }
 
 #[no_mangle]
@@ -113,4 +169,41 @@ pub extern "C" fn calc_jma_shindo_level(
     jma_shindo_to_level(calc_jma_shindo(
         mj, dep, hypo_lat, hypo_lng, loc_lat, loc_lng, arv,
     ))
+}
+
+#[no_mangle]
+pub extern "C" fn calc_wave_radius(model: i32, is_p_wave: i32, depth: f64, elapsed: f64) -> f64 {
+    calc_wave_distance(model, is_p_wave != 0, depth, elapsed).1
+}
+
+#[no_mangle]
+pub extern "C" fn calc_wave_reach(model: i32, is_p_wave: i32, depth: f64, elapsed: f64) -> f64 {
+    calc_wave_distance(model, is_p_wave != 0, depth, elapsed).0
+}
+
+#[no_mangle]
+pub extern "C" fn calc_reach_time(
+    model: i32,
+    is_p_wave: i32,
+    depth: f64,
+    distance: f64,
+) -> f64 {
+    let model = travel_time_model(model);
+    let is_p_wave = is_p_wave != 0;
+    let depth = if depth < 0.0 { 0.0 } else { depth };
+    let distance = if distance < 0.0 { 0.0 } else { distance };
+    let i = wave_depth_index(model, depth);
+
+    let mut j = 1;
+    while model.distances[j] < distance && j < model.distances.len() - 1 {
+        j += 1;
+    }
+
+    let time_prev = wave_time_at(model, is_p_wave, i, j - 1, depth);
+    let time_curr = wave_time_at(model, is_p_wave, i, j, depth);
+    let distance_prev = model.distances[j - 1];
+    let distance_curr = model.distances[j];
+    let k = (time_curr - time_prev) / (distance_curr - distance_prev);
+    let b = time_curr - k * distance_curr;
+    k * distance + b
 }

@@ -16,6 +16,7 @@ export {
   calcJmaShindoLevel,
   calcReachTime,
   calcWaveDistance,
+  WAVE_MODELS,
 } from "./SeismicCalculations";
 dayjs.extend(utc);
 dayjs.extend(timezone);

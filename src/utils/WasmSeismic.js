@@ -1,4 +1,8 @@
 const WASM_URL = "/wasm/seismic_core.wasm";
+export const WAVE_MODELS = Object.freeze({
+  JMA2001: 0,
+  JB: 1,
+});
 
 let wasmExports = null;
 let wasmInitPromise = null;
@@ -60,6 +64,11 @@ const shindoCodeToText = (code, useSymbol = true) => {
     return null;
   }
   return (useSymbol ? SHINDO_SYMBOLS : SHINDO_KANJI)[value];
+};
+
+const normalizeWaveModel = model => {
+  if (model === WAVE_MODELS.JB || model === "jb") return WAVE_MODELS.JB;
+  return WAVE_MODELS.JMA2001;
 };
 
 export const calcCsisWasmSync = (m, dep = 10, dis = 0) => {
@@ -125,4 +134,26 @@ export const calcJmaShindoLevelWasmSync = (
     Number(loc.arv),
   );
   return shindoCodeToText(code, useSymbol);
+};
+
+export const calcWaveDistanceWasmSync = (model, isPWave, depth, elapsed) => {
+  const wasm = getSeismicWasm();
+  if (!wasm?.calc_wave_radius || !wasm?.calc_wave_reach) return null;
+  const modelCode = normalizeWaveModel(model);
+  const waveCode = isPWave ? 1 : 0;
+  const reach = wasm.calc_wave_reach(modelCode, waveCode, Number(depth), Number(elapsed));
+  const radius = wasm.calc_wave_radius(modelCode, waveCode, Number(depth), Number(elapsed));
+  return { reach, radius };
+};
+
+export const calcReachTimeWasmSync = (model, isPWave, depth, distance) => {
+  const wasm = getSeismicWasm();
+  if (!wasm?.calc_reach_time) return null;
+  const value = wasm.calc_reach_time(
+    normalizeWaveModel(model),
+    isPWave ? 1 : 0,
+    Number(depth),
+    Number(distance),
+  );
+  return typeof value === "number" ? value : null;
 };

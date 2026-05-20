@@ -1,5 +1,4 @@
-import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendMyNotification, getClassLevel, focusWindow, calcCsisLevel, calcJmaShindoLevel, shindoScale, timeToStamp, formatTimeZone } from '@/utils/Utils';
-import travelTimes from '@/utils/TravelTimes';
+import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendMyNotification, getClassLevel, focusWindow, calcCsisLevel, calcJmaShindoLevel, shindoScale, timeToStamp, formatTimeZone, WAVE_MODELS } from '@/utils/Utils';
 import { chimeUrls, iconUrls } from '@/utils/Urls';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -243,12 +242,12 @@ export class EewEvent {
     }
     switchDrawWaves(passedTime, updated){
         let p_reach, p_radius, s_reach, s_radius
-        let p_info = calcWaveDistance(travelTimes.jma2001, true, this.eqMessage.depth, passedTime)
-        if(p_info.radius > this.maxRadius1) p_info = calcWaveDistance(travelTimes.jb, true, this.eqMessage.depth, passedTime)
+        let p_info = calcWaveDistance(WAVE_MODELS.JMA2001, true, this.eqMessage.depth, passedTime)
+        if(p_info.radius > this.maxRadius1) p_info = calcWaveDistance(WAVE_MODELS.JB, true, this.eqMessage.depth, passedTime)
         p_reach = p_info.reach
         p_radius = p_info.radius
-        let s_info = calcWaveDistance(travelTimes.jma2001, false, this.eqMessage.depth, passedTime)
-        if(s_info.radius > this.maxRadius1) s_info = calcWaveDistance(travelTimes.jb, false, this.eqMessage.depth, passedTime)
+        let s_info = calcWaveDistance(WAVE_MODELS.JMA2001, false, this.eqMessage.depth, passedTime)
+        if(s_info.radius > this.maxRadius1) s_info = calcWaveDistance(WAVE_MODELS.JB, false, this.eqMessage.depth, passedTime)
         s_reach = s_info.reach
         s_radius = s_info.radius
         if(updated) this.clearWaves()
@@ -467,8 +466,9 @@ export class EewEvent {
                 this.maxWaveRadius = Math.min(Math.max(50 * this.eqMessage.magnitude ** 2, 200), 2000)
                 if(this.isValidUserLatLng) {
                     this.userDist = L.latLng(this.hypoLatLng).distanceTo(L.latLng(this.userLatLng)) / 1000
-                    this.pReachTime = calcReachTime(this.userDist <= this.maxRadius1 ? travelTimes.jma2001 : travelTimes.jb, true, this.eqMessage.depth, this.userDist)
-                    this.sReachTime = calcReachTime(this.userDist <= this.maxRadius1 ? travelTimes.jma2001 : travelTimes.jb, false, this.eqMessage.depth, this.userDist)
+                    const waveModel = this.userDist <= this.maxRadius1 ? WAVE_MODELS.JMA2001 : WAVE_MODELS.JB
+                    this.pReachTime = calcReachTime(waveModel, true, this.eqMessage.depth, this.userDist)
+                    this.sReachTime = calcReachTime(waveModel, false, this.eqMessage.depth, this.userDist)
                     this.userCsis = settingsStore.advancedSettings.forceCalcInt && !this.eqMessage.isAssumption ? 
                         calcCsisLevel(this.eqMessage.magnitude, this.eqMessage.depth, this.userDist) : '?'
                     this.userShindo = 

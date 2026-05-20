@@ -8,9 +8,12 @@ import router from './router'
 
 import axios from 'axios'
 import { initSeismicWasm } from './utils/WasmSeismic'
+import { preloadTravelTimeFallback } from './utils/SeismicCalculations'
 
 axios.defaults.timeout = 30000
-void initSeismicWasm()
+void initSeismicWasm().then(wasm => {
+  if (!wasm) void preloadTravelTimeFallback()
+})
 
 const app = createApp(App)
 

@@ -2,8 +2,13 @@ import {
   calcCsisWasmSync,
   calcJmaShindoLevelWasmSync,
   calcJmaShindoWasmSync,
+  calcReachTimeWasmSync,
   calcSurfaceDistanceKmWasmSync,
+  calcWaveDistanceWasmSync,
+  WAVE_MODELS,
 } from "./WasmSeismic.js";
+
+export { WAVE_MODELS };
 
 const EARTH_RADIUS_KM = 6371;
 
@@ -24,7 +29,34 @@ export const calcSurfaceDistanceKm = (lat1, lng1, lat2, lng2) =>
   calcSurfaceDistanceKmWasmSync(lat1, lng1, lat2, lng2) ??
   calcSurfaceDistanceKmBase(lat1, lng1, lat2, lng2);
 
-export const calcWaveDistance = (travelTime, isPWave, depth, time) => {
+let travelTimesFallback = null;
+let travelTimesFallbackPromise = null;
+
+export const preloadTravelTimeFallback = () => {
+  if (travelTimesFallback) return Promise.resolve(travelTimesFallback);
+  if (!travelTimesFallbackPromise) {
+    travelTimesFallbackPromise = import("./TravelTimes.js").then(module => {
+      travelTimesFallback = module.default;
+      return travelTimesFallback;
+    });
+  }
+  return travelTimesFallbackPromise;
+};
+
+const isTravelTimeTable = value =>
+  value?.depths && value?.distances && value?.p_times && value?.s_times;
+
+const travelTimeFallbackByModel = model => {
+  if (!travelTimesFallback) {
+    void preloadTravelTimeFallback();
+    return null;
+  }
+  return model === WAVE_MODELS.JB || model === "jb"
+    ? travelTimesFallback.jb
+    : travelTimesFallback.jma2001;
+};
+
+const calcWaveDistanceBase = (travelTime, isPWave, depth, time) => {
   if (depth < 0) depth = 0;
   if (time < 0) time = 0;
   const { depths, distances, p_times, s_times } = travelTime;
@@ -46,7 +78,19 @@ export const calcWaveDistance = (travelTime, isPWave, depth, time) => {
   return { reach: 1, radius: distance };
 };
 
-export const calcReachTime = (travelTime, isPWave, depth, distance) => {
+export const calcWaveDistance = (travelTimeOrModel, isPWave, depth, time) => {
+  if (isTravelTimeTable(travelTimeOrModel)) {
+    return calcWaveDistanceBase(travelTimeOrModel, isPWave, depth, time);
+  }
+
+  const wasmResult = calcWaveDistanceWasmSync(travelTimeOrModel, isPWave, depth, time);
+  if (wasmResult) return wasmResult;
+
+  const fallback = travelTimeFallbackByModel(travelTimeOrModel);
+  return fallback ? calcWaveDistanceBase(fallback, isPWave, depth, time) : { reach: 0, radius: 0 };
+};
+
+const calcReachTimeBase = (travelTime, isPWave, depth, distance) => {
   if (depth < 0) depth = 0;
   if (distance < 0) distance = 0;
   const { depths, distances, p_times, s_times } = travelTime;
@@ -65,6 +109,18 @@ export const calcReachTime = (travelTime, isPWave, depth, distance) => {
   const b = times[j] - k * distances[j];
   const time = k * distance + b;
   return time;
+};
+
+export const calcReachTime = (travelTimeOrModel, isPWave, depth, distance) => {
+  if (isTravelTimeTable(travelTimeOrModel)) {
+    return calcReachTimeBase(travelTimeOrModel, isPWave, depth, distance);
+  }
+
+  const wasmResult = calcReachTimeWasmSync(travelTimeOrModel, isPWave, depth, distance);
+  if (wasmResult !== null) return wasmResult;
+
+  const fallback = travelTimeFallbackByModel(travelTimeOrModel);
+  return fallback ? calcReachTimeBase(fallback, isPWave, depth, distance) : 0;
 };
 
 export const getCsisLevelFromCsis = csis =>
