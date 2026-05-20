@@ -333,8 +333,8 @@
                 </el-menu>
             </div>
             <div class="drawer" ref="drawer" v-show="menuId == 'eqlists' && !settingsStore.mainSettings.hideDrawer || menuId == 'settings'">
-                <EqlistComponent v-show="menuId == 'eqlists'" />
-                <SettingsComponent v-show="menuId == 'settings'" />
+                <EqlistComponent v-if="menuId == 'eqlists'" />
+                <SettingsComponent v-if="menuId == 'settings'" />
             </div>
             <transition name="dialog-fade">
                 <div class="statusContainer" v-show="statusStore.showStatusPanel">
@@ -355,7 +355,6 @@ import { HomeFilled, FullScreen, WarnTriangleFilled, InfoFilled, Setting } from 
 import { eewSources, eqlistSources, seisNetSources, sourceTypes, tsunamiSources, useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { useTimeStore } from '@/stores/time';
-import EqlistComponent from './EqlistComponent.vue';
 import { verifyUpToDate, setClassName, getClassLevel, classNameArray, csisArray, shindoArray, calcCsisLevel, formatTimeZone, simplifyTopoJson, formatCsis, csisRomanArray, formatShindo } from '@/utils/Utils';
 import { topojsonUrls } from '@/utils/Urls';
 import { loadTopojsonResources } from '@/utils/TopojsonCache';
@@ -372,6 +371,7 @@ import { calcJmaWarnArea, warmupSeismicWorker } from '@/utils/SeismicCalcWorkerC
 import { areaClassToRows, matchAreaClassToNames, mergeAreaIntensity } from '@/utils/IntensityAreas';
 
 const SettingsComponent = defineAsyncComponent(() => import('./SettingsComponent.vue'))
+const EqlistComponent = defineAsyncComponent(() => import('./EqlistComponent.vue'))
 const style = window.getComputedStyle(document.body)
 const classNameColors = {}, tsunamiColors = {}
 classNameArray.forEach(color => classNameColors[color] = style.getPropertyValue(`--${color}`).trim())
