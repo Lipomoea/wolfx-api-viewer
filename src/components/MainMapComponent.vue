@@ -388,6 +388,7 @@ const viewLatLng = computed(() => settingsStore.mainSettings.viewLatLng)
 const zoomLevel = ref(settingsStore.mainSettings.defaultZoom)
 const resetSeisNetDelay = () => settingsStore.mainSettings.displaySeisNet.delay = 0
 const tempEqlists = ref('')
+const maxAreaIntensityRows = 18
 let tempEqlistsTimer
 const handleTempEqlists = (time, source = '') => {
     clearTimeout(tempEqlistsTimer)
@@ -1045,7 +1046,7 @@ const loadMaps = async (retries = 0) => {
                 })
                 const newNewCsisList = []
                 for(let int = 12; int > 0; int--) {
-                    if(newNewCsisList.length >= 50) break
+                    if(newNewCsisList.length >= maxAreaIntensityRows) break
                     newCsisList[int]?.forEach(name => {
                         newNewCsisList.push({
                             name,
@@ -1053,7 +1054,7 @@ const loadMaps = async (retries = 0) => {
                         })
                     })
                 }
-                csisList.value = newNewCsisList.slice(0, 50)
+                csisList.value = newNewCsisList.slice(0, maxAreaIntensityRows)
             }, { deep: true, immediate: true })
         }
         if(settingsStore.mainSettings.source.jmaTsunami) {
@@ -1511,7 +1512,7 @@ const jmaWarnArea = computed(()=>{
     }
     else {
         const jmaEqlistEvent = historyList.length > 0
-        ? null
+        ? historyList.find(event => event.eqMessage.useShindo && event.eqMessage.warnArea && event.eqMessage.warnArea != '[]')
         : activeEqlistList.value.length > 0
         ? tempEqlists.value.endsWith('Eqlist')
         ? tempEqlists.value == 'jmaEqlist'
@@ -1543,7 +1544,7 @@ const shindoList = computed(() => {
     const newShindoList = []
     const order = ['7', '6+', '6-', '5+', '5-', '4', '3', '2', '1']
     for(let int of order) {
-        if(newShindoList.length >= 50) break
+        if(newShindoList.length >= maxAreaIntensityRows) break
         shindoList[int]?.forEach(name => {
             newShindoList.push({
                 name,
@@ -1551,7 +1552,7 @@ const shindoList = computed(() => {
             })
         })
     }
-    return newShindoList.slice(0, 50)
+    return newShindoList.slice(0, maxAreaIntensityRows)
 })
 const jpEewInfoList = computed(()=>{
     const jpEewList = activeEewList.filter(event=>!(event.eqMessage.isCanceled || event.eqMessage.isAssumption))
@@ -1956,37 +1957,47 @@ onBeforeUnmount(()=>{
             }
             .int-list{
                 position: absolute;
-                right: 1px;
-                top: 236px;
+                right: 8px;
+                top: 245px;
                 z-index: 599;
                 display: flex;
                 flex-direction: column;
-                justify-content: center;
-                gap: 10px;
-                height: calc(100% - 280px);
+                align-items: flex-end;
+                justify-content: flex-start;
+                gap: 6px;
+                width: 180px;
+                max-height: calc(100% - 315px);
                 user-select: none;
                 pointer-events: none;
                 .csis-list,.shindo-list{
+                    width: 100%;
                     display: flex;
                     flex-direction: column;
                     gap: 2px;
                     overflow: hidden;
-                    padding: 5px;
-                    border-radius: 10px;
+                    padding: 6px;
+                    border: 1px solid #ffffff26;
+                    border-radius: 8px;
+                    background-color: #00000073;
                     box-shadow: inset 0 0 10px #ffffff3f, 0 0 10px #0000003f;
                     backdrop-filter: blur(1px);
                     .row{
-                        display: flex;
-                        justify-content: space-between;
-                        gap: 3px;
+                        height: 24px;
+                        display: grid;
+                        grid-template-columns: minmax(0, 1fr) 22px;
+                        gap: 6px;
                         align-items: center;
                         .name{
                             color: #ffffff;
-                            width: 120px;
+                            width: auto;
+                            min-width: 0;
                             white-space: nowrap;
                             overflow: hidden;
                             text-overflow: ellipsis;
+                            text-align: right;
+                            font-size: 15px;
                             line-height: 1em;
+                            text-shadow: 0 1px 3px #000000;
                         }
                         .int{
                             width: 22px;

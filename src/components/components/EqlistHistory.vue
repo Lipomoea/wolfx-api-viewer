@@ -42,7 +42,7 @@
 
 <script setup>
 import '@/assets/background.css';
-import { reactive, computed, onBeforeUnmount, ref } from 'vue';
+import { reactive, computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
 import { defaultEqMessage, useStatusStore } from '@/stores/status';
 import { openUrl, formatTimeZone, formatCsis, calcTimeDiff, formatShindo, calcPassedTime, stampToTime } from '@/utils/Utils';
@@ -85,17 +85,29 @@ const handleReplay = (item) => {
         createMockEew(item)
     }
 }
+const stopReplayMock = () => {
+    clearTimeout(mockTimer)
+    mockTimer = null
+    const mockId = replayMockId.value
+    if(mockId != null) {
+        const mockEvents = activeEewList?.filter(event => event.eqMessage.source == 'mockEew' && event.eqMessage.id == mockId) ?? []
+        mockEvents.forEach(event => event.terminate(true))
+    }
+    replayMockId.value = null
+}
 const stopReplay = () => {
     if(replayId.value == null && replayMockId.value == null && !mockTimer) return
     // 停止回放时顺手把测站时间拨回实时。
     replayId.value = null
     settingsStore.mainSettings.displaySeisNet.delay = 0
-    clearTimeout(mockTimer)
-    mockTimer = null
-    const mockEvents = activeEewList?.filter(event => event.eqMessage.source == 'mockEew' && event.eqMessage.id == replayMockId.value) ?? []
-    mockEvents.forEach(event => event.terminate(true))
-    replayMockId.value = null
+    stopReplayMock()
 }
+watch(() => settingsStore.mainSettings.displaySeisNet.delay, newVal => {
+    if(newVal <= 0) stopReplay()
+})
+watch(() => `${settingsStore.advancedSettings.mockEew}|${settingsStore.advancedSettings.mockOnReplay}`, () => {
+    if(!settingsStore.advancedSettings.mockEew || !settingsStore.advancedSettings.mockOnReplay) stopReplayMock()
+})
 onBeforeUnmount(stopReplay)
 const handleCopy = async (item) => {
     const content = `${item.hypocenter} ${item.originTime} (UTC${formatTimeZone(item.timeZone)}) M${item.magnitude ? item.magnitude.toFixed(1) : '不明'} ${item.depth.toFixed(0)}km ${item.useShindo ? ('最大震度' + formatShindo(item.maxIntensity, false)) : ('预估最大烈度' + item.maxIntensity)}`
@@ -126,6 +138,7 @@ const displayOnMap = async (item) => {
     }
     else {
         const eqMessage = Object.assign({}, defaultEqMessage, item)
+        eqMessage.historySource = item.source
         eqMessage.source = 'history'
         eqMessage.title = eqMessage.titleText = '历史地震 ' + `(${item.source})`
         eqMessage.depthText = '深度: ' + eqMessage.depth.toFixed(0) + 'km'
