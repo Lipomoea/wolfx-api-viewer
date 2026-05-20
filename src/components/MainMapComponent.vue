@@ -356,10 +356,9 @@ import { eewSources, eqlistSources, seisNetSources, sourceTypes, tsunamiSources,
 import { useSettingsStore } from '@/stores/settings';
 import { useTimeStore } from '@/stores/time';
 import EqlistComponent from './EqlistComponent.vue';
-import { verifyUpToDate, setClassName, getClassLevel, classNameArray, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone, simplifyTopoJson, formatCsis, csisRomanArray, formatShindo } from '@/utils/Utils';
+import { verifyUpToDate, setClassName, getClassLevel, classNameArray, csisArray, shindoArray, calcCsisLevel, formatTimeZone, simplifyTopoJson, formatCsis, csisRomanArray, formatShindo } from '@/utils/Utils';
 import { topojsonUrls } from '@/utils/Urls';
 import { loadTopojsonResources } from '@/utils/TopojsonCache';
-import { loadJmaSeisIntLoc } from '@/utils/JmaSeisIntLocLoader';
 import { isTauri } from '@tauri-apps/api/core';
 import { storeToRefs } from 'pinia';
 import { simpleIcon } from '@/classes/StationClasses';
@@ -369,6 +368,7 @@ import terminator from '@joergdietrich/leaflet.terminator';
 import StatusComponent from './StatusComponent.vue';
 import { canUseWaveWebgl } from '@/classes/WaveWebglLayer';
 import { setPerfValue } from '@/utils/PerfMetrics';
+import { calcJmaWarnArea, warmupSeismicWorker } from '@/utils/SeismicCalcWorkerClient';
 
 const SettingsComponent = defineAsyncComponent(() => import('./SettingsComponent.vue'))
 const style = window.getComputedStyle(document.body)
@@ -558,6 +558,7 @@ let mainInterval, terminatorInterval
 onMounted(()=>{
     webglWaveAvailable.value = canUseWaveWebgl()
     setPerfValue('webgl.wave.available', webglWaveAvailable.value)
+    void warmupSeismicWorker()
     map = L.map('mainMap', {
         attributionControl: false,
         center: defaultLatLng,
@@ -1594,25 +1595,7 @@ watch(jmaCalcInfoList, async infoList => {
         jmaForceCalcWarnArea.value = {}
         return
     }
-    const jmaSeisIntLoc = await loadJmaSeisIntLoc()
-    const nextWarnArea = {}
-    for(let id in jmaSeisIntLoc) {
-        for(let eew of infoList) {
-            const { magnitude, depth, lat, lng } = eew
-            if(depth > 150) continue
-            const intensity = calcJmaShindoLevel(magnitude, depth, lat, lng, jmaSeisIntLoc[id], false)
-            if(intensity < '1') continue
-            const name = jmaSeisIntLoc[id].sect
-            const className = setClassName(intensity, true)
-            if(!nextWarnArea[name] || getClassLevel(className) > getClassLevel(nextWarnArea[name].className)) {
-                nextWarnArea[name] = {
-                    name,
-                    intensity,
-                    className
-                }
-            }
-        }
-    }
+    const { warnArea: nextWarnArea } = await calcJmaWarnArea(infoList)
     if(requestId == jmaForceCalcRequestId) {
         jmaForceCalcWarnArea.value = nextWarnArea
     }
