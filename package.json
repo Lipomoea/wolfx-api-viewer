@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "wasm:build": "node scripts/build-wasm.mjs",
+    "verify:seismic": "node scripts/build-wasm.mjs && node scripts/verify-seismic-calculations.mjs",
     "dev": "node scripts/build-wasm.mjs && vite",
     "build": "node scripts/build-wasm.mjs && vite build",
     "build:profile": "vite build --sourcemap",

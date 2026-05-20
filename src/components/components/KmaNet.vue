@@ -13,6 +13,7 @@ import { playSound, sendMyNotification, calcTimeDiff, focusWindow, getMmiFromKma
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { KmaStation, simpleIcon } from '@/classes/StationClasses';
+import { getStationWebglLayer } from '@/classes/StationWebglLayer';
 import WebSocketObj from '@/classes/WebSocket';
 
 const statusStore = useStatusStore()
@@ -211,6 +212,7 @@ watch(()=>statusStore.map, newVal=>{
                     const station = reactive(new KmaStation(map, index, latLng, -3, false))
                     stations.push(station)
                 })
+                getStationWebglLayer(map)?.setStations('kma', stations)
             }
         }, { immediate: true })
         unwatchGrids = watch(grids, (newVal)=>{
@@ -322,6 +324,7 @@ onBeforeUnmount(()=>{
     if(unwatchGrids) unwatchGrids()
     if(unwatchStationList) unwatchStationList()
     if(unwatchRender) unwatchRender()
+    getStationWebglLayer(map)?.removeSource('kma')
     stations.forEach((station, index)=>{
         station.terminate()
         stations[index] = null

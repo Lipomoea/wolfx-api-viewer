@@ -258,6 +258,7 @@
                         </div>
                         <div class="legend-title">地图颜色</div>
                     </div>
+                    <div class="webgl-badge" v-if="webglWaveAvailable">[WebGL]</div>
                     <div class="ws-status">
                         <div>WebSocket状态: </div>
                         <div :class="'s' + wolfxRS">Wolfx{{ wolfxUrlIndex ? '(B)' : '' }}</div>
@@ -367,6 +368,7 @@ import { feature } from 'topojson-client';
 import { cnCityLabels, cnProvinceLabels, jpPrefLabels } from '@/utils/Labels';
 import terminator from '@joergdietrich/leaflet.terminator';
 import StatusComponent from './StatusComponent.vue';
+import { canUseWaveWebgl } from '@/classes/WaveWebglLayer';
 
 const style = window.getComputedStyle(document.body)
 const classNameColors = {}, tsunamiColors = {}
@@ -386,6 +388,7 @@ const viewLatLng = computed(() => settingsStore.mainSettings.viewLatLng)
 const zoomLevel = ref(settingsStore.mainSettings.defaultZoom)
 const resetSeisNetDelay = () => settingsStore.mainSettings.displaySeisNet.delay = 0
 const tempEqlists = ref('')
+const maxAreaIntensityRows = 18
 let tempEqlistsTimer
 const handleTempEqlists = (time, source = '') => {
     clearTimeout(tempEqlistsTimer)
@@ -466,6 +469,7 @@ const wolfxRS = ref(4)
 const fanRS = ref(4)
 const p2pquakeRS = ref(4)
 const gqRS = ref(4)
+const webglWaveAvailable = ref(false)
 const wolfxUrlIndex = ref(0)
 const fanUrlIndex = ref(0)
 const p2pquakeUrlIndex = ref(0)
@@ -551,6 +555,7 @@ const getBarClass = (event)=>{
 }
 let mainInterval, terminatorInterval
 onMounted(()=>{
+    webglWaveAvailable.value = canUseWaveWebgl()
     map = L.map('mainMap', {
         attributionControl: false,
         center: defaultLatLng,
@@ -591,7 +596,8 @@ onMounted(()=>{
     map.getPane('terminatorFillPane').style.zIndex = 9
     map.createPane('waveFillPane')
     waveFillPane = map.getPane('waveFillPane')
-    waveFillPane.style.zIndex = 45
+    // 不盖住烈度图层，改回10
+    waveFillPane.style.zIndex = 10
     map.createPane('eewBasePane')
     eewBasePane = map.getPane('eewBasePane')
     eewBasePane.style.zIndex = 20
@@ -1040,7 +1046,7 @@ const loadMaps = async (retries = 0) => {
                 })
                 const newNewCsisList = []
                 for(let int = 12; int > 0; int--) {
-                    if(newNewCsisList.length >= 50) break
+                    if(newNewCsisList.length >= maxAreaIntensityRows) break
                     newCsisList[int]?.forEach(name => {
                         newNewCsisList.push({
                             name,
@@ -1048,7 +1054,7 @@ const loadMaps = async (retries = 0) => {
                         })
                     })
                 }
-                csisList.value = newNewCsisList.slice(0, 50)
+                csisList.value = newNewCsisList.slice(0, maxAreaIntensityRows)
             }, { deep: true, immediate: true })
         }
         if(settingsStore.mainSettings.source.jmaTsunami) {
@@ -1486,27 +1492,29 @@ watch(isAutoZoom, (newVal)=>{
     }
 }, { immediate: true })
 const jmaForceCalcWarnArea = ref({})
+const mergeJmaWarnArea = (target, item) => {
+    const { name, className } = item
+    if(!name) return
+    if(!target[name] || getClassLevel(className) > getClassLevel(target[name].className)) {
+        target[name] = item
+    }
+}
 const jmaWarnArea = computed(()=>{
     const jmaWarnArea = {}
     if(menuId.value != 'eqlists') {
         const jmaEewList = activeEewList.filter(event=>event.eqMessage.source == 'jmaEew' && !event.eqMessage.isCanceled)
         jmaEewList.forEach(event=>{
-            const warnArea = JSON.parse(event.eqMessage.warnArea)
-            warnArea.forEach(item=>{
-                if(!jmaWarnArea[item.name] || getClassLevel(item.className) > getClassLevel(jmaWarnArea[item.name].className)){
-                    jmaWarnArea[item.name] = item
-                }
-            })
-        })
-        Object.values(jmaForceCalcWarnArea.value).forEach(item => {
-            if(!jmaWarnArea[item.name] || getClassLevel(item.className) > getClassLevel(jmaWarnArea[item.name].className)) {
-                jmaWarnArea[item.name] = item
+            try {
+                const warnArea = JSON.parse(event.eqMessage.warnArea)
+                warnArea.forEach(item=>mergeJmaWarnArea(jmaWarnArea, item))
+            } catch {
+                // 实时报文偶发缺区分布，后面的估算结果会兜底。
             }
         })
     }
     else {
         const jmaEqlistEvent = historyList.length > 0
-        ? null
+        ? historyList.find(event => event.eqMessage.useShindo && event.eqMessage.warnArea && event.eqMessage.warnArea != '[]')
         : activeEqlistList.value.length > 0
         ? tempEqlists.value.endsWith('Eqlist')
         ? tempEqlists.value == 'jmaEqlist'
@@ -1514,17 +1522,16 @@ const jmaWarnArea = computed(()=>{
         : null
         : activeEqlistList.value.find(event => event.eqMessage.source == 'jmaEqlist')
         : eqlistList.find(event => event.eqMessage.source == 'jmaEqlist')
-        if(!jmaEqlistEvent) return {}
-        if(settingsStore.mainSettings.eqlistsDisplayMode == 1 && !jmaEqlistEvent.isLatest && !jmaEqlistEvent.isActive) return {}
-        const warnArea = JSON.parse(jmaEqlistEvent.eqMessage.warnArea)
-        warnArea.forEach(point => {
-            const { name, className } = point
-            if(!name) return
-            if(!jmaWarnArea[name] || getClassLevel(className) > getClassLevel(jmaWarnArea[name].className)) {
-                jmaWarnArea[name] = point
+        if(jmaEqlistEvent && !(settingsStore.mainSettings.eqlistsDisplayMode == 1 && !jmaEqlistEvent.isLatest && !jmaEqlistEvent.isActive)) {
+            try {
+                const warnArea = JSON.parse(jmaEqlistEvent.eqMessage.warnArea)
+                warnArea.forEach(point => mergeJmaWarnArea(jmaWarnArea, point))
+            } catch {
+                // 历史接口常只给最大震度，分区面由本地估算补上。
             }
-        })
+        }
     }
+    Object.values(jmaForceCalcWarnArea.value).forEach(item => mergeJmaWarnArea(jmaWarnArea, item))
     return jmaWarnArea
 })
 const csisList = ref([])
@@ -1538,7 +1545,7 @@ const shindoList = computed(() => {
     const newShindoList = []
     const order = ['7', '6+', '6-', '5+', '5-', '4', '3', '2', '1']
     for(let int of order) {
-        if(newShindoList.length >= 50) break
+        if(newShindoList.length >= maxAreaIntensityRows) break
         shindoList[int]?.forEach(name => {
             newShindoList.push({
                 name,
@@ -1546,20 +1553,42 @@ const shindoList = computed(() => {
             })
         })
     }
-    return newShindoList.slice(0, 50)
+    return newShindoList.slice(0, maxAreaIntensityRows)
 })
+const isFiniteNumber = value => value !== null && value !== '' && Number.isFinite(Number(value))
+const toJmaCalcInfo = eqMessage => {
+    const magnitude = Number(eqMessage.magnitude)
+    const depth = Number(eqMessage.depth)
+    const lat = Number(eqMessage.lat)
+    const lng = Number(eqMessage.lng)
+    return { magnitude, depth, lat, lng }
+}
 const jpEewInfoList = computed(()=>{
+    if(!settingsStore.advancedSettings.forceCalcInt || menuId.value == 'eqlists') return []
     const jpEewList = activeEewList.filter(event=>!(event.eqMessage.isCanceled || event.eqMessage.isAssumption))
-    const jpEewInfoList = jpEewList.map(event=>{
-        const { magnitude, depth, lat, lng } = event.eqMessage
-        return { magnitude, depth, lat, lng }
-    })
+    const jpEewInfoList = jpEewList
+        .filter(event => ['magnitude', 'depth', 'lat', 'lng'].every(key => isFiniteNumber(event.eqMessage[key])))
+        .map(event => toJmaCalcInfo(event.eqMessage))
     return jpEewInfoList
 })
+const historyJmaInfoList = computed(() => {
+    if(menuId.value != 'eqlists') return []
+    return historyList
+        .filter(event => {
+            const eqMessage = event.eqMessage
+            const historySource = eqMessage.historySource || eqMessage.title?.match(/\(([^)]+)\)/)?.[1]
+            return historySource == 'JMA'
+                && eqMessage.useShindo
+                && !eqMessage.isCanceled
+                && ['magnitude', 'depth', 'lat', 'lng'].every(key => isFiniteNumber(eqMessage[key]))
+        })
+        .map(event => toJmaCalcInfo(event.eqMessage))
+})
+const jmaCalcInfoList = computed(() => [...jpEewInfoList.value, ...historyJmaInfoList.value])
 let jmaForceCalcRequestId = 0
-watch([() => settingsStore.advancedSettings.forceCalcInt, jpEewInfoList, menuId], async ([forceCalcInt, infoList]) => {
+watch(jmaCalcInfoList, async infoList => {
     const requestId = ++jmaForceCalcRequestId
-    if(!forceCalcInt || menuId.value == 'eqlists' || infoList.length == 0) {
+    if(infoList.length == 0) {
         jmaForceCalcWarnArea.value = {}
         return
     }
@@ -1925,6 +1954,19 @@ onBeforeUnmount(()=>{
                         color: white;
                     }
                 }
+                .webgl-badge{
+                    width: fit-content;
+                    margin-top: 0.25rem;
+                    padding: 2px 6px;
+                    border: 1px solid #1fd45f;
+                    border-radius: 4px;
+                    background-color: rgba(0, 0, 0, 0.65);
+                    color: #1fd45f;
+                    font-size: 14px;
+                    font-weight: 700;
+                    line-height: 1.1;
+                    letter-spacing: 0;
+                }
                 .update-time{
                     pointer-events: auto;
                     cursor: default;
@@ -1938,37 +1980,47 @@ onBeforeUnmount(()=>{
             }
             .int-list{
                 position: absolute;
-                right: 1px;
-                top: 236px;
+                right: 8px;
+                top: 245px;
                 z-index: 599;
                 display: flex;
                 flex-direction: column;
-                justify-content: center;
-                gap: 10px;
-                height: calc(100% - 280px);
+                align-items: flex-end;
+                justify-content: flex-start;
+                gap: 6px;
+                width: 180px;
+                max-height: calc(100% - 315px);
                 user-select: none;
                 pointer-events: none;
                 .csis-list,.shindo-list{
+                    width: 100%;
                     display: flex;
                     flex-direction: column;
                     gap: 2px;
                     overflow: hidden;
-                    padding: 5px;
-                    border-radius: 10px;
+                    padding: 6px;
+                    border: 1px solid #ffffff26;
+                    border-radius: 8px;
+                    background-color: #00000073;
                     box-shadow: inset 0 0 10px #ffffff3f, 0 0 10px #0000003f;
                     backdrop-filter: blur(1px);
                     .row{
-                        display: flex;
-                        justify-content: space-between;
-                        gap: 3px;
+                        height: 24px;
+                        display: grid;
+                        grid-template-columns: minmax(0, 1fr) 22px;
+                        gap: 6px;
                         align-items: center;
                         .name{
                             color: #ffffff;
-                            width: 120px;
+                            width: auto;
+                            min-width: 0;
                             white-space: nowrap;
                             overflow: hidden;
                             text-overflow: ellipsis;
+                            text-align: right;
+                            font-size: 15px;
                             line-height: 1em;
+                            text-shadow: 0 1px 3px #000000;
                         }
                         .int{
                             width: 22px;

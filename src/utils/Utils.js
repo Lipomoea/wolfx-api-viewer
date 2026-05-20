@@ -8,14 +8,14 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { presimplify, simplify } from "topojson-simplify";
-import { calcCsisLevelWasmSync } from "./WasmSeismic";
-import { calcCsis as calcCsisBase } from "./SeismicCalculations";
 export {
   calcCsis,
+  calcCsisLevel,
   calcJmaShindo,
   calcJmaShindoLevel,
   calcReachTime,
   calcWaveDistance,
+  WAVE_MODELS,
 } from "./SeismicCalculations";
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -321,8 +321,6 @@ export const focusWindow = async () => {
     await getCurrentWindow().setFocus();
   }
 };
-export const calcCsisLevel = (m, dep = 10, dis = 0) =>
-  calcCsisLevelWasmSync(m, dep, dis) ?? getCsisLevelFromCsis(calcCsisBase(m, dep, dis));
 export const formatChineseTaiwan = str =>
   (str.startsWith("台湾") && !(str.includes("市") || str.includes("县"))
     ? "中国"

@@ -1,8 +1,20 @@
+import {
+  calcCsisWasmSync,
+  calcJmaShindoLevelWasmSync,
+  calcJmaShindoWasmSync,
+  calcReachTimeWasmSync,
+  calcSurfaceDistanceKmWasmSync,
+  calcWaveDistanceWasmSync,
+  WAVE_MODELS,
+} from "./WasmSeismic.js";
+
+export { WAVE_MODELS };
+
 const EARTH_RADIUS_KM = 6371;
 
 const toRadians = value => (Number(value) * Math.PI) / 180;
 
-export const calcSurfaceDistanceKm = (lat1, lng1, lat2, lng2) => {
+const calcSurfaceDistanceKmBase = (lat1, lng1, lat2, lng2) => {
   const dLat = toRadians(lat2 - lat1);
   const dLng = toRadians(lng2 - lng1);
   const rLat1 = toRadians(lat1);
@@ -13,7 +25,38 @@ export const calcSurfaceDistanceKm = (lat1, lng1, lat2, lng2) => {
   return 2 * EARTH_RADIUS_KM * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
-export const calcWaveDistance = (travelTime, isPWave, depth, time) => {
+export const calcSurfaceDistanceKm = (lat1, lng1, lat2, lng2) =>
+  calcSurfaceDistanceKmWasmSync(lat1, lng1, lat2, lng2) ??
+  calcSurfaceDistanceKmBase(lat1, lng1, lat2, lng2);
+
+let travelTimesFallback = null;
+let travelTimesFallbackPromise = null;
+
+export const preloadTravelTimeFallback = () => {
+  if (travelTimesFallback) return Promise.resolve(travelTimesFallback);
+  if (!travelTimesFallbackPromise) {
+    travelTimesFallbackPromise = import("./TravelTimes.js").then(module => {
+      travelTimesFallback = module.default;
+      return travelTimesFallback;
+    });
+  }
+  return travelTimesFallbackPromise;
+};
+
+const isTravelTimeTable = value =>
+  value?.depths && value?.distances && value?.p_times && value?.s_times;
+
+const travelTimeFallbackByModel = model => {
+  if (!travelTimesFallback) {
+    void preloadTravelTimeFallback();
+    return null;
+  }
+  return model === WAVE_MODELS.JB || model === "jb"
+    ? travelTimesFallback.jb
+    : travelTimesFallback.jma2001;
+};
+
+const calcWaveDistanceBase = (travelTime, isPWave, depth, time) => {
   if (depth < 0) depth = 0;
   if (time < 0) time = 0;
   const { depths, distances, p_times, s_times } = travelTime;
@@ -35,7 +78,19 @@ export const calcWaveDistance = (travelTime, isPWave, depth, time) => {
   return { reach: 1, radius: distance };
 };
 
-export const calcReachTime = (travelTime, isPWave, depth, distance) => {
+export const calcWaveDistance = (travelTimeOrModel, isPWave, depth, time) => {
+  if (isTravelTimeTable(travelTimeOrModel)) {
+    return calcWaveDistanceBase(travelTimeOrModel, isPWave, depth, time);
+  }
+
+  const wasmResult = calcWaveDistanceWasmSync(travelTimeOrModel, isPWave, depth, time);
+  if (wasmResult) return wasmResult;
+
+  const fallback = travelTimeFallbackByModel(travelTimeOrModel);
+  return fallback ? calcWaveDistanceBase(fallback, isPWave, depth, time) : { reach: 0, radius: 0 };
+};
+
+const calcReachTimeBase = (travelTime, isPWave, depth, distance) => {
   if (depth < 0) depth = 0;
   if (distance < 0) distance = 0;
   const { depths, distances, p_times, s_times } = travelTime;
@@ -56,6 +111,18 @@ export const calcReachTime = (travelTime, isPWave, depth, distance) => {
   return time;
 };
 
+export const calcReachTime = (travelTimeOrModel, isPWave, depth, distance) => {
+  if (isTravelTimeTable(travelTimeOrModel)) {
+    return calcReachTimeBase(travelTimeOrModel, isPWave, depth, distance);
+  }
+
+  const wasmResult = calcReachTimeWasmSync(travelTimeOrModel, isPWave, depth, distance);
+  if (wasmResult !== null) return wasmResult;
+
+  const fallback = travelTimeFallbackByModel(travelTimeOrModel);
+  return fallback ? calcReachTimeBase(fallback, isPWave, depth, distance) : 0;
+};
+
 export const getCsisLevelFromCsis = csis =>
   Math.min(Math.max(csis, 0), 12).toFixed(0);
 
@@ -73,7 +140,7 @@ const calcLineDis = (dep, dis) => {
 const calcCeaCsis = (m, dis = 0) =>
   1.297 * m - 4.368 * Math.log10(dis + 15) + 5.363;
 
-export const calcCsis = (m, dep = 10, dis = 0) => {
+const calcCsisBase = (m, dep = 10, dis = 0) => {
   m = Number(m);
   dep = Number(dep);
   dis = Number(dis);
@@ -93,6 +160,9 @@ export const calcCsis = (m, dep = 10, dis = 0) => {
   return (ceaCsis1 + ceaCsis2) / 2;
 };
 
+export const calcCsis = (m, dep = 10, dis = 0) =>
+  calcCsisWasmSync(m, dep, dis) ?? calcCsisBase(m, dep, dis);
+
 export const calcCsisLevel = (m, dep = 10, dis = 0) =>
   getCsisLevelFromCsis(calcCsis(m, dep, dis));
 
@@ -110,7 +180,7 @@ export const getShindoFromInstShindo = (instShindo, useSymbol = true) => {
   else return "7";
 };
 
-export const calcJmaShindo = (mj, dep, hypoLat, hypoLng, loc) => {
+const calcJmaShindoBase = (mj, dep, hypoLat, hypoLng, loc) => {
   const mw = mj - 0.171;
   const long = 10 ** (0.5 * mw - 1.85) / 2;
   const surfaceDist = calcSurfaceDistanceKm(
@@ -136,6 +206,10 @@ export const calcJmaShindo = (mj, dep, hypoLat, hypoLng, loc) => {
   return instShindo;
 };
 
+export const calcJmaShindo = (mj, dep, hypoLat, hypoLng, loc) =>
+  calcJmaShindoWasmSync(mj, dep, hypoLat, hypoLng, loc) ??
+  calcJmaShindoBase(mj, dep, hypoLat, hypoLng, loc);
+
 export const calcJmaShindoLevel = (
   mj,
   dep,
@@ -144,6 +218,16 @@ export const calcJmaShindoLevel = (
   loc,
   useSymbol = true,
 ) => {
+  const wasmLevel = calcJmaShindoLevelWasmSync(
+    mj,
+    dep,
+    hypoLat,
+    hypoLng,
+    loc,
+    useSymbol,
+  );
+  if (wasmLevel) return wasmLevel;
+
   const instShindo = calcJmaShindo(mj, dep, hypoLat, hypoLng, loc);
   const instShindo1 = Math.floor(Math.round(instShindo * 100) / 10) / 10;
   if (instShindo1 < 0.5) return "0";

@@ -37,10 +37,31 @@ precision mediump float;
 uniform vec4 u_color;
 varying vec2 v_unitPosition;
 void main() {
-  float alphaScale = clamp(length(v_unitPosition), 0.0, 1.0);
-  gl_FragColor = vec4(u_color.rgb, u_color.a * alphaScale);
+  float radius = clamp(length(v_unitPosition), 0.0, 1.0);
+  float bodyScale = smoothstep(0.18, 0.70, radius) * (1.0 - smoothstep(0.92, 1.0, radius));
+  float edgeScale = smoothstep(0.70, 1.0, radius);
+  vec3 bodyColor = mix(u_color.rgb, vec3(0.0), 0.38);
+  vec3 edgeColor = mix(u_color.rgb, vec3(1.0), edgeScale * 0.24);
+  vec3 waveColor = mix(bodyColor, edgeColor, edgeScale);
+  float alphaScale = max(bodyScale * 0.55, edgeScale);
+  gl_FragColor = vec4(waveColor, u_color.a * alphaScale);
 }
 `;
+
+export const canUseWaveWebgl = () => {
+  if (typeof document === "undefined") return false;
+  const canvas = document.createElement("canvas");
+  const gl = canvas.getContext("webgl", {
+    alpha: true,
+    antialias: true,
+    depth: false,
+    premultipliedAlpha: false,
+    stencil: false,
+  });
+  if (!gl) return false;
+  gl.getExtension("WEBGL_lose_context")?.loseContext();
+  return true;
+};
 
 const toNdc = (point, size) => [
   (point.x / size.x) * 2 - 1,

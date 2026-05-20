@@ -32,7 +32,7 @@
                 </div>
                 <div class="buttons" @contextmenu.prevent="handleCopy(item)">
                     <el-button class="button" type="warning" plain @click="openUrl(item.url)">查看网页</el-button>
-                    <el-button class="button" type="primary" plain @click="handleReplay(item)">测站回放</el-button>
+                    <el-button class="button" :type="isReplaying(item) ? 'danger' : 'primary'" plain @click="handleReplay(item)">{{ isReplaying(item) ? '停止回放' : '测站回放' }}</el-button>
                     <el-button class="button" :type="displayIds.has(item.id) ? 'danger' : 'success'" plain @click="displayOnMap(item)">{{ displayIds.has(item.id) ? '取消显示' : '地图显示' }}</el-button>
                 </div>
             </div>
@@ -42,13 +42,12 @@
 
 <script setup>
 import '@/assets/background.css';
-import { reactive, computed } from 'vue';
+import { reactive, computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
 import { defaultEqMessage, useStatusStore } from '@/stores/status';
 import { openUrl, formatTimeZone, formatCsis, calcTimeDiff, formatShindo, calcPassedTime, stampToTime } from '@/utils/Utils';
 import { useTimeStore } from '@/stores/time';
-import { isTauri } from '@tauri-apps/api/core';
-import { writeText } from '@tauri-apps/plugin-clipboard-manager';
+import { copyText } from '@/utils/Clipboard';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -62,27 +61,58 @@ const timeStore = useTimeStore()
 
 const smartSetView = inject('smartSetView')
 const historyList = inject('historyList')
+const activeEewList = inject('activeEewList')
 
 const maxHistoryNumber = 100
+// 只记这次回放自己开的东西，别顺手关掉用户手动开的模拟预警。
+const replayId = ref(null)
+const replayMockId = ref(null)
+let mockTimer
 const flatted = computed(() => Object.values(statusStore.history).flat())
 const sorted = computed(() => flatted.value.sort((a, b) => calcTimeDiff(b.originTime, b.timeZone, a.originTime, a.timeZone)))
 const eqlists = computed(() => sorted.value.filter(item => (settingsStore.mainSettings.historyMagThres == 0 || item.magnitude >= settingsStore.mainSettings.historyMagThres) && settingsStore.mainSettings.historySources.includes(item.source)).slice(0, maxHistoryNumber))
+const isReplaying = item => replayId.value == item.id && settingsStore.mainSettings.displaySeisNet.delay > 0
 const handleReplay = (item) => {
+    if(isReplaying(item)) {
+        stopReplay()
+        return
+    }
+    stopReplay()
     const passedTime = Math.max(calcPassedTime(item.originTime, item.timeZone) / 60000 + 0.1, 0)
+    replayId.value = item.id
     settingsStore.mainSettings.displaySeisNet.delay = passedTime
     if (settingsStore.advancedSettings.mockOnReplay && settingsStore.advancedSettings.mockEew) {
         createMockEew(item)
     }
 }
+const stopReplayMock = () => {
+    clearTimeout(mockTimer)
+    mockTimer = null
+    const mockId = replayMockId.value
+    if(mockId != null) {
+        const mockEvents = activeEewList?.filter(event => event.eqMessage.source == 'mockEew' && event.eqMessage.id == mockId) ?? []
+        mockEvents.forEach(event => event.terminate(true))
+    }
+    replayMockId.value = null
+}
+const stopReplay = () => {
+    if(replayId.value == null && replayMockId.value == null && !mockTimer) return
+    // 停止回放时顺手把测站时间拨回实时。
+    replayId.value = null
+    settingsStore.mainSettings.displaySeisNet.delay = 0
+    stopReplayMock()
+}
+watch(() => settingsStore.mainSettings.displaySeisNet.delay, newVal => {
+    if(newVal <= 0) stopReplay()
+})
+watch(() => `${settingsStore.advancedSettings.mockEew}|${settingsStore.advancedSettings.mockOnReplay}`, () => {
+    if(!settingsStore.advancedSettings.mockEew || !settingsStore.advancedSettings.mockOnReplay) stopReplayMock()
+})
+onBeforeUnmount(stopReplay)
 const handleCopy = async (item) => {
     const content = `${item.hypocenter} ${item.originTime} (UTC${formatTimeZone(item.timeZone)}) M${item.magnitude ? item.magnitude.toFixed(1) : '不明'} ${item.depth.toFixed(0)}km ${item.useShindo ? ('最大震度' + formatShindo(item.maxIntensity, false)) : ('预估最大烈度' + item.maxIntensity)}`
     try {
-        if(isTauri()) {
-            await writeText(content)
-        }
-        else {
-            await navigator.clipboard.writeText(content)
-        }
+        await copyText(content)
         ElMessage({
             message: '复制成功',
             type: 'success'
@@ -108,6 +138,7 @@ const displayOnMap = async (item) => {
     }
     else {
         const eqMessage = Object.assign({}, defaultEqMessage, item)
+        eqMessage.historySource = item.source
         eqMessage.source = 'history'
         eqMessage.title = eqMessage.titleText = '历史地震 ' + `(${item.source})`
         eqMessage.depthText = '深度: ' + eqMessage.depth.toFixed(0) + 'km'
@@ -121,6 +152,7 @@ const displayOnMap = async (item) => {
 }
 const createMockEew = (item) => {
     const now = timeStore.getTimeStamp()
+    replayMockId.value = now
     const originTime = dayjs(now).add(6, 'seconds').utcOffset(item.timeZone * 60).format('YYYY-MM-DD HH:mm:ss')
     const eqMessage = {
         id: now,
@@ -149,7 +181,8 @@ const createMockEew = (item) => {
         maxIntensity: item.maxIntensity,
         maxIntensityText: (item.useShindo ? '推定最大震度: ' : '预估最大烈度: ') + item.maxIntensity
     }
-    setTimeout(() => {
+    clearTimeout(mockTimer)
+    mockTimer = setTimeout(() => {
         statusStore.setEqMessage('mockEew', eqMessage)
     }, 6000);
 }

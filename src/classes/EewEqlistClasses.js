@@ -1,5 +1,4 @@
-import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendMyNotification, getClassLevel, focusWindow, calcCsisLevel, calcJmaShindoLevel, shindoScale, timeToStamp, formatTimeZone } from '@/utils/Utils';
-import travelTimes from '@/utils/TravelTimes';
+import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendMyNotification, getClassLevel, focusWindow, calcCsisLevel, calcJmaShindoLevel, shindoScale, timeToStamp, formatTimeZone, WAVE_MODELS } from '@/utils/Utils';
 import { chimeUrls, iconUrls } from '@/utils/Urls';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -243,12 +242,12 @@ export class EewEvent {
     }
     switchDrawWaves(passedTime, updated){
         let p_reach, p_radius, s_reach, s_radius
-        let p_info = calcWaveDistance(travelTimes.jma2001, true, this.eqMessage.depth, passedTime)
-        if(p_info.radius > this.maxRadius1) p_info = calcWaveDistance(travelTimes.jb, true, this.eqMessage.depth, passedTime)
+        let p_info = calcWaveDistance(WAVE_MODELS.JMA2001, true, this.eqMessage.depth, passedTime)
+        if(p_info.radius > this.maxRadius1) p_info = calcWaveDistance(WAVE_MODELS.JB, true, this.eqMessage.depth, passedTime)
         p_reach = p_info.reach
         p_radius = p_info.radius
-        let s_info = calcWaveDistance(travelTimes.jma2001, false, this.eqMessage.depth, passedTime)
-        if(s_info.radius > this.maxRadius1) s_info = calcWaveDistance(travelTimes.jb, false, this.eqMessage.depth, passedTime)
+        let s_info = calcWaveDistance(WAVE_MODELS.JMA2001, false, this.eqMessage.depth, passedTime)
+        if(s_info.radius > this.maxRadius1) s_info = calcWaveDistance(WAVE_MODELS.JB, false, this.eqMessage.depth, passedTime)
         s_reach = s_info.reach
         s_radius = s_info.radius
         if(updated) this.clearWaves()
@@ -299,46 +298,44 @@ export class EewEvent {
                 }
                 break
         }
-        if(settingsStore.mainSettings.useWebglWaveRenderer) {
-            this.waveWebglLayer = this.waveWebglLayer || getWaveWebglLayer(this.map)
-            if(this.waveWebglLayer) {
-                const pVisible = p_radius > 0 && p_radius <= this.maxRadius2
-                const sVisible = s_radius > 0 && s_radius <= this.maxRadius2
-                const fillVisible = s_radius > 0 && s_radius <= this.maxWaveRadius
-                const pOpacity = pVisible
-                    ? p_radius <= this.maxWaveRadius
-                        ? this.calcOpacity(p_radius, 0, this.maxWaveRadius, 0.25, 1)
-                        : this.calcOpacity(p_radius, this.maxWaveRadius, this.maxRadius2, 0, 0.25)
-                    : 0
-                const sOpacity = sVisible
-                    ? s_radius <= this.maxWaveRadius
-                        ? this.calcOpacity(s_radius, 0, this.maxWaveRadius, 0.25, 1)
-                        : this.calcOpacity(s_radius, this.maxWaveRadius, this.maxRadius2, 0, 0.25)
-                    : 0
-                const fillOpacity = fillVisible ? this.calcOpacity(s_radius, 0, this.maxWaveRadius, 0, 0.25) : 0
-                this.updateWebglBoundsProxies({
-                    pVisible,
-                    sVisible,
-                    fillVisible,
-                    pRadiusKm: p_radius,
-                    sRadiusKm: s_radius,
-                })
-                this.waveWebglLayer.setWave(this.getWaveId(), {
-                    lat: this.hypoLatLng[0],
-                    lng: this.hypoLatLng[1],
-                    pRadiusKm: p_radius,
-                    sRadiusKm: s_radius,
-                    pOpacity,
-                    sOpacity,
-                    fillOpacity,
-                    color,
-                    pVisible,
-                    sVisible,
-                    fillVisible,
-                })
-                this.drawReachBar(p_reach, s_reach, updated)
-                return
-            }
+        this.waveWebglLayer = this.waveWebglLayer || getWaveWebglLayer(this.map)
+        if(this.waveWebglLayer) {
+            const pVisible = p_radius > 0 && p_radius <= this.maxRadius2
+            const sVisible = s_radius > 0 && s_radius <= this.maxRadius2
+            const fillVisible = s_radius > 0 && s_radius <= this.maxWaveRadius
+            const pOpacity = pVisible
+                ? p_radius <= this.maxWaveRadius
+                    ? this.calcOpacity(p_radius, 0, this.maxWaveRadius, 0.25, 1)
+                    : this.calcOpacity(p_radius, this.maxWaveRadius, this.maxRadius2, 0, 0.25)
+                : 0
+            const sOpacity = sVisible
+                ? s_radius <= this.maxWaveRadius
+                    ? this.calcOpacity(s_radius, 0, this.maxWaveRadius, 0.25, 1)
+                    : this.calcOpacity(s_radius, this.maxWaveRadius, this.maxRadius2, 0, 0.25)
+                : 0
+            const fillOpacity = fillVisible ? this.calcOpacity(s_radius, 0, this.maxWaveRadius, 0, 0.25) : 0
+            this.updateWebglBoundsProxies({
+                pVisible,
+                sVisible,
+                fillVisible,
+                pRadiusKm: p_radius,
+                sRadiusKm: s_radius,
+            })
+            this.waveWebglLayer.setWave(this.getWaveId(), {
+                lat: this.hypoLatLng[0],
+                lng: this.hypoLatLng[1],
+                pRadiusKm: p_radius,
+                sRadiusKm: s_radius,
+                pOpacity,
+                sOpacity,
+                fillOpacity,
+                color,
+                pVisible,
+                sVisible,
+                fillVisible,
+            })
+            this.drawReachBar(p_reach, s_reach, updated)
+            return
         }
         this.clearWebglWave()
         this.clearWebglBoundsProxies()
@@ -409,7 +406,10 @@ export class EewEvent {
                 const grad = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
                 grad.setAttribute('id', this.gradId);
                 grad.innerHTML = `
-                    <stop offset="0" stop-color="${color}" stop-opacity="0" />
+                    <stop offset="0" stop-color="#000" stop-opacity="0" />
+                    <stop offset="18%" stop-color="#000" stop-opacity="0" />
+                    <stop offset="70%" stop-color="#000" stop-opacity="0.55" />
+                    <stop offset="92%" stop-color="${color}" stop-opacity="0.65" />
                     <stop offset="1" stop-color="${color}" stop-opacity="1" />
                 `;
                 defs.appendChild(grad);
@@ -469,8 +469,9 @@ export class EewEvent {
                 this.maxWaveRadius = Math.min(Math.max(50 * this.eqMessage.magnitude ** 2, 200), 2000)
                 if(this.isValidUserLatLng) {
                     this.userDist = L.latLng(this.hypoLatLng).distanceTo(L.latLng(this.userLatLng)) / 1000
-                    this.pReachTime = calcReachTime(this.userDist <= this.maxRadius1 ? travelTimes.jma2001 : travelTimes.jb, true, this.eqMessage.depth, this.userDist)
-                    this.sReachTime = calcReachTime(this.userDist <= this.maxRadius1 ? travelTimes.jma2001 : travelTimes.jb, false, this.eqMessage.depth, this.userDist)
+                    const waveModel = this.userDist <= this.maxRadius1 ? WAVE_MODELS.JMA2001 : WAVE_MODELS.JB
+                    this.pReachTime = calcReachTime(waveModel, true, this.eqMessage.depth, this.userDist)
+                    this.sReachTime = calcReachTime(waveModel, false, this.eqMessage.depth, this.userDist)
                     this.userCsis = settingsStore.advancedSettings.forceCalcInt && !this.eqMessage.isAssumption ? 
                         calcCsisLevel(this.eqMessage.magnitude, this.eqMessage.depth, this.userDist) : '?'
                     this.userShindo = 
