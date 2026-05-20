@@ -167,6 +167,24 @@ const clearLeafletMarker = station => {
 
 const requestStationWebglRender = station => getStationWebglLayer(station.map)?.requestRender()
 
+const getIconZoom = zoom => Math.min(Math.max(zoom, 6), 10)
+
+const getIconRadius = zoom => 8 * 1.5 ** (zoom / 2 - 3)
+
+const setWebglIconStyle = (station, iconType, iconValue, level, zoom) => {
+    const iconZoom = getIconZoom(zoom)
+    const radius = getIconRadius(iconZoom)
+    setWebglStyle(station, {
+        mode: 'icon',
+        iconKey: `${iconType}:${iconZoom}:${iconValue}`,
+        iconUrl: iconType == 'int' ? intIconUrls[iconValue] : shindoIconUrls[iconValue],
+        radius,
+        size: radius * 2,
+        atlasSize: radius * 2,
+        zIndex: level + 50,
+    })
+}
+
 export class NiedStation {
     constructor(map, id, latLng, intensity, expireSeconds){
         if(!settingsStore) settingsStore = useSettingsStore()
@@ -295,8 +313,12 @@ export class NiedStation {
         }
         if(this.markerType == oldMarkerType && this.color == oldColor && this.radius == oldRadius) return
         if(this.markerType == 2) {
-            setWebglStyle(this, null)
-            requestStationWebglRender(this)
+            setWebglIconStyle(this, 'shindo', this.shindo, this.level, zoom)
+            if(getStationWebglLayer(this.map)) {
+                clearLeafletMarker(this)
+                requestStationWebglRender(this)
+                return
+            }
         }
         else {
             const radius = this.markerType == 1 ? Math.max(this.radius, 2) : this.radius
@@ -317,7 +339,7 @@ export class NiedStation {
             if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
             switch(this.markerType) {
                 case 2:
-                    const iconZoom = Math.min(Math.max(zoom, 6), 10)
+                    const iconZoom = getIconZoom(zoom)
                     const shindoIcon = shindoIcons[iconZoom][this.shindo]
                     this.marker = L.marker(this.latLng, {
                         icon: shindoIcon,
@@ -357,7 +379,7 @@ export class NiedStation {
         else {
             switch(this.markerType) {
                 case 2:
-                    const iconZoom = Math.min(Math.max(zoom, 6), 10)
+                    const iconZoom = getIconZoom(zoom)
                     const shindoIcon = shindoIcons[iconZoom][this.shindo]
                     this.marker.setIcon(shindoIcon)
                     break
@@ -467,8 +489,12 @@ export class TremStation {
         }
         if(this.markerType == oldMarkerType && this.color == oldColor && this.radius == oldRadius) return
         if(this.markerType == 2) {
-            setWebglStyle(this, null)
-            requestStationWebglRender(this)
+            setWebglIconStyle(this, 'shindo', this.shindo, this.level, zoom)
+            if(getStationWebglLayer(this.map)) {
+                clearLeafletMarker(this)
+                requestStationWebglRender(this)
+                return
+            }
         }
         else {
             const radius = this.markerType == 1 ? Math.max(this.radius, 2) : this.radius
@@ -489,7 +515,7 @@ export class TremStation {
             if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
             switch(this.markerType) {
                 case 2:
-                    const iconZoom = Math.min(Math.max(zoom, 6), 10)
+                    const iconZoom = getIconZoom(zoom)
                     const shindoIcon = shindoIcons[iconZoom][this.shindo]
                     this.marker = L.marker(this.latLng, {
                         icon: shindoIcon,
@@ -529,7 +555,7 @@ export class TremStation {
         else {
             switch(this.markerType) {
                 case 2:
-                    const iconZoom = Math.min(Math.max(zoom, 6), 10)
+                    const iconZoom = getIconZoom(zoom)
                     const shindoIcon = shindoIcons[iconZoom][this.shindo]
                     this.marker.setIcon(shindoIcon)
                     break
@@ -641,8 +667,12 @@ export class KmaStation {
         }
         if(this.markerType == oldMarkerType && this.color == oldColor && this.radius == oldRadius) return
         if(this.markerType == 2) {
-            setWebglStyle(this, null)
-            requestStationWebglRender(this)
+            setWebglIconStyle(this, 'int', this.intensity, this.holdLevel, zoom)
+            if(getStationWebglLayer(this.map)) {
+                clearLeafletMarker(this)
+                requestStationWebglRender(this)
+                return
+            }
         }
         else {
             const radius = this.markerType == 1 ? Math.max(this.radius, 2) : this.radius
@@ -663,7 +693,7 @@ export class KmaStation {
             if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
             switch(this.markerType) {
                 case 2:
-                    const iconZoom = Math.min(Math.max(zoom, 6), 10)
+                    const iconZoom = getIconZoom(zoom)
                     const intIcon = intIcons[iconZoom][this.intensity]
                     this.marker = L.marker(this.latLng, {
                         icon: intIcon,
@@ -703,7 +733,7 @@ export class KmaStation {
         else {
             switch(this.markerType) {
                 case 2:
-                    const iconZoom = Math.min(Math.max(zoom, 6), 10)
+                    const iconZoom = getIconZoom(zoom)
                     const intIcon = intIcons[iconZoom][this.intensity]
                     this.marker.setIcon(intIcon)
                     break

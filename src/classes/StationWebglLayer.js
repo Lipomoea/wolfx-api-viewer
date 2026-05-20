@@ -37,8 +37,35 @@ void main() {
 }
 `;
 
+const iconVertexShaderSource = `
+attribute vec2 a_position;
+attribute vec2 a_texCoord;
+varying vec2 v_texCoord;
+void main() {
+  v_texCoord = a_texCoord;
+  gl_Position = vec4(a_position, 0.0, 1.0);
+}
+`;
+
+const iconFragmentShaderSource = `
+precision mediump float;
+uniform sampler2D u_texture;
+varying vec2 v_texCoord;
+void main() {
+  vec4 color = texture2D(u_texture, v_texCoord);
+  if (color.a <= 0.01) discard;
+  gl_FragColor = color;
+}
+`;
+
 const STRIDE_FLOATS = 12;
 const STRIDE_BYTES = STRIDE_FLOATS * 4;
+const ICON_STRIDE_FLOATS = 4;
+const ICON_STRIDE_BYTES = ICON_STRIDE_FLOATS * 4;
+const ICON_ATLAS_COLS = 16;
+const ICON_CELL_SIZE = 64;
+const ICON_ATLAS_SIZE = ICON_ATLAS_COLS * ICON_CELL_SIZE;
+const ICON_CELL_PADDING = 4;
 
 const toNdc = (point, size) => [
   (point.x / size.x) * 2 - 1,
@@ -121,6 +148,9 @@ class StationWebglLayer {
     if (this.supported) {
       this.program = createProgram(this.gl, vertexShaderSource, fragmentShaderSource);
       this.buffer = this.gl.createBuffer();
+      this.iconProgram = createProgram(this.gl, iconVertexShaderSource, iconFragmentShaderSource);
+      this.iconBuffer = this.gl.createBuffer();
+      this.iconAtlas = this.createIconAtlas();
       this.locations = {
         position: this.gl.getAttribLocation(this.program, "a_position"),
         radius: this.gl.getAttribLocation(this.program, "a_radius"),
@@ -128,6 +158,11 @@ class StationWebglLayer {
         strokeColor: this.gl.getAttribLocation(this.program, "a_strokeColor"),
         strokeWidth: this.gl.getAttribLocation(this.program, "a_strokeWidth"),
         pixelRatio: this.gl.getUniformLocation(this.program, "u_pixelRatio"),
+      };
+      this.iconLocations = {
+        position: this.gl.getAttribLocation(this.iconProgram, "a_position"),
+        texCoord: this.gl.getAttribLocation(this.iconProgram, "a_texCoord"),
+        texture: this.gl.getUniformLocation(this.iconProgram, "u_texture"),
       };
       this.map.on("move zoom resize viewreset", this.reset, this);
       this.reset();
@@ -153,6 +188,27 @@ class StationWebglLayer {
       premultipliedAlpha: false,
       stencil: false,
     });
+  }
+
+  createIconAtlas() {
+    const canvas = document.createElement("canvas");
+    canvas.width = ICON_ATLAS_SIZE;
+    canvas.height = ICON_ATLAS_SIZE;
+    const context = canvas.getContext("2d");
+    const texture = this.gl.createTexture();
+    this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, canvas);
+    return {
+      canvas,
+      context,
+      texture,
+      entries: new Map(),
+      nextIndex: 0,
+    };
   }
 
   reset = () => {
@@ -195,15 +251,19 @@ class StationWebglLayer {
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-    const vertices = this.buildVertices();
-    if (!vertices.length) return;
+    const vertices = this.buildCircleVertices();
 
-    gl.useProgram(this.program);
-    gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STREAM_DRAW);
-    this.bindAttributes();
-    gl.uniform1f(this.locations.pixelRatio, window.devicePixelRatio || 1);
-    gl.drawArrays(gl.POINTS, 0, vertices.length / STRIDE_FLOATS);
+    if (vertices.length) {
+      gl.useProgram(this.program);
+      gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STREAM_DRAW);
+      this.bindAttributes();
+      gl.uniform1f(this.locations.pixelRatio, window.devicePixelRatio || 1);
+      gl.drawArrays(gl.POINTS, 0, vertices.length / STRIDE_FLOATS);
+    }
+
+    const iconVertices = this.buildIconVertices();
+    if (iconVertices.length) this.drawIcons(iconVertices);
   }
 
   bindAttributes() {
@@ -220,20 +280,41 @@ class StationWebglLayer {
     gl.vertexAttribPointer(this.locations.strokeWidth, 1, gl.FLOAT, false, STRIDE_BYTES, 44);
   }
 
-  buildVertices() {
-    const size = this.map.getSize();
+  drawIcons(vertices) {
+    const gl = this.gl;
+    gl.useProgram(this.iconProgram);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.iconBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STREAM_DRAW);
+    gl.enableVertexAttribArray(this.iconLocations.position);
+    gl.vertexAttribPointer(this.iconLocations.position, 2, gl.FLOAT, false, ICON_STRIDE_BYTES, 0);
+    gl.enableVertexAttribArray(this.iconLocations.texCoord);
+    gl.vertexAttribPointer(this.iconLocations.texCoord, 2, gl.FLOAT, false, ICON_STRIDE_BYTES, 8);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.iconAtlas.texture);
+    gl.uniform1i(this.iconLocations.texture, 0);
+    gl.drawArrays(gl.TRIANGLES, 0, vertices.length / ICON_STRIDE_FLOATS);
+  }
+
+  collectStations(mode) {
     const stations = [];
     this.sources.forEach(sourceStations => {
       const list = Array.isArray(sourceStations)
         ? sourceStations
         : Object.values(sourceStations || {});
       list.forEach(station => {
-        if (station?.map !== this.map || station.markerType === 2 || !station.webglStyle) return;
+        if (station?.map !== this.map || !station.webglStyle) return;
+        const styleMode = station.webglStyle.mode || "circle";
+        if (styleMode !== mode) return;
         stations.push(station);
       });
     });
     stations.sort((a, b) => (a.webglStyle.zIndex || 0) - (b.webglStyle.zIndex || 0));
+    return stations;
+  }
 
+  buildCircleVertices() {
+    const size = this.map.getSize();
+    const stations = this.collectStations("circle");
     const vertices = [];
     stations.forEach(station => {
       const style = station.webglStyle;
@@ -249,6 +330,88 @@ class StationWebglLayer {
       );
     });
     return vertices;
+  }
+
+  buildIconVertices() {
+    const size = this.map.getSize();
+    const stations = this.collectStations("icon");
+    const vertices = [];
+    stations.forEach(station => {
+      const style = station.webglStyle;
+      const entry = this.getIconEntry(style);
+      if (!entry?.loaded) return;
+
+      const point = this.map.latLngToContainerPoint(station.latLng);
+      const half = (style.size || style.radius * 2 || ICON_CELL_SIZE / 2) / 2;
+      const left = point.x - half;
+      const right = point.x + half;
+      const top = point.y - half;
+      const bottom = point.y + half;
+      const [x0, y0] = toNdc({ x: left, y: top }, size);
+      const [x1, y1] = toNdc({ x: right, y: bottom }, size);
+      const { u0, v0, u1, v1 } = entry;
+
+      vertices.push(
+        x0, y0, u0, v0,
+        x1, y0, u1, v0,
+        x1, y1, u1, v1,
+        x0, y0, u0, v0,
+        x1, y1, u1, v1,
+        x0, y1, u0, v1,
+      );
+    });
+    return vertices;
+  }
+
+  getIconEntry(style) {
+    if (!style.iconUrl) return null;
+    const key = style.iconKey || style.iconUrl;
+    let entry = this.iconAtlas.entries.get(key);
+    if (entry) return entry;
+    if (this.iconAtlas.nextIndex >= ICON_ATLAS_COLS * ICON_ATLAS_COLS) return null;
+
+    const index = this.iconAtlas.nextIndex++;
+    const col = index % ICON_ATLAS_COLS;
+    const row = Math.floor(index / ICON_ATLAS_COLS);
+    entry = {
+      key,
+      loaded: false,
+      x: col * ICON_CELL_SIZE,
+      y: row * ICON_CELL_SIZE,
+      u0: col * ICON_CELL_SIZE / ICON_ATLAS_SIZE,
+      v0: row * ICON_CELL_SIZE / ICON_ATLAS_SIZE,
+      u1: (col + 1) * ICON_CELL_SIZE / ICON_ATLAS_SIZE,
+      v1: (row + 1) * ICON_CELL_SIZE / ICON_ATLAS_SIZE,
+    };
+    this.iconAtlas.entries.set(key, entry);
+    this.loadIcon(style, entry);
+    return entry;
+  }
+
+  loadIcon(style, entry) {
+    const image = new Image();
+    image.decoding = "async";
+    image.onload = () => {
+      const targetSize = Math.min(ICON_CELL_SIZE - ICON_CELL_PADDING * 2, style.atlasSize || ICON_CELL_SIZE);
+      const offset = (ICON_CELL_SIZE - targetSize) / 2;
+      const context = this.iconAtlas.context;
+      context.clearRect(entry.x, entry.y, ICON_CELL_SIZE, ICON_CELL_SIZE);
+      // SVG 图标进图集后，缩放只改顶点，不再重建 Leaflet marker。
+      context.drawImage(image, entry.x + offset, entry.y + offset, targetSize, targetSize);
+      entry.loaded = true;
+      this.uploadIconAtlas();
+      this.requestRender();
+    };
+    image.onerror = () => {
+      this.iconAtlas.entries.delete(entry.key);
+    };
+    image.src = style.iconUrl;
+  }
+
+  uploadIconAtlas() {
+    const gl = this.gl;
+    gl.bindTexture(gl.TEXTURE_2D, this.iconAtlas.texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.iconAtlas.canvas);
   }
 }
 
