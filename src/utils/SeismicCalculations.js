@@ -1,8 +1,15 @@
+import {
+  calcCsisWasmSync,
+  calcJmaShindoLevelWasmSync,
+  calcJmaShindoWasmSync,
+  calcSurfaceDistanceKmWasmSync,
+} from "./WasmSeismic.js";
+
 const EARTH_RADIUS_KM = 6371;
 
 const toRadians = value => (Number(value) * Math.PI) / 180;
 
-export const calcSurfaceDistanceKm = (lat1, lng1, lat2, lng2) => {
+const calcSurfaceDistanceKmBase = (lat1, lng1, lat2, lng2) => {
   const dLat = toRadians(lat2 - lat1);
   const dLng = toRadians(lng2 - lng1);
   const rLat1 = toRadians(lat1);
@@ -12,6 +19,10 @@ export const calcSurfaceDistanceKm = (lat1, lng1, lat2, lng2) => {
     Math.cos(rLat1) * Math.cos(rLat2) * Math.sin(dLng / 2) ** 2;
   return 2 * EARTH_RADIUS_KM * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
+
+export const calcSurfaceDistanceKm = (lat1, lng1, lat2, lng2) =>
+  calcSurfaceDistanceKmWasmSync(lat1, lng1, lat2, lng2) ??
+  calcSurfaceDistanceKmBase(lat1, lng1, lat2, lng2);
 
 export const calcWaveDistance = (travelTime, isPWave, depth, time) => {
   if (depth < 0) depth = 0;
@@ -73,7 +84,7 @@ const calcLineDis = (dep, dis) => {
 const calcCeaCsis = (m, dis = 0) =>
   1.297 * m - 4.368 * Math.log10(dis + 15) + 5.363;
 
-export const calcCsis = (m, dep = 10, dis = 0) => {
+const calcCsisBase = (m, dep = 10, dis = 0) => {
   m = Number(m);
   dep = Number(dep);
   dis = Number(dis);
@@ -93,6 +104,9 @@ export const calcCsis = (m, dep = 10, dis = 0) => {
   return (ceaCsis1 + ceaCsis2) / 2;
 };
 
+export const calcCsis = (m, dep = 10, dis = 0) =>
+  calcCsisWasmSync(m, dep, dis) ?? calcCsisBase(m, dep, dis);
+
 export const calcCsisLevel = (m, dep = 10, dis = 0) =>
   getCsisLevelFromCsis(calcCsis(m, dep, dis));
 
@@ -110,7 +124,7 @@ export const getShindoFromInstShindo = (instShindo, useSymbol = true) => {
   else return "7";
 };
 
-export const calcJmaShindo = (mj, dep, hypoLat, hypoLng, loc) => {
+const calcJmaShindoBase = (mj, dep, hypoLat, hypoLng, loc) => {
   const mw = mj - 0.171;
   const long = 10 ** (0.5 * mw - 1.85) / 2;
   const surfaceDist = calcSurfaceDistanceKm(
@@ -136,6 +150,10 @@ export const calcJmaShindo = (mj, dep, hypoLat, hypoLng, loc) => {
   return instShindo;
 };
 
+export const calcJmaShindo = (mj, dep, hypoLat, hypoLng, loc) =>
+  calcJmaShindoWasmSync(mj, dep, hypoLat, hypoLng, loc) ??
+  calcJmaShindoBase(mj, dep, hypoLat, hypoLng, loc);
+
 export const calcJmaShindoLevel = (
   mj,
   dep,
@@ -144,6 +162,16 @@ export const calcJmaShindoLevel = (
   loc,
   useSymbol = true,
 ) => {
+  const wasmLevel = calcJmaShindoLevelWasmSync(
+    mj,
+    dep,
+    hypoLat,
+    hypoLng,
+    loc,
+    useSymbol,
+  );
+  if (wasmLevel) return wasmLevel;
+
   const instShindo = calcJmaShindo(mj, dep, hypoLat, hypoLng, loc);
   const instShindo1 = Math.floor(Math.round(instShindo * 100) / 10) / 10;
   if (instShindo1 < 0.5) return "0";

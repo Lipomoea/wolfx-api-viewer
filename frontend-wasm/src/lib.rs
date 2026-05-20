@@ -14,6 +14,31 @@ fn csis_to_level(csis: f64) -> i32 {
     csis.clamp(0.0, 12.0).round() as i32
 }
 
+fn jma_shindo_to_level(inst_shindo: f64) -> i32 {
+    let rounded = ((inst_shindo * 100.0).round() / 10.0).floor() / 10.0;
+    if rounded < 0.5 {
+        0
+    } else if rounded < 1.5 {
+        1
+    } else if rounded < 2.5 {
+        2
+    } else if rounded < 3.5 {
+        3
+    } else if rounded < 4.5 {
+        4
+    } else if rounded < 5.0 {
+        5
+    } else if rounded < 5.5 {
+        6
+    } else if rounded < 6.0 {
+        7
+    } else if rounded < 6.5 {
+        8
+    } else {
+        9
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn calc_surface_distance_km(lat1: f64, lng1: f64, lat2: f64, lng2: f64) -> f64 {
     let d_lat = (lat2 - lat1).to_radians();
@@ -46,4 +71,46 @@ pub extern "C" fn calc_csis(m: f64, dep: f64, dis: f64) -> f64 {
 #[no_mangle]
 pub extern "C" fn calc_csis_level(m: f64, dep: f64, dis: f64) -> i32 {
     csis_to_level(calc_csis(m, dep, dis))
+}
+
+#[no_mangle]
+pub extern "C" fn calc_jma_shindo(
+    mj: f64,
+    dep: f64,
+    hypo_lat: f64,
+    hypo_lng: f64,
+    loc_lat: f64,
+    loc_lng: f64,
+    arv: f64,
+) -> f64 {
+    let mw = mj - 0.171;
+    let long = 10.0_f64.powf(0.5 * mw - 1.85) / 2.0;
+    let surface_dist = calc_surface_distance_km(hypo_lat, hypo_lng, loc_lat, loc_lng);
+    let line_dis = calc_line_dis(dep, surface_dist);
+    let hypo_dist = line_dis - long;
+    let x = hypo_dist.max(3.0);
+    let pgv600 = 10.0_f64.powf(
+        0.58 * mw + 0.0038 * dep
+            - 1.29
+            - (x + 0.0028 * 10.0_f64.powf(0.5 * mw)).log10()
+            - 0.002 * x,
+    );
+    let pgv400 = pgv600 * 1.307;
+    let pgv = pgv400 * arv;
+    2.68 + 1.72 * pgv.log10()
+}
+
+#[no_mangle]
+pub extern "C" fn calc_jma_shindo_level(
+    mj: f64,
+    dep: f64,
+    hypo_lat: f64,
+    hypo_lng: f64,
+    loc_lat: f64,
+    loc_lng: f64,
+    arv: f64,
+) -> i32 {
+    jma_shindo_to_level(calc_jma_shindo(
+        mj, dep, hypo_lat, hypo_lng, loc_lat, loc_lng, arv,
+    ))
 }

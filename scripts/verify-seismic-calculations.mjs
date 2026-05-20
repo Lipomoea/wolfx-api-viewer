@@ -18,6 +18,22 @@ const wasmPath = resolve(root, 'public/wasm/seismic_core.wasm')
 const wasmBytes = await readFile(wasmPath)
 const wasm = (await WebAssembly.instantiate(wasmBytes, {})).instance.exports
 const EPSILON = 1e-6
+const shindoCodeByText = new Map([
+  ['0', 0],
+  ['1', 1],
+  ['2', 2],
+  ['3', 3],
+  ['4', 4],
+  ['5-', 5],
+  ['5弱', 5],
+  ['5+', 6],
+  ['5強', 6],
+  ['6-', 7],
+  ['6弱', 7],
+  ['6+', 8],
+  ['6強', 8],
+  ['7', 9],
+])
 
 let failures = 0
 let checked = 0
@@ -103,7 +119,7 @@ if (wasm.calc_jma_shindo && wasm.calc_jma_shindo_level) {
     assertEqual(
       `calc_jma_shindo_level(${item.mj}, ${item.dep})`,
       wasm.calc_jma_shindo_level(item.mj, item.dep, item.hypoLat, item.hypoLng, item.loc.location[0], item.loc.location[1], item.loc.arv),
-      Number(calcJmaShindoLevel(item.mj, item.dep, item.hypoLat, item.hypoLng, item.loc, false)),
+      shindoCodeByText.get(calcJmaShindoLevel(item.mj, item.dep, item.hypoLat, item.hypoLng, item.loc, false)),
     )
   }
 } else {
