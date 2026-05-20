@@ -65,7 +65,7 @@ const ICON_STRIDE_BYTES = ICON_STRIDE_FLOATS * 4;
 const ICON_ATLAS_COLS = 16;
 const ICON_CELL_SIZE = 64;
 const ICON_ATLAS_SIZE = ICON_ATLAS_COLS * ICON_CELL_SIZE;
-const ICON_CELL_PADDING = 4;
+const ICON_CELL_PADDING = 2;
 
 const toNdc = (point, size) => [
   (point.x / size.x) * 2 - 1,
@@ -393,11 +393,11 @@ class StationWebglLayer {
     const image = new Image();
     image.decoding = "async";
     image.onload = () => {
-      const targetSize = Math.min(ICON_CELL_SIZE - ICON_CELL_PADDING * 2, style.atlasSize || ICON_CELL_SIZE);
+      const targetSize = ICON_CELL_SIZE - ICON_CELL_PADDING * 2;
       const offset = (ICON_CELL_SIZE - targetSize) / 2;
       const context = this.iconAtlas.context;
       context.clearRect(entry.x, entry.y, ICON_CELL_SIZE, ICON_CELL_SIZE);
-      // SVG 图标进图集后，缩放只改顶点，不再重建 Leaflet marker。
+      // 图集里保持高分辨率，地图上的实际大小只交给顶点控制。
       context.drawImage(image, entry.x + offset, entry.y + offset, targetSize, targetSize);
       entry.loaded = true;
       this.uploadIconAtlas();

@@ -186,7 +186,6 @@ const setWebglIconStyle = (station, iconType, iconValue, level, zoom) => {
         iconUrl: iconType == 'int' ? intIconUrls[iconValue] : shindoIconUrls[iconValue],
         radius,
         size: radius * 2,
-        atlasSize: radius * 2,
         zIndex: level + 50,
     })
 }
