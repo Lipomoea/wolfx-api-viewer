@@ -115,6 +115,15 @@ const resolveCssColor = color => {
   return parseCssColor(resolved);
 };
 
+const normalizeStationList = stations => Array.isArray(stations)
+  ? stations
+  : Object.values(stations || {});
+
+const asFiniteNumber = (value, fallback = 0) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+};
+
 const compileShader = (gl, type, source) => {
   const shader = gl.createShader(type);
   gl.shaderSource(shader, source);
@@ -140,6 +149,13 @@ class StationWebglLayer {
   constructor(map) {
     this.map = map;
     this.sources = new Map();
+    this.sourceVersion = 0;
+    this.colorCache = new Map();
+    this.styleCache = new WeakMap();
+    this.circleItems = [];
+    this.iconItems = [];
+    this.circleVertexBuffer = new Float32Array(0);
+    this.iconVertexBuffer = new Float32Array(0);
     this.renderQueued = false;
     this.supported = false;
     this.canvas = this.createCanvas();
@@ -227,7 +243,11 @@ class StationWebglLayer {
   };
 
   setStations(source, stations) {
-    this.sources.set(source, stations);
+    this.sources.set(source, {
+      stations,
+      list: normalizeStationList(stations),
+      version: ++this.sourceVersion,
+    });
     this.requestRender();
   }
 
@@ -255,21 +275,21 @@ class StationWebglLayer {
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-    const vertices = this.buildCircleVertices();
-    const circleCount = vertices.length / STRIDE_FLOATS;
+    const circleBatch = this.buildCircleVertices();
+    const circleCount = circleBatch.count;
 
-    if (vertices.length) {
+    if (circleBatch.vertices.length) {
       gl.useProgram(this.program);
       gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STREAM_DRAW);
+      gl.bufferData(gl.ARRAY_BUFFER, circleBatch.vertices, gl.STREAM_DRAW);
       this.bindAttributes();
       gl.uniform1f(this.locations.pixelRatio, window.devicePixelRatio || 1);
-      gl.drawArrays(gl.POINTS, 0, vertices.length / STRIDE_FLOATS);
+      gl.drawArrays(gl.POINTS, 0, circleCount);
     }
 
-    const iconVertices = this.buildIconVertices();
-    const iconCount = iconVertices.length / (ICON_STRIDE_FLOATS * 6);
-    if (iconVertices.length) this.drawIcons(iconVertices);
+    const iconBatch = this.buildIconVertices();
+    const iconCount = iconBatch.count;
+    if (iconBatch.vertices.length) this.drawIcons(iconBatch.vertices);
     setPerfValue("webgl.station.circleCount", circleCount);
     setPerfValue("webgl.station.iconCount", iconCount);
     setPerfValue("webgl.station.totalCount", circleCount + iconCount);
@@ -295,7 +315,7 @@ class StationWebglLayer {
     const gl = this.gl;
     gl.useProgram(this.iconProgram);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.iconBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STREAM_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STREAM_DRAW);
     gl.enableVertexAttribArray(this.iconLocations.position);
     gl.vertexAttribPointer(this.iconLocations.position, 2, gl.FLOAT, false, ICON_STRIDE_BYTES, 0);
     gl.enableVertexAttribArray(this.iconLocations.texCoord);
@@ -306,53 +326,111 @@ class StationWebglLayer {
     gl.drawArrays(gl.TRIANGLES, 0, vertices.length / ICON_STRIDE_FLOATS);
   }
 
-  collectStations(mode) {
-    const stations = [];
-    this.sources.forEach(sourceStations => {
-      const list = Array.isArray(sourceStations)
-        ? sourceStations
-        : Object.values(sourceStations || {});
-      list.forEach(station => {
-        if (station?.map !== this.map || !station.webglStyle) return;
-        const styleMode = station.webglStyle.mode || "circle";
-        if (styleMode !== mode) return;
-        stations.push(station);
+  collectStyledStations(mode) {
+    const items = mode === "circle" ? this.circleItems : this.iconItems;
+    items.length = 0;
+    this.sources.forEach(source => {
+      source.list.forEach(station => {
+        const style = this.getStationStyle(station, mode);
+        if (style) items.push(style);
       });
     });
-    stations.sort((a, b) => (a.webglStyle.zIndex || 0) - (b.webglStyle.zIndex || 0));
-    return stations;
+    items.sort((a, b) => a.zIndex - b.zIndex);
+    return items;
+  }
+
+  getStationStyle(station, mode) {
+    if (station?.map !== this.map || !station.webglStyle) return null;
+    const style = station.webglStyle;
+    const styleMode = style.mode || "circle";
+    if (styleMode !== mode) return null;
+
+    const fingerprint = mode === "circle"
+      ? [mode, style.radius, style.fillColor, style.strokeColor, style.strokeWidth, style.zIndex].join("|")
+      : [mode, style.iconKey, style.iconUrl, style.radius, style.size, style.zIndex].join("|");
+    const cached = this.styleCache.get(station);
+    if (cached?.fingerprint === fingerprint) return cached;
+
+    const entry = mode === "circle"
+      ? {
+          station,
+          mode,
+          fingerprint,
+          zIndex: asFiniteNumber(style.zIndex),
+          radius: asFiniteNumber(style.radius),
+          fill: this.resolveColor(style.fillColor),
+          stroke: this.resolveColor(style.strokeColor),
+          strokeWidth: asFiniteNumber(style.strokeWidth),
+        }
+      : {
+          station,
+          mode,
+          fingerprint,
+          zIndex: asFiniteNumber(style.zIndex),
+          radius: asFiniteNumber(style.radius),
+          size: asFiniteNumber(style.size, asFiniteNumber(style.radius) * 2),
+          iconEntry: this.getIconEntry(style),
+        };
+    this.styleCache.set(station, entry);
+    return entry;
+  }
+
+  resolveColor(color) {
+    const key = color || "#ffffff";
+    if (!this.colorCache.has(key)) {
+      this.colorCache.set(key, resolveCssColor(key));
+    }
+    return this.colorCache.get(key);
+  }
+
+  ensureVertexBuffer(name, requiredLength) {
+    let buffer = this[name];
+    if (buffer.length >= requiredLength) return buffer;
+    let nextLength = Math.max(buffer.length, 256);
+    while (nextLength < requiredLength) nextLength *= 2;
+    buffer = new Float32Array(nextLength);
+    this[name] = buffer;
+    return buffer;
   }
 
   buildCircleVertices() {
     const size = this.map.getSize();
-    const stations = this.collectStations("circle");
-    const vertices = [];
-    stations.forEach(station => {
-      const style = station.webglStyle;
-      const point = this.map.latLngToContainerPoint(station.latLng);
-      const fill = resolveCssColor(style.fillColor);
-      const stroke = resolveCssColor(style.strokeColor);
-      vertices.push(
-        ...toNdc(point, size),
-        style.radius,
-        ...fill,
-        ...stroke,
-        style.strokeWidth,
-      );
+    const stations = this.collectStyledStations("circle");
+    const vertices = this.ensureVertexBuffer("circleVertexBuffer", stations.length * STRIDE_FLOATS);
+    let offset = 0;
+    stations.forEach(style => {
+      const point = this.map.latLngToContainerPoint(style.station.latLng);
+      const [x, y] = toNdc(point, size);
+      vertices[offset++] = x;
+      vertices[offset++] = y;
+      vertices[offset++] = style.radius;
+      vertices[offset++] = style.fill[0];
+      vertices[offset++] = style.fill[1];
+      vertices[offset++] = style.fill[2];
+      vertices[offset++] = style.fill[3];
+      vertices[offset++] = style.stroke[0];
+      vertices[offset++] = style.stroke[1];
+      vertices[offset++] = style.stroke[2];
+      vertices[offset++] = style.stroke[3];
+      vertices[offset++] = style.strokeWidth;
     });
-    return vertices;
+    return {
+      vertices: vertices.subarray(0, offset),
+      count: stations.length,
+    };
   }
 
   buildIconVertices() {
     const size = this.map.getSize();
-    const stations = this.collectStations("icon");
-    const vertices = [];
-    stations.forEach(station => {
-      const style = station.webglStyle;
-      const entry = this.getIconEntry(style);
+    const stations = this.collectStyledStations("icon");
+    const vertices = this.ensureVertexBuffer("iconVertexBuffer", stations.length * ICON_STRIDE_FLOATS * 6);
+    let offset = 0;
+    let count = 0;
+    stations.forEach(style => {
+      const entry = style.iconEntry;
       if (!entry?.loaded) return;
 
-      const point = this.map.latLngToContainerPoint(station.latLng);
+      const point = this.map.latLngToContainerPoint(style.station.latLng);
       const half = (style.size || style.radius * 2 || ICON_CELL_SIZE / 2) / 2;
       const left = point.x - half;
       const right = point.x + half;
@@ -362,16 +440,18 @@ class StationWebglLayer {
       const [x1, y1] = toNdc({ x: right, y: bottom }, size);
       const { u0, v0, u1, v1 } = entry;
 
-      vertices.push(
-        x0, y0, u0, v0,
-        x1, y0, u1, v0,
-        x1, y1, u1, v1,
-        x0, y0, u0, v0,
-        x1, y1, u1, v1,
-        x0, y1, u0, v1,
-      );
+      vertices[offset++] = x0; vertices[offset++] = y0; vertices[offset++] = u0; vertices[offset++] = v0;
+      vertices[offset++] = x1; vertices[offset++] = y0; vertices[offset++] = u1; vertices[offset++] = v0;
+      vertices[offset++] = x1; vertices[offset++] = y1; vertices[offset++] = u1; vertices[offset++] = v1;
+      vertices[offset++] = x0; vertices[offset++] = y0; vertices[offset++] = u0; vertices[offset++] = v0;
+      vertices[offset++] = x1; vertices[offset++] = y1; vertices[offset++] = u1; vertices[offset++] = v1;
+      vertices[offset++] = x0; vertices[offset++] = y1; vertices[offset++] = u0; vertices[offset++] = v1;
+      count++;
     });
-    return vertices;
+    return {
+      vertices: vertices.subarray(0, offset),
+      count,
+    };
   }
 
   getIconEntry(style) {
