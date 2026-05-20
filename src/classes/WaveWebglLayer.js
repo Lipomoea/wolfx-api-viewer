@@ -1,4 +1,5 @@
 import L from 'leaflet';
+import { countPerf, measurePerf, setPerfValue } from '@/utils/PerfMetrics';
 
 const SEGMENTS = 160;
 const RING_WIDTH_PX = 2;
@@ -144,6 +145,7 @@ class WaveWebglLayer {
       stroke: this.createContext(this.canvases.stroke),
     };
     this.supported = Boolean(this.contexts.fill && this.contexts.stroke);
+    setPerfValue("webgl.wave.layerAvailable", this.supported);
 
     if (this.supported) {
       this.renderers = {
@@ -230,14 +232,20 @@ class WaveWebglLayer {
   }
 
   render() {
+    const startedAt = performance.now();
     this.clearRenderer(this.renderers.fill);
     this.clearRenderer(this.renderers.stroke);
     const size = this.map.getSize();
+    let visibleWaves = 0;
     this.waves.forEach(wave => {
+      if (wave.fillVisible || wave.pVisible || wave.sVisible) visibleWaves += 1;
       if (wave.fillVisible) this.drawFill(this.renderers.fill, wave, size);
       if (wave.pVisible) this.drawRing(this.renderers.stroke, wave, wave.pRadiusKm, wave.pOpacity, "#ffffff", size);
       if (wave.sVisible) this.drawRing(this.renderers.stroke, wave, wave.sRadiusKm, wave.sOpacity, wave.color, size);
     });
+    setPerfValue("webgl.wave.count", visibleWaves);
+    countPerf("webgl.wave.render.frames");
+    measurePerf("webgl.wave.render", startedAt);
   }
 
   clearRenderer(renderer) {

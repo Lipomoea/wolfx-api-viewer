@@ -369,6 +369,7 @@ import { cnCityLabels, cnProvinceLabels, jpPrefLabels } from '@/utils/Labels';
 import terminator from '@joergdietrich/leaflet.terminator';
 import StatusComponent from './StatusComponent.vue';
 import { canUseWaveWebgl } from '@/classes/WaveWebglLayer';
+import { setPerfValue } from '@/utils/PerfMetrics';
 
 const style = window.getComputedStyle(document.body)
 const classNameColors = {}, tsunamiColors = {}
@@ -556,6 +557,7 @@ const getBarClass = (event)=>{
 let mainInterval, terminatorInterval
 onMounted(()=>{
     webglWaveAvailable.value = canUseWaveWebgl()
+    setPerfValue('webgl.wave.available', webglWaveAvailable.value)
     map = L.map('mainMap', {
         attributionControl: false,
         center: defaultLatLng,

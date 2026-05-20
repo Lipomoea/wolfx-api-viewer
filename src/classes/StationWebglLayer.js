@@ -1,4 +1,5 @@
 import L from 'leaflet';
+import { countPerf, measurePerf, setPerfValue } from '@/utils/PerfMetrics';
 
 const vertexShaderSource = `
 attribute vec2 a_position;
@@ -144,6 +145,7 @@ class StationWebglLayer {
     this.canvas = this.createCanvas();
     this.gl = this.createContext(this.canvas);
     this.supported = Boolean(this.gl);
+    setPerfValue("webgl.station.available", this.supported);
 
     if (this.supported) {
       this.program = createProgram(this.gl, vertexShaderSource, fragmentShaderSource);
@@ -244,6 +246,7 @@ class StationWebglLayer {
   }
 
   render() {
+    const startedAt = performance.now();
     const gl = this.gl;
     const canvas = gl.canvas;
     gl.viewport(0, 0, canvas.width, canvas.height);
@@ -253,6 +256,7 @@ class StationWebglLayer {
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
     const vertices = this.buildCircleVertices();
+    const circleCount = vertices.length / STRIDE_FLOATS;
 
     if (vertices.length) {
       gl.useProgram(this.program);
@@ -264,7 +268,13 @@ class StationWebglLayer {
     }
 
     const iconVertices = this.buildIconVertices();
+    const iconCount = iconVertices.length / (ICON_STRIDE_FLOATS * 6);
     if (iconVertices.length) this.drawIcons(iconVertices);
+    setPerfValue("webgl.station.circleCount", circleCount);
+    setPerfValue("webgl.station.iconCount", iconCount);
+    setPerfValue("webgl.station.totalCount", circleCount + iconCount);
+    countPerf("webgl.station.render.frames");
+    measurePerf("webgl.station.render", startedAt);
   }
 
   bindAttributes() {
