@@ -3,49 +3,60 @@ import { countPerf, measurePerf, setPerfValue } from '@/utils/PerfMetrics';
 
 const SEGMENTS = 160;
 const RING_WIDTH_PX = 2;
+const STROKE_STRIDE_FLOATS = 7;
+const STROKE_STRIDE_BYTES = STROKE_STRIDE_FLOATS * 4;
+const FILL_STRIDE_FLOATS = 8;
+const FILL_STRIDE_BYTES = FILL_STRIDE_FLOATS * 4;
+const TWO_PI = Math.PI * 2;
 
 const strokeVertexShaderSource = `
 attribute vec2 a_position;
 attribute float a_alphaScale;
+attribute vec4 a_color;
 varying float v_alphaScale;
+varying vec4 v_color;
 void main() {
   v_alphaScale = a_alphaScale;
+  v_color = a_color;
   gl_Position = vec4(a_position, 0.0, 1.0);
 }
 `;
 
 const strokeFragmentShaderSource = `
 precision mediump float;
-uniform vec4 u_color;
 varying float v_alphaScale;
+varying vec4 v_color;
 void main() {
-  gl_FragColor = vec4(u_color.rgb, u_color.a * v_alphaScale);
+  gl_FragColor = vec4(v_color.rgb, v_color.a * v_alphaScale);
 }
 `;
 
 const fillVertexShaderSource = `
 attribute vec2 a_position;
 attribute vec2 a_unitPosition;
+attribute vec4 a_color;
 varying vec2 v_unitPosition;
+varying vec4 v_color;
 void main() {
   v_unitPosition = a_unitPosition;
+  v_color = a_color;
   gl_Position = vec4(a_position, 0.0, 1.0);
 }
 `;
 
 const fillFragmentShaderSource = `
 precision mediump float;
-uniform vec4 u_color;
 varying vec2 v_unitPosition;
+varying vec4 v_color;
 void main() {
   float radius = clamp(length(v_unitPosition), 0.0, 1.0);
   float bodyScale = smoothstep(0.18, 0.70, radius) * (1.0 - smoothstep(0.92, 1.0, radius));
   float edgeScale = smoothstep(0.70, 1.0, radius);
-  vec3 bodyColor = mix(u_color.rgb, vec3(0.0), 0.38);
-  vec3 edgeColor = mix(u_color.rgb, vec3(1.0), edgeScale * 0.24);
+  vec3 bodyColor = mix(v_color.rgb, vec3(0.0), 0.38);
+  vec3 edgeColor = mix(v_color.rgb, vec3(1.0), edgeScale * 0.24);
   vec3 waveColor = mix(bodyColor, edgeColor, edgeScale);
   float alphaScale = max(bodyScale * 0.55, edgeScale);
-  gl_FragColor = vec4(waveColor, u_color.a * alphaScale);
+  gl_FragColor = vec4(waveColor, v_color.a * alphaScale);
 }
 `;
 
@@ -63,11 +74,6 @@ export const canUseWaveWebgl = () => {
   gl.getExtension("WEBGL_lose_context")?.loseContext();
   return true;
 };
-
-const toNdc = (point, size) => [
-  (point.x / size.x) * 2 - 1,
-  1 - (point.y / size.y) * 2,
-];
 
 const parseHexColor = color => {
   const normalized = color.trim();
@@ -109,6 +115,11 @@ const resolveCssColor = color => {
   return parseCssColor(resolved);
 };
 
+const asFiniteNumber = (value, fallback = 0) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+};
+
 const compileShader = (gl, type, source) => {
   const shader = gl.createShader(type);
   gl.shaderSource(shader, source);
@@ -134,6 +145,10 @@ class WaveWebglLayer {
   constructor(map) {
     this.map = map;
     this.waves = new Map();
+    this.colorCache = new Map();
+    this.fillVertexBuffer = new Float32Array(0);
+    this.pRingVertexBuffer = new Float32Array(0);
+    this.sRingVertexBuffer = new Float32Array(0);
     this.renderQueued = false;
     this.supported = false;
     this.canvases = {
@@ -183,7 +198,7 @@ class WaveWebglLayer {
       buffer: gl.createBuffer(),
       positionLocation: gl.getAttribLocation(program, "a_position"),
       alphaLocation: gl.getAttribLocation(program, "a_alphaScale"),
-      colorLocation: gl.getUniformLocation(program, "u_color"),
+      colorLocation: gl.getAttribLocation(program, "a_color"),
     };
   }
 
@@ -195,7 +210,7 @@ class WaveWebglLayer {
       buffer: gl.createBuffer(),
       positionLocation: gl.getAttribLocation(program, "a_position"),
       unitPositionLocation: gl.getAttribLocation(program, "a_unitPosition"),
-      colorLocation: gl.getUniformLocation(program, "u_color"),
+      colorLocation: gl.getAttribLocation(program, "a_color"),
     };
   }
 
@@ -239,11 +254,32 @@ class WaveWebglLayer {
     let visibleWaves = 0;
     this.waves.forEach(wave => {
       if (wave.fillVisible || wave.pVisible || wave.sVisible) visibleWaves += 1;
-      if (wave.fillVisible) this.drawFill(this.renderers.fill, wave, size);
-      if (wave.pVisible) this.drawRing(this.renderers.stroke, wave, wave.pRadiusKm, wave.pOpacity, "#ffffff", size);
-      if (wave.sVisible) this.drawRing(this.renderers.stroke, wave, wave.sRadiusKm, wave.sOpacity, wave.color, size);
     });
+
+    let drawCalls = 0;
+    const fillBatch = this.buildFillBatch(size);
+    if (fillBatch.vertices.length) {
+      this.drawFillBatch(this.renderers.fill, fillBatch.vertices);
+      drawCalls += 1;
+    }
+
+    const pRingBatch = this.buildRingBatch(size, "p");
+    if (pRingBatch.vertices.length) {
+      this.drawStrokeBatch(this.renderers.stroke, pRingBatch.vertices);
+      drawCalls += 1;
+    }
+
+    const sRingBatch = this.buildRingBatch(size, "s");
+    if (sRingBatch.vertices.length) {
+      this.drawStrokeBatch(this.renderers.stroke, sRingBatch.vertices);
+      drawCalls += 1;
+    }
+
     setPerfValue("webgl.wave.count", visibleWaves);
+    setPerfValue("webgl.wave.fillVertexCount", fillBatch.count);
+    setPerfValue("webgl.wave.pRingVertexCount", pRingBatch.count);
+    setPerfValue("webgl.wave.sRingVertexCount", sRingBatch.count);
+    setPerfValue("webgl.wave.drawCalls", drawCalls);
     countPerf("webgl.wave.render.frames");
     measurePerf("webgl.wave.render", startedAt);
   }
@@ -265,56 +301,165 @@ class WaveWebglLayer {
     return this.map.latLngToContainerPoint(center).distanceTo(this.map.latLngToContainerPoint(edge));
   }
 
-  drawFill(renderer, wave, size) {
-    const center = this.map.latLngToContainerPoint([wave.lat, wave.lng]);
-    const radiusPx = this.radiusToPixels(wave.lat, wave.lng, wave.sRadiusKm);
-    const vertices = [];
-    vertices.push(...toNdc(center, size), 0, 0);
-    for (let i = 0; i <= SEGMENTS; i++) {
-      const angle = (i / SEGMENTS) * Math.PI * 2;
-      const cos = Math.cos(angle);
-      const sin = Math.sin(angle);
-      const point = L.point(
-        center.x + cos * radiusPx,
-        center.y + sin * radiusPx,
-      );
-      vertices.push(...toNdc(point, size), cos, sin);
+  resolveColor(color) {
+    const key = color || "#ffffff";
+    if (!this.colorCache.has(key)) {
+      this.colorCache.set(key, resolveCssColor(key));
     }
-    this.drawFillVertices(renderer, vertices, wave.color, wave.fillOpacity);
+    return this.colorCache.get(key);
   }
 
-  drawRing(renderer, wave, radiusKm, opacity, color, size) {
-    const center = this.map.latLngToContainerPoint([wave.lat, wave.lng]);
-    const radiusPx = this.radiusToPixels(wave.lat, wave.lng, radiusKm);
-    const outer = radiusPx + RING_WIDTH_PX;
-    const inner = Math.max(radiusPx - RING_WIDTH_PX, 0);
-    const vertices = [];
-    for (let i = 0; i <= SEGMENTS; i++) {
-      const angle = (i / SEGMENTS) * Math.PI * 2;
-      const cos = Math.cos(angle);
-      const sin = Math.sin(angle);
-      const outerPoint = L.point(center.x + cos * outer, center.y + sin * outer);
-      const innerPoint = L.point(center.x + cos * inner, center.y + sin * inner);
-      vertices.push(...toNdc(outerPoint, size), 1, ...toNdc(innerPoint, size), 1);
-    }
-    this.drawVertices(renderer, vertices, color, opacity, renderer.gl.TRIANGLE_STRIP);
+  ensureVertexBuffer(name, requiredLength) {
+    let buffer = this[name];
+    if (buffer.length >= requiredLength) return buffer;
+    let nextLength = Math.max(buffer.length, 1024);
+    while (nextLength < requiredLength) nextLength *= 2;
+    buffer = new Float32Array(nextLength);
+    this[name] = buffer;
+    return buffer;
   }
 
-  drawVertices(renderer, vertices, color, opacity, mode) {
+  writeFillVertex(vertices, offset, x, y, size, unitX, unitY, rgb, opacity) {
+    vertices[offset++] = (x / size.x) * 2 - 1;
+    vertices[offset++] = 1 - (y / size.y) * 2;
+    vertices[offset++] = unitX;
+    vertices[offset++] = unitY;
+    vertices[offset++] = rgb[0];
+    vertices[offset++] = rgb[1];
+    vertices[offset++] = rgb[2];
+    vertices[offset++] = opacity;
+    return offset;
+  }
+
+  writeStrokeVertex(vertices, offset, x, y, size, rgb, opacity) {
+    vertices[offset++] = (x / size.x) * 2 - 1;
+    vertices[offset++] = 1 - (y / size.y) * 2;
+    vertices[offset++] = 1;
+    vertices[offset++] = rgb[0];
+    vertices[offset++] = rgb[1];
+    vertices[offset++] = rgb[2];
+    vertices[offset++] = opacity;
+    return offset;
+  }
+
+  buildFillBatch(size) {
+    const vertices = this.ensureVertexBuffer(
+      "fillVertexBuffer",
+      this.waves.size * SEGMENTS * 3 * FILL_STRIDE_FLOATS,
+    );
+    let offset = 0;
+    let count = 0;
+    this.waves.forEach(wave => {
+      if (!wave.fillVisible) return;
+      const radiusPx = this.radiusToPixels(wave.lat, wave.lng, wave.sRadiusKm);
+      if (!Number.isFinite(radiusPx) || radiusPx <= 0) return;
+
+      const center = this.map.latLngToContainerPoint([wave.lat, wave.lng]);
+      const rgb = this.resolveColor(wave.color);
+      const opacity = asFiniteNumber(wave.fillOpacity);
+      for (let i = 0; i < SEGMENTS; i++) {
+        const angleA = (i / SEGMENTS) * TWO_PI;
+        const angleB = ((i + 1) / SEGMENTS) * TWO_PI;
+        const cosA = Math.cos(angleA);
+        const sinA = Math.sin(angleA);
+        const cosB = Math.cos(angleB);
+        const sinB = Math.sin(angleB);
+        offset = this.writeFillVertex(vertices, offset, center.x, center.y, size, 0, 0, rgb, opacity);
+        offset = this.writeFillVertex(
+          vertices,
+          offset,
+          center.x + cosA * radiusPx,
+          center.y + sinA * radiusPx,
+          size,
+          cosA,
+          sinA,
+          rgb,
+          opacity,
+        );
+        offset = this.writeFillVertex(
+          vertices,
+          offset,
+          center.x + cosB * radiusPx,
+          center.y + sinB * radiusPx,
+          size,
+          cosB,
+          sinB,
+          rgb,
+          opacity,
+        );
+      }
+      count += SEGMENTS * 3;
+    });
+    return {
+      vertices: vertices.subarray(0, offset),
+      count,
+    };
+  }
+
+  buildRingBatch(size, waveType) {
+    const vertices = this.ensureVertexBuffer(
+      waveType === "p" ? "pRingVertexBuffer" : "sRingVertexBuffer",
+      this.waves.size * SEGMENTS * 6 * STROKE_STRIDE_FLOATS,
+    );
+    let offset = 0;
+    let count = 0;
+    this.waves.forEach(wave => {
+      const visible = waveType === "p" ? wave.pVisible : wave.sVisible;
+      if (!visible) return;
+      const radiusKm = waveType === "p" ? wave.pRadiusKm : wave.sRadiusKm;
+      const opacity = asFiniteNumber(waveType === "p" ? wave.pOpacity : wave.sOpacity);
+      const radiusPx = this.radiusToPixels(wave.lat, wave.lng, radiusKm);
+      if (!Number.isFinite(radiusPx) || radiusPx <= 0 || opacity <= 0) return;
+
+      const center = this.map.latLngToContainerPoint([wave.lat, wave.lng]);
+      const rgb = this.resolveColor(waveType === "p" ? "#ffffff" : wave.color);
+      const outer = radiusPx + RING_WIDTH_PX;
+      const inner = Math.max(radiusPx - RING_WIDTH_PX, 0);
+      for (let i = 0; i < SEGMENTS; i++) {
+        const angleA = (i / SEGMENTS) * TWO_PI;
+        const angleB = ((i + 1) / SEGMENTS) * TWO_PI;
+        const cosA = Math.cos(angleA);
+        const sinA = Math.sin(angleA);
+        const cosB = Math.cos(angleB);
+        const sinB = Math.sin(angleB);
+        const outerAx = center.x + cosA * outer;
+        const outerAy = center.y + sinA * outer;
+        const innerAx = center.x + cosA * inner;
+        const innerAy = center.y + sinA * inner;
+        const outerBx = center.x + cosB * outer;
+        const outerBy = center.y + sinB * outer;
+        const innerBx = center.x + cosB * inner;
+        const innerBy = center.y + sinB * inner;
+        offset = this.writeStrokeVertex(vertices, offset, outerAx, outerAy, size, rgb, opacity);
+        offset = this.writeStrokeVertex(vertices, offset, innerAx, innerAy, size, rgb, opacity);
+        offset = this.writeStrokeVertex(vertices, offset, outerBx, outerBy, size, rgb, opacity);
+        offset = this.writeStrokeVertex(vertices, offset, outerBx, outerBy, size, rgb, opacity);
+        offset = this.writeStrokeVertex(vertices, offset, innerAx, innerAy, size, rgb, opacity);
+        offset = this.writeStrokeVertex(vertices, offset, innerBx, innerBy, size, rgb, opacity);
+      }
+      count += SEGMENTS * 6;
+    });
+    return {
+      vertices: vertices.subarray(0, offset),
+      count,
+    };
+  }
+
+  drawStrokeBatch(renderer, vertices) {
     const { gl, program, buffer, positionLocation, alphaLocation, colorLocation } = renderer;
-    const rgb = resolveCssColor(color);
     gl.useProgram(program);
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STREAM_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STREAM_DRAW);
     gl.enableVertexAttribArray(positionLocation);
-    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 12, 0);
+    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, STROKE_STRIDE_BYTES, 0);
     gl.enableVertexAttribArray(alphaLocation);
-    gl.vertexAttribPointer(alphaLocation, 1, gl.FLOAT, false, 12, 8);
-    gl.uniform4f(colorLocation, rgb[0], rgb[1], rgb[2], opacity);
-    gl.drawArrays(mode, 0, vertices.length / 3);
+    gl.vertexAttribPointer(alphaLocation, 1, gl.FLOAT, false, STROKE_STRIDE_BYTES, 8);
+    gl.enableVertexAttribArray(colorLocation);
+    gl.vertexAttribPointer(colorLocation, 4, gl.FLOAT, false, STROKE_STRIDE_BYTES, 12);
+    gl.drawArrays(gl.TRIANGLES, 0, vertices.length / STROKE_STRIDE_FLOATS);
   }
 
-  drawFillVertices(renderer, vertices, color, opacity) {
+  drawFillBatch(renderer, vertices) {
     const {
       gl,
       program,
@@ -323,16 +468,16 @@ class WaveWebglLayer {
       unitPositionLocation,
       colorLocation,
     } = renderer;
-    const rgb = resolveCssColor(color);
     gl.useProgram(program);
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STREAM_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STREAM_DRAW);
     gl.enableVertexAttribArray(positionLocation);
-    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 16, 0);
+    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, FILL_STRIDE_BYTES, 0);
     gl.enableVertexAttribArray(unitPositionLocation);
-    gl.vertexAttribPointer(unitPositionLocation, 2, gl.FLOAT, false, 16, 8);
-    gl.uniform4f(colorLocation, rgb[0], rgb[1], rgb[2], opacity);
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, vertices.length / 4);
+    gl.vertexAttribPointer(unitPositionLocation, 2, gl.FLOAT, false, FILL_STRIDE_BYTES, 8);
+    gl.enableVertexAttribArray(colorLocation);
+    gl.vertexAttribPointer(colorLocation, 4, gl.FLOAT, false, FILL_STRIDE_BYTES, 16);
+    gl.drawArrays(gl.TRIANGLES, 0, vertices.length / FILL_STRIDE_FLOATS);
   }
 }
 
