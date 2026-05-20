@@ -172,7 +172,8 @@ class StationWebglLayer {
   createCanvas() {
     if (!this.map.getPane("stationWebglPane")) {
       this.map.createPane("stationWebglPane");
-      this.map.getPane("stationWebglPane").style.zIndex = 50;
+      // 站点内部顺序交给 WebGL 排序，pane 放在普通站点范围顶部。
+      this.map.getPane("stationWebglPane").style.zIndex = 70;
     }
     const canvas = L.DomUtil.create("canvas", "leaflet-station-webgl-layer", this.map.getPane("stationWebglPane"));
     canvas.style.position = "absolute";

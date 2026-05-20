@@ -165,7 +165,13 @@ const clearLeafletMarker = station => {
     station.marker = null
 }
 
-const requestStationWebglRender = station => getStationWebglLayer(station.map)?.requestRender()
+const renderWebglStation = station => {
+    const stationWebglLayer = getStationWebglLayer(station.map)
+    if(!stationWebglLayer) return false
+    clearLeafletMarker(station)
+    stationWebglLayer.requestRender()
+    return true
+}
 
 const getIconZoom = zoom => Math.min(Math.max(zoom, 6), 10)
 
@@ -314,11 +320,7 @@ export class NiedStation {
         if(this.markerType == oldMarkerType && this.color == oldColor && this.radius == oldRadius) return
         if(this.markerType == 2) {
             setWebglIconStyle(this, 'shindo', this.shindo, this.level, zoom)
-            if(getStationWebglLayer(this.map)) {
-                clearLeafletMarker(this)
-                requestStationWebglRender(this)
-                return
-            }
+            if(renderWebglStation(this)) return
         }
         else {
             const radius = this.markerType == 1 ? Math.max(this.radius, 2) : this.radius
@@ -329,11 +331,7 @@ export class NiedStation {
                 strokeWidth: this.markerType == 1 ? radius * 0.4 : 0,
                 zIndex: this.level + 50,
             })
-            if(getStationWebglLayer(this.map)) {
-                clearLeafletMarker(this)
-                requestStationWebglRender(this)
-                return
-            }
+            if(renderWebglStation(this)) return
         }
         if((this.markerType == 2) != (oldMarkerType == 2) || this.color != oldColor) {
             if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
@@ -490,11 +488,7 @@ export class TremStation {
         if(this.markerType == oldMarkerType && this.color == oldColor && this.radius == oldRadius) return
         if(this.markerType == 2) {
             setWebglIconStyle(this, 'shindo', this.shindo, this.level, zoom)
-            if(getStationWebglLayer(this.map)) {
-                clearLeafletMarker(this)
-                requestStationWebglRender(this)
-                return
-            }
+            if(renderWebglStation(this)) return
         }
         else {
             const radius = this.markerType == 1 ? Math.max(this.radius, 2) : this.radius
@@ -505,11 +499,7 @@ export class TremStation {
                 strokeWidth: this.markerType == 1 ? radius * 0.4 : 0,
                 zIndex: this.level + 50,
             })
-            if(getStationWebglLayer(this.map)) {
-                clearLeafletMarker(this)
-                requestStationWebglRender(this)
-                return
-            }
+            if(renderWebglStation(this)) return
         }
         if((this.markerType == 2) != (oldMarkerType == 2) || this.color != oldColor) {
             if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
@@ -668,11 +658,7 @@ export class KmaStation {
         if(this.markerType == oldMarkerType && this.color == oldColor && this.radius == oldRadius) return
         if(this.markerType == 2) {
             setWebglIconStyle(this, 'int', this.intensity, this.holdLevel, zoom)
-            if(getStationWebglLayer(this.map)) {
-                clearLeafletMarker(this)
-                requestStationWebglRender(this)
-                return
-            }
+            if(renderWebglStation(this)) return
         }
         else {
             const radius = this.markerType == 1 ? Math.max(this.radius, 2) : this.radius
@@ -683,11 +669,7 @@ export class KmaStation {
                 strokeWidth: this.markerType == 1 ? radius * 0.4 : 0,
                 zIndex: this.holdLevel + 50,
             })
-            if(getStationWebglLayer(this.map)) {
-                clearLeafletMarker(this)
-                requestStationWebglRender(this)
-                return
-            }
+            if(renderWebglStation(this)) return
         }
         if((this.markerType == 2) != (oldMarkerType == 2) || this.color != oldColor) {
             if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
