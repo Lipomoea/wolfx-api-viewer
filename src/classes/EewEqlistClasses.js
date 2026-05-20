@@ -406,7 +406,10 @@ export class EewEvent {
                 const grad = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
                 grad.setAttribute('id', this.gradId);
                 grad.innerHTML = `
-                    <stop offset="0" stop-color="${color}" stop-opacity="0" />
+                    <stop offset="0" stop-color="#000" stop-opacity="0" />
+                    <stop offset="18%" stop-color="#000" stop-opacity="0" />
+                    <stop offset="70%" stop-color="#000" stop-opacity="0.55" />
+                    <stop offset="92%" stop-color="${color}" stop-opacity="0.65" />
                     <stop offset="1" stop-color="${color}" stop-opacity="1" />
                 `;
                 defs.appendChild(grad);
