@@ -258,7 +258,7 @@
                         </div>
                         <div class="legend-title">地图颜色</div>
                     </div>
-                    <div class="webgl-badge" v-if="webglWaveAvailable">[WebGL]</div>
+                    <div class="webgl-badge" v-if="isDevBuild && webglWaveAvailable">{{ devWebglBadgeText }}</div>
                     <div class="ws-status">
                         <div>WebSocket状态: </div>
                         <div :class="'s' + wolfxRS">Wolfx{{ wolfxUrlIndex ? '(B)' : '' }}</div>
@@ -466,6 +466,8 @@ const handleMenu = (index)=>{
 }
 provide('handleHome', handleHome)
 const drawer = ref(null)
+const isDevBuild = import.meta.env.DEV
+const devWebglBadgeText = import.meta.env.DEV ? '[WebGL]' : ''
 const wolfxRS = ref(4)
 const fanRS = ref(4)
 const p2pquakeRS = ref(4)

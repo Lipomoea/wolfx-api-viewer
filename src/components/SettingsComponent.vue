@@ -1268,7 +1268,7 @@
         </el-dialog>
         <el-dialog v-model="showTokenManager" width="300px" top="20vh" :show-close="false" append-to-body>
             <el-form :model="idForm">
-                <el-form-item v-if="settingsStore.advancedSettings.enableIclEew" label="FAN:DEV" label-width="60px">
+                <el-form-item v-if="settingsStore.advancedSettings.enableIclEew" :label="fanTokenLabel" label-width="60px">
                     <el-input v-model="settingsStore.advancedSettings.tokens.fan_dev" @change="handleNeedReload" />
                 </el-form-item>
             </el-form>
@@ -1357,6 +1357,7 @@ const renderMarkdown = async content => {
 
 const showNotifButton = 'Notification' in window
 const isTauri = getIsTauri()
+const fanTokenLabel = import.meta.env.DEV ? 'FAN:DEV' : 'FAN'
 const thisPlatform = isTauri ? platform() : ''
 const thisArch = isTauri ? arch() : ''
 const simplifyMarks = {
