@@ -58,7 +58,7 @@
                             <div class="info" v-if="event.nearestJmaLoc">
                                 <div class="intensity" :class="setClassName(event.userShindo, true, event.eqMessage.isCanceled)">
                                     <div class="intensity-title">本地震度</div>
-                                    <div :class="event.userShindo != '?'?'shindo':'csis'">
+                                    <div :c lass="event.userShindo != '?'?'shindo':'csis'">
                                         {{ event.userShindo }}
                                     </div>
                                 </div>
