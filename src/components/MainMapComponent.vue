@@ -1492,21 +1492,23 @@ watch(isAutoZoom, (newVal)=>{
     }
 }, { immediate: true })
 const jmaForceCalcWarnArea = ref({})
+const mergeJmaWarnArea = (target, item) => {
+    const { name, className } = item
+    if(!name) return
+    if(!target[name] || getClassLevel(className) > getClassLevel(target[name].className)) {
+        target[name] = item
+    }
+}
 const jmaWarnArea = computed(()=>{
     const jmaWarnArea = {}
     if(menuId.value != 'eqlists') {
         const jmaEewList = activeEewList.filter(event=>event.eqMessage.source == 'jmaEew' && !event.eqMessage.isCanceled)
         jmaEewList.forEach(event=>{
-            const warnArea = JSON.parse(event.eqMessage.warnArea)
-            warnArea.forEach(item=>{
-                if(!jmaWarnArea[item.name] || getClassLevel(item.className) > getClassLevel(jmaWarnArea[item.name].className)){
-                    jmaWarnArea[item.name] = item
-                }
-            })
-        })
-        Object.values(jmaForceCalcWarnArea.value).forEach(item => {
-            if(!jmaWarnArea[item.name] || getClassLevel(item.className) > getClassLevel(jmaWarnArea[item.name].className)) {
-                jmaWarnArea[item.name] = item
+            try {
+                const warnArea = JSON.parse(event.eqMessage.warnArea)
+                warnArea.forEach(item=>mergeJmaWarnArea(jmaWarnArea, item))
+            } catch {
+                // 实时报文偶发缺区分布，后面的估算结果会兜底。
             }
         })
     }
@@ -1520,17 +1522,16 @@ const jmaWarnArea = computed(()=>{
         : null
         : activeEqlistList.value.find(event => event.eqMessage.source == 'jmaEqlist')
         : eqlistList.find(event => event.eqMessage.source == 'jmaEqlist')
-        if(!jmaEqlistEvent) return {}
-        if(settingsStore.mainSettings.eqlistsDisplayMode == 1 && !jmaEqlistEvent.isLatest && !jmaEqlistEvent.isActive) return {}
-        const warnArea = JSON.parse(jmaEqlistEvent.eqMessage.warnArea)
-        warnArea.forEach(point => {
-            const { name, className } = point
-            if(!name) return
-            if(!jmaWarnArea[name] || getClassLevel(className) > getClassLevel(jmaWarnArea[name].className)) {
-                jmaWarnArea[name] = point
+        if(jmaEqlistEvent && !(settingsStore.mainSettings.eqlistsDisplayMode == 1 && !jmaEqlistEvent.isLatest && !jmaEqlistEvent.isActive)) {
+            try {
+                const warnArea = JSON.parse(jmaEqlistEvent.eqMessage.warnArea)
+                warnArea.forEach(point => mergeJmaWarnArea(jmaWarnArea, point))
+            } catch {
+                // 历史接口常只给最大震度，分区面由本地估算补上。
             }
-        })
+        }
     }
+    Object.values(jmaForceCalcWarnArea.value).forEach(item => mergeJmaWarnArea(jmaWarnArea, item))
     return jmaWarnArea
 })
 const csisList = ref([])
@@ -1554,18 +1555,40 @@ const shindoList = computed(() => {
     }
     return newShindoList.slice(0, maxAreaIntensityRows)
 })
+const isFiniteNumber = value => value !== null && value !== '' && Number.isFinite(Number(value))
+const toJmaCalcInfo = eqMessage => {
+    const magnitude = Number(eqMessage.magnitude)
+    const depth = Number(eqMessage.depth)
+    const lat = Number(eqMessage.lat)
+    const lng = Number(eqMessage.lng)
+    return { magnitude, depth, lat, lng }
+}
 const jpEewInfoList = computed(()=>{
+    if(!settingsStore.advancedSettings.forceCalcInt || menuId.value == 'eqlists') return []
     const jpEewList = activeEewList.filter(event=>!(event.eqMessage.isCanceled || event.eqMessage.isAssumption))
-    const jpEewInfoList = jpEewList.map(event=>{
-        const { magnitude, depth, lat, lng } = event.eqMessage
-        return { magnitude, depth, lat, lng }
-    })
+    const jpEewInfoList = jpEewList
+        .filter(event => ['magnitude', 'depth', 'lat', 'lng'].every(key => isFiniteNumber(event.eqMessage[key])))
+        .map(event => toJmaCalcInfo(event.eqMessage))
     return jpEewInfoList
 })
+const historyJmaInfoList = computed(() => {
+    if(menuId.value != 'eqlists') return []
+    return historyList
+        .filter(event => {
+            const eqMessage = event.eqMessage
+            const historySource = eqMessage.historySource || eqMessage.title?.match(/\(([^)]+)\)/)?.[1]
+            return historySource == 'JMA'
+                && eqMessage.useShindo
+                && !eqMessage.isCanceled
+                && ['magnitude', 'depth', 'lat', 'lng'].every(key => isFiniteNumber(eqMessage[key]))
+        })
+        .map(event => toJmaCalcInfo(event.eqMessage))
+})
+const jmaCalcInfoList = computed(() => [...jpEewInfoList.value, ...historyJmaInfoList.value])
 let jmaForceCalcRequestId = 0
-watch([() => settingsStore.advancedSettings.forceCalcInt, jpEewInfoList, menuId], async ([forceCalcInt, infoList]) => {
+watch(jmaCalcInfoList, async infoList => {
     const requestId = ++jmaForceCalcRequestId
-    if(!forceCalcInt || menuId.value == 'eqlists' || infoList.length == 0) {
+    if(infoList.length == 0) {
         jmaForceCalcWarnArea.value = {}
         return
     }
