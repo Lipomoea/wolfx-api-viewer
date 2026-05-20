@@ -369,6 +369,7 @@ import StatusComponent from './StatusComponent.vue';
 import { canUseWaveWebgl } from '@/classes/WaveWebglLayer';
 import { setPerfValue } from '@/utils/PerfMetrics';
 import { calcJmaWarnArea, warmupSeismicWorker } from '@/utils/SeismicCalcWorkerClient';
+import { areaClassToRows, matchAreaClassToNames, mergeAreaIntensity } from '@/utils/IntensityAreas';
 
 const SettingsComponent = defineAsyncComponent(() => import('./SettingsComponent.vue'))
 const style = window.getComputedStyle(document.body)
@@ -921,6 +922,11 @@ const loadMaps = async (retries = 0) => {
             fillOpacity: 1,
             weight: 1,
         }, eewBaseGroup)
+        const cnEewAreaNames = new Set()
+        cnEewBaseMap?.eachLayer(layer => {
+            const name = layer.feature?.properties?.name
+            if(name) cnEewAreaNames.add(name)
+        })
         watch(()=>settingsStore.mainSettings.displayCnFault, newVal => {
             if(cnFaultBaseMap && map.hasLayer(cnFaultBaseMap)) map.removeLayer(cnFaultBaseMap)
             if(newVal) {
@@ -1000,6 +1006,24 @@ const loadMaps = async (retries = 0) => {
                 })
             })
         }, { deep: true, immediate: true })
+        const setCnAreaStyle = areaClass => {
+            cnEewBaseMap?.setStyle(feature => {
+                const className = areaClass[feature.properties.name]?.className
+                return ({
+                    color: className ? eewBaseMapActiveStroke : eewBaseMapDefaultStroke,
+                    fillColor: classNameColors[className] || eewBaseMapDefaultFill
+                })
+            })
+        }
+        const setKrAreaStyle = areaClass => {
+            krEewBaseMap?.setStyle(feature => {
+                const className = areaClass[feature.properties.name]?.className
+                return ({
+                    color: className ? eewBaseMapActiveStroke : eewBaseMapDefaultStroke,
+                    fillColor: classNameColors[className] || eewBaseMapDefaultFill
+                })
+            })
+        }
         if(settingsStore.advancedSettings.forceCalcInt){
             const { pointDistToCnArea, pointDistToKrArea } = await import('@/utils/AreaDistance')
             watch(eewInfoList, newVal=>{
@@ -1015,7 +1039,12 @@ const loadMaps = async (retries = 0) => {
                     if(maxInt > 0){
                         const className = setClassName(maxInt, false)
                         const layerName = layer.feature.properties.name
-                        cnAreaClass[layerName] = className
+                        cnAreaClass[layerName] = {
+                            name: layerName,
+                            intensity: maxInt.toString(),
+                            className,
+                            useShindo: false
+                        }
                         if(!(maxInt in newCsisList)) newCsisList[maxInt] = []
                         newCsisList[maxInt].push(layerName)
                     }
@@ -1030,24 +1059,15 @@ const loadMaps = async (retries = 0) => {
                     if(maxInt > 0){
                         const className = setClassName(maxInt, false)
                         const layerName = layer.feature.properties.name
-                        krAreaClass[layerName] = className
+                        krAreaClass[layerName] = {
+                            name: layerName,
+                            intensity: maxInt.toString(),
+                            className,
+                            useShindo: false
+                        }
                         if(!(maxInt in newCsisList)) newCsisList[maxInt] = []
                         newCsisList[maxInt].push(layerName)
                     }
-                })
-                cnEewBaseMap?.setStyle(feature => {
-                    const className = cnAreaClass[feature.properties.name]
-                    return ({
-                        color: className ? eewBaseMapActiveStroke : eewBaseMapDefaultStroke,
-                        fillColor: classNameColors[className] || eewBaseMapDefaultFill
-                    })
-                })
-                krEewBaseMap?.setStyle(feature => {
-                    const className = krAreaClass[feature.properties.name]
-                    return ({
-                        color: className ? eewBaseMapActiveStroke : eewBaseMapDefaultStroke,
-                        fillColor: classNameColors[className] || eewBaseMapDefaultFill
-                    })
                 })
                 const newNewCsisList = []
                 for(let int = 12; int > 0; int--) {
@@ -1059,9 +1079,21 @@ const loadMaps = async (retries = 0) => {
                         })
                     })
                 }
-                csisList.value = newNewCsisList.slice(0, maxAreaIntensityRows)
+                forceCnAreaClass.value = cnAreaClass
+                forceKrAreaClass.value = krAreaClass
+                forceCsisList.value = newNewCsisList.slice(0, maxAreaIntensityRows)
             }, { deep: true, immediate: true })
         }
+        watch([historyCnAreaClass, forceCnAreaClass, forceCsisList], () => {
+            const hasHistoryAreas = Object.keys(historyCnAreaClass.value).length > 0
+            const rawAreaClass = hasHistoryAreas ? historyCnAreaClass.value : forceCnAreaClass.value
+            const areaClass = matchAreaClassToNames(rawAreaClass, cnEewAreaNames)
+            setCnAreaStyle(areaClass)
+            csisList.value = hasHistoryAreas
+                ? areaClassToRows(areaClass, false, maxAreaIntensityRows)
+                : forceCsisList.value
+        }, { deep: true, immediate: true })
+        watch(forceKrAreaClass, newVal => setKrAreaStyle(newVal), { deep: true, immediate: true })
         if(settingsStore.mainSettings.source.jmaTsunami) {
             jpTsunamiBaseMap = loadBaseMap(jp_tsunami, 'tsunamiBasePane', false, {
                 color: tsunamiBaseMapDefaultStroke,
@@ -1540,6 +1572,22 @@ const jmaWarnArea = computed(()=>{
     return jmaWarnArea
 })
 const csisList = ref([])
+const forceCnAreaClass = ref({})
+const forceKrAreaClass = ref({})
+const forceCsisList = ref([])
+const historyCnAreaClass = computed(() => {
+    const areaClass = {}
+    if(menuId.value != 'eqlists') return areaClass
+    historyList.forEach(event => {
+        const eqMessage = event.eqMessage || {}
+        const areas = [
+            ...(eqMessage.areaIntensities || []),
+            ...(eqMessage.observedAreaIntensities || [])
+        ]
+        areas.forEach(item => mergeAreaIntensity(areaClass, item))
+    })
+    return areaClass
+})
 const shindoList = computed(() => {
     const shindoList = {}
     for(let name in jmaWarnArea.value) {
@@ -1558,7 +1606,10 @@ const shindoList = computed(() => {
             })
         })
     }
-    return newShindoList.slice(0, maxAreaIntensityRows)
+    return [
+        ...newShindoList,
+        ...areaClassToRows(historyCnAreaClass.value, true, maxAreaIntensityRows)
+    ].slice(0, maxAreaIntensityRows)
 })
 const isFiniteNumber = value => value !== null && value !== '' && Number.isFinite(Number(value))
 const toJmaCalcInfo = eqMessage => {

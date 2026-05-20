@@ -13,6 +13,7 @@ import { intReportStation } from './StationClasses';
 import { useStatusStore } from '@/stores/status';
 import { getWaveWebglLayer } from './WaveWebglLayer';
 import { WebglWaveBoundsProxy, isWebglWaveBoundsProxy } from './WaveBoundsProxy';
+import { buildCencStationAreaIntensities } from '@/utils/IntensityAreas';
 
 const iconRadius = 20
 
@@ -832,7 +833,8 @@ export class HistoryEvent extends EqlistEvent {
     createStations(data) {
         this.terminateStations()
         this.stations = []
-        const stationData = data.instrument_intensity_json
+        const stationData = data.instrument_intensity_json || []
+        this.eqMessage.observedAreaIntensities = buildCencStationAreaIntensities(stationData)
         stationData.forEach(item => {
             const station = new intReportStation(this.map, item.stID, [item.stla, item.stlo], item)
             this.stations.push(station)
