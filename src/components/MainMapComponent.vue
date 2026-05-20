@@ -596,8 +596,8 @@ onMounted(()=>{
     map.getPane('terminatorFillPane').style.zIndex = 9
     map.createPane('waveFillPane')
     waveFillPane = map.getPane('waveFillPane')
-    // 填色要盖过烈度面，但不要压住断层、台站和标记。
-    waveFillPane.style.zIndex = 25
+    // 不盖住烈度图层，改回10
+    waveFillPane.style.zIndex = 10
     map.createPane('eewBasePane')
     eewBasePane = map.getPane('eewBasePane')
     eewBasePane.style.zIndex = 20
