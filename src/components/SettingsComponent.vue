@@ -1346,9 +1346,14 @@ import { enable, disable, isEnabled } from '@tauri-apps/plugin-autostart';
 import { platform, arch } from '@tauri-apps/plugin-os';
 import { isTauri as getIsTauri } from '@tauri-apps/api/core';
 import { Setting } from '@element-plus/icons-vue';
-import MarkdownIt from 'markdown-it';
 
 const SHOW_ABOUT_FLG = '20260313.00'
+let markdownRendererPromise
+const renderMarkdown = async content => {
+    markdownRendererPromise ||= import('markdown-it').then(({ default: MarkdownIt }) => new MarkdownIt({ linkify: true }))
+    const md = await markdownRendererPromise
+    return md.render(content || '')
+}
 
 const showNotifButton = 'Notification' in window
 const isTauri = getIsTauri()
@@ -1802,12 +1807,12 @@ const checkNewVersion = async (silent = false) => {
                 })
             }
             ElMessageBox.close()
-            const md = new MarkdownIt({ linkify: true })
+            const detailHtml = await renderMarkdown(detail)
             if(isTauri) {
                 if(!silent) {
                     ElMessageBox.confirm(
                         h('div', {
-                            innerHTML: md.render(detail),
+                            innerHTML: detailHtml,
                             style: {
                                 listStylePosition: 'inside',
                                 maxHeight: '50vh',
@@ -1844,7 +1849,7 @@ const checkNewVersion = async (silent = false) => {
                     if(!silent) {
                         ElMessageBox.confirm(
                         h('div', {
-                            innerHTML: md.render(detail),
+                            innerHTML: detailHtml,
                             style: {
                                 listStylePosition: 'inside',
                                 maxHeight: '50vh',

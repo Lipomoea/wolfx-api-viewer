@@ -350,13 +350,12 @@ import L from 'leaflet';
 import 'leaflet.vectorgrid';
 import 'leaflet/dist/leaflet.css';
 import '@/assets/background.css';
-import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, watchEffect, provide } from 'vue';
+import { ref, reactive, computed, defineAsyncComponent, onMounted, onBeforeUnmount, watch, watchEffect, provide } from 'vue';
 import { HomeFilled, FullScreen, WarnTriangleFilled, InfoFilled, Setting } from '@element-plus/icons-vue';
 import { eewSources, eqlistSources, seisNetSources, sourceTypes, tsunamiSources, useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { useTimeStore } from '@/stores/time';
 import EqlistComponent from './EqlistComponent.vue';
-import SettingsComponent from './SettingsComponent.vue';
 import { verifyUpToDate, setClassName, getClassLevel, classNameArray, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone, simplifyTopoJson, formatCsis, csisRomanArray, formatShindo } from '@/utils/Utils';
 import { topojsonUrls } from '@/utils/Urls';
 import { loadTopojsonResources } from '@/utils/TopojsonCache';
@@ -371,6 +370,7 @@ import StatusComponent from './StatusComponent.vue';
 import { canUseWaveWebgl } from '@/classes/WaveWebglLayer';
 import { setPerfValue } from '@/utils/PerfMetrics';
 
+const SettingsComponent = defineAsyncComponent(() => import('./SettingsComponent.vue'))
 const style = window.getComputedStyle(document.body)
 const classNameColors = {}, tsunamiColors = {}
 classNameArray.forEach(color => classNameColors[color] = style.getPropertyValue(`--${color}`).trim())
