@@ -21,7 +21,6 @@ import { formatText, msToTime, calcPassedTime, judgeSameEvent, calcTimeDiff, for
 import { useTimeStore } from '@/stores/time';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
-import { copyText } from '@/utils/Clipboard';
 import '@/assets/background.css';
 import '@/assets/opacity.css';
 
@@ -49,6 +48,11 @@ let eewClassModulePromise
 const loadEewClassModule = () => {
     eewClassModulePromise ||= import('@/classes/EewEqlistClasses')
     return eewClassModulePromise
+}
+let clipboardModulePromise
+const loadClipboardModule = () => {
+    clipboardModulePromise ||= import('@/utils/Clipboard')
+    return clipboardModulePromise
 }
 
 watch(eqMessage, async (newVal)=>{
@@ -153,6 +157,7 @@ watch(()=>timeStore.currentTimeStamp, ()=>{
 const handleCopy = async () => {
     const content = JSON.stringify(eqMessage.value)
     try {
+        const { copyText } = await loadClipboardModule()
         await copyText(content)
         ElMessage({
             message: '复制成功',

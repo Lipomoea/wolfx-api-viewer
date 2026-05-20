@@ -47,7 +47,6 @@ import { useSettingsStore } from '@/stores/settings';
 import { defaultEqMessage, useStatusStore } from '@/stores/status';
 import { openUrl, formatTimeZone, formatCsis, calcTimeDiff, formatShindo, calcPassedTime, stampToTime } from '@/utils/Utils';
 import { useTimeStore } from '@/stores/time';
-import { copyText } from '@/utils/Clipboard';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -109,9 +108,15 @@ watch(() => `${settingsStore.advancedSettings.mockEew}|${settingsStore.advancedS
     if(!settingsStore.advancedSettings.mockEew || !settingsStore.advancedSettings.mockOnReplay) stopReplayMock()
 })
 onBeforeUnmount(stopReplay)
+let clipboardModulePromise
+const loadClipboardModule = () => {
+    clipboardModulePromise ||= import('@/utils/Clipboard')
+    return clipboardModulePromise
+}
 const handleCopy = async (item) => {
     const content = `${item.hypocenter} ${item.originTime} (UTC${formatTimeZone(item.timeZone)}) M${item.magnitude ? item.magnitude.toFixed(1) : '不明'} ${item.depth.toFixed(0)}km ${item.useShindo ? ('最大震度' + formatShindo(item.maxIntensity, false)) : ('预估最大烈度' + item.maxIntensity)}`
     try {
+        const { copyText } = await loadClipboardModule()
         await copyText(content)
         ElMessage({
             message: '复制成功',
