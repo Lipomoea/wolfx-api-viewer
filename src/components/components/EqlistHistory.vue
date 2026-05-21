@@ -42,7 +42,7 @@
 
 <script setup>
 import '@/assets/background.css';
-import { reactive, computed, onBeforeUnmount, ref, watch } from 'vue';
+import { reactive, computed, inject, onBeforeUnmount, ref, watch } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
 import { defaultEqMessage, useStatusStore } from '@/stores/status';
 import { openUrl, formatTimeZone, formatCsis, calcTimeDiff, formatShindo, calcPassedTime, stampToTime } from '@/utils/Utils';

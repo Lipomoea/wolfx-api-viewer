@@ -1,4 +1,5 @@
 const hasPerformance = typeof performance !== "undefined";
+const isWindowScope = typeof window !== "undefined" && typeof document !== "undefined";
 const startTime = hasPerformance ? performance.now() : Date.now();
 
 const state = {
@@ -16,7 +17,7 @@ const state = {
 const now = () => (hasPerformance ? performance.now() : Date.now());
 const round = value => Math.round(value * 100) / 100;
 
-if (typeof PerformanceObserver !== "undefined") {
+if (isWindowScope && typeof PerformanceObserver !== "undefined") {
   try {
     const observer = new PerformanceObserver(list => {
       list.getEntries().forEach(entry => {
