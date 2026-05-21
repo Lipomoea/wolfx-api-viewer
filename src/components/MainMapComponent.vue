@@ -333,7 +333,7 @@
                 </el-menu>
             </div>
             <div class="drawer" ref="drawer" v-show="menuId == 'eqlists' && !settingsStore.mainSettings.hideDrawer || menuId == 'settings'">
-                <EqlistComponent v-if="menuId == 'eqlists'" />
+                <EqlistComponent v-if="eqlistDrawerLoaded" v-show="menuId == 'eqlists'" />
                 <SettingsComponent v-if="menuId == 'settings'" />
             </div>
             <transition name="dialog-fade">
@@ -433,6 +433,11 @@ const defaultMenuId = computed(() => {
 })
 const menuId = ref(defaultMenuId.value)
 provide('menuId', menuId)
+const eqlistDrawerLoaded = ref(menuId.value == 'eqlists')
+watch(menuId, newVal => {
+    // 历史抽屉加载过就保留，避免切面板时中断测站回放。
+    if(newVal == 'eqlists') eqlistDrawerLoaded.value = true
+})
 let autoZoomTimer
 let firstMsg = false
 const blinkStatus = ref(false)
