@@ -64,9 +64,9 @@ const STRIDE_BYTES = STRIDE_FLOATS * 4;
 const ICON_STRIDE_FLOATS = 4;
 const ICON_STRIDE_BYTES = ICON_STRIDE_FLOATS * 4;
 const ICON_ATLAS_COLS = 16;
-const ICON_CELL_SIZE = 64;
+const ICON_CELL_SIZE = 128;
 const ICON_ATLAS_SIZE = ICON_ATLAS_COLS * ICON_CELL_SIZE;
-const ICON_CELL_PADDING = 2;
+const ICON_CELL_PADDING = 4;
 
 const toNdc = (point, size) => [
   (point.x / size.x) * 2 - 1,
@@ -124,6 +124,8 @@ const asFiniteNumber = (value, fallback = 0) => {
   return Number.isFinite(number) ? number : fallback;
 };
 
+const snapToDevicePixel = (value, pixelRatio) => Math.round(value * pixelRatio) / pixelRatio;
+
 const compileShader = (gl, type, source) => {
   const shader = gl.createShader(type);
   gl.shaderSource(shader, source);
@@ -156,6 +158,7 @@ class StationWebglLayer {
     this.iconItems = [];
     this.circleVertexBuffer = new Float32Array(0);
     this.iconVertexBuffer = new Float32Array(0);
+    this.scaledIconUrlCache = new Map();
     this.renderQueued = false;
     this.supported = false;
     this.canvas = this.createCanvas();
@@ -214,13 +217,26 @@ class StationWebglLayer {
     canvas.width = ICON_ATLAS_SIZE;
     canvas.height = ICON_ATLAS_SIZE;
     const context = canvas.getContext("2d");
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
     const texture = this.gl.createTexture();
     this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, canvas);
+    this.gl.texImage2D(
+      this.gl.TEXTURE_2D,
+      0,
+      this.gl.RGBA,
+      ICON_ATLAS_SIZE,
+      ICON_ATLAS_SIZE,
+      0,
+      this.gl.RGBA,
+      this.gl.UNSIGNED_BYTE,
+      null,
+    );
+    this.gl.generateMipmap(this.gl.TEXTURE_2D);
     return {
       canvas,
       context,
@@ -422,6 +438,7 @@ class StationWebglLayer {
 
   buildIconVertices() {
     const size = this.map.getSize();
+    const pixelRatio = window.devicePixelRatio || 1;
     const stations = this.collectStyledStations("icon");
     const vertices = this.ensureVertexBuffer("iconVertexBuffer", stations.length * ICON_STRIDE_FLOATS * 6);
     let offset = 0;
@@ -430,12 +447,17 @@ class StationWebglLayer {
       const entry = style.iconEntry;
       if (!entry?.loaded) return;
 
-      const point = this.map.latLngToContainerPoint(style.station.latLng);
-      const half = (style.size || style.radius * 2 || ICON_CELL_SIZE / 2) / 2;
-      const left = point.x - half;
-      const right = point.x + half;
-      const top = point.y - half;
-      const bottom = point.y + half;
+      const rawPoint = this.map.latLngToContainerPoint(style.station.latLng);
+      const point = {
+        x: snapToDevicePixel(rawPoint.x, pixelRatio),
+        y: snapToDevicePixel(rawPoint.y, pixelRatio),
+      };
+      const displaySize = snapToDevicePixel(style.size || style.radius * 2 || ICON_CELL_SIZE / 4, pixelRatio);
+      const half = displaySize / 2;
+      const left = snapToDevicePixel(point.x - half, pixelRatio);
+      const right = snapToDevicePixel(point.x + half, pixelRatio);
+      const top = snapToDevicePixel(point.y - half, pixelRatio);
+      const bottom = snapToDevicePixel(point.y + half, pixelRatio);
       const [x0, y0] = toNdc({ x: left, y: top }, size);
       const [x1, y1] = toNdc({ x: right, y: bottom }, size);
       const { u0, v0, u1, v1 } = entry;
@@ -479,30 +501,72 @@ class StationWebglLayer {
     return entry;
   }
 
+  async createScaledIconUrl(url, targetSize) {
+    const cacheKey = `${targetSize}|${url}`;
+    if (this.scaledIconUrlCache.has(cacheKey)) return this.scaledIconUrlCache.get(cacheKey);
+    try {
+      const text = await fetch(url).then(response => {
+        if (!response.ok) throw new Error(`failed to load icon: ${response.status}`);
+        return response.text();
+      });
+      if (!text.trimStart().startsWith("<svg")) throw new Error("not an svg icon");
+      const svgText = text.replace(/<svg\b([^>]*)>/i, (match, attrs) => {
+        const cleanedAttrs = attrs
+          .replace(/\swidth=(['"])[^'"]*\1/i, "")
+          .replace(/\sheight=(['"])[^'"]*\1/i, "");
+        return `<svg${cleanedAttrs} width="${targetSize}" height="${targetSize}">`;
+      });
+      const objectUrl = URL.createObjectURL(new Blob([svgText], { type: "image/svg+xml" }));
+      this.scaledIconUrlCache.set(cacheKey, objectUrl);
+      return objectUrl;
+    } catch {
+      this.scaledIconUrlCache.set(cacheKey, url);
+      return url;
+    }
+  }
+
   loadIcon(style, entry) {
     const image = new Image();
     image.decoding = "async";
+    const targetSize = ICON_CELL_SIZE - ICON_CELL_PADDING * 2;
     image.onload = () => {
-      const targetSize = ICON_CELL_SIZE - ICON_CELL_PADDING * 2;
       const offset = (ICON_CELL_SIZE - targetSize) / 2;
       const context = this.iconAtlas.context;
+      const cellCanvas = document.createElement("canvas");
+      cellCanvas.width = ICON_CELL_SIZE;
+      cellCanvas.height = ICON_CELL_SIZE;
+      const cellContext = cellCanvas.getContext("2d");
+      cellContext.imageSmoothingEnabled = true;
+      cellContext.imageSmoothingQuality = "high";
+      cellContext.drawImage(image, offset, offset, targetSize, targetSize);
       context.clearRect(entry.x, entry.y, ICON_CELL_SIZE, ICON_CELL_SIZE);
       // 图集里保持高分辨率，地图上的实际大小只交给顶点控制。
-      context.drawImage(image, entry.x + offset, entry.y + offset, targetSize, targetSize);
+      context.drawImage(cellCanvas, entry.x, entry.y);
       entry.loaded = true;
-      this.uploadIconAtlas();
+      this.uploadIconCell(entry, cellCanvas);
       this.requestRender();
     };
     image.onerror = () => {
       this.iconAtlas.entries.delete(entry.key);
     };
-    image.src = style.iconUrl;
+    void this.createScaledIconUrl(style.iconUrl, targetSize).then(url => {
+      image.src = url;
+    });
   }
 
-  uploadIconAtlas() {
+  uploadIconCell(entry, sourceCanvas) {
     const gl = this.gl;
     gl.bindTexture(gl.TEXTURE_2D, this.iconAtlas.texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.iconAtlas.canvas);
+    gl.texSubImage2D(
+      gl.TEXTURE_2D,
+      0,
+      entry.x,
+      entry.y,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      sourceCanvas,
+    );
+    gl.generateMipmap(gl.TEXTURE_2D);
   }
 }
 
