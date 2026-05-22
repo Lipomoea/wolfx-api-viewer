@@ -133,6 +133,30 @@ const loadClipboardModule = () => {
     clipboardModulePromise ||= import('@/utils/Clipboard')
     return clipboardModulePromise
 }
+const stopReplayMock = () => {
+    clearTimeout(mockTimer)
+    mockTimer = null
+    const mockId = replayMockId.value
+    if(mockId != null) {
+        const mockEvents = activeEewList?.filter(event => event.eqMessage.source == 'mockEew' && event.eqMessage.id == mockId) ?? []
+        mockEvents.forEach(event => event.terminate(true))
+    }
+    replayMockId.value = null
+}
+const stopReplay = () => {
+    if(replayId.value == null && replayMockId.value == null && !mockTimer) return
+    // 停止回放时顺手把测站时间拨回实时。
+    replayId.value = null
+    settingsStore.mainSettings.displaySeisNet.delay = 0
+    stopReplayMock()
+}
+watch(() => settingsStore.mainSettings.displaySeisNet.delay, newVal => {
+    if(newVal <= 0) stopReplay()
+})
+watch(() => `${settingsStore.advancedSettings.mockEew}|${settingsStore.advancedSettings.mockOnReplay}`, () => {
+    if(!settingsStore.advancedSettings.mockEew || !settingsStore.advancedSettings.mockOnReplay) stopReplayMock()
+})
+onBeforeUnmount(stopReplay)
 const handleCopy = async (item) => {
     const content = `${item.hypocenter} ${item.originTime} (UTC${formatTimeZone(item.timeZone)}) M${item.magnitude ? item.magnitude.toFixed(1) : '不明'} ${item.depth.toFixed(0)}km ${item.useShindo ? ('最大震度' + formatShindo(item.maxIntensity, false)) : ('预估最大烈度' + item.maxIntensity)}`
     try {

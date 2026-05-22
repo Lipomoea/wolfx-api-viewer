@@ -214,6 +214,18 @@ class WaveWebglLayer {
     };
   }
 
+  createFillRenderer(gl) {
+    const program = createProgram(gl, fillVertexShaderSource, fillFragmentShaderSource);
+    return {
+      gl,
+      program,
+      buffer: gl.createBuffer(),
+      positionLocation: gl.getAttribLocation(program, "a_position"),
+      unitPositionLocation: gl.getAttribLocation(program, "a_unitPosition"),
+      colorLocation: gl.getUniformLocation(program, "u_color"),
+    };
+  }
+
   reset = () => {
     const size = this.map.getSize();
     const topLeft = this.map.containerPointToLayerPoint([0, 0]);
@@ -478,6 +490,27 @@ class WaveWebglLayer {
     gl.enableVertexAttribArray(colorLocation);
     gl.vertexAttribPointer(colorLocation, 4, gl.FLOAT, false, FILL_STRIDE_BYTES, 16);
     gl.drawArrays(gl.TRIANGLES, 0, vertices.length / FILL_STRIDE_FLOATS);
+  }
+
+  drawFillVertices(renderer, vertices, color, opacity) {
+    const {
+      gl,
+      program,
+      buffer,
+      positionLocation,
+      unitPositionLocation,
+      colorLocation,
+    } = renderer;
+    const rgb = resolveCssColor(color);
+    gl.useProgram(program);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STREAM_DRAW);
+    gl.enableVertexAttribArray(positionLocation);
+    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 16, 0);
+    gl.enableVertexAttribArray(unitPositionLocation);
+    gl.vertexAttribPointer(unitPositionLocation, 2, gl.FLOAT, false, 16, 8);
+    gl.uniform4f(colorLocation, rgb[0], rgb[1], rgb[2], opacity);
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, vertices.length / 4);
   }
 }
 
