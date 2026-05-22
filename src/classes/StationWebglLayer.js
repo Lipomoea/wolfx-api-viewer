@@ -186,6 +186,7 @@ class StationWebglLayer {
         texture: this.gl.getUniformLocation(this.iconProgram, "u_texture"),
       };
       this.map.on("move zoom resize viewreset", this.reset, this);
+      this.map.on("zoomanim", this.animateZoom, this);
       this.reset();
     }
   }
@@ -196,9 +197,10 @@ class StationWebglLayer {
       // 站点内部顺序交给 WebGL 排序，pane 放在普通站点范围顶部。
       this.map.getPane("stationWebglPane").style.zIndex = 70;
     }
-    const canvas = L.DomUtil.create("canvas", "leaflet-station-webgl-layer", this.map.getPane("stationWebglPane"));
+    const canvas = L.DomUtil.create("canvas", "leaflet-station-webgl-layer leaflet-zoom-animated", this.map.getPane("stationWebglPane"));
     canvas.style.position = "absolute";
     canvas.style.pointerEvents = "none";
+    canvas.style.transformOrigin = "0 0";
     return canvas;
   }
 
@@ -256,6 +258,16 @@ class StationWebglLayer {
     this.canvas.style.height = `${size.y}px`;
     L.DomUtil.setPosition(this.canvas, topLeft);
     this.requestRender();
+  };
+
+  animateZoom = event => {
+    const scale = this.map.getZoomScale(event.zoom);
+    const bounds = L.latLngBounds(
+      this.map.containerPointToLatLng([0, 0]),
+      this.map.containerPointToLatLng(this.map.getSize()),
+    );
+    const topLeft = this.map._latLngBoundsToNewLayerBounds(bounds, event.zoom, event.center).min;
+    L.DomUtil.setTransform(this.canvas, topLeft, scale);
   };
 
   setStations(source, stations) {

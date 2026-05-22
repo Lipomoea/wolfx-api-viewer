@@ -277,7 +277,7 @@
                     </div>
                 </div>
                 <div class="int-list" v-if="settingsStore.mainSettings.displayAreaIntensities">
-                    <div class="csis-list" v-show="csisList.length">
+                    <div class="csis-list" v-show="csisList.length" :style="areaIntensityPanelStyle(csisList.length, shindoList.length)">
                         <div class="row" v-for="(item, index) of csisList" :key="index">
                             <div class="name">{{ item.name }}</div>
                             <div class="int" :class="setClassName(item.intensity, false)">
@@ -288,7 +288,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="shindo-list" v-show="shindoList.length">
+                    <div class="shindo-list" v-show="shindoList.length" :style="areaIntensityPanelStyle(shindoList.length, csisList.length)">
                         <div class="row" v-for="(item, index) of shindoList" :key="index">
                             <div class="name">{{ item.name }}</div>
                             <div class="int" :class="setClassName(item.intensity, true)">
@@ -390,7 +390,45 @@ const viewLatLng = computed(() => settingsStore.mainSettings.viewLatLng)
 const zoomLevel = ref(settingsStore.mainSettings.defaultZoom)
 const resetSeisNetDelay = () => settingsStore.mainSettings.displaySeisNet.delay = 0
 const tempEqlists = ref('')
-const maxAreaIntensityRows = 18
+const maxAreaIntensityRows = 50
+const areaIntensityRowHeight = 24
+const areaIntensityRowGap = 2
+const areaIntensityPanelGap = 6
+const areaIntensityPanelPaddingY = 12
+const areaIntensityBottomOffset = 315
+const minAreaIntensityVisibleRows = 2
+const areaIntensityViewportHeight = ref(typeof window == 'undefined' ? 900 : window.innerHeight)
+const updateAreaIntensityViewportHeight = () => areaIntensityViewportHeight.value = window.innerHeight
+const areaIntensityAvailableHeight = computed(() => Math.max(0, areaIntensityViewportHeight.value - areaIntensityBottomOffset))
+const areaIntensityContentHeight = count => {
+    if(count <= 0) return 0
+    return count * areaIntensityRowHeight + Math.max(0, count - 1) * areaIntensityRowGap + areaIntensityPanelPaddingY
+}
+const areaIntensityPanelHeight = (count, otherCount) => {
+    const contentHeight = areaIntensityContentHeight(count)
+    if(!contentHeight) return 0
+
+    const otherContentHeight = areaIntensityContentHeight(otherCount)
+    const gapHeight = otherCount > 0 ? areaIntensityPanelGap : 0
+    const availableHeight = areaIntensityAvailableHeight.value
+    const availableForPanels = Math.max(0, availableHeight - gapHeight)
+    if(contentHeight + otherContentHeight + gapHeight <= availableHeight) return contentHeight
+    if(otherCount <= 0) return Math.min(contentHeight, availableForPanels)
+
+    const totalRows = Math.max(1, count + otherCount)
+    const heightShare = Math.floor(availableForPanels * count / totalRows)
+    const otherHeightShare = Math.floor(availableForPanels * otherCount / totalRows)
+    const minHeight = Math.min(contentHeight, areaIntensityContentHeight(Math.min(count, minAreaIntensityVisibleRows)))
+    const otherMinHeight = Math.min(otherContentHeight, areaIntensityContentHeight(Math.min(otherCount, minAreaIntensityVisibleRows)))
+
+    if(minHeight + otherMinHeight >= availableForPanels) return Math.max(0, heightShare)
+    if(heightShare < minHeight) return minHeight
+    if(otherHeightShare < otherMinHeight) return Math.min(contentHeight, Math.max(minHeight, availableForPanels - otherMinHeight))
+    return Math.min(contentHeight, heightShare)
+}
+const areaIntensityPanelStyle = (count, otherCount) => ({
+    maxHeight: `${areaIntensityPanelHeight(count, otherCount)}px`
+})
 let tempEqlistsTimer
 const handleTempEqlists = (time, source = '') => {
     clearTimeout(tempEqlistsTimer)
@@ -564,6 +602,8 @@ const getBarClass = (event)=>{
 }
 let mainInterval, terminatorInterval
 onMounted(()=>{
+    updateAreaIntensityViewportHeight()
+    window.addEventListener('resize', updateAreaIntensityViewportHeight)
     webglWaveAvailable.value = canUseWaveWebgl()
     setPerfValue('webgl.wave.available', webglWaveAvailable.value)
     void warmupSeismicWorker()
@@ -1685,6 +1725,7 @@ onBeforeUnmount(()=>{
     document.removeEventListener('visibilitychange', handleVisibilityChange)
     document.removeEventListener('mousemove', resetDefaultMenuTimer)
     document.removeEventListener('keydown', handleKeydown)
+    window.removeEventListener('resize', updateAreaIntensityViewportHeight)
     activeEewList.length = 0
     eqlistList.length = 0
 })
@@ -2028,11 +2069,12 @@ onBeforeUnmount(()=>{
                 z-index: 599;
                 display: flex;
                 flex-direction: column;
-                align-items: flex-end;
+                align-items: stretch;
                 justify-content: flex-start;
                 gap: 6px;
                 width: 180px;
                 max-height: calc(100% - 315px);
+                overflow: hidden;
                 user-select: none;
                 pointer-events: none;
                 .csis-list,.shindo-list{
@@ -2060,7 +2102,7 @@ onBeforeUnmount(()=>{
                             white-space: nowrap;
                             overflow: hidden;
                             text-overflow: ellipsis;
-                            text-align: right;
+                            text-align: left;
                             font-size: 15px;
                             line-height: 1em;
                             text-shadow: 0 1px 3px #000000;
