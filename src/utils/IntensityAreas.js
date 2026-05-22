@@ -1,5 +1,6 @@
 import { formatShindo, getClassLevel } from './Utils';
 
+// 区域列表只整理“已经拿到的”分区数据；历史估算不在这里补。
 const normalizeAreaName = name => {
     if(!name) return '';
     return String(name)

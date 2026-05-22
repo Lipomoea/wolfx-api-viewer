@@ -64,6 +64,7 @@ const activeEewList = inject('activeEewList')
 const handleTempEqlists = inject('handleTempEqlists')
 
 const maxHistoryNumber = 100
+// 按行记展开状态；历史源的 id 可能为空，不能拿它控制按钮浮层。
 const activeActionIndex = ref(-1)
 // 只记这次回放自己开的东西，别顺手关掉用户手动开的模拟预警。
 const replayId = ref(null)
@@ -73,6 +74,7 @@ const flatted = computed(() => Object.values(statusStore.history).flat())
 const sorted = computed(() => flatted.value.sort((a, b) => calcTimeDiff(b.originTime, b.timeZone, a.originTime, a.timeZone)))
 const eqlists = computed(() => sorted.value.filter(item => (settingsStore.mainSettings.historyMagThres == 0 || item.magnitude >= settingsStore.mainSettings.historyMagThres) && settingsStore.mainSettings.historySources.includes(item.source)).slice(0, maxHistoryNumber))
 const hasItemId = item => item.id != null && item.id !== ''
+// 历史列表有些接口不给 id，地图显示和回放必须自己拼一个稳定键。
 const itemActionKey = item => hasItemId(item) ? `${item.source}|${item.id}` : [
     item.source,
     item.originTime,
@@ -213,6 +215,7 @@ const createMockEew = async (item) => {
     clearTimeout(mockTimer)
     mockTimer = setTimeout(async () => {
         if(replayMockId.value != now || !statusStore.map) return
+        // 直接放进主地图事件队列，避免依赖状态面板是否挂载。
         const { EewEvent } = await loadHistoryClassModule()
         const displayTime = (eqMessage.isWarn ? Math.max(eqMessage.magnitude, 6) : Math.max(eqMessage.magnitude, 3)) * 60 * 1000
         const newEvent = reactive(new EewEvent(statusStore.map, Object.assign({}, eqMessage), activeEewList, handleTempEqlists, smartSetView))

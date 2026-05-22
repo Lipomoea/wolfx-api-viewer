@@ -1608,7 +1608,7 @@ const jmaWarnArea = computed(()=>{
                 const warnArea = JSON.parse(jmaEqlistEvent.eqMessage.warnArea)
                 warnArea.forEach(point => mergeJmaWarnArea(jmaWarnArea, point))
             } catch {
-                // 历史接口常只给最大震度，分区面由本地估算补上。
+                // 历史没有分区数据就保持空白，等后续 API 读进来再画。
             }
         }
     }
@@ -1624,6 +1624,7 @@ const historyCnAreaClass = computed(() => {
     if(menuId.value != 'eqlists') return areaClass
     historyList.forEach(event => {
         const eqMessage = event.eqMessage || {}
+        // 这里只吃接口已经给出的分区，不能用震中或测站点反推历史烈度面。
         const areas = [
             ...(eqMessage.areaIntensities || []),
             ...(eqMessage.observedAreaIntensities || [])
@@ -1672,6 +1673,7 @@ const jpEewInfoList = computed(()=>{
     return jpEewInfoList
 })
 const historyJmaInfoList = computed(() => {
+    // 没开强制估算时，历史 JMA 震度面不本地补算。
     if(!settingsStore.advancedSettings.forceCalcInt || menuId.value != 'eqlists') return []
     return historyList
         .filter(event => {
