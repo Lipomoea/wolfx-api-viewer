@@ -258,7 +258,7 @@
                         </div>
                         <div class="legend-title">地图颜色</div>
                     </div>
-                    <div class="webgl-badge" v-if="webglWaveAvailable">[WebGL]</div>
+                    <div class="webgl-badge" v-if="isDevBuild && webglWaveAvailable">{{ devWebglBadgeText }}</div>
                     <div class="ws-status">
                         <div>WebSocket状态: </div>
                         <div :class="'s' + wolfxRS">Wolfx{{ wolfxUrlIndex ? '(B)' : '' }}</div>
@@ -277,7 +277,7 @@
                     </div>
                 </div>
                 <div class="int-list" v-if="settingsStore.mainSettings.displayAreaIntensities">
-                    <div class="csis-list" v-show="csisList.length">
+                    <div class="csis-list" v-show="csisList.length" :style="areaIntensityPanelStyle(csisList.length, shindoList.length)">
                         <div class="row" v-for="(item, index) of csisList" :key="index">
                             <div class="name">{{ item.name }}</div>
                             <div class="int" :class="setClassName(item.intensity, false)">
@@ -288,7 +288,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="shindo-list" v-show="shindoList.length">
+                    <div class="shindo-list" v-show="shindoList.length" :style="areaIntensityPanelStyle(shindoList.length, csisList.length)">
                         <div class="row" v-for="(item, index) of shindoList" :key="index">
                             <div class="name">{{ item.name }}</div>
                             <div class="int" :class="setClassName(item.intensity, true)">
@@ -333,8 +333,8 @@
                 </el-menu>
             </div>
             <div class="drawer" ref="drawer" v-show="menuId == 'eqlists' && !settingsStore.mainSettings.hideDrawer || menuId == 'settings'">
-                <EqlistComponent v-show="menuId == 'eqlists'" />
-                <SettingsComponent v-show="menuId == 'settings'" />
+                <EqlistComponent v-if="eqlistDrawerLoaded" v-show="menuId == 'eqlists'" />
+                <SettingsComponent v-if="menuId == 'settings'" />
             </div>
             <transition name="dialog-fade">
                 <div class="statusContainer" v-show="statusStore.showStatusPanel">
@@ -350,17 +350,14 @@ import L from 'leaflet';
 import 'leaflet.vectorgrid';
 import 'leaflet/dist/leaflet.css';
 import '@/assets/background.css';
-import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, watchEffect, provide } from 'vue';
+import { ref, reactive, computed, defineAsyncComponent, onMounted, onBeforeUnmount, watch, watchEffect, provide } from 'vue';
 import { HomeFilled, FullScreen, WarnTriangleFilled, InfoFilled, Setting } from '@element-plus/icons-vue';
 import { eewSources, eqlistSources, seisNetSources, sourceTypes, tsunamiSources, useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { useTimeStore } from '@/stores/time';
-import EqlistComponent from './EqlistComponent.vue';
-import SettingsComponent from './SettingsComponent.vue';
-import { verifyUpToDate, setClassName, getClassLevel, classNameArray, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone, simplifyTopoJson, formatCsis, csisRomanArray, formatShindo } from '@/utils/Utils';
+import { verifyUpToDate, setClassName, getClassLevel, classNameArray, csisArray, shindoArray, calcCsisLevel, formatTimeZone, simplifyTopoJson, formatCsis, csisRomanArray, formatShindo } from '@/utils/Utils';
 import { topojsonUrls } from '@/utils/Urls';
 import { loadTopojsonResources } from '@/utils/TopojsonCache';
-import { loadJmaSeisIntLoc } from '@/utils/JmaSeisIntLocLoader';
 import { isTauri } from '@tauri-apps/api/core';
 import { storeToRefs } from 'pinia';
 import { simpleIcon } from '@/classes/StationClasses';
@@ -369,7 +366,12 @@ import { cnCityLabels, cnProvinceLabels, jpPrefLabels } from '@/utils/Labels';
 import terminator from '@joergdietrich/leaflet.terminator';
 import StatusComponent from './StatusComponent.vue';
 import { canUseWaveWebgl } from '@/classes/WaveWebglLayer';
+import { setPerfValue } from '@/utils/PerfMetrics';
+import { calcJmaWarnArea, warmupSeismicWorker } from '@/utils/SeismicCalcWorkerClient';
+import { areaClassToRows, matchAreaClassToNames, mergeAreaIntensity } from '@/utils/IntensityAreas';
 
+const SettingsComponent = defineAsyncComponent(() => import('./SettingsComponent.vue'))
+const EqlistComponent = defineAsyncComponent(() => import('./EqlistComponent.vue'))
 const style = window.getComputedStyle(document.body)
 const classNameColors = {}, tsunamiColors = {}
 classNameArray.forEach(color => classNameColors[color] = style.getPropertyValue(`--${color}`).trim())
@@ -388,12 +390,50 @@ const viewLatLng = computed(() => settingsStore.mainSettings.viewLatLng)
 const zoomLevel = ref(settingsStore.mainSettings.defaultZoom)
 const resetSeisNetDelay = () => settingsStore.mainSettings.displaySeisNet.delay = 0
 const tempEqlists = ref('')
-const maxAreaIntensityRows = 18
+const maxAreaIntensityRows = 50
+const areaIntensityRowHeight = 24
+const areaIntensityRowGap = 2
+const areaIntensityPanelGap = 6
+const areaIntensityPanelPaddingY = 12
+const areaIntensityBottomOffset = 315
+const minAreaIntensityVisibleRows = 2
+const areaIntensityViewportHeight = ref(typeof window == 'undefined' ? 900 : window.innerHeight)
+const updateAreaIntensityViewportHeight = () => areaIntensityViewportHeight.value = window.innerHeight
+const areaIntensityAvailableHeight = computed(() => Math.max(0, areaIntensityViewportHeight.value - areaIntensityBottomOffset))
+const areaIntensityContentHeight = count => {
+    if(count <= 0) return 0
+    return count * areaIntensityRowHeight + Math.max(0, count - 1) * areaIntensityRowGap + areaIntensityPanelPaddingY
+}
+const areaIntensityPanelHeight = (count, otherCount) => {
+    const contentHeight = areaIntensityContentHeight(count)
+    if(!contentHeight) return 0
+
+    const otherContentHeight = areaIntensityContentHeight(otherCount)
+    const gapHeight = otherCount > 0 ? areaIntensityPanelGap : 0
+    const availableHeight = areaIntensityAvailableHeight.value
+    const availableForPanels = Math.max(0, availableHeight - gapHeight)
+    if(contentHeight + otherContentHeight + gapHeight <= availableHeight) return contentHeight
+    if(otherCount <= 0) return Math.min(contentHeight, availableForPanels)
+
+    const totalRows = Math.max(1, count + otherCount)
+    const heightShare = Math.floor(availableForPanels * count / totalRows)
+    const otherHeightShare = Math.floor(availableForPanels * otherCount / totalRows)
+    const minHeight = Math.min(contentHeight, areaIntensityContentHeight(Math.min(count, minAreaIntensityVisibleRows)))
+    const otherMinHeight = Math.min(otherContentHeight, areaIntensityContentHeight(Math.min(otherCount, minAreaIntensityVisibleRows)))
+
+    if(minHeight + otherMinHeight >= availableForPanels) return Math.max(0, heightShare)
+    if(heightShare < minHeight) return minHeight
+    if(otherHeightShare < otherMinHeight) return Math.min(contentHeight, Math.max(minHeight, availableForPanels - otherMinHeight))
+    return Math.min(contentHeight, heightShare)
+}
+const areaIntensityPanelStyle = (count, otherCount) => ({
+    maxHeight: `${areaIntensityPanelHeight(count, otherCount)}px`
+})
 let tempEqlistsTimer
 const handleTempEqlists = (time, source = '') => {
     clearTimeout(tempEqlistsTimer)
     if(time && source) {
-        clearHistoryList()
+        // 手动点“地图显示”的历史事件，别被新消息的临时焦点抢掉。
         tempEqlists.value = source
         tempEqlistsTimer = setTimeout(() => {
             tempEqlists.value = ''
@@ -431,6 +471,11 @@ const defaultMenuId = computed(() => {
 })
 const menuId = ref(defaultMenuId.value)
 provide('menuId', menuId)
+const eqlistDrawerLoaded = ref(menuId.value == 'eqlists')
+watch(menuId, newVal => {
+    // 历史抽屉加载过就保留，避免切面板时中断测站回放。
+    if(newVal == 'eqlists') eqlistDrawerLoaded.value = true
+})
 let autoZoomTimer
 let firstMsg = false
 const blinkStatus = ref(false)
@@ -465,6 +510,8 @@ const handleMenu = (index)=>{
 }
 provide('handleHome', handleHome)
 const drawer = ref(null)
+const isDevBuild = import.meta.env.DEV
+const devWebglBadgeText = import.meta.env.DEV ? '[WebGL]' : ''
 const wolfxRS = ref(4)
 const fanRS = ref(4)
 const p2pquakeRS = ref(4)
@@ -555,7 +602,11 @@ const getBarClass = (event)=>{
 }
 let mainInterval, terminatorInterval
 onMounted(()=>{
+    updateAreaIntensityViewportHeight()
+    window.addEventListener('resize', updateAreaIntensityViewportHeight)
     webglWaveAvailable.value = canUseWaveWebgl()
+    setPerfValue('webgl.wave.available', webglWaveAvailable.value)
+    void warmupSeismicWorker()
     map = L.map('mainMap', {
         attributionControl: false,
         center: defaultLatLng,
@@ -755,7 +806,6 @@ onMounted(()=>{
         }
     })
     watch(menuId, (newVal) => {
-        clearHistoryList()
         simpleIcon.value = newVal == 'eqlists'
         drawer.value.scrollTop = 0
         if(newVal == 'eews'){
@@ -916,6 +966,11 @@ const loadMaps = async (retries = 0) => {
             fillOpacity: 1,
             weight: 1,
         }, eewBaseGroup)
+        const cnEewAreaNames = new Set()
+        cnEewBaseMap?.eachLayer(layer => {
+            const name = layer.feature?.properties?.name
+            if(name) cnEewAreaNames.add(name)
+        })
         watch(()=>settingsStore.mainSettings.displayCnFault, newVal => {
             if(cnFaultBaseMap && map.hasLayer(cnFaultBaseMap)) map.removeLayer(cnFaultBaseMap)
             if(newVal) {
@@ -995,6 +1050,24 @@ const loadMaps = async (retries = 0) => {
                 })
             })
         }, { deep: true, immediate: true })
+        const setCnAreaStyle = areaClass => {
+            cnEewBaseMap?.setStyle(feature => {
+                const className = areaClass[feature.properties.name]?.className
+                return ({
+                    color: className ? eewBaseMapActiveStroke : eewBaseMapDefaultStroke,
+                    fillColor: classNameColors[className] || eewBaseMapDefaultFill
+                })
+            })
+        }
+        const setKrAreaStyle = areaClass => {
+            krEewBaseMap?.setStyle(feature => {
+                const className = areaClass[feature.properties.name]?.className
+                return ({
+                    color: className ? eewBaseMapActiveStroke : eewBaseMapDefaultStroke,
+                    fillColor: classNameColors[className] || eewBaseMapDefaultFill
+                })
+            })
+        }
         if(settingsStore.advancedSettings.forceCalcInt){
             const { pointDistToCnArea, pointDistToKrArea } = await import('@/utils/AreaDistance')
             watch(eewInfoList, newVal=>{
@@ -1010,7 +1083,12 @@ const loadMaps = async (retries = 0) => {
                     if(maxInt > 0){
                         const className = setClassName(maxInt, false)
                         const layerName = layer.feature.properties.name
-                        cnAreaClass[layerName] = className
+                        cnAreaClass[layerName] = {
+                            name: layerName,
+                            intensity: maxInt.toString(),
+                            className,
+                            useShindo: false
+                        }
                         if(!(maxInt in newCsisList)) newCsisList[maxInt] = []
                         newCsisList[maxInt].push(layerName)
                     }
@@ -1025,24 +1103,15 @@ const loadMaps = async (retries = 0) => {
                     if(maxInt > 0){
                         const className = setClassName(maxInt, false)
                         const layerName = layer.feature.properties.name
-                        krAreaClass[layerName] = className
+                        krAreaClass[layerName] = {
+                            name: layerName,
+                            intensity: maxInt.toString(),
+                            className,
+                            useShindo: false
+                        }
                         if(!(maxInt in newCsisList)) newCsisList[maxInt] = []
                         newCsisList[maxInt].push(layerName)
                     }
-                })
-                cnEewBaseMap?.setStyle(feature => {
-                    const className = cnAreaClass[feature.properties.name]
-                    return ({
-                        color: className ? eewBaseMapActiveStroke : eewBaseMapDefaultStroke,
-                        fillColor: classNameColors[className] || eewBaseMapDefaultFill
-                    })
-                })
-                krEewBaseMap?.setStyle(feature => {
-                    const className = krAreaClass[feature.properties.name]
-                    return ({
-                        color: className ? eewBaseMapActiveStroke : eewBaseMapDefaultStroke,
-                        fillColor: classNameColors[className] || eewBaseMapDefaultFill
-                    })
                 })
                 const newNewCsisList = []
                 for(let int = 12; int > 0; int--) {
@@ -1054,9 +1123,21 @@ const loadMaps = async (retries = 0) => {
                         })
                     })
                 }
-                csisList.value = newNewCsisList.slice(0, maxAreaIntensityRows)
+                forceCnAreaClass.value = cnAreaClass
+                forceKrAreaClass.value = krAreaClass
+                forceCsisList.value = newNewCsisList.slice(0, maxAreaIntensityRows)
             }, { deep: true, immediate: true })
         }
+        watch([historyCnAreaClass, forceCnAreaClass, forceCsisList], () => {
+            const hasHistoryAreas = Object.keys(historyCnAreaClass.value).length > 0
+            const rawAreaClass = hasHistoryAreas ? historyCnAreaClass.value : forceCnAreaClass.value
+            const areaClass = matchAreaClassToNames(rawAreaClass, cnEewAreaNames)
+            setCnAreaStyle(areaClass)
+            csisList.value = hasHistoryAreas
+                ? areaClassToRows(areaClass, false, maxAreaIntensityRows)
+                : forceCsisList.value
+        }, { deep: true, immediate: true })
+        watch(forceKrAreaClass, newVal => setKrAreaStyle(newVal), { deep: true, immediate: true })
         if(settingsStore.mainSettings.source.jmaTsunami) {
             jpTsunamiBaseMap = loadBaseMap(jp_tsunami, 'tsunamiBasePane', false, {
                 color: tsunamiBaseMapDefaultStroke,
@@ -1527,7 +1608,7 @@ const jmaWarnArea = computed(()=>{
                 const warnArea = JSON.parse(jmaEqlistEvent.eqMessage.warnArea)
                 warnArea.forEach(point => mergeJmaWarnArea(jmaWarnArea, point))
             } catch {
-                // 历史接口常只给最大震度，分区面由本地估算补上。
+                // 历史没有分区数据就保持空白，等后续 API 读进来再画。
             }
         }
     }
@@ -1535,6 +1616,23 @@ const jmaWarnArea = computed(()=>{
     return jmaWarnArea
 })
 const csisList = ref([])
+const forceCnAreaClass = ref({})
+const forceKrAreaClass = ref({})
+const forceCsisList = ref([])
+const historyCnAreaClass = computed(() => {
+    const areaClass = {}
+    if(menuId.value != 'eqlists') return areaClass
+    historyList.forEach(event => {
+        const eqMessage = event.eqMessage || {}
+        // 这里只吃接口已经给出的分区，不能用震中或测站点反推历史烈度面。
+        const areas = [
+            ...(eqMessage.areaIntensities || []),
+            ...(eqMessage.observedAreaIntensities || [])
+        ]
+        areas.forEach(item => mergeAreaIntensity(areaClass, item))
+    })
+    return areaClass
+})
 const shindoList = computed(() => {
     const shindoList = {}
     for(let name in jmaWarnArea.value) {
@@ -1553,7 +1651,10 @@ const shindoList = computed(() => {
             })
         })
     }
-    return newShindoList.slice(0, maxAreaIntensityRows)
+    return [
+        ...newShindoList,
+        ...areaClassToRows(historyCnAreaClass.value, true, maxAreaIntensityRows)
+    ].slice(0, maxAreaIntensityRows)
 })
 const isFiniteNumber = value => value !== null && value !== '' && Number.isFinite(Number(value))
 const toJmaCalcInfo = eqMessage => {
@@ -1572,7 +1673,8 @@ const jpEewInfoList = computed(()=>{
     return jpEewInfoList
 })
 const historyJmaInfoList = computed(() => {
-    if(menuId.value != 'eqlists') return []
+    // 没开强制估算时，历史 JMA 震度面不本地补算。
+    if(!settingsStore.advancedSettings.forceCalcInt || menuId.value != 'eqlists') return []
     return historyList
         .filter(event => {
             const eqMessage = event.eqMessage
@@ -1592,25 +1694,7 @@ watch(jmaCalcInfoList, async infoList => {
         jmaForceCalcWarnArea.value = {}
         return
     }
-    const jmaSeisIntLoc = await loadJmaSeisIntLoc()
-    const nextWarnArea = {}
-    for(let id in jmaSeisIntLoc) {
-        for(let eew of infoList) {
-            const { magnitude, depth, lat, lng } = eew
-            if(depth > 150) continue
-            const intensity = calcJmaShindoLevel(magnitude, depth, lat, lng, jmaSeisIntLoc[id], false)
-            if(intensity < '1') continue
-            const name = jmaSeisIntLoc[id].sect
-            const className = setClassName(intensity, true)
-            if(!nextWarnArea[name] || getClassLevel(className) > getClassLevel(nextWarnArea[name].className)) {
-                nextWarnArea[name] = {
-                    name,
-                    intensity,
-                    className
-                }
-            }
-        }
-    }
+    const { warnArea: nextWarnArea } = await calcJmaWarnArea(infoList)
     if(requestId == jmaForceCalcRequestId) {
         jmaForceCalcWarnArea.value = nextWarnArea
     }
@@ -1642,6 +1726,7 @@ onBeforeUnmount(()=>{
     document.removeEventListener('visibilitychange', handleVisibilityChange)
     document.removeEventListener('mousemove', resetDefaultMenuTimer)
     document.removeEventListener('keydown', handleKeydown)
+    window.removeEventListener('resize', updateAreaIntensityViewportHeight)
     activeEewList.length = 0
     eqlistList.length = 0
 })
@@ -1985,11 +2070,12 @@ onBeforeUnmount(()=>{
                 z-index: 599;
                 display: flex;
                 flex-direction: column;
-                align-items: flex-end;
+                align-items: stretch;
                 justify-content: flex-start;
                 gap: 6px;
                 width: 180px;
                 max-height: calc(100% - 315px);
+                overflow: hidden;
                 user-select: none;
                 pointer-events: none;
                 .csis-list,.shindo-list{
@@ -2017,7 +2103,7 @@ onBeforeUnmount(()=>{
                             white-space: nowrap;
                             overflow: hidden;
                             text-overflow: ellipsis;
-                            text-align: right;
+                            text-align: left;
                             font-size: 15px;
                             line-height: 1em;
                             text-shadow: 0 1px 3px #000000;

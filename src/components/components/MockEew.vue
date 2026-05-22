@@ -116,10 +116,9 @@ import dayjs from 'dayjs';
 import { ref, reactive, computed, watch } from 'vue';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { getFEName } from '@/utils/FERegions';
+import { getFENameAsync } from '@/utils/FERegionsLoader';
 import { Plus } from '@element-plus/icons-vue';
 import { calcCsisLevel } from '@/utils/Utils';
-import { calcMaxJmaShindoLevel } from '@/utils/JmaMaxIntensity';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -186,13 +185,22 @@ const removePage = () => {
     }
 }
 
-const generateEqMessage = (form, index, id) => {
+let calcMaxJmaShindoLevelPromise
+const calcAutoMaxIntensity = async (magnitude, depth, lat, lng) => {
+    if(!useShindo.value) return calcCsisLevel(magnitude, depth)
+    calcMaxJmaShindoLevelPromise ||= import('@/utils/JmaMaxIntensity')
+        .then(module => module.calcMaxJmaShindoLevel)
+    const calcMaxJmaShindoLevel = await calcMaxJmaShindoLevelPromise
+    return calcMaxJmaShindoLevel(magnitude, depth, lat, lng, false)
+}
+
+const generateEqMessage = async (form, index, id) => {
     const reportNum = index + 1
     const isFinal = reportNum == forms.length
     const reportNumText = `第${reportNum}报${isFinal ? '（最终）' : ''}`
-    const hypocenter = '模拟·' + (form.hypocenter || getFEName(form.lat, form.lng))
+    const hypocenter = '模拟·' + (form.hypocenter || await getFENameAsync(form.lat, form.lng))
     const { lat, lng, depth, magnitude, isAssumption, isWarn, isCanceled } = form
-    const maxIntensity = form.maxIntensity == '自动' ? (useShindo.value ? calcMaxJmaShindoLevel(magnitude, depth, lat, lng, false) : calcCsisLevel(magnitude, depth)) : form.maxIntensity
+    const maxIntensity = form.maxIntensity == '自动' ? await calcAutoMaxIntensity(magnitude, depth, lat, lng) : form.maxIntensity
     const now = timeStore.getTimeStamp()
     const originTime = dayjs(now).add(form.originDelay, 'seconds').tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss')
     const reportTime = dayjs(now).add(form.reportDelay, 'seconds').tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss')
@@ -226,10 +234,11 @@ const generateEqMessage = (form, index, id) => {
     return eqMessage
 }
 
-const submitScenario = () => {
+const submitScenario = async () => {
     const staticId = id.value || Date.now().toString()
+    const eqMessages = await Promise.all(forms.map((form, index) => generateEqMessage(form, index, staticId)))
     forms.forEach((form, index) => {
-        const eqMessage = generateEqMessage(form, index, staticId)
+        const eqMessage = eqMessages[index]
         setTimeout(() => {
             statusStore.setEqMessage('mockEew', eqMessage)
         }, form.reportDelay * 1000);

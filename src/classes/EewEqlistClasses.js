@@ -832,7 +832,7 @@ export class HistoryEvent extends EqlistEvent {
     createStations(data) {
         this.terminateStations()
         this.stations = []
-        const stationData = data.instrument_intensity_json
+        const stationData = data.instrument_intensity_json || []
         stationData.forEach(item => {
             const station = new intReportStation(this.map, item.stID, [item.stla, item.stlo], item)
             this.stations.push(station)

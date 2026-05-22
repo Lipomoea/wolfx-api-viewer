@@ -1268,7 +1268,7 @@
         </el-dialog>
         <el-dialog v-model="showTokenManager" width="300px" top="20vh" :show-close="false" append-to-body>
             <el-form :model="idForm">
-                <el-form-item v-if="settingsStore.advancedSettings.enableIclEew" label="FAN:DEV" label-width="60px">
+                <el-form-item v-if="settingsStore.advancedSettings.enableIclEew" :label="fanTokenLabel" label-width="60px">
                     <el-input v-model="settingsStore.advancedSettings.tokens.fan_dev" @change="handleNeedReload" />
                 </el-form-item>
             </el-form>
@@ -1346,12 +1346,18 @@ import { enable, disable, isEnabled } from '@tauri-apps/plugin-autostart';
 import { platform, arch } from '@tauri-apps/plugin-os';
 import { isTauri as getIsTauri } from '@tauri-apps/api/core';
 import { Setting } from '@element-plus/icons-vue';
-import MarkdownIt from 'markdown-it';
 
 const SHOW_ABOUT_FLG = '20260313.00'
+let markdownRendererPromise
+const renderMarkdown = async content => {
+    markdownRendererPromise ||= import('markdown-it').then(({ default: MarkdownIt }) => new MarkdownIt({ linkify: true }))
+    const md = await markdownRendererPromise
+    return md.render(content || '')
+}
 
 const showNotifButton = 'Notification' in window
 const isTauri = getIsTauri()
+const fanTokenLabel = import.meta.env.DEV ? 'FAN:DEV' : 'FAN'
 const thisPlatform = isTauri ? platform() : ''
 const thisArch = isTauri ? arch() : ''
 const simplifyMarks = {
@@ -1802,12 +1808,12 @@ const checkNewVersion = async (silent = false) => {
                 })
             }
             ElMessageBox.close()
-            const md = new MarkdownIt({ linkify: true })
+            const detailHtml = await renderMarkdown(detail)
             if(isTauri) {
                 if(!silent) {
                     ElMessageBox.confirm(
                         h('div', {
-                            innerHTML: md.render(detail),
+                            innerHTML: detailHtml,
                             style: {
                                 listStylePosition: 'inside',
                                 maxHeight: '50vh',
@@ -1844,7 +1850,7 @@ const checkNewVersion = async (silent = false) => {
                     if(!silent) {
                         ElMessageBox.confirm(
                         h('div', {
-                            innerHTML: md.render(detail),
+                            innerHTML: detailHtml,
                             style: {
                                 listStylePosition: 'inside',
                                 maxHeight: '50vh',

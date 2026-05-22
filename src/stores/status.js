@@ -6,7 +6,7 @@ import { setClassName, calcCsisLevel, stampToTime, getShindoFromInstShindo, shin
 import { loadJmaSeisIntLoc } from '@/utils/JmaSeisIntLocLoader';
 import { useSettingsStore } from './settings';
 import { isTauri } from '@tauri-apps/api/core';
-import { getFEName } from '@/utils/FERegions';
+import { getFENameAsync } from '@/utils/FERegionsLoader';
 import isEqual from 'lodash/isEqual';
 import dayjs from "dayjs";
 // import utc from "dayjs/plugin/utc";
@@ -415,7 +415,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 eqMessage.reportTime = data.createTime || data.shockTime
                                 eqMessage.isCanceled = false
                                 eqMessage.titleText = '中央氣象署強震即時警報'
-                                eqMessage.hypocenter = data.placeName?.replace(/ 外海 \([^)]*\)/g, "外海") || getFEName(data.latitude, data.longitude)
+                                eqMessage.hypocenter = data.placeName?.replace(/ 外海 \([^)]*\)/g, "外海") || await getFENameAsync(data.latitude, data.longitude)
                                 eqMessage.hypocenterText = '震央: ' + eqMessage.hypocenter
                                 eqMessage.lat = data.latitude
                                 eqMessage.lng = data.longitude
@@ -678,7 +678,7 @@ export const useStatusStore = defineStore('statusStore', {
                             date.setHours(date.getHours() + 8)
                             eqMessage.reportTime = date.toISOString().replace('T', ' ').slice(0, -5)
                             eqMessage.reportNumText = '第' + data.RevisionId + '报'
-                            eqMessage.hypocenter = getFEName(data.Latitude, data.Longitude) || data.Region || '未知区域'
+                            eqMessage.hypocenter = await getFENameAsync(data.Latitude, data.Longitude) || data.Region || '未知区域'
                             eqMessage.hypocenterText = '震中: ' + eqMessage.hypocenter
                             eqMessage.maxIntensityText = '预估最大烈度: ' + eqMessage.maxIntensity
                         }
@@ -913,7 +913,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 tempMsg.id = properties.code
                                 tempMsg.title = 'USGS' + (properties.status.toLowerCase() == 'reviewed' ? '正式' : '自动') + '测定'
                                 tempMsg.titleText = tempMsg.title
-                                tempMsg.hypocenter = getFEName(lat, lng) || properties.place
+                                tempMsg.hypocenter = await getFENameAsync(lat, lng) || properties.place
                                 tempMsg.hypocenterText = '震中: ' + tempMsg.hypocenter
                                 tempMsg.lat = lat
                                 tempMsg.lng = lng
@@ -935,7 +935,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 tempMsg.id = data.id
                                 tempMsg.title = 'USGS' + (data.infoTypeName.toLowerCase() == 'reviewed' ? '正式' : '自动') + '测定'
                                 tempMsg.titleText = tempMsg.title
-                                tempMsg.hypocenter = getFEName(data.latitude, data.longitude) || data.placeName
+                                tempMsg.hypocenter = await getFENameAsync(data.latitude, data.longitude) || data.placeName
                                 tempMsg.hypocenterText = '震中: ' + tempMsg.hypocenter
                                 tempMsg.lat = data.latitude
                                 tempMsg.lng = data.longitude
@@ -974,7 +974,7 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.isCanceled = infoType == '取消'
                         eqMessage.title = `FSSN${infoType}测定`
                         eqMessage.titleText = eqMessage.title
-                        eqMessage.hypocenter = getFEName(data.latitude, data.longitude) || data.placeName_zh || data.placeName
+                        eqMessage.hypocenter = await getFENameAsync(data.latitude, data.longitude) || data.placeName_zh || data.placeName
                         eqMessage.hypocenterText = '震中: ' + eqMessage.hypocenter
                         eqMessage.lat = data.latitude
                         eqMessage.lng = data.longitude
@@ -1130,7 +1130,7 @@ export const useStatusStore = defineStore('statusStore', {
                 console.log(err);
             }
         },
-        setHistory(source, data) {
+        async setHistory(source, data) {
             const list = []
             let keys
             switch (source) {
@@ -1181,7 +1181,9 @@ export const useStatusStore = defineStore('statusStore', {
                             magnitude: data[i].magnitude,
                             maxIntensity,
                             className: setClassName(maxIntensity, true),
-                            url: 'https://scweb.cwa.gov.tw/zh-tw/earthquake/data'
+                            url: 'https://scweb.cwa.gov.tw/zh-tw/earthquake/data',
+                            imageURI: data[i].imageURI,
+                            shakemapURI: data[i].shakemapURI
                         }
                         break
                     }
@@ -1222,7 +1224,7 @@ export const useStatusStore = defineStore('statusStore', {
                             originTime: stampToTime(properties.time, 8),
                             lat,
                             lng,
-                            hypocenter: (properties.status.toLowerCase() == 'reviewed' ? '' : '(A)') + (getFEName(lat, lng) || properties.place),
+                            hypocenter: (properties.status.toLowerCase() == 'reviewed' ? '' : '(A)') + (await getFENameAsync(lat, lng) || properties.place),
                             depth,
                             magnitude,
                             maxIntensity,
@@ -1261,7 +1263,7 @@ export const useStatusStore = defineStore('statusStore', {
                             originTime: data[i].shockTime,
                             lat,
                             lng,
-                            hypocenter: infoType + (getFEName(lat, lng) || data[i].placeName_zh || data[i].placeName),
+                            hypocenter: infoType + (await getFENameAsync(lat, lng) || data[i].placeName_zh || data[i].placeName),
                             depth,
                             magnitude,
                             maxIntensity,
@@ -1302,7 +1304,7 @@ export const useStatusStore = defineStore('statusStore', {
                             const data = await Http.get(eqUrls.usgsEqlist_http + `?time=${stamp}`)
                             if(data) {
                                 this.setEqMessage(source, data.features[0])
-                                this.setHistory(source, data.features)
+                                await this.setHistory(source, data.features)
                             }
                         }
                         if(this.multiApi) {

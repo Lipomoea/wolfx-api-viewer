@@ -1,4 +1,5 @@
 import L from 'leaflet';
+import { countPerf, measurePerf, setPerfValue } from '@/utils/PerfMetrics';
 
 const vertexShaderSource = `
 attribute vec2 a_position;
@@ -63,9 +64,9 @@ const STRIDE_BYTES = STRIDE_FLOATS * 4;
 const ICON_STRIDE_FLOATS = 4;
 const ICON_STRIDE_BYTES = ICON_STRIDE_FLOATS * 4;
 const ICON_ATLAS_COLS = 16;
-const ICON_CELL_SIZE = 64;
+const ICON_CELL_SIZE = 128;
 const ICON_ATLAS_SIZE = ICON_ATLAS_COLS * ICON_CELL_SIZE;
-const ICON_CELL_PADDING = 2;
+const ICON_CELL_PADDING = 4;
 
 const toNdc = (point, size) => [
   (point.x / size.x) * 2 - 1,
@@ -114,6 +115,17 @@ const resolveCssColor = color => {
   return parseCssColor(resolved);
 };
 
+const normalizeStationList = stations => Array.isArray(stations)
+  ? stations
+  : Object.values(stations || {});
+
+const asFiniteNumber = (value, fallback = 0) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+};
+
+const snapToDevicePixel = (value, pixelRatio) => Math.round(value * pixelRatio) / pixelRatio;
+
 const compileShader = (gl, type, source) => {
   const shader = gl.createShader(type);
   gl.shaderSource(shader, source);
@@ -139,11 +151,20 @@ class StationWebglLayer {
   constructor(map) {
     this.map = map;
     this.sources = new Map();
+    this.sourceVersion = 0;
+    this.colorCache = new Map();
+    this.styleCache = new WeakMap();
+    this.circleItems = [];
+    this.iconItems = [];
+    this.circleVertexBuffer = new Float32Array(0);
+    this.iconVertexBuffer = new Float32Array(0);
+    this.scaledIconUrlCache = new Map();
     this.renderQueued = false;
     this.supported = false;
     this.canvas = this.createCanvas();
     this.gl = this.createContext(this.canvas);
     this.supported = Boolean(this.gl);
+    setPerfValue("webgl.station.available", this.supported);
 
     if (this.supported) {
       this.program = createProgram(this.gl, vertexShaderSource, fragmentShaderSource);
@@ -165,6 +186,7 @@ class StationWebglLayer {
         texture: this.gl.getUniformLocation(this.iconProgram, "u_texture"),
       };
       this.map.on("move zoom resize viewreset", this.reset, this);
+      this.map.on("zoomanim", this.animateZoom, this);
       this.reset();
     }
   }
@@ -175,9 +197,10 @@ class StationWebglLayer {
       // 站点内部顺序交给 WebGL 排序，pane 放在普通站点范围顶部。
       this.map.getPane("stationWebglPane").style.zIndex = 70;
     }
-    const canvas = L.DomUtil.create("canvas", "leaflet-station-webgl-layer", this.map.getPane("stationWebglPane"));
+    const canvas = L.DomUtil.create("canvas", "leaflet-station-webgl-layer leaflet-zoom-animated", this.map.getPane("stationWebglPane"));
     canvas.style.position = "absolute";
     canvas.style.pointerEvents = "none";
+    canvas.style.transformOrigin = "0 0";
     return canvas;
   }
 
@@ -196,13 +219,26 @@ class StationWebglLayer {
     canvas.width = ICON_ATLAS_SIZE;
     canvas.height = ICON_ATLAS_SIZE;
     const context = canvas.getContext("2d");
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
     const texture = this.gl.createTexture();
     this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, canvas);
+    this.gl.texImage2D(
+      this.gl.TEXTURE_2D,
+      0,
+      this.gl.RGBA,
+      ICON_ATLAS_SIZE,
+      ICON_ATLAS_SIZE,
+      0,
+      this.gl.RGBA,
+      this.gl.UNSIGNED_BYTE,
+      null,
+    );
+    this.gl.generateMipmap(this.gl.TEXTURE_2D);
     return {
       canvas,
       context,
@@ -224,8 +260,22 @@ class StationWebglLayer {
     this.requestRender();
   };
 
+  animateZoom = event => {
+    const scale = this.map.getZoomScale(event.zoom);
+    const bounds = L.latLngBounds(
+      this.map.containerPointToLatLng([0, 0]),
+      this.map.containerPointToLatLng(this.map.getSize()),
+    );
+    const topLeft = this.map._latLngBoundsToNewLayerBounds(bounds, event.zoom, event.center).min;
+    L.DomUtil.setTransform(this.canvas, topLeft, scale);
+  };
+
   setStations(source, stations) {
-    this.sources.set(source, stations);
+    this.sources.set(source, {
+      stations,
+      list: normalizeStationList(stations),
+      version: ++this.sourceVersion,
+    });
     this.requestRender();
   }
 
@@ -244,6 +294,7 @@ class StationWebglLayer {
   }
 
   render() {
+    const startedAt = performance.now();
     const gl = this.gl;
     const canvas = gl.canvas;
     gl.viewport(0, 0, canvas.width, canvas.height);
@@ -252,19 +303,26 @@ class StationWebglLayer {
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-    const vertices = this.buildCircleVertices();
+    const circleBatch = this.buildCircleVertices();
+    const circleCount = circleBatch.count;
 
-    if (vertices.length) {
+    if (circleBatch.vertices.length) {
       gl.useProgram(this.program);
       gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STREAM_DRAW);
+      gl.bufferData(gl.ARRAY_BUFFER, circleBatch.vertices, gl.STREAM_DRAW);
       this.bindAttributes();
       gl.uniform1f(this.locations.pixelRatio, window.devicePixelRatio || 1);
-      gl.drawArrays(gl.POINTS, 0, vertices.length / STRIDE_FLOATS);
+      gl.drawArrays(gl.POINTS, 0, circleCount);
     }
 
-    const iconVertices = this.buildIconVertices();
-    if (iconVertices.length) this.drawIcons(iconVertices);
+    const iconBatch = this.buildIconVertices();
+    const iconCount = iconBatch.count;
+    if (iconBatch.vertices.length) this.drawIcons(iconBatch.vertices);
+    setPerfValue("webgl.station.circleCount", circleCount);
+    setPerfValue("webgl.station.iconCount", iconCount);
+    setPerfValue("webgl.station.totalCount", circleCount + iconCount);
+    countPerf("webgl.station.render.frames");
+    measurePerf("webgl.station.render", startedAt);
   }
 
   bindAttributes() {
@@ -285,7 +343,7 @@ class StationWebglLayer {
     const gl = this.gl;
     gl.useProgram(this.iconProgram);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.iconBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STREAM_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STREAM_DRAW);
     gl.enableVertexAttribArray(this.iconLocations.position);
     gl.vertexAttribPointer(this.iconLocations.position, 2, gl.FLOAT, false, ICON_STRIDE_BYTES, 0);
     gl.enableVertexAttribArray(this.iconLocations.texCoord);
@@ -296,72 +354,138 @@ class StationWebglLayer {
     gl.drawArrays(gl.TRIANGLES, 0, vertices.length / ICON_STRIDE_FLOATS);
   }
 
-  collectStations(mode) {
-    const stations = [];
-    this.sources.forEach(sourceStations => {
-      const list = Array.isArray(sourceStations)
-        ? sourceStations
-        : Object.values(sourceStations || {});
-      list.forEach(station => {
-        if (station?.map !== this.map || !station.webglStyle) return;
-        const styleMode = station.webglStyle.mode || "circle";
-        if (styleMode !== mode) return;
-        stations.push(station);
+  collectStyledStations(mode) {
+    const items = mode === "circle" ? this.circleItems : this.iconItems;
+    items.length = 0;
+    this.sources.forEach(source => {
+      source.list.forEach(station => {
+        const style = this.getStationStyle(station, mode);
+        if (style) items.push(style);
       });
     });
-    stations.sort((a, b) => (a.webglStyle.zIndex || 0) - (b.webglStyle.zIndex || 0));
-    return stations;
+    items.sort((a, b) => a.zIndex - b.zIndex);
+    return items;
+  }
+
+  getStationStyle(station, mode) {
+    if (station?.map !== this.map || !station.webglStyle) return null;
+    const style = station.webglStyle;
+    const styleMode = style.mode || "circle";
+    if (styleMode !== mode) return null;
+
+    const fingerprint = mode === "circle"
+      ? [mode, style.radius, style.fillColor, style.strokeColor, style.strokeWidth, style.zIndex].join("|")
+      : [mode, style.iconKey, style.iconUrl, style.radius, style.size, style.zIndex].join("|");
+    const cached = this.styleCache.get(station);
+    if (cached?.fingerprint === fingerprint) return cached;
+
+    const entry = mode === "circle"
+      ? {
+          station,
+          mode,
+          fingerprint,
+          zIndex: asFiniteNumber(style.zIndex),
+          radius: asFiniteNumber(style.radius),
+          fill: this.resolveColor(style.fillColor),
+          stroke: this.resolveColor(style.strokeColor),
+          strokeWidth: asFiniteNumber(style.strokeWidth),
+        }
+      : {
+          station,
+          mode,
+          fingerprint,
+          zIndex: asFiniteNumber(style.zIndex),
+          radius: asFiniteNumber(style.radius),
+          size: asFiniteNumber(style.size, asFiniteNumber(style.radius) * 2),
+          iconEntry: this.getIconEntry(style),
+        };
+    this.styleCache.set(station, entry);
+    return entry;
+  }
+
+  resolveColor(color) {
+    const key = color || "#ffffff";
+    if (!this.colorCache.has(key)) {
+      this.colorCache.set(key, resolveCssColor(key));
+    }
+    return this.colorCache.get(key);
+  }
+
+  ensureVertexBuffer(name, requiredLength) {
+    let buffer = this[name];
+    if (buffer.length >= requiredLength) return buffer;
+    let nextLength = Math.max(buffer.length, 256);
+    while (nextLength < requiredLength) nextLength *= 2;
+    buffer = new Float32Array(nextLength);
+    this[name] = buffer;
+    return buffer;
   }
 
   buildCircleVertices() {
     const size = this.map.getSize();
-    const stations = this.collectStations("circle");
-    const vertices = [];
-    stations.forEach(station => {
-      const style = station.webglStyle;
-      const point = this.map.latLngToContainerPoint(station.latLng);
-      const fill = resolveCssColor(style.fillColor);
-      const stroke = resolveCssColor(style.strokeColor);
-      vertices.push(
-        ...toNdc(point, size),
-        style.radius,
-        ...fill,
-        ...stroke,
-        style.strokeWidth,
-      );
+    const stations = this.collectStyledStations("circle");
+    const vertices = this.ensureVertexBuffer("circleVertexBuffer", stations.length * STRIDE_FLOATS);
+    let offset = 0;
+    stations.forEach(style => {
+      const point = this.map.latLngToContainerPoint(style.station.latLng);
+      const [x, y] = toNdc(point, size);
+      vertices[offset++] = x;
+      vertices[offset++] = y;
+      vertices[offset++] = style.radius;
+      vertices[offset++] = style.fill[0];
+      vertices[offset++] = style.fill[1];
+      vertices[offset++] = style.fill[2];
+      vertices[offset++] = style.fill[3];
+      vertices[offset++] = style.stroke[0];
+      vertices[offset++] = style.stroke[1];
+      vertices[offset++] = style.stroke[2];
+      vertices[offset++] = style.stroke[3];
+      vertices[offset++] = style.strokeWidth;
     });
-    return vertices;
+    return {
+      vertices: vertices.subarray(0, offset),
+      count: stations.length,
+    };
   }
 
   buildIconVertices() {
     const size = this.map.getSize();
-    const stations = this.collectStations("icon");
-    const vertices = [];
-    stations.forEach(station => {
-      const style = station.webglStyle;
-      const entry = this.getIconEntry(style);
+    const pixelRatio = window.devicePixelRatio || 1;
+    const stations = this.collectStyledStations("icon");
+    const vertices = this.ensureVertexBuffer("iconVertexBuffer", stations.length * ICON_STRIDE_FLOATS * 6);
+    let offset = 0;
+    let count = 0;
+    stations.forEach(style => {
+      const entry = style.iconEntry;
       if (!entry?.loaded) return;
 
-      const point = this.map.latLngToContainerPoint(station.latLng);
-      const half = (style.size || style.radius * 2 || ICON_CELL_SIZE / 2) / 2;
-      const left = point.x - half;
-      const right = point.x + half;
-      const top = point.y - half;
-      const bottom = point.y + half;
+      const rawPoint = this.map.latLngToContainerPoint(style.station.latLng);
+      const point = {
+        x: snapToDevicePixel(rawPoint.x, pixelRatio),
+        y: snapToDevicePixel(rawPoint.y, pixelRatio),
+      };
+      const displaySize = snapToDevicePixel(style.size || style.radius * 2 || ICON_CELL_SIZE / 4, pixelRatio);
+      const half = displaySize / 2;
+      const left = snapToDevicePixel(point.x - half, pixelRatio);
+      const right = snapToDevicePixel(point.x + half, pixelRatio);
+      const top = snapToDevicePixel(point.y - half, pixelRatio);
+      const bottom = snapToDevicePixel(point.y + half, pixelRatio);
       const [x0, y0] = toNdc({ x: left, y: top }, size);
       const [x1, y1] = toNdc({ x: right, y: bottom }, size);
       const { u0, v0, u1, v1 } = entry;
 
-      vertices.push(
-        x0, y0, u0, v0,
-        x1, y0, u1, v0,
-        x1, y1, u1, v1,
-        x0, y0, u0, v0,
-        x1, y1, u1, v1,
-        x0, y1, u0, v1,
-      );
+      vertices[offset++] = x0; vertices[offset++] = y0; vertices[offset++] = u0; vertices[offset++] = v0;
+      vertices[offset++] = x1; vertices[offset++] = y0; vertices[offset++] = u1; vertices[offset++] = v0;
+      vertices[offset++] = x1; vertices[offset++] = y1; vertices[offset++] = u1; vertices[offset++] = v1;
+      vertices[offset++] = x0; vertices[offset++] = y0; vertices[offset++] = u0; vertices[offset++] = v0;
+      vertices[offset++] = x1; vertices[offset++] = y1; vertices[offset++] = u1; vertices[offset++] = v1;
+      vertices[offset++] = x0; vertices[offset++] = y1; vertices[offset++] = u0; vertices[offset++] = v1;
+      count++;
     });
-    return vertices;
+    return {
+      vertices: vertices.subarray(0, offset),
+      count,
+    };
   }
 
   getIconEntry(style) {
@@ -389,30 +513,72 @@ class StationWebglLayer {
     return entry;
   }
 
+  async createScaledIconUrl(url, targetSize) {
+    const cacheKey = `${targetSize}|${url}`;
+    if (this.scaledIconUrlCache.has(cacheKey)) return this.scaledIconUrlCache.get(cacheKey);
+    try {
+      const text = await fetch(url).then(response => {
+        if (!response.ok) throw new Error(`failed to load icon: ${response.status}`);
+        return response.text();
+      });
+      if (!text.trimStart().startsWith("<svg")) throw new Error("not an svg icon");
+      const svgText = text.replace(/<svg\b([^>]*)>/i, (match, attrs) => {
+        const cleanedAttrs = attrs
+          .replace(/\swidth=(['"])[^'"]*\1/i, "")
+          .replace(/\sheight=(['"])[^'"]*\1/i, "");
+        return `<svg${cleanedAttrs} width="${targetSize}" height="${targetSize}">`;
+      });
+      const objectUrl = URL.createObjectURL(new Blob([svgText], { type: "image/svg+xml" }));
+      this.scaledIconUrlCache.set(cacheKey, objectUrl);
+      return objectUrl;
+    } catch {
+      this.scaledIconUrlCache.set(cacheKey, url);
+      return url;
+    }
+  }
+
   loadIcon(style, entry) {
     const image = new Image();
     image.decoding = "async";
+    const targetSize = ICON_CELL_SIZE - ICON_CELL_PADDING * 2;
     image.onload = () => {
-      const targetSize = ICON_CELL_SIZE - ICON_CELL_PADDING * 2;
       const offset = (ICON_CELL_SIZE - targetSize) / 2;
       const context = this.iconAtlas.context;
+      const cellCanvas = document.createElement("canvas");
+      cellCanvas.width = ICON_CELL_SIZE;
+      cellCanvas.height = ICON_CELL_SIZE;
+      const cellContext = cellCanvas.getContext("2d");
+      cellContext.imageSmoothingEnabled = true;
+      cellContext.imageSmoothingQuality = "high";
+      cellContext.drawImage(image, offset, offset, targetSize, targetSize);
       context.clearRect(entry.x, entry.y, ICON_CELL_SIZE, ICON_CELL_SIZE);
       // 图集里保持高分辨率，地图上的实际大小只交给顶点控制。
-      context.drawImage(image, entry.x + offset, entry.y + offset, targetSize, targetSize);
+      context.drawImage(cellCanvas, entry.x, entry.y);
       entry.loaded = true;
-      this.uploadIconAtlas();
+      this.uploadIconCell(entry, cellCanvas);
       this.requestRender();
     };
     image.onerror = () => {
       this.iconAtlas.entries.delete(entry.key);
     };
-    image.src = style.iconUrl;
+    void this.createScaledIconUrl(style.iconUrl, targetSize).then(url => {
+      image.src = url;
+    });
   }
 
-  uploadIconAtlas() {
+  uploadIconCell(entry, sourceCanvas) {
     const gl = this.gl;
     gl.bindTexture(gl.TEXTURE_2D, this.iconAtlas.texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.iconAtlas.canvas);
+    gl.texSubImage2D(
+      gl.TEXTURE_2D,
+      0,
+      entry.x,
+      entry.y,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      sourceCanvas,
+    );
+    gl.generateMipmap(gl.TEXTURE_2D);
   }
 }
 

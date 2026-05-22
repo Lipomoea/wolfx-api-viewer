@@ -8,6 +8,7 @@
     "verify:seismic": "node scripts/build-wasm.mjs && node scripts/verify-seismic-calculations.mjs",
     "dev": "node scripts/build-wasm.mjs && vite",
     "build": "node scripts/build-wasm.mjs && vite build",
+    "build:report": "node scripts/build-report.mjs",
     "build:profile": "vite build --sourcemap",
     "preview": "vite preview",
     "tauri:dev": "tauri dev",

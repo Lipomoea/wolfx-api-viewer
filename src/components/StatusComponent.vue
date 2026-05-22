@@ -13,6 +13,42 @@
                 <div class="eqGrid">
                     <EqGrid v-for="(source, index) of eqlistList" :key="index" :source />
                 </div>
+                <div class="perfPanel">
+                    <div class="perfHeader">
+                        <span>性能</span>
+                        <el-button size="small" @click="handleCopyPerf">复制JSON</el-button>
+                    </div>
+                    <div class="perfGrid">
+                        <div>
+                            <span>运行时间</span>
+                            <b>{{ formatMs(perfSnapshot.uptimeMs) }}</b>
+                        </div>
+                        <div>
+                            <span>WASM初始化</span>
+                            <b>{{ formatMs(perfSnapshot.measures['wasm.seismic.init']?.lastMs) }}</b>
+                        </div>
+                        <div>
+                            <span>WebGL波形</span>
+                            <b>{{ formatBool(perfSnapshot.values['webgl.wave.available']) }}</b>
+                        </div>
+                        <div>
+                            <span>WebGL测站</span>
+                            <b>{{ perfSnapshot.values['webgl.station.totalCount'] ?? 0 }}</b>
+                        </div>
+                        <div>
+                            <span>波形渲染</span>
+                            <b>{{ formatMs(perfSnapshot.measures['webgl.wave.render']?.lastMs) }}</b>
+                        </div>
+                        <div>
+                            <span>测站渲染</span>
+                            <b>{{ formatMs(perfSnapshot.measures['webgl.station.render']?.lastMs) }}</b>
+                        </div>
+                        <div>
+                            <span>长任务</span>
+                            <b>{{ perfSnapshot.longTasks.count }}</b>
+                        </div>
+                    </div>
+                </div>
                 <SeisNetComponent v-show="false" />
             </div>
         </div>
@@ -21,11 +57,12 @@
 
 <script setup>
 import EqGrid from "@/components/components/EqGrid.vue";
-import { defineAsyncComponent } from "vue";
+import { defineAsyncComponent, onBeforeUnmount, onMounted, ref } from "vue";
 import { useSettingsStore } from "@/stores/settings";
 import { eewSources, eqlistSources, useStatusStore } from "@/stores/status";
 import { eqUrls } from "@/utils/Urls";
 import SeisNetComponent from "./SeisNetComponent.vue";
+import { copyPerfSnapshot, getPerfSnapshot } from "@/utils/PerfMetrics";
 
 const MockEew = defineAsyncComponent(() => import("./components/MockEew.vue"));
 const settingsStore = useSettingsStore();
@@ -44,6 +81,27 @@ if (settingsStore.advancedSettings.enableTremFunctions)
 const eqlistList = eqlistSources.filter(
     source => settingsStore.mainSettings.source[source]
 );
+
+const perfSnapshot = ref(getPerfSnapshot());
+let perfTimer;
+const refreshPerf = () => perfSnapshot.value = getPerfSnapshot();
+const formatMs = value => Number.isFinite(value) ? `${Math.round(value * 10) / 10}ms` : 'N/A';
+const formatBool = value => value ? '开启' : value === false ? '关闭' : 'N/A';
+const handleCopyPerf = async () => {
+    try {
+        refreshPerf();
+        await copyPerfSnapshot();
+        ElMessage({ message: '性能快照已复制', type: 'success' });
+    } catch {
+        ElMessage({ message: '复制失败', type: 'error' });
+    }
+};
+
+onMounted(() => {
+    refreshPerf();
+    perfTimer = setInterval(refreshPerf, 1000);
+});
+onBeforeUnmount(() => clearInterval(perfTimer));
 </script>
 
 <style lang="scss" scoped>
@@ -111,6 +169,41 @@ const eqlistList = eqlistSources.filter(
                 align-self: center;
                 font-size: 16px;
                 border-radius: 25px;
+            }
+
+            .perfPanel {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid #dcdfe6;
+                border-radius: 8px;
+
+                .perfHeader {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    font-size: 18px;
+                    font-weight: 700;
+                    margin-bottom: 10px;
+                }
+
+                .perfGrid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                    gap: 8px;
+
+                    div {
+                        padding: 8px;
+                        border-radius: 6px;
+                        background: #f5f7fa;
+                        display: flex;
+                        justify-content: space-between;
+                        gap: 8px;
+                    }
+
+                    span {
+                        color: #606266;
+                    }
+                }
             }
         }
     }

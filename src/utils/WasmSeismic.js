@@ -1,3 +1,5 @@
+import { measurePerf, setPerfValue } from "./PerfMetrics.js";
+
 const WASM_URL = "/wasm/seismic_core.wasm";
 export const WAVE_MODELS = Object.freeze({
   JMA2001: 0,
@@ -30,9 +32,11 @@ export const initSeismicWasm = async () => {
   if (wasmExports || wasmUnavailable) return wasmExports;
   if (typeof WebAssembly === "undefined") {
     wasmUnavailable = true;
+    setPerfValue("wasm.seismic.available", false);
     return null;
   }
   if (!wasmInitPromise) {
+    const startedAt = performance.now();
     wasmInitPromise = fetch(WASM_URL)
       .then(response => {
         if (!response.ok) {
@@ -42,10 +46,14 @@ export const initSeismicWasm = async () => {
       })
       .then(result => {
         wasmExports = result.instance.exports;
+        setPerfValue("wasm.seismic.available", true);
+        measurePerf("wasm.seismic.init", startedAt);
         return wasmExports;
       })
       .catch(err => {
         wasmUnavailable = true;
+        setPerfValue("wasm.seismic.available", false);
+        measurePerf("wasm.seismic.init", startedAt);
         console.warn("seismic WASM unavailable, falling back to JavaScript", err);
         return null;
       });
