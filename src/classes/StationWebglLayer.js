@@ -156,6 +156,12 @@ class StationWebglLayer {
     this.styleCache = new WeakMap();
     this.circleItems = [];
     this.iconItems = [];
+    // 站点顺序只在数据或样式变化时重排，地图移动时只重算坐标。
+    this.itemsDirty = true;
+    this.sortedItems = {
+      circle: [],
+      icon: [],
+    };
     this.circleVertexBuffer = new Float32Array(0);
     this.iconVertexBuffer = new Float32Array(0);
     this.scaledIconUrlCache = new Map();
@@ -276,12 +282,18 @@ class StationWebglLayer {
       list: normalizeStationList(stations),
       version: ++this.sourceVersion,
     });
+    this.invalidateStyles();
     this.requestRender();
   }
 
   removeSource(source) {
     this.sources.delete(source);
+    this.invalidateStyles();
     this.requestRender();
+  }
+
+  invalidateStyles() {
+    this.itemsDirty = true;
   }
 
   requestRender() {
@@ -354,17 +366,31 @@ class StationWebglLayer {
     gl.drawArrays(gl.TRIANGLES, 0, vertices.length / ICON_STRIDE_FLOATS);
   }
 
-  collectStyledStations(mode) {
-    const items = mode === "circle" ? this.circleItems : this.iconItems;
-    items.length = 0;
+  rebuildStyledItems() {
+    const startedAt = performance.now();
+    this.circleItems.length = 0;
+    this.iconItems.length = 0;
     this.sources.forEach(source => {
       source.list.forEach(station => {
-        const style = this.getStationStyle(station, mode);
-        if (style) items.push(style);
+        const circleStyle = this.getStationStyle(station, "circle");
+        if (circleStyle) this.circleItems.push(circleStyle);
+        const iconStyle = this.getStationStyle(station, "icon");
+        if (iconStyle) this.iconItems.push(iconStyle);
       });
     });
-    items.sort((a, b) => a.zIndex - b.zIndex);
-    return items;
+    this.circleItems.sort((a, b) => a.zIndex - b.zIndex);
+    this.iconItems.sort((a, b) => a.zIndex - b.zIndex);
+    this.sortedItems.circle = this.circleItems.slice();
+    this.sortedItems.icon = this.iconItems.slice();
+    this.itemsDirty = false;
+    measurePerf("webgl.station.rebuildItems", startedAt);
+    setPerfValue("webgl.station.cachedCircleItems", this.sortedItems.circle.length);
+    setPerfValue("webgl.station.cachedIconItems", this.sortedItems.icon.length);
+  }
+
+  getStyledItems(mode) {
+    if (this.itemsDirty) this.rebuildStyledItems();
+    return this.sortedItems[mode];
   }
 
   getStationStyle(station, mode) {
@@ -423,7 +449,7 @@ class StationWebglLayer {
 
   buildCircleVertices() {
     const size = this.map.getSize();
-    const stations = this.collectStyledStations("circle");
+    const stations = this.getStyledItems("circle");
     const vertices = this.ensureVertexBuffer("circleVertexBuffer", stations.length * STRIDE_FLOATS);
     let offset = 0;
     stations.forEach(style => {
@@ -451,7 +477,7 @@ class StationWebglLayer {
   buildIconVertices() {
     const size = this.map.getSize();
     const pixelRatio = window.devicePixelRatio || 1;
-    const stations = this.collectStyledStations("icon");
+    const stations = this.getStyledItems("icon");
     const vertices = this.ensureVertexBuffer("iconVertexBuffer", stations.length * ICON_STRIDE_FLOATS * 6);
     let offset = 0;
     let count = 0;
