@@ -1,9 +1,9 @@
 <template>
     <div class="outer">
         <div class="container">
-            <div class="info" v-for="(item, index) of eqlists" :key="index" :style="{
+            <div class="info" v-for="(item, index) of eqlists" :key="itemActionKey(item)" :class="{ 'show-actions': activeActionIndex == index }" :style="{
                 border: `var(--${item.className}) 2px solid`
-            }">
+            }" @pointerenter="showActions(index)" @pointerleave="hideActions(index)" @click="showActions(index)">
                 <div class="background" :class="item.className"></div>
                 <div v-if="item.useShindo" class="intensity" :class="item.className">
                     <div class="intensity-title">最大震度</div>
@@ -31,9 +31,9 @@
                     </div>
                 </div>
                 <div class="buttons" @contextmenu.prevent="handleCopy(item)">
-                    <el-button class="button" type="warning" plain @click="openUrl(item.url)">查看网页</el-button>
-                    <el-button class="button" :type="isReplaying(item) ? 'danger' : 'primary'" plain @click="handleReplay(item)">{{ isReplaying(item) ? '停止回放' : '测站回放' }}</el-button>
-                    <el-button class="button" :type="displayIds.has(item.id) ? 'danger' : 'success'" plain @click="displayOnMap(item)">{{ displayIds.has(item.id) ? '取消显示' : '地图显示' }}</el-button>
+                    <el-button class="button" type="warning" plain @click.stop="openUrl(item.url)">查看网页</el-button>
+                    <el-button class="button" :type="isReplaying(item) ? 'danger' : 'primary'" plain @click.stop="handleReplay(item)">{{ isReplaying(item) ? '停止回放' : '测站回放' }}</el-button>
+                    <el-button class="button" :type="displayIds.has(itemActionKey(item)) ? 'danger' : 'success'" plain @click.stop="displayOnMap(item)">{{ displayIds.has(itemActionKey(item)) ? '取消显示' : '地图显示' }}</el-button>
                 </div>
             </div>
         </div>
@@ -45,7 +45,7 @@ import '@/assets/background.css';
 import { reactive, computed, inject, onBeforeUnmount, ref, watch } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
 import { defaultEqMessage, useStatusStore } from '@/stores/status';
-import { openUrl, formatTimeZone, formatCsis, calcTimeDiff, formatShindo, calcPassedTime, stampToTime } from '@/utils/Utils';
+import { openUrl, formatTimeZone, formatCsis, calcTimeDiff, formatShindo, calcPassedTime, stampToTime, setClassName } from '@/utils/Utils';
 import { useTimeStore } from '@/stores/time';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -61,8 +61,10 @@ const timeStore = useTimeStore()
 const smartSetView = inject('smartSetView')
 const historyList = inject('historyList')
 const activeEewList = inject('activeEewList')
+const handleTempEqlists = inject('handleTempEqlists')
 
 const maxHistoryNumber = 100
+const activeActionIndex = ref(-1)
 // 只记这次回放自己开的东西，别顺手关掉用户手动开的模拟预警。
 const replayId = ref(null)
 const replayMockId = ref(null)
@@ -70,7 +72,23 @@ let mockTimer
 const flatted = computed(() => Object.values(statusStore.history).flat())
 const sorted = computed(() => flatted.value.sort((a, b) => calcTimeDiff(b.originTime, b.timeZone, a.originTime, a.timeZone)))
 const eqlists = computed(() => sorted.value.filter(item => (settingsStore.mainSettings.historyMagThres == 0 || item.magnitude >= settingsStore.mainSettings.historyMagThres) && settingsStore.mainSettings.historySources.includes(item.source)).slice(0, maxHistoryNumber))
-const isReplaying = item => replayId.value == item.id && settingsStore.mainSettings.displaySeisNet.delay > 0
+const hasItemId = item => item.id != null && item.id !== ''
+const itemActionKey = item => hasItemId(item) ? `${item.source}|${item.id}` : [
+    item.source,
+    item.originTime,
+    item.timeZone,
+    item.hypocenter,
+    item.lat,
+    item.lng,
+    item.depth,
+    item.magnitude,
+    item.url
+].join('|')
+const showActions = index => activeActionIndex.value = index
+const hideActions = index => {
+    if(activeActionIndex.value == index) activeActionIndex.value = -1
+}
+const isReplaying = item => replayId.value == itemActionKey(item) && settingsStore.mainSettings.displaySeisNet.delay > 0
 const handleReplay = (item) => {
     if(isReplaying(item)) {
         stopReplay()
@@ -78,10 +96,10 @@ const handleReplay = (item) => {
     }
     stopReplay()
     const passedTime = Math.max(calcPassedTime(item.originTime, item.timeZone) / 60000 + 0.1, 0)
-    replayId.value = item.id
+    replayId.value = itemActionKey(item)
     settingsStore.mainSettings.displaySeisNet.delay = passedTime
     if (settingsStore.advancedSettings.mockOnReplay && settingsStore.advancedSettings.mockEew) {
-        createMockEew(item)
+        void createMockEew(item)
     }
 }
 const stopReplayMock = () => {
@@ -130,19 +148,23 @@ const handleCopy = async (item) => {
         })
     }
 }
-const displayIds = computed(() => new Set(historyList.map(event => event.eqMessage.id)))
+const displayIds = computed(() => new Set(historyList.map(event => event.eqMessage.historyActionKey ?? event.eqMessage.id)))
 let historyClassModulePromise
 const loadHistoryClassModule = () => {
     historyClassModulePromise ||= import('@/classes/EewEqlistClasses')
     return historyClassModulePromise
 }
 const displayOnMap = async (item) => {
-    const event = historyList.find(event => event.eqMessage.id == item.id)
+    const actionKey = itemActionKey(item)
+    const event = historyList.find(event => (event.eqMessage.historyActionKey ?? event.eqMessage.id) == actionKey)
     if(event) {
         event.deactivate()
     }
     else {
         const eqMessage = Object.assign({}, defaultEqMessage, item)
+        // 有些历史源不给id，前端操作需要自己补一个稳定键。
+        eqMessage.id = hasItemId(item) ? item.id : actionKey
+        eqMessage.historyActionKey = actionKey
         eqMessage.historySource = item.source
         eqMessage.source = 'history'
         eqMessage.title = eqMessage.titleText = '历史地震 ' + `(${item.source})`
@@ -155,11 +177,12 @@ const displayOnMap = async (item) => {
         newEvent.update(eqMessage)
     }
 }
-const createMockEew = (item) => {
+const createMockEew = async (item) => {
     const now = timeStore.getTimeStamp()
     replayMockId.value = now
     const originTime = dayjs(now).add(6, 'seconds').utcOffset(item.timeZone * 60).format('YYYY-MM-DD HH:mm:ss')
     const eqMessage = {
+        source: 'mockEew',
         id: now,
         isEew: true,
         timeZone: item.timeZone,
@@ -184,11 +207,17 @@ const createMockEew = (item) => {
         magnitudeText: '震级: ' + item.magnitude.toFixed(1),
         useShindo: item.useShindo,
         maxIntensity: item.maxIntensity,
-        maxIntensityText: (item.useShindo ? '推定最大震度: ' : '预估最大烈度: ') + item.maxIntensity
+        maxIntensityText: (item.useShindo ? '推定最大震度: ' : '预估最大烈度: ') + item.maxIntensity,
+        className: setClassName(item.maxIntensity, item.useShindo)
     }
     clearTimeout(mockTimer)
-    mockTimer = setTimeout(() => {
-        statusStore.setEqMessage('mockEew', eqMessage)
+    mockTimer = setTimeout(async () => {
+        if(replayMockId.value != now || !statusStore.map) return
+        const { EewEvent } = await loadHistoryClassModule()
+        const displayTime = (eqMessage.isWarn ? Math.max(eqMessage.magnitude, 6) : Math.max(eqMessage.magnitude, 3)) * 60 * 1000
+        const newEvent = reactive(new EewEvent(statusStore.map, Object.assign({}, eqMessage), activeEewList, handleTempEqlists, smartSetView))
+        activeEewList.unshift(newEvent)
+        newEvent.update(Object.assign({}, eqMessage), displayTime, true)
     }, 6000);
 }
 </script>
@@ -212,8 +241,11 @@ const createMockEew = (item) => {
             align-items: center;
             pointer-events: auto;
             position: relative;
-            &:hover .buttons {
-                display: flex;
+            &:hover .buttons,
+            &:focus-within .buttons,
+            &.show-actions .buttons {
+                opacity: 1;
+                pointer-events: auto;
             }
             * {
                 z-index: 1;
@@ -323,10 +355,13 @@ const createMockEew = (item) => {
                 position: absolute;
                 background-color: #ffffff9f;
                 backdrop-filter: blur(1px);
-                display: none;
+                display: flex;
                 justify-content: space-evenly;
                 align-items: center;
                 z-index: 2;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.12s ease-out;
                 .button {
                     width: 88px;
                     height: 32px;

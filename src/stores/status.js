@@ -4,7 +4,6 @@ import WebSocketObj from '@/classes/WebSocket';
 import { eqUrls, iconUrls, tsunamiUrls } from '@/utils/Urls';
 import { setClassName, calcCsisLevel, stampToTime, getShindoFromInstShindo, shindoScaleKanji, calcTimeDiff, playSound, sendMyNotification, focusWindow, formatShindo } from '@/utils/Utils';
 import { loadJmaSeisIntLoc } from '@/utils/JmaSeisIntLocLoader';
-import { buildCwaAreaIntensities } from '@/utils/IntensityAreas';
 import { useSettingsStore } from './settings';
 import { isTauri } from '@tauri-apps/api/core';
 import { getFENameAsync } from '@/utils/FERegionsLoader';
@@ -1184,9 +1183,7 @@ export const useStatusStore = defineStore('statusStore', {
                             className: setClassName(maxIntensity, true),
                             url: 'https://scweb.cwa.gov.tw/zh-tw/earthquake/data',
                             imageURI: data[i].imageURI,
-                            shakemapURI: data[i].shakemapURI,
-                            // CWA 列表只有最大震度和震央县市，先用于地图上保留一个可见分区。
-                            areaIntensities: buildCwaAreaIntensities(placeName, maxIntensity)
+                            shakemapURI: data[i].shakemapURI
                         }
                         break
                     }

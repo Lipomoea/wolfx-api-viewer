@@ -433,7 +433,7 @@ let tempEqlistsTimer
 const handleTempEqlists = (time, source = '') => {
     clearTimeout(tempEqlistsTimer)
     if(time && source) {
-        clearHistoryList()
+        // 手动点“地图显示”的历史事件，别被新消息的临时焦点抢掉。
         tempEqlists.value = source
         tempEqlistsTimer = setTimeout(() => {
             tempEqlists.value = ''
@@ -806,7 +806,6 @@ onMounted(()=>{
         }
     })
     watch(menuId, (newVal) => {
-        clearHistoryList()
         simpleIcon.value = newVal == 'eqlists'
         drawer.value.scrollTop = 0
         if(newVal == 'eews'){
@@ -1673,7 +1672,7 @@ const jpEewInfoList = computed(()=>{
     return jpEewInfoList
 })
 const historyJmaInfoList = computed(() => {
-    if(menuId.value != 'eqlists') return []
+    if(!settingsStore.advancedSettings.forceCalcInt || menuId.value != 'eqlists') return []
     return historyList
         .filter(event => {
             const eqMessage = event.eqMessage
