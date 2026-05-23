@@ -50,12 +50,10 @@ varying vec2 v_unitPosition;
 varying vec4 v_color;
 void main() {
   float radius = clamp(length(v_unitPosition), 0.0, 1.0);
-  float bodyScale = smoothstep(0.12, 0.72, radius) * (1.0 - smoothstep(0.94, 1.0, radius));
-  float edgeScale = smoothstep(0.68, 1.0, radius);
-  vec3 bodyColor = mix(v_color.rgb, vec3(0.0), 0.18);
-  vec3 edgeColor = mix(v_color.rgb, vec3(1.0), edgeScale * 0.24);
-  vec3 waveColor = mix(bodyColor, edgeColor, edgeScale);
-  float alphaScale = max(bodyScale * 0.82, edgeScale);
+  float bodyScale = smoothstep(0.18, 0.70, radius) * (1.0 - smoothstep(0.90, 0.96, radius));
+  float edgeScale = smoothstep(0.84, 1.0, radius);
+  vec3 waveColor = mix(vec3(0.0), v_color.rgb, edgeScale);
+  float alphaScale = max(bodyScale * 0.55, edgeScale);
   gl_FragColor = vec4(waveColor, v_color.a * alphaScale);
 }
 `;
@@ -291,7 +289,8 @@ class WaveWebglLayer {
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    // 透明画布里不能让 alpha 再乘一次；Chromium 下波面会因此淡到近乎不可见。
+    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
   }
 
   radiusToPixels(lat, lng, radiusKm) {

@@ -647,8 +647,9 @@ onMounted(()=>{
     map.getPane('terminatorFillPane').style.zIndex = 9
     map.createPane('waveFillPane')
     waveFillPane = map.getPane('waveFillPane')
-    // 不盖住烈度图层，改回10
-    waveFillPane.style.zIndex = 10
+    // Chromium/ANGLE 会按 z-index 严格合成，放在烈度底图下面时填色会被盖住。
+    // 这里只压过烈度面，仍低于断层、海啸和测站。
+    waveFillPane.style.zIndex = 25
     map.createPane('eewBasePane')
     eewBasePane = map.getPane('eewBasePane')
     eewBasePane.style.zIndex = 20
