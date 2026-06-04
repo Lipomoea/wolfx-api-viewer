@@ -37,7 +37,7 @@ const getColorFromPower = power => {
         color = 'var(--purple)';
     }
     return color;
-}
+};
 
 const createTyphoonSvgMarker = (currentInfo) => {
     const { id, name, nameEn, landInfos, time, lat, lng, category, power, windSpeed, pressure, moveSpeed } = currentInfo;
@@ -97,7 +97,7 @@ const createTyphoonSvgMarker = (currentInfo) => {
         ${landInfos.join('<br>') || '暂无台风登陆信息'}
     `, { permanent: false, direction: 'top', className: 'custom-tooltip' });
     return marker;
-}
+};
 
 const generateWindCirclePoints = (lat, lng, radii) => {
     if (!radii || typeof radii !== 'object') {
@@ -193,7 +193,7 @@ const createTyphoonPathLine = (latlngs, isForecast = false) => {
             color: 'var(--green)',
             opacity: 1
         });
-}
+};
 
 const createTyphoonPointMarker = (info, isForecast = false) => {
     const baseOptions = {
@@ -226,7 +226,7 @@ const createTyphoonPointMarker = (info, isForecast = false) => {
     `;
     marker.bindTooltip(tooltipHtml, { permanent: false, direction: 'top', className: 'custom-tooltip' });
     return marker;
-}
+};
 
 const extractRadiusFromStr = radiusStr => {
     const radiusArr = radiusStr.split('|').map(str => Number(str));
@@ -237,7 +237,7 @@ const extractRadiusFromStr = radiusStr => {
         sw: radiusArr[3],
         nw: radiusArr[2],
     };
-}
+};
 
 const fetchTyphoonData = async () => {
     try {
@@ -307,27 +307,15 @@ const fetchTyphoonData = async () => {
     } catch (err) {
         console.log(err);
     }
-}
+};
 
 let updateTimer;
 const loopFetch = async () => {
     clearTimeout(updateTimer);
     const isSuccess = await fetchTyphoonData();
-    let interval;
-    const minutesPast = timeStore.getTimeStamp() / 60000 % 180;
-    if (!isSuccess) {
-        interval = 1 * 60000;
-    } else if (minutesPast < 10 || minutesPast > 175) {
-        interval = 5 * 60000;
-    } else if (minutesPast > 170) {
-        interval = 10 * 60000;
-    } else {
-        interval = 15 * 60000;
-    }
-    updateTimer = setTimeout(() => {
-        loopFetch();
-    }, interval);
-}
+    const interval = isSuccess ? 10 * 60000 : 10000;
+    updateTimer = setTimeout(loopFetch, interval);
+};
 
 let layers = [];
 let map;
@@ -336,7 +324,7 @@ const addAndRecordLayer = layer => {
     if (!map || !layer) return;
     layer.addTo(map);
     layers.push(layer);
-}
+};
 
 const removeAllLayers = () => {
     if (!map) return;
@@ -344,7 +332,7 @@ const removeAllLayers = () => {
         if (map.hasLayer(item)) map.removeLayer(item);
     });
     layers = [];
-}
+};
 
 const handleUpdate = () => {
     if (!map) return;
@@ -379,7 +367,7 @@ const handleUpdate = () => {
         addAndRecordLayer(svgMarker);
     });
     updateTime.value = stampToTime(timeStore.getTimeStamp(), 8);
-}
+};
 
 let unwatchData;
 
@@ -395,7 +383,7 @@ onBeforeUnmount(() => {
     clearTimeout(updateTimer);
     if (unwatchData) unwatchData();
     removeAllLayers();
-})
+});
 </script>
 
 <style lang="scss" scoped></style>
