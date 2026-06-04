@@ -96,3 +96,6 @@ export const utilUrls = {
   geoIp: "https://api.wolfx.jp/geoip.php",
   ntpTime: "https://api.fanstudio.tech/tool/ntp.php",
 };
+export const typhoonUrls = {
+  typhoon_http: "https://api.fanstudio.tech/we/typhoon.php",
+};

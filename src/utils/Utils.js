@@ -19,6 +19,8 @@ dayjs.extend(timezone);
 let timeStore;
 let settingsStore;
 
+const EARTH_RADIUS_KM = 6371;
+
 export const formatNumber = (value, digit) => {
   if (value) {
     if (digit) return value.toFixed(digit);
@@ -390,8 +392,8 @@ export const pointDistToKrArea = (pointLngLat, feature) => {
     return minDist;
   }
 };
-const r = 6371;
 const calcLineDis = (dep, dis) => {
+  const r = EARTH_RADIUS_KM;
   const theta = dis / r;
   const a = r - dep;
   const lineDis = Math.sqrt(a * a + r * r - 2 * a * r * Math.cos(theta));
@@ -552,3 +554,35 @@ export const getMmiFromKmaLevel = level =>
   level == -1 ? "?" : Math.min(Math.max(level - 2, 0), 11).toString();
 export const exactRound = (input, digit) =>
   Number(Math.round(input + "e" + digit) + "e-" + digit);
+export const getCoordByDistanceBearing = (lat, lng, distanceKm, bearing) => {
+  const radiusKm = EARTH_RADIUS_KM;
+  const toRadians = degrees => (degrees * Math.PI) / 180;
+  const toDegrees = radians => (radians * 180) / Math.PI;
+
+  const normalizedBearing = ((bearing % 360) + 360) % 360;
+
+  const lat1Rad = toRadians(lat);
+  const lng1Rad = toRadians(lng);
+  const bearingRad = toRadians(normalizedBearing);
+
+  const angularDistance = distanceKm / radiusKm;
+
+  const lat2Rad = Math.asin(
+    Math.sin(lat1Rad) * Math.cos(angularDistance) +
+      Math.cos(lat1Rad) * Math.sin(angularDistance) * Math.cos(bearingRad),
+  );
+
+  const lng2Rad =
+    lng1Rad +
+    Math.atan2(
+      Math.sin(bearingRad) * Math.sin(angularDistance) * Math.cos(lat1Rad),
+      Math.cos(angularDistance) - Math.sin(lat1Rad) * Math.sin(lat2Rad),
+    );
+
+  let lat2 = toDegrees(lat2Rad);
+  let lng2 = toDegrees(lng2Rad);
+
+  lng2 = ((lng2 + 540) % 360) - 180;
+
+  return [lat2, lng2];
+};

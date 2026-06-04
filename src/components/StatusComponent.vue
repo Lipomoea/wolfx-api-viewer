@@ -14,6 +14,7 @@
                     <EqGrid v-for="(source, index) of eqlistList" :key="index" :source />
                 </div>
                 <SeisNetComponent v-show="false" />
+                <TyphoonComponent v-if="settingsStore.mainSettings.displayTyphoon" />
             </div>
         </div>
     </div>
@@ -26,6 +27,7 @@ import { useSettingsStore } from "@/stores/settings";
 import { eewSources, eqlistSources, useStatusStore } from "@/stores/status";
 import { eqUrls } from "@/utils/Urls";
 import SeisNetComponent from "./SeisNetComponent.vue";
+import TyphoonComponent from "./TyphoonComponent.vue";
 
 const settingsStore = useSettingsStore();
 const statusStore = useStatusStore();

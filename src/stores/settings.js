@@ -119,7 +119,8 @@ export const useSettingsStore = defineStore('settingsStore', {
             autoCheckNewVersion: false,
             checkPrerelease: false,
             gameMode: false,
-            autoRefresh: false
+            autoRefresh: false,
+            displayTyphoon: false
         },
         advancedSettings: {
             enableIclEew: false,

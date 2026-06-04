@@ -56,3 +56,29 @@ path.leaflet-interactive:focus {
 .el-message-box__message * {
   margin: 0.5em 0;
 }
+
+@keyframes typhoon-spin-ccw {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.typhoon-animated-slow {
+  animation: typhoon-spin-ccw 3s linear infinite;
+  transform-origin: center center; 
+}
+.typhoon-animated-mid {
+  animation: typhoon-spin-ccw 2s linear infinite;
+  transform-origin: center center; 
+}
+.typhoon-animated-fast {
+  animation: typhoon-spin-ccw 1s linear infinite;
+  transform-origin: center center; 
+}
+.typhoon-animated-very-fast {
+  animation: typhoon-spin-ccw 0.5s linear infinite;
+  transform-origin: center center; 
+}

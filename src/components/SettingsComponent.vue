@@ -726,17 +726,6 @@
                             </div>
                         </div>
                     </div>
-                    <span class="font-bold w-full">地图烈度</span>
-                    <div class="switch-group">
-                        <div class="switch-full">
-                            <span>显示地图烈度图例</span>
-                            <el-switch v-model="settingsStore.mainSettings.displayLegend" :disabled="settingsStore.mainSettings.disableEewBaseMap" />
-                        </div>
-                        <div class="switch-full">
-                            <span>显示区域烈度列表</span>
-                            <el-switch v-model="settingsStore.mainSettings.displayAreaIntensities" />
-                        </div>
-                    </div>
                     <span class="font-bold w-full">
                         默认视野设置
                         <el-popover
@@ -805,7 +794,74 @@
                             >清除</el-button>
                         </div>
                     </div>
-                    <span class="font-bold w-full">其他</span>
+                    <span class="font-bold w-full">烈度/震度</span>
+                    <div class="switch-group">
+                        <div class="switch-full">
+                            <span>使用罗马数字显示烈度</span>
+                            <el-switch v-model="settingsStore.mainSettings.useRomanCsis" />
+                        </div>
+                        <div class="switch-full">
+                            <span>显示地图烈度/震度图例</span>
+                            <el-switch v-model="settingsStore.mainSettings.displayLegend" :disabled="settingsStore.mainSettings.disableEewBaseMap" />
+                        </div>
+                        <div class="switch-full">
+                            <span>显示区域烈度/震度列表</span>
+                            <el-switch v-model="settingsStore.mainSettings.displayAreaIntensities" />
+                        </div>
+                    </div>
+                    <span class="font-bold w-full">地名</span>
+                    <div class="switch-group">
+                        <div class="switch-full">
+                            <span>地图显示地名</span>
+                            <el-switch v-model="settingsStore.mainSettings.displayPlaceName"
+                            @change="handleNeedReload" />
+                        </div>
+                        <div class="switch-full">
+                            <span>鼠标悬浮地图时显示地名</span>
+                            <el-switch v-model="settingsStore.mainSettings.placeNameOnHover"
+                            :disabled="settingsStore.mainSettings.useCanvasRenderer"
+                            @change="handleNeedReload" />
+                        </div>
+                    </div>
+                    <span class="font-bold w-full">地震波</span>
+                    <div class="switch-group">
+                        <div class="switch-full">
+                            <span>横波颜色模式</span>
+                            <el-select
+                                style="width: 168px;"
+                                v-model="settingsStore.mainSettings.sWaveColorMode"
+                                size="small"
+                            >
+                                <el-option label="根据是否为警报填色" :value=0 />
+                                <el-option label="根据震级填色" :value=1 />
+                                <el-option label="根据最大烈度/震度填色" :value=2 />
+                            </el-select>
+                        </div>
+                        <div class="switch-full">
+                            <span>填充横波</span>
+                            <el-switch v-model="settingsStore.mainSettings.fillSWave" />
+                        </div>
+                    </div>
+                    <span class="font-bold w-full">UI</span>
+                    <div class="switch-group">
+                        <div class="switch-full">
+                            <span>UI缩放比例</span>
+                            <el-select
+                                style="width: 120px;"
+                                v-model="settingsStore.mainSettings.uiScale"
+                                size="small"
+                            >
+                                <el-option label="自动" :value=-1 />
+                                <el-option label="50%" :value=0.5 />
+                                <el-option label="75%" :value=0.75 />
+                                <el-option label="100%（推荐）" :value=1 />
+                                <el-option label="125%" :value=1.25 />
+                                <el-option label="150%" :value=1.5 />
+                                <el-option label="200%" :value=2 />
+                            </el-select>
+                        </div>
+                    </div>
+                    <span class="font-bold w-full">个性化</span>
                     <div class="switch-group">
                         <div class="switch-full">
                             <span>默认页面</span>
@@ -845,59 +901,20 @@
                             />
                         </div>
                         <div class="switch-full">
-                            <span>UI缩放比例</span>
+                            <span>地震信息显示模式</span>
                             <el-select
-                                style="width: 120px;"
-                                v-model="settingsStore.mainSettings.uiScale"
+                                style="width: 192px;"
+                                v-model="settingsStore.mainSettings.eqlistsDisplayMode"
                                 size="small"
+                                @change="handleNeedReload"
                             >
-                                <el-option label="自动" :value=-1 />
-                                <el-option label="50%" :value=0.5 />
-                                <el-option label="75%" :value=0.75 />
-                                <el-option label="100%（推荐）" :value=1 />
-                                <el-option label="125%" :value=1.25 />
-                                <el-option label="150%" :value=1.5 />
-                                <el-option label="200%" :value=2 />
+                                <el-option label="显示每个数据源的最新地震" :value=0 />
+                                <el-option label="显示全部数据源中的最新地震" :value=1 />
                             </el-select>
                         </div>
                         <div class="switch-full">
-                            <span>地图显示地名</span>
-                            <el-switch v-model="settingsStore.mainSettings.displayPlaceName"
-                            @change="handleNeedReload" />
-                        </div>
-                        <div class="switch-full">
-                            <span>鼠标悬浮地图时显示地名</span>
-                            <el-switch v-model="settingsStore.mainSettings.placeNameOnHover"
-                            :disabled="settingsStore.mainSettings.useCanvasRenderer"
-                            @change="handleNeedReload" />
-                        </div>
-                        <div class="switch-full">
-                            <span>显示中国断层</span>
-                            <el-switch v-model="settingsStore.mainSettings.displayCnFault" />
-                        </div>
-                        <div class="switch-full">
-                            <span>显示晨昏线</span>
-                            <el-switch v-model="settingsStore.mainSettings.displayTerminator" />
-                        </div>
-                        <div class="switch-full">
-                            <span>使用罗马数字显示烈度</span>
-                            <el-switch v-model="settingsStore.mainSettings.useRomanCsis" />
-                        </div>
-                        <div class="switch-full">
-                            <span>填充横波</span>
-                            <el-switch v-model="settingsStore.mainSettings.fillSWave" />
-                        </div>
-                        <div class="switch-full">
-                            <span>横波颜色模式</span>
-                            <el-select
-                                style="width: 168px;"
-                                v-model="settingsStore.mainSettings.sWaveColorMode"
-                                size="small"
-                            >
-                                <el-option label="根据是否为警报填色" :value=0 />
-                                <el-option label="根据震级填色" :value=1 />
-                                <el-option label="根据最大烈度/震度填色" :value=2 />
-                            </el-select>
+                            <span>总是显示最新的地震信息框</span>
+                            <el-switch v-model="settingsStore.mainSettings.alwaysDisplayLatestInfo" />
                         </div>
                         <div class="switch-full">
                             <span>
@@ -915,21 +932,20 @@
                             </span>
                             <el-switch v-model="settingsStore.mainSettings.hideDrawer" />
                         </div>
+                    </div>
+                    <span class="font-bold w-full">附加功能</span>
+                    <div class="switch-group">
                         <div class="switch-full">
-                            <span>地震信息显示模式</span>
-                            <el-select
-                                style="width: 192px;"
-                                v-model="settingsStore.mainSettings.eqlistsDisplayMode"
-                                size="small"
-                                @change="handleNeedReload"
-                            >
-                                <el-option label="显示每个数据源的最新地震" :value=0 />
-                                <el-option label="显示全部数据源中的最新地震" :value=1 />
-                            </el-select>
+                            <span>显示中国断层</span>
+                            <el-switch v-model="settingsStore.mainSettings.displayCnFault" />
                         </div>
                         <div class="switch-full">
-                            <span>总是显示最新的地震信息框</span>
-                            <el-switch v-model="settingsStore.mainSettings.alwaysDisplayLatestInfo" />
+                            <span>显示晨昏线</span>
+                            <el-switch v-model="settingsStore.mainSettings.displayTerminator" />
+                        </div>
+                        <div class="switch-full">
+                            <span>显示台风信息</span>
+                            <el-switch v-model="settingsStore.mainSettings.displayTyphoon" />
                         </div>
                     </div>
                 </div>
@@ -1741,7 +1757,17 @@ const checkNewVersion = async (silent = false) => {
         if(isTauri) {
             let fileType
             if(thisPlatform == 'windows') fileType = '.exe'
-            else if(thisPlatform == 'linux') fileType = '.deb'
+            else if(thisPlatform == 'linux') {
+                if(thisArch == 'aarch64') fileType = 'arm64.deb'
+                else if(thisArch == 'x86_64') fileType = 'amd64.deb'
+                else {
+                    ElMessage({
+                        message: '未识别的系统架构',
+                        type: 'error'
+                    })
+                    return
+                }
+            }
             else if(thisPlatform == 'macos') {
                 if(thisArch == 'aarch64') fileType = 'aarch64.dmg'
                 else if(thisArch == 'x86_64') fileType = 'x64.dmg'

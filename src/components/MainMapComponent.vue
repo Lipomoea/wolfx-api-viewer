@@ -647,6 +647,14 @@ onMounted(()=>{
     map.createPane('eewMarkerPane')
     eewMarkerPane = map.getPane('eewMarkerPane')
     eewMarkerPane.style.zIndex = 200
+    map.createPane('typhoonWindCirclePane')
+    map.getPane('typhoonWindCirclePane').style.zIndex = 201
+    map.createPane('typhoonPathLinePane')
+    map.getPane('typhoonPathLinePane').style.zIndex = 202
+    map.createPane('typhoonPointMarkerPane')
+    map.getPane('typhoonPointMarkerPane').style.zIndex = 203
+    map.createPane('typhoonIconMarkerPane')
+    map.getPane('typhoonIconMarkerPane').style.zIndex = 204
     map.on('dragstart', handleManual)
     map.on('zoomend', () => zoomLevel.value = map.getZoom())
     if(settingsStore.advancedSettings.preventFlickerMode){
