@@ -58,19 +58,19 @@ const createTyphoonSvgMarker = (currentInfo) => {
     const marker = L.marker(latlng, { icon: svgIcon, pane: 'typhoonIconMarkerPane' });
     let warnLevel;
     switch (currentInfo.warnLevel) {
-        case 'white': 
+        case 'white':
             warnLevel = '台风白色预警';
             break;
-        case 'blue': 
+        case 'blue':
             warnLevel = '台风蓝色预警';
             break;
-        case 'yellow': 
+        case 'yellow':
             warnLevel = '台风黄色预警';
             break;
-        case 'orange': 
+        case 'orange':
             warnLevel = '台风橙色预警';
             break;
-        case 'red': 
+        case 'red':
             warnLevel = '台风红色预警';
             break;
         default:
@@ -177,7 +177,6 @@ const createTyphoonWindCircles = (centerLat, centerLng, radius7, radius10, radiu
 
 const createTyphoonPathLine = (latlngs, isForecast = false) => {
     const baseOptions = {
-        opacity: 1,
         weight: 1.5,
         pane: 'typhoonPathLinePane',
         interactive: false
@@ -186,11 +185,13 @@ const createTyphoonPathLine = (latlngs, isForecast = false) => {
         ? L.polyline(latlngs, {
             ...baseOptions,
             color: 'var(--red)',
+            opacity: 0.75,
             dashArray: '10, 10'
         })
         : L.polyline(latlngs, {
             ...baseOptions,
-            color: 'var(--green)'
+            color: 'var(--green)',
+            opacity: 1
         });
 }
 
