@@ -1382,7 +1382,7 @@ export const useStatusStore = defineStore('statusStore', {
                                     const Data = data[source2Fan[source]]?.Data
                                     if(Data) {
                                         if (source == 'nmefcTsunami') {
-                                            if (data.warningInfo.level != '信息') {
+                                            if (Data.warningInfo.level != '信息') {
                                                 this.setTsunamiMessage(source, Data)
                                             }
                                         }
