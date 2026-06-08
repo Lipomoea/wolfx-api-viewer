@@ -269,7 +269,6 @@ onMounted(()=>{
                         stations.forEach(station => {
                             station.recentLevel.unshift(...noDataArr)
                             station.recentLevel.splice(station.maxRecentLength)
-                            station.expireSeconds = Math.max(station.expireSeconds - popNum, station.defaultExpireSeconds)
                         })
                     }
                     if(timeDiff > 10000) {
@@ -281,7 +280,6 @@ onMounted(()=>{
                         stations.forEach(station => {
                             station.level = -1
                             station.recentLevel = []
-                            station.expireSeconds = station.defaultExpireSeconds
                             station.isActive = false
                         })
                         clearAbnormalList()

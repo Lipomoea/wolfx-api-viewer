@@ -161,7 +161,7 @@ export class NiedStation {
         this.map = map
         this.id = id
         this.latLng = latLng
-        this.defaultExpireSeconds = this.expireSeconds = expireSeconds
+        this.expireSeconds = expireSeconds
         this.maxRecentLength = 60
         this.shindo = getShindoFromChar(intensity)
         this.level = intensity.charCodeAt(0) - 100
@@ -175,14 +175,11 @@ export class NiedStation {
     update(intensity, render = true){
         const originLevel = intensity.charCodeAt(0) - 100
         const level = originLevel == -1 ? this.recentLevel.slice(0, 4).find(val => val != -1) ?? -1 : originLevel
-        if(level > this.level && this.level != -1) this.expireSeconds = Math.min(this.expireSeconds + 1, this.maxRecentLength)
-        else if(level < this.level || level == -1) this.expireSeconds = this.defaultExpireSeconds
         if(level != this.level){
             this.shindo = getShindoFromChar(intensity)
             this.level = level
             render && this.render()
         }
-        let recentFilter = this.recentLevel.slice(0, this.expireSeconds).filter(val => val != -1)
         this.recentLevel.unshift(originLevel)
         this.recentLevel.splice(this.maxRecentLength)
         let ascend = 0
@@ -199,20 +196,61 @@ export class NiedStation {
                 }
             }
             else {
-                if(recentFilter.length > 0) {
-                    const minRecent = Math.min(...recentFilter)
-                    ascend = level - minRecent
-                }
+                ascend = this.calcAscend()
             }
         }
         this.ascend = ascend
         this.activity = this.calcActivity(level, ascend)
-        if(this.expireSeconds > this.defaultExpireSeconds && !this.isActive && this.recentLevel.length >= this.expireSeconds) {
-            recentFilter = this.recentLevel.slice(0, this.expireSeconds).filter(val => val != -1)
-            if(recentFilter.every(val => val == recentFilter[0])) {
-                this.expireSeconds = this.defaultExpireSeconds
+    }
+    calcAscend() {
+        const arr = [...this.recentLevel];
+        if (arr.length === 0) {
+            return 0;
+        }
+        let i = 0;
+        while (i < arr.length) {
+            if (arr[i] === -1) {
+                let nextValidIndex = i + 1;
+                while (nextValidIndex < arr.length && arr[nextValidIndex] === -1) {
+                    nextValidIndex++;
+                }
+                if (nextValidIndex < arr.length) {
+                    arr[i] = arr[nextValidIndex];
+                    i++;
+                } else {
+                    arr.splice(i);
+                    break;
+                }
+            } else {
+                i++;
             }
         }
+        if (arr.length === 0) {
+            return 0;
+        }
+
+        let minVal = -1;
+        let identicalCount = 1;
+        for (let i = 0; i < arr.length - 1; i++) {
+            const current = arr[i];
+            const next = arr[i + 1];
+            if (next < current) {
+                identicalCount = 1;
+            } else if (next > current) {
+                minVal = current;
+                break;
+            } else {
+                identicalCount++;
+                if (identicalCount > this.expireSeconds) {
+                    minVal = current;
+                    break;
+                }
+            }
+        }
+        if (minVal == -1) {
+            minVal = arr[arr.length - 1];
+        }
+        return this.level - minVal;
     }
     isAbnormalStation() {
         // 如果近期数据出现3个及以上的高峰视为异常数据
@@ -240,11 +278,11 @@ export class NiedStation {
                 rightBottom = recentFilter[i];
                 i++;
             }
-            if (top - leftBottom >= 4 && top - rightBottom >= 4) {
+            if (top - leftBottom >= 3 && top - rightBottom >= 3) {
                 peakCount++;
             }
         }
-        return peakCount >= 3;
+        return peakCount >= 2;
     }
     calcActivity(level, ascend){
         let levelActivity, ascendActivity
