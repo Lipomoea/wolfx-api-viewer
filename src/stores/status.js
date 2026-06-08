@@ -20,6 +20,7 @@ export const defaultEqMessage = {
     id: '',
     isEew: false,
     timeZone: 8,
+    intTitle: '',
     reportNum: 0,
     reportNumText: '',
     reportTime: '',
@@ -260,6 +261,7 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.isEew = true
                         eqMessage.timeZone = 9
                         eqMessage.useShindo = true
+                        eqMessage.intTitle = '推定最大震度'
                         switch(type) {
                             case 0: {
                                 const trainingText = data.isTraining ? '訓練·' : ''
@@ -382,6 +384,7 @@ export const useStatusStore = defineStore('statusStore', {
                     case 'cwaEew':{
                         eqMessage.isEew = true
                         eqMessage.useShindo = true
+                        eqMessage.intTitle = '預估最大震度'
                         switch(type) {
                             case 0:
                                 eqMessage.id = data.ID
@@ -623,6 +626,7 @@ export const useStatusStore = defineStore('statusStore', {
                     case 'kmaEew': {
                         eqMessage.id = data.id
                         eqMessage.isEew = true
+                        eqMessage.intTitle = '최대예상진도'
                         eqMessage.reportNum = data.updates || 1
                         eqMessage.reportNumText = '제' + eqMessage.reportNum + '보'
                         eqMessage.reportTime = data.createTime
@@ -885,6 +889,7 @@ export const useStatusStore = defineStore('statusStore', {
                     }
                     case 'kmaEqlist':{
                         eqMessage.timeZone = 9
+                        eqMessage.intTitle = '최대진도'
                         eqMessage.id = data.id
                         eqMessage.reportTime = data.createTime
                         eqMessage.title = '기상청 지진 정보'
@@ -1375,8 +1380,16 @@ export const useStatusStore = defineStore('statusStore', {
                             case 'initial_all': case 'query_response': {
                                 this.activeFanSources.forEach(source => {
                                     const Data = data[source2Fan[source]]?.Data
-                                    if(Data)
-                                        source.endsWith('Tsunami') ? this.setTsunamiMessage(source, Data) : this.setEqMessage(source, Data, 1)
+                                    if(Data) {
+                                        if (source == 'nmefcTsunami') {
+                                            if (data.warningInfo.level != '信息') {
+                                                this.setTsunamiMessage(source, Data)
+                                            }
+                                        }
+                                        else {
+                                            this.setEqMessage(source, Data, 1)
+                                        }
+                                    }
                                 })
                                 break
                             }

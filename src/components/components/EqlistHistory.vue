@@ -6,13 +6,13 @@
             }">
                 <div class="background" :class="item.className"></div>
                 <div v-if="item.useShindo" class="intensity" :class="item.className">
-                    <div class="intensity-title">最大震度</div>
+                    <div class="intensity-title">{{ item.intTitle || '最大震度' }}</div>
                     <div :class="formatShindo(item.maxIntensity) != '?' ? 'shindo' : 'csis'">
                         {{ formatShindo(item.maxIntensity) }}
                     </div>
                 </div>
                 <div v-else class="intensity" :class="item.className">
-                    <div class="intensity-title">最大烈度</div>
+                    <div class="intensity-title">{{ item.intTitle || '预估烈度' }}</div>
                     <div class="csis" :class="{
                         'roman': settingsStore.mainSettings.useRomanCsis,
                         'scale-75': item.maxIntensity == '8',

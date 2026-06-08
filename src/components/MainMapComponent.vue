@@ -16,13 +16,13 @@
                             }">
                                 <div class="background" :class="event.eqMessage.className"></div>
                                 <div v-if="event.eqMessage.useShindo" class="intensity" :class="event.eqMessage.className">
-                                    <div class="intensity-title">最大震度</div>
+                                    <div class="intensity-title">{{ event.eqMessage.intTitle || '推定最大震度' }}</div>
                                     <div :class="formatShindo(event.eqMessage.maxIntensity) != '?'?'shindo':'csis'">
                                         {{ formatShindo(event.eqMessage.maxIntensity) }}
                                     </div>
                                 </div>
                                 <div v-else class="intensity" :class="event.eqMessage.className">
-                                    <div class="intensity-title">最大烈度</div>
+                                    <div class="intensity-title">{{ event.eqMessage.intTitle || '预估最大烈度' }}</div>
                                     <div class="csis" :class="{
                                         'roman': settingsStore.mainSettings.useRomanCsis,
                                         'scale-75': event.eqMessage.maxIntensity == '8',
@@ -57,7 +57,7 @@
                             </div>
                             <div class="info" v-if="event.nearestJmaLoc">
                                 <div class="intensity" :class="setClassName(event.userShindo, true, event.eqMessage.isCanceled)">
-                                    <div class="intensity-title">本地震度</div>
+                                    <div class="intensity-title">推定本地震度</div>
                                     <div :class="event.userShindo != '?'?'shindo':'csis'">
                                         {{ event.userShindo }}
                                     </div>
@@ -65,7 +65,7 @@
                             </div>
                             <div class="info" v-else>
                                 <div class="intensity" :class="setClassName(event.userCsis, false, event.eqMessage.isCanceled)">
-                                    <div class="intensity-title">本地烈度</div>
+                                    <div class="intensity-title">预估本地烈度</div>
                                     <div class="csis" :class="{
                                         'roman': settingsStore.mainSettings.useRomanCsis,
                                         'scale-75': event.userCsis == '8',
@@ -89,13 +89,13 @@
                             }">
                                 <div class="background" :class="event.eqMessage.className"></div>
                                 <div v-if="event.eqMessage.useShindo" class="intensity" :class="event.eqMessage.className">
-                                    <div class="intensity-title">最大震度</div>
+                                    <div class="intensity-title">{{ event.eqMessage.intTitle || '最大震度' }}</div>
                                     <div :class="formatShindo(event.eqMessage.maxIntensity) != '?'?'shindo':'csis'">
                                         {{ formatShindo(event.eqMessage.maxIntensity) }}
                                     </div>
                                 </div>
                                 <div v-else class="intensity" :class="event.eqMessage.className">
-                                    <div class="intensity-title">最大烈度</div>
+                                    <div class="intensity-title">{{ event.eqMessage.intTitle || '预估最大烈度' }}</div>
                                     <div class="csis" :class="{
                                         'roman': settingsStore.mainSettings.useRomanCsis,
                                         'scale-75': event.eqMessage.maxIntensity == '8',
