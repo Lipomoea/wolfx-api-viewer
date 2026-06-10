@@ -83,7 +83,7 @@ const getData = async (url)=>{
 }
 let pendingRender = false
 const nearbyLength = 6
-const activityThresArr = [Infinity, 9, 12, 14, 15, 16, 16]
+const activityThresArr = [Infinity, 8, 11, 13, 14, 15, 15]
 const update = ()=>{
     if(stationList.length == stations.length && stations.length == stationData.value.length){
         const render = document.visibilityState === 'visible'
@@ -104,8 +104,18 @@ const update = ()=>{
                     return
                 }
                 const nearbyStations = adjStationIds[station.id].map(id=>stations[id]).filter(station=>station.level > -1)
-                const possibleNearbyStations = nearbyStations.filter(station=>station.activity > 0)
-                const nearbyActiveNum = possibleNearbyStations.length - possibleNearbyStations.filter(station => station.ascend <= 1 && !station.isActive).length / 2
+                // const possibleNearbyStations = nearbyStations.filter(station=>station.activity > 0)
+                // const nearbyActiveNum = possibleNearbyStations.length - possibleNearbyStations.filter(station => station.ascend <= 1 && !station.isActive).length / 2
+                let nearest0Index = nearbyStations.map(station => station.activity).indexOf(0);
+                if (nearest0Index == -1) nearest0Index = Infinity;
+                const nearbyActiveNum = nearbyStations.reduce((sum, nearbyStation, index) => {
+                    let score = 1;
+                    if (nearbyStation.activity <= 0) return sum;
+                    if (nearbyStation.isActive) return sum + score;
+                    if (nearbyStation.ascend <= 1) score /= 2;
+                    if (index >= nearest0Index) score /= 2;
+                    return sum + score;
+                }, 0);
                 let numThres, activityThres
                 switch(settingsStore.mainSettings.displaySeisNet.niedSensitivity) {
                     case 1:
@@ -125,11 +135,12 @@ const update = ()=>{
                 }
                 if (nearbyActiveNum >= numThres) {
                     const numActivity = nearbyActiveNum * (nearbyActiveNum + 1) / 2
-                    const nearbyActivity = nearbyStations.reduce((sum, nearbyStation, index) => 
-                        index >= 3 && distMatrix[station.id][nearbyStation.id] > 15 
-                        ? sum + nearbyStation.activity / 2 
-                        : sum + nearbyStation.activity, 0
-                    ) + numActivity
+                    const nearbyActivity = nearbyStations.reduce((sum, nearbyStation, index) => {
+                        let score = nearbyStation.activity;
+                        if (nearbyStation.isActive) return sum + score;
+                        if (index >= nearest0Index) score /= 2;
+                        return sum + score;
+                    }, 0) + numActivity;
                     if (nearbyActivity >= activityThres) {
                         chainActivate(station, activeStations, checkedStations)
                     }
@@ -276,7 +287,7 @@ onMounted(()=>{
                             station.isActive = false
                         })
                     }
-                    if(delay.value > maxDelay && timeDiff < 0) {
+                    if(delay.value > maxDelay && timeDiff <= -3000) {
                         stations.forEach(station => {
                             station.level = -1
                             station.recentLevel = []
@@ -284,7 +295,7 @@ onMounted(()=>{
                         })
                         clearAbnormalList()
                     }
-                    if(delay.value > maxDelay && timeDiff < 0 || timeDiff > 0) {
+                    if(delay.value > maxDelay && timeDiff <= -3000 || timeDiff > 0) {
                         niedUpdateTime.value = data.realTimeData.dataTime.slice(0, -6).replace('T', ' ')
                         update()
                     }
