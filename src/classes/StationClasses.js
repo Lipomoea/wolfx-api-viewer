@@ -208,10 +208,16 @@ export class NiedStation {
             return 0;
         }
         let i = 0;
-        while (i < arr.length) {
+        fillNan: while (i < arr.length) {
             if (arr[i] === -1) {
+                let nanCount = 1;
                 let nextValidIndex = i + 1;
                 while (nextValidIndex < arr.length && arr[nextValidIndex] === -1) {
+                    nanCount++;
+                    if (nanCount > this.expireSeconds) {
+                        arr.splice(i);
+                        break fillNan;
+                    }
                     nextValidIndex++;
                 }
                 if (nextValidIndex < arr.length) {
