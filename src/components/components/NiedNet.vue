@@ -16,7 +16,6 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { abnormalNiedStations, NiedStation, simpleIcon } from '@/classes/StationClasses';
 import { niedSitePub } from '@/utils/NiedSitePub';
-import { FindNiedHypocenter } from '@/classes/Algorithms';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
@@ -85,9 +84,13 @@ const getData = async (url)=>{
 }
 let pendingRender = false
 const nearbyLength = 6
-const activityThresArr = [Infinity, 8, 11, 13, 14, 15, 15]
+const activityThresArr1 = [Infinity, 10, 14, 16, 18, 19, 20]
+const activityThresArr2 = [Infinity, 8, 11, 13, 14, 15, 16]
+const activityThresArr3 = [Infinity, 6, 9, 11, 12, 13, 14]
 let tempHypocenterLayers = []
-let findHypocenter = null
+let hypocenterWorker = null
+let hypocenterRequestId = 0
+let latestHypocenterRequestId = 0
 const update = ()=>{
     if(stationList.length == stations.length && stations.length == stationData.value.length){
         const render = document.visibilityState === 'visible'
@@ -127,16 +130,16 @@ const update = ()=>{
                 let numThres, activityThres
                 switch(settingsStore.mainSettings.displaySeisNet.niedSensitivity) {
                     case 1:
-                        numThres = 3
-                        activityThres = activityThresArr[nearbyStations.length] + 4
+                        numThres = nearbyStations.length / 2 + 1
+                        activityThres = activityThresArr1[nearbyStations.length] + 4
                         break
                     case 2:
                         numThres = nearbyStations.length <= 2 ? (nearbyStations.length + 1) / 2 : nearbyStations.length / 2
-                        activityThres = activityThresArr[nearbyStations.length]
+                        activityThres = activityThresArr2[nearbyStations.length]
                         break
                     case 3:
                         numThres = nearbyStations.length / 2
-                        activityThres = activityThresArr[nearbyStations.length] - 2
+                        activityThres = activityThresArr3[nearbyStations.length] - 2
                         break
                     default:
                         return
@@ -174,16 +177,61 @@ const update = ()=>{
         })
         const hasActiveStations = stations.some(station => station.isActive)
         if(hasActiveStations) {
-            if(!findHypocenter) {
-                findHypocenter = new FindNiedHypocenter(inactiveStations, adjStationIds4Hypo)
-            }
-            renderTempHypocenters(findHypocenter.update(newActiveStations, inactiveStations))
+            updateHypocentersInWorker(newActiveStations, inactiveStations)
         }
         else {
-            findHypocenter = null
+            resetHypocenterWorker()
             clearTempHypocenters()
         }
     }
+}
+const getHypocenterWorker = () => {
+    if(hypocenterWorker) return hypocenterWorker
+    hypocenterWorker = new Worker(new URL('@/workers/FindNiedHypocenterWorker.js', import.meta.url), { type: 'module' })
+    hypocenterWorker.onmessage = event => {
+        const { requestId, results } = event.data || {}
+        if(requestId !== latestHypocenterRequestId) return
+        renderTempHypocenters(results)
+    }
+    hypocenterWorker.onerror = err => {
+        console.log(err)
+    }
+    return hypocenterWorker
+}
+const resetHypocenterWorker = () => {
+    if(!hypocenterWorker) return
+    const requestId = ++hypocenterRequestId
+    latestHypocenterRequestId = requestId
+    hypocenterWorker.postMessage({
+        type: 'reset',
+        requestId
+    })
+}
+const terminateHypocenterWorker = () => {
+    if(!hypocenterWorker) return
+    hypocenterWorker.terminate()
+    hypocenterWorker = null
+}
+const stationToHypocenterSnapshot = station => ({
+    id: station.id,
+    latLng: [...station.latLng],
+    triggerStamp: station.triggerStamp,
+    updateStamp: station.updateStamp,
+    ascend: station.ascend,
+    level: station.level,
+    isActive: station.isActive
+})
+const updateHypocentersInWorker = (newActiveStations, inactiveStations) => {
+    const requestId = ++hypocenterRequestId
+    latestHypocenterRequestId = requestId
+    getHypocenterWorker().postMessage({
+        type: 'update',
+        requestId,
+        newActiveStations: newActiveStations.map(stationToHypocenterSnapshot),
+        activeStations: stations.filter(station => station.isActive).map(stationToHypocenterSnapshot),
+        inactiveStations: [...inactiveStations].map(stationToHypocenterSnapshot),
+        adjStationIds: adjStationIds4Hypo
+    })
 }
 const renderTempHypocenters = results => {
     clearTempHypocenters()
@@ -558,7 +606,7 @@ onBeforeUnmount(()=>{
     })
     stations.length = 0
     clearAbnormalList()
-    findHypocenter = null
+    terminateHypocenterWorker()
     clearTempHypocenters()
     map.eachLayer(layer=>{
         if(layer.options.pane == 'niedGridPane' || layer.options.pane.includes('niedStationPane')){

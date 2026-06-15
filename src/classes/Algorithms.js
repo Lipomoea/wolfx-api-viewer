@@ -36,10 +36,11 @@ export class FindNiedHypocenter {
         this.setInactiveStations(inactiveStations)
     }
 
-    update(newActiveStations = [], inactiveStations = this.inactiveStations) {
+    update(newActiveStations = [], inactiveStations = this.inactiveStations, stationUpdates = newActiveStations) {
         this.updateVersion++
         this.setInactiveStations(inactiveStations)
         newActiveStations.forEach(station => this.addActiveStation(station))
+        this.updateActiveStationSources(stationUpdates)
         this.refreshClusterFinalStates()
         this.refreshActiveStationMaxAscends()
         this.refreshClusterResults()
@@ -81,6 +82,13 @@ export class FindNiedHypocenter {
             activeForPenalty: false,
             source: station
         }
+    }
+
+    updateActiveStationSources(stations) {
+        stations.forEach(station => {
+            const activeStation = this.activeStations.get(station.id)
+            if(activeStation) activeStation.source = station
+        })
     }
 
     refreshActiveStationMaxAscends() {
@@ -151,11 +159,11 @@ export class FindNiedHypocenter {
         if(cluster.stations.some(item => item.id === station.id)) return
         cluster.stations.push(station)
         this.stationClusterMap.set(station.id, cluster)
+        cluster.final = false
         if(markUpdated) this.markClusterUpdated(cluster)
         else if(!cluster.final) cluster.dirty = true
         cluster.hasNewStation = true
         cluster.emptyActiveUpdateCount = 0
-        cluster.final = false
     }
 
     markClusterUpdated(cluster) {
@@ -350,7 +358,7 @@ export class FindNiedHypocenter {
             const selected = i == 0 ? options[firstWave] : this.selectClosestOption(options, originEntries)
             const weight = this.getStationWeight(station)
             stationResults.push({
-                station,
+                station: this.createStationResultSnapshot(station),
                 wave: selected.wave,
                 originStamp: selected.originStamp,
                 reachTime: selected.reachTime,
@@ -386,6 +394,17 @@ export class FindNiedHypocenter {
             originStamp,
             firstWave,
             stations: stationResults
+        }
+    }
+
+    createStationResultSnapshot(station) {
+        return {
+            id: station.id,
+            latLng: station.latLng,
+            triggerStamp: station.triggerStamp,
+            updateStamp: station.updateStamp,
+            maxAscend: station.maxAscend,
+            maxLevel: station.maxLevel
         }
     }
 
@@ -565,7 +584,7 @@ export class FindNiedHypocenter {
 
     createClusterResult(cluster, result) {
         return {
-            cluster: cluster.stations,
+            cluster: cluster.stations.map(station => this.createStationResultSnapshot(station)),
             clusterId: cluster.id,
             reportNum: cluster.reportNum,
             final: cluster.final,
@@ -618,9 +637,11 @@ export class FindNiedHypocenter {
     }
 
     getStationWeight(station) {
-        if(station.maxAscend >= 3) return 1
-        if(station.maxAscend >= 2) return 0.5
-        return 0
+        if(station.maxAscend >= 4) return 1
+        else if(station.maxAscend >= 3) return 0.7
+        else if(station.maxAscend >= 2) return 0.3
+        else if(station.maxAscend >= 1) return 0.1
+        else return 0
     }
 
     isPenaltyReferenceStation(station) {
