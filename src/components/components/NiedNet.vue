@@ -11,11 +11,12 @@ import axios from 'axios';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { seisNetUrls, iconUrls } from '@/utils/Urls';
-import { getTimeNumberString, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromLevel, exactRound } from '@/utils/Utils';
+import { getTimeNumberString, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromLevel, exactRound, timeToStamp, calcDistanceKm, stampToTime } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { abnormalNiedStations, NiedStation, simpleIcon } from '@/classes/StationClasses';
 import { niedSitePub } from '@/utils/NiedSitePub';
+import { FindNiedHypocenter } from '@/classes/Algorithms';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
@@ -46,9 +47,10 @@ const currentMaxShindo = computed(()=>{
     else if(currentMaxLevel <= 19) return 6
     else return 7
 })
-let adjStationIds = {}
-let expireSeconds = {}
-let distMatrix = [[]]
+const adjStationIds = {}
+const adjStationIds4Hypo = {}
+const expireSeconds = {}
+const distMatrix = [[]]
 let decimal = [0, 0]
 const gridRects = {}
 const activeStations = computed(() => stations.filter(station => station.isActive))
@@ -84,23 +86,29 @@ const getData = async (url)=>{
 let pendingRender = false
 const nearbyLength = 6
 const activityThresArr = [Infinity, 8, 11, 13, 14, 15, 15]
+let tempHypocenterLayers = []
+let findHypocenter = null
 const update = ()=>{
     if(stationList.length == stations.length && stations.length == stationData.value.length){
         const render = document.visibilityState === 'visible'
         if(!render) pendingRender = true
+        const updateStamp = timeToStamp(niedUpdateTime.value, 9)
         let maxLevel = -1
         for(let i = 0; i < stationList.length; i++){
-            stations[i].update(stationData.value[i], render)
+            stations[i].update(stationData.value[i], updateStamp, render)
             if(stations[i].level > maxLevel) maxLevel = stations[i].level
         }
         niedMaxShindo.value = getShindoFromLevel(maxLevel)
-        const possibleStations = stations.filter(station=>station.activity > 0)
-        const activeStations = new Set()
-        const checkedStations = new Set()
+        const possibleStations = stations.filter(station=>station.activity > 0);
+        const activeStations = new Set();
+        const inactiveStations = new Set();
+        const checkedStations = new Set();
+        const clusters = [];
+        const newActiveStations = [];
         possibleStations.forEach(station=>{
             if(!checkedStations.has(station)){
                 if(station.isActive && station.ascend > 0) {
-                    chainActivate(station, activeStations, checkedStations)
+                    chainActivate(station, activeStations, checkedStations, clusters)
                     return
                 }
                 const nearbyStations = adjStationIds[station.id].map(id=>stations[id]).filter(station=>station.level > -1)
@@ -142,7 +150,7 @@ const update = ()=>{
                         return sum + score;
                     }, 0) + numActivity;
                     if (nearbyActivity >= activityThres) {
-                        chainActivate(station, activeStations, checkedStations)
+                        chainActivate(station, activeStations, checkedStations, clusters)
                     }
                 }
             }
@@ -156,25 +164,114 @@ const update = ()=>{
             })
             if(first) decimal = first.latLng.map(val => exactRound((val + 180) % 1, 2))
         }
-        activeStations.forEach(station=>{
-            station.setActive()
+        stations.forEach(station => {
+            if (activeStations.has(station)) {
+                if (!station.isActive) newActiveStations.push(station)
+                station.setActive();
+            } else if (station.level > -1 && station.activity <= 0) {
+                inactiveStations.add(station);
+            }
         })
+        const hasActiveStations = stations.some(station => station.isActive)
+        if(hasActiveStations) {
+            if(!findHypocenter) {
+                findHypocenter = new FindNiedHypocenter(inactiveStations, adjStationIds4Hypo)
+            }
+            renderTempHypocenters(findHypocenter.update(newActiveStations, inactiveStations))
+        }
+        else {
+            findHypocenter = null
+            clearTempHypocenters()
+        }
     }
 }
-const chainActivate = (station, activeStations, checkedStations)=>{
+const renderTempHypocenters = results => {
+    clearTempHypocenters()
+    if(!map || !Array.isArray(results)) return
+    results
+        .filter(result => result.hypocenter && Number.isFinite(result.score))
+        .forEach(result => {
+            const { lat, lng, depth } = result.hypocenter
+            const latLng = [lat, lng]
+            const stationDetails = Array.isArray(result.stations) ? result.stations : []
+            const waveCounts = stationDetails.reduce((counts, station) => {
+                counts[station.wave] = (counts[station.wave] || 0) + 1
+                return counts
+            }, {})
+            const clusterSize = result.cluster?.length ?? stationDetails.length
+            const originTimeJst = Number.isFinite(result.originStamp) ? stampToTime(result.originStamp, 9) : '-'
+            const markerLayer = L.circleMarker(latLng, {
+                radius: 10,
+                color: '#ffffff',
+                fillColor: '#ff2d55',
+                fillOpacity: 0.9,
+                weight: 3,
+                pane: 'eewMarkerPane',
+            }).addTo(map)
+            const labelLayer = L.marker(latLng, {
+                icon: L.divIcon({
+                    className: '',
+                    iconAnchor: [-20, -20],
+                    html: `
+                        <div style="
+                            min-width: 220px;
+                            padding: 8px 10px;
+                            border: 2px solid #ff2d5500;
+                            border-radius: 6px;
+                            background: rgba(255, 255, 255, 0);
+                            color: #ffffff;
+                            font-size: 12px;
+                            line-height: 1.35;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.28);
+                            pointer-events: none;
+                            white-space: nowrap;
+                        ">
+                            <strong>NIED推算震源</strong><br>
+                            cluster: ${result.clusterId ?? '-'} / report: ${result.reportNum ?? '-'} / final: ${result.final ? 'true' : 'false'}<br>
+                            stations: ${clusterSize} / wave picks: ${stationDetails.length}<br>
+                            经纬度: ${lat.toFixed(3)}, ${lng.toFixed(3)}<br>
+                            深度: ${depth.toFixed(0)} km<br>
+                            发震: ${originTimeJst} UTC+9<br>
+                            origin stamp: ${Number.isFinite(result.originStamp) ? Math.round(result.originStamp) : '-'}<br>
+                            score: ${result.score.toFixed(2)} / RMSE: ${result.rmse.toFixed(2)}<br>
+                            inactive penalty: ${result.inactivePenalty}<br>
+                            first wave: ${result.firstWave} / P:${waveCounts.P || 0} S:${waveCounts.S || 0}
+                        </div>
+                    `
+                }),
+                // pane: 'eewMarkerPane',
+                interactive: false
+            }).addTo(map)
+            tempHypocenterLayers.push(markerLayer, labelLayer)
+        })
+}
+const clearTempHypocenters = () => {
+    if(!map) {
+        tempHypocenterLayers = []
+        return
+    }
+    tempHypocenterLayers.forEach(layer => {
+        if(map.hasLayer(layer)) map.removeLayer(layer)
+    })
+    tempHypocenterLayers = []
+}
+const chainActivate = (station, activeStations, checkedStations, clusters)=>{
     const pendingStations = new Set([station])
+    const cluster = [];
     while(pendingStations.size > 0){
         const currentStation = pendingStations.values().next().value
         pendingStations.delete(currentStation)
         checkedStations.add(currentStation)
         if(currentStation.activity > 0){
             activeStations.add(currentStation)
+            cluster.push(currentStation);
             adjStationIds[currentStation.id].forEach(id=>{
                 const neighbor = stations[id]
                 if(!checkedStations.has(neighbor)) pendingStations.add(neighbor)
             })
         }
     }
+    clusters.push(cluster);
 }
 const renderAll = ()=>{
     stations.forEach(station=>{
@@ -222,7 +319,7 @@ const fetchStationList = async () => {
 
             let latLngs = []
             for(let i = 0; i < stationList.length; i++){
-                latLngs[i] = L.latLng(stationList[i])
+                latLngs[i] = stationList[i]
             }
             for(let i = 0; i < stationList.length; i++){
                 const distances = []
@@ -235,7 +332,7 @@ const fetchStationList = async () => {
                     let distance
                     if(j < i) distance = distMatrix[j][i]
                     else if(j == i) distance = 0
-                    else distance = latLngs[i].distanceTo(latLngs[j]) / 1000
+                    else distance = calcDistanceKm(latLngs[i], latLngs[j])
                     distMatrix[i][j] = distance
                     if(distance <= 30) distances.push({ id: j, distance })
                     else if(distance <= candidate.distance) candidate = { id: j, distance }
@@ -243,6 +340,7 @@ const fetchStationList = async () => {
                 if(distances.length <= 1 && candidate.id !== null) {
                     distances.push(candidate)
                 }
+                adjStationIds4Hypo[i] = distances.map(obj => obj.id)
                 distances.sort((a, b) => a.distance - b.distance).splice(nearbyLength)
                 adjStationIds[i] = distances.map(obj => obj.id)
                 const maxDist = distances[distances.length - 1].distance
@@ -460,6 +558,8 @@ onBeforeUnmount(()=>{
     })
     stations.length = 0
     clearAbnormalList()
+    findHypocenter = null
+    clearTempHypocenters()
     map.eachLayer(layer=>{
         if(layer.options.pane == 'niedGridPane' || layer.options.pane.includes('niedStationPane')){
             map.removeLayer(layer)

@@ -1,0 +1,650 @@
+import { calcDistanceKm, calcReachTime, exactRound } from '@/utils/Utils'
+import travelTimes from '@/utils/TravelTimes'
+
+const nearTravelTimeMaxDistance = 2000
+const hypocenterSearchSteps = [
+    { degree: 1, depth: 50 },
+    { degree: 0.3, depth: 20 },
+    { degree: 0.1, depth: 10 }
+]
+const maxHypocenterSearchIterations = 1000
+const clusterMergeThreshold = {
+    lat: 1,
+    lng: 1,
+    depth: 50,
+    originStamp: 5000
+}
+const minInferenceClusterSize = 3
+const minPenaltyClusterSize = 20
+const maxEmptyActiveUpdatesBeforeFinal = 15
+const maxClusterMatchResidual = 5000
+const sortedInactiveStationsCacheKey = Symbol('sortedInactiveStations')
+
+export class FindNiedHypocenter {
+    constructor(inactiveStations, adjStationIds) {
+        this.activeStations = new Map()
+        this.clusters = []
+        this.stationClusterMap = new Map()
+        this.inactiveStations = null
+        this.inactiveStationMap = new Map()
+        this.inactiveStationsKey = ''
+        this.inactiveStationsVersion = 0
+        this.inactivePenaltyCandidateCache = new WeakMap()
+        this.adjStationIds = adjStationIds
+        this.nextClusterId = 1
+        this.updateVersion = 0
+        this.setInactiveStations(inactiveStations)
+    }
+
+    update(newActiveStations = [], inactiveStations = this.inactiveStations) {
+        this.updateVersion++
+        this.setInactiveStations(inactiveStations)
+        newActiveStations.forEach(station => this.addActiveStation(station))
+        this.refreshClusterFinalStates()
+        this.refreshActiveStationMaxAscends()
+        this.refreshClusterResults()
+        this.mergeCloseClusters()
+        return this.getResults()
+    }
+
+    addActiveStation(station) {
+        if(this.activeStations.has(station.id)) return
+        const stationSnapshot = this.createStationSnapshot(station)
+        this.activeStations.set(stationSnapshot.id, stationSnapshot)
+
+        const neighborClusters = this.findNeighborClusters(stationSnapshot)
+        if(neighborClusters.length === 0) {
+            const matchingCluster = this.findBestMatchingCluster(stationSnapshot)
+            if(matchingCluster) {
+                this.addStationToCluster(stationSnapshot, matchingCluster)
+            }
+            else {
+                this.createCluster([stationSnapshot], null, true)
+            }
+        }
+        else if(neighborClusters.length === 1) {
+            this.addStationToCluster(stationSnapshot, neighborClusters[0])
+        }
+        else {
+            this.mergeAdjacentClusters(stationSnapshot, neighborClusters)
+        }
+    }
+
+    createStationSnapshot(station) {
+        return {
+            id: station.id,
+            latLng: [...station.latLng],
+            triggerStamp: station.triggerStamp,
+            updateStamp: station.updateStamp,
+            maxAscend: station.ascend,
+            maxLevel: station.level,
+            activeForPenalty: false,
+            source: station
+        }
+    }
+
+    refreshActiveStationMaxAscends() {
+        this.activeStations.forEach(station => {
+            const oldWeight = this.getStationWeight(station)
+            const oldActiveForPenalty = station.activeForPenalty
+            station.maxAscend = Math.max(station.maxAscend || 0, station.source?.ascend || 0)
+            station.maxLevel = Math.max(station.maxLevel ?? -1, station.source?.level ?? -1)
+            station.activeForPenalty = this.isPenaltyReferenceStation(station)
+            if(oldWeight !== this.getStationWeight(station) || oldActiveForPenalty !== station.activeForPenalty) {
+                const cluster = this.stationClusterMap.get(station.id)
+                if(cluster) this.markClusterUpdated(cluster)
+            }
+        })
+    }
+
+    findNeighborClusters(station) {
+        const clusterSet = new Set()
+        const neighborIds = this.adjStationIds?.[station.id] || []
+        neighborIds.forEach(id => {
+            const cluster = this.stationClusterMap.get(id)
+            if(cluster) clusterSet.add(cluster)
+        })
+        return [...clusterSet]
+    }
+
+    findBestMatchingCluster(station) {
+        if(!this.hasValidTriggerStamp(station)) return null
+        const bestMatch = this.clusters.reduce((best, cluster) => {
+            const residual = this.calcClusterStationResidual(station, cluster)
+            if(residual === null || residual > maxClusterMatchResidual) return best
+            if(!best || residual < best.residual) return { cluster, residual }
+            return best
+        }, null)
+        return bestMatch?.cluster || null
+    }
+
+    calcClusterStationResidual(station, cluster) {
+        const result = cluster.result
+        if(!result?.hypocenter || !Number.isFinite(result.originStamp)) return null
+        const optionCache = new Map()
+        const options = this.calcStationOriginOptions(station, result.hypocenter, optionCache)
+        return Math.min(
+            Math.abs(options.P.originStamp - result.originStamp),
+            Math.abs(options.S.originStamp - result.originStamp)
+        )
+    }
+
+    createCluster(stations, initialHypocenter = null, markUpdated = false) {
+        const cluster = {
+            id: this.nextClusterId++,
+            stations: [],
+            dirty: true,
+            result: null,
+            reportNum: 0,
+            emptyActiveUpdateCount: 0,
+            hasNewStation: false,
+            final: false,
+            lastReportUpdateVersion: null,
+            initialHypocenter
+        }
+        stations.forEach(station => this.addStationToCluster(station, cluster, markUpdated))
+        this.clusters.push(cluster)
+        return cluster
+    }
+
+    addStationToCluster(station, cluster, markUpdated = true) {
+        if(cluster.stations.some(item => item.id === station.id)) return
+        cluster.stations.push(station)
+        this.stationClusterMap.set(station.id, cluster)
+        if(markUpdated) this.markClusterUpdated(cluster)
+        else if(!cluster.final) cluster.dirty = true
+        cluster.hasNewStation = true
+        cluster.emptyActiveUpdateCount = 0
+        cluster.final = false
+    }
+
+    markClusterUpdated(cluster) {
+        if(cluster.final) return
+        if(cluster.lastReportUpdateVersion !== this.updateVersion) {
+            cluster.reportNum++
+            cluster.lastReportUpdateVersion = this.updateVersion
+        }
+        cluster.dirty = true
+    }
+
+    mergeAdjacentClusters(station, clusters) {
+        const initialHypocenter = clusters.find(cluster => cluster.result?.hypocenter)?.result.hypocenter ||
+            clusters.find(cluster => cluster.initialHypocenter)?.initialHypocenter ||
+            null
+        const baseCluster = clusters.reduce((best, cluster) => 
+            this.selectReportNumBaseCluster(best, cluster)
+        )
+        const reportNum = baseCluster.reportNum
+        const emptyActiveUpdateCount = Math.min(...clusters.map(cluster => cluster.emptyActiveUpdateCount))
+        const stations = [station]
+        clusters.forEach(cluster => {
+            stations.push(...cluster.stations)
+            this.removeCluster(cluster)
+        })
+        const mergedCluster = this.createCluster(stations, initialHypocenter, false)
+        mergedCluster.reportNum = reportNum
+        mergedCluster.emptyActiveUpdateCount = emptyActiveUpdateCount
+        mergedCluster.lastReportUpdateVersion = baseCluster.lastReportUpdateVersion
+        this.markClusterUpdated(mergedCluster)
+        mergedCluster.hasNewStation = true
+        return mergedCluster
+    }
+
+    removeCluster(cluster) {
+        this.clusters = this.clusters.filter(item => item !== cluster)
+        cluster.stations.forEach(station => this.stationClusterMap.delete(station.id))
+    }
+
+    setInactiveStations(inactiveStations) {
+        const inactiveStationArr = Array.from(inactiveStations || [])
+        const inactiveStationsKey = `${inactiveStationArr.length}:${inactiveStationArr.map(station => station.id).join(',')}`
+        this.inactiveStations = inactiveStations
+        if(this.inactiveStationsKey === inactiveStationsKey) return
+        this.inactiveStationsKey = inactiveStationsKey
+        this.inactiveStationsVersion++
+        this.inactiveStationMap = new Map(
+            inactiveStationArr.map(station => [station.id, station])
+        )
+        this.clusters.forEach(cluster => {
+            this.markClusterUpdated(cluster)
+        })
+    }
+
+    refreshClusterFinalStates() {
+        this.clusters.forEach(cluster => {
+            if(cluster.final) return
+            if(cluster.hasNewStation) {
+                cluster.emptyActiveUpdateCount = 0
+                cluster.hasNewStation = false
+                return
+            }
+            cluster.emptyActiveUpdateCount++
+            if(cluster.emptyActiveUpdateCount >= maxEmptyActiveUpdatesBeforeFinal) {
+                if(cluster.lastReportUpdateVersion !== this.updateVersion) {
+                    cluster.reportNum++
+                    cluster.lastReportUpdateVersion = this.updateVersion
+                }
+                cluster.final = true
+                cluster.dirty = false
+            }
+        })
+    }
+
+    refreshClusterResults() {
+        this.clusters.forEach(cluster => {
+            if(cluster.final) return
+            if(!cluster.dirty) return
+            if(cluster.stations.length < minInferenceClusterSize) {
+                cluster.result = this.createClusterResult(cluster, this.createHypocenterResult(null, this.createInvalidLikelihood(null)))
+                cluster.dirty = false
+                return
+            }
+            const initialHypocenter = cluster.initialHypocenter || cluster.result?.hypocenter || null
+            const result = this.findBestHypocenter(cluster.stations, initialHypocenter)
+            cluster.result = this.createClusterResult(cluster, result)
+            cluster.initialHypocenter = result.hypocenter
+            cluster.dirty = false
+        })
+    }
+
+    mergeCloseClusters() {
+        let merged = true
+        while(merged) {
+            merged = false
+            for(let i = 0; i < this.clusters.length; i++) {
+                for(let j = i + 1; j < this.clusters.length; j++) {
+                    const cluster1 = this.clusters[i]
+                    const cluster2 = this.clusters[j]
+                    if(this.canMergeClusterResults(cluster1.result, cluster2.result)) {
+                        const initialHypocenter = cluster1.result?.hypocenter || cluster2.result?.hypocenter || null
+                        const stations = [...cluster1.stations, ...cluster2.stations]
+                        const baseCluster = this.selectReportNumBaseCluster(cluster1, cluster2)
+                        const reportNum = baseCluster.reportNum
+                        const emptyActiveUpdateCount = Math.min(cluster1.emptyActiveUpdateCount, cluster2.emptyActiveUpdateCount)
+                        this.removeCluster(cluster1)
+                        this.removeCluster(cluster2)
+                        const mergedCluster = this.createCluster(stations, initialHypocenter, false)
+                        mergedCluster.reportNum = reportNum
+                        mergedCluster.emptyActiveUpdateCount = emptyActiveUpdateCount
+                        mergedCluster.hasNewStation = false
+                        mergedCluster.lastReportUpdateVersion = baseCluster.lastReportUpdateVersion
+                        this.markClusterUpdated(mergedCluster)
+                        this.refreshClusterResults()
+                        mergedCluster.dirty = false
+                        merged = true
+                        break
+                    }
+                }
+                if(merged) break
+            }
+        }
+    }
+
+    selectReportNumBaseCluster(cluster1, cluster2) {
+        if(cluster1.stations.length !== cluster2.stations.length) {
+            return cluster1.stations.length > cluster2.stations.length ? cluster1 : cluster2
+        }
+        return cluster1.reportNum >= cluster2.reportNum ? cluster1 : cluster2
+    }
+
+    getResults() {
+        return this.clusters
+            .map(cluster => cluster.result && {
+                ...cluster.result,
+                reportNum: cluster.reportNum,
+                final: cluster.final
+            })
+            .filter(result => result?.hypocenter && Number.isFinite(result.score))
+    }
+
+    calcLikelihood(cluster, hypocenter) {
+        const optionCache = new Map()
+        const pResult = this.calcScenarioLikelihood(cluster, hypocenter, 'P', optionCache)
+        const sResult = this.calcScenarioLikelihood(cluster, hypocenter, 'S', optionCache)
+        return pResult.score <= sResult.score ? pResult : sResult
+    }
+
+    findBestHypocenter(cluster, initialHypocenter = null) {
+        if(!Array.isArray(cluster) || cluster.length === 0) {
+            return this.createHypocenterResult(null, this.createInvalidLikelihood(null))
+        }
+
+        const [stationLat, stationLng] = cluster[0].latLng
+        const lat = exactRound(stationLat, 1)
+        const lng = exactRound(stationLng, 1)
+        let currentResult = this.evaluateHypocenter(cluster, initialHypocenter || { lat, lng, depth: 10 })
+        let stepIndex = 0
+        let iteration = 0
+        while(stepIndex < hypocenterSearchSteps.length && iteration < maxHypocenterSearchIterations) {
+            iteration++
+            const { degree, depth } = hypocenterSearchSteps[stepIndex]
+            const candidates = this.createNeighborHypocenters(currentResult.hypocenter, degree, depth)
+                .map(hypocenter => this.evaluateHypocenter(cluster, hypocenter))
+            const bestCandidate = candidates.reduce(
+                (best, candidate) => candidate.score < best.score ? candidate : best,
+                currentResult
+            )
+            if(bestCandidate.score < currentResult.score) {
+                currentResult = bestCandidate
+            }
+            else {
+                stepIndex++
+            }
+        }
+        return currentResult
+    }
+
+    calcScenarioLikelihood(cluster, hypocenter, firstWave, optionCache) {
+        if(!Array.isArray(cluster) || cluster.length === 0) {
+            return this.createInvalidLikelihood(firstWave)
+        }
+        if(!cluster.every(station => this.hasValidTriggerStamp(station))) {
+            return this.createInvalidLikelihood(firstWave)
+        }
+
+        const stationResults = []
+        const originEntries = []
+        for(let i = 0; i < cluster.length; i++) {
+            const station = cluster[i]
+            const options = this.calcStationOriginOptions(station, hypocenter, optionCache)
+            const selected = i == 0 ? options[firstWave] : this.selectClosestOption(options, originEntries)
+            const weight = this.getStationWeight(station)
+            stationResults.push({
+                station,
+                wave: selected.wave,
+                originStamp: selected.originStamp,
+                reachTime: selected.reachTime,
+                distance: options.distance,
+                maxAscend: station.maxAscend,
+                weight
+            })
+            originEntries.push({
+                value: selected.originStamp,
+                weight
+            })
+        }
+
+        if(this.calcWeightSum(originEntries) <= 0) {
+            return this.createInvalidLikelihood(firstWave)
+        }
+        const originStamp = this.calcWeightedMean(originEntries)
+        const rmse = this.calcWeightedRmse(originEntries, originStamp) / 1000
+        const { penalty: inactivePenalty, exceeded } = this.calcInactiveStationPenalty(
+            hypocenter,
+            cluster,
+            optionCache,
+            cluster.length
+        )
+        if(exceeded) {
+            return this.createInvalidLikelihood(firstWave)
+        }
+        const score = rmse + inactivePenalty
+        return {
+            score,
+            rmse,
+            inactivePenalty,
+            originStamp,
+            firstWave,
+            stations: stationResults
+        }
+    }
+
+    calcStationOriginOptions(station, hypocenter, optionCache) {
+        const pOption = this.calcStationWaveOption(station, hypocenter, 'P', optionCache)
+        const sOption = this.calcStationWaveOption(station, hypocenter, 'S', optionCache)
+        return {
+            distance: pOption.distance,
+            P: pOption,
+            S: sOption
+        }
+    }
+
+    calcInactiveStationPenalty(hypocenter, cluster, optionCache, maxPenalty = Infinity) {
+        if(cluster.length >= minPenaltyClusterSize) {
+            return { penalty: 0, exceeded: false }
+        }
+        const referenceDistance = this.getInactivePenaltyReferenceDistance(cluster, hypocenter, optionCache)
+        if(referenceDistance === null) {
+            return { penalty: 0, exceeded: false }
+        }
+        const stations = this.getSortedInactiveStations(cluster, hypocenter, optionCache)
+        if(stations.length === 0) {
+            return { penalty: 0, exceeded: false }
+        }
+
+        const lastIndex = stations.length - 1
+        if(Number.isFinite(maxPenalty) && stations.length > maxPenalty) {
+            if(this.isInactiveStationPenalized(stations[maxPenalty], hypocenter, optionCache, referenceDistance)) {
+                return { penalty: maxPenalty + 1, exceeded: true }
+            }
+            const penalty = this.findLastPenalizedStationIndex(stations, 0, maxPenalty - 1, hypocenter, optionCache, referenceDistance) + 1
+            return { penalty: this.normalizeInactivePenalty(penalty, stations.length), exceeded: false }
+        }
+
+        const penalty = this.findLastPenalizedStationIndex(stations, 0, lastIndex, hypocenter, optionCache, referenceDistance) + 1
+        return { penalty: this.normalizeInactivePenalty(penalty, stations.length), exceeded: false }
+    }
+
+    normalizeInactivePenalty(penalty, candidateCount) {
+        return candidateCount > 0 ? penalty / candidateCount : 0
+    }
+
+    getInactivePenaltyReferenceDistance(cluster, hypocenter, optionCache) {
+        const referenceStations = cluster.filter(station => this.isPenaltyReferenceStation(station))
+        if(referenceStations.length === 0) return null
+        const distances = referenceStations
+            .map(station => this.getStationOptionCache(station, hypocenter, optionCache).distance)
+            .sort((a, b) => a - b)
+        const referenceIndex = Math.ceil(distances.length * 0.9) - 1
+        return distances[referenceIndex]
+    }
+
+    getSortedInactiveStations(cluster, hypocenter, optionCache) {
+        const cachedStations = optionCache?.get(sortedInactiveStationsCacheKey)
+        if(cachedStations) return cachedStations
+        const stations = this.getInactivePenaltyCandidates(cluster)
+            .filter(station => Number.isFinite(station?.updateStamp))
+            .map(station => ({
+                station,
+                distance: this.getStationOptionCache(station, hypocenter, optionCache).distance
+            }))
+            .sort((a, b) => a.distance - b.distance)
+            .map(item => item.station)
+        optionCache?.set(sortedInactiveStationsCacheKey, stations)
+        return stations
+    }
+
+    getInactivePenaltyCandidates(cluster) {
+        const cached = this.inactivePenaltyCandidateCache.get(cluster)
+        if(cached?.version === this.inactiveStationsVersion) return cached.stations
+
+        const candidateMap = new Map()
+        cluster.forEach(station => {
+            const neighborIds = this.adjStationIds?.[station.id] || []
+            neighborIds.forEach(id => {
+                if(this.activeStations.has(id)) return
+                const inactiveStation = this.inactiveStationMap.get(id)
+                if(inactiveStation) candidateMap.set(id, inactiveStation)
+            })
+        })
+        const stations = [...candidateMap.values()]
+        this.inactivePenaltyCandidateCache.set(cluster, {
+            version: this.inactiveStationsVersion,
+            stations
+        })
+        return stations
+    }
+
+    findLastPenalizedStationIndex(stations, low, high, hypocenter, optionCache, referenceDistance) {
+        let result = low - 1
+        while(low <= high) {
+            const mid = Math.floor((low + high) / 2)
+            if(this.isInactiveStationPenalized(stations[mid], hypocenter, optionCache, referenceDistance)) {
+                result = mid
+                low = mid + 1
+            }
+            else {
+                high = mid - 1
+            }
+        }
+        return result
+    }
+
+    isInactiveStationPenalized(station, hypocenter, optionCache, referenceDistance) {
+        return this.getStationOptionCache(station, hypocenter, optionCache).distance <= referenceDistance
+    }
+
+    calcStationWaveOption(station, hypocenter, wave, optionCache) {
+        const stationCache = this.getStationOptionCache(station, hypocenter, optionCache)
+        if(!stationCache[wave]) {
+            const isPWave = wave == 'P'
+            const reachTime = calcReachTime(
+                stationCache.travelTime,
+                isPWave,
+                stationCache.depth,
+                stationCache.distance
+            ) * 1000
+            stationCache[wave] = {
+                wave,
+                reachTime,
+                originStamp: station.triggerStamp - reachTime,
+                distance: stationCache.distance
+            }
+        }
+        return stationCache[wave]
+    }
+
+    getStationOptionCache(station, hypocenter, optionCache) {
+        let stationCache = optionCache?.get(station)
+        if(!stationCache) {
+            const distance = calcDistanceKm([hypocenter.lat, hypocenter.lng], station.latLng)
+            stationCache = {
+                distance,
+                travelTime: distance <= nearTravelTimeMaxDistance ? travelTimes.jma2001 : travelTimes.jb,
+                depth: hypocenter.depth ?? 10
+            }
+            optionCache?.set(station, stationCache)
+        }
+        return stationCache
+    }
+
+    evaluateHypocenter(cluster, hypocenter) {
+        const normalizedHypocenter = this.normalizeHypocenter(hypocenter)
+        return this.createHypocenterResult(
+            normalizedHypocenter,
+            this.calcLikelihood(cluster, normalizedHypocenter)
+        )
+    }
+
+    createNeighborHypocenters(hypocenter, degreeStep, depthStep) {
+        const { lat, lng, depth } = hypocenter
+        return [
+            { lat, lng: lng + degreeStep, depth },
+            { lat: lat - degreeStep, lng, depth },
+            { lat, lng: lng - degreeStep, depth },
+            { lat: lat + degreeStep, lng, depth },
+            { lat, lng, depth: depth - depthStep },
+            { lat, lng, depth: depth + depthStep }
+        ].map(item => this.normalizeHypocenter(item))
+    }
+
+    normalizeHypocenter(hypocenter) {
+        return {
+            lat: Math.min(Math.max(hypocenter.lat, -90), 90),
+            lng: ((hypocenter.lng + 540) % 360) - 180,
+            depth: Math.max(hypocenter.depth ?? 10, 0)
+        }
+    }
+
+    createHypocenterResult(hypocenter, likelihood) {
+        return {
+            hypocenter,
+            ...likelihood
+        }
+    }
+
+    createClusterResult(cluster, result) {
+        return {
+            cluster: cluster.stations,
+            clusterId: cluster.id,
+            reportNum: cluster.reportNum,
+            final: cluster.final,
+            ...result
+        }
+    }
+
+    canMergeClusterResults(result1, result2) {
+        if(!result1?.hypocenter || !result2?.hypocenter) return false
+        if(!Number.isFinite(result1.originStamp) || !Number.isFinite(result2.originStamp)) return false
+        const hypo1 = result1.hypocenter
+        const hypo2 = result2.hypocenter
+        return Math.abs(hypo1.lat - hypo2.lat) <= clusterMergeThreshold.lat &&
+            this.calcLngDiff(hypo1.lng, hypo2.lng) <= clusterMergeThreshold.lng &&
+            Math.abs(hypo1.depth - hypo2.depth) <= clusterMergeThreshold.depth &&
+            Math.abs(result1.originStamp - result2.originStamp) <= clusterMergeThreshold.originStamp
+    }
+
+    calcLngDiff(lng1, lng2) {
+        const diff = Math.abs(lng1 - lng2) % 360
+        return Math.min(diff, 360 - diff)
+    }
+
+    selectClosestOption(options, originEntries) {
+        const currentOriginStamp = this.calcWeightedMean(originEntries)
+        const pDiff = Math.abs(options.P.originStamp - currentOriginStamp)
+        const sDiff = Math.abs(options.S.originStamp - currentOriginStamp)
+        return pDiff <= sDiff ? options.P : options.S
+    }
+
+    calcWeightedMean(entries) {
+        const weightSum = this.calcWeightSum(entries)
+        if(weightSum > 0) {
+            return entries.reduce((sum, entry) => sum + entry.value * entry.weight, 0) / weightSum
+        }
+        return entries.reduce((sum, entry) => sum + entry.value, 0) / entries.length
+    }
+
+    calcWeightedRmse(entries, expectedValue) {
+        const weightSum = this.calcWeightSum(entries)
+        if(weightSum <= 0) return Infinity
+        const mse = entries.reduce((sum, entry) => 
+            sum + entry.weight * (entry.value - expectedValue) ** 2, 0
+        ) / weightSum
+        return Math.sqrt(mse)
+    }
+
+    calcWeightSum(entries) {
+        return entries.reduce((sum, entry) => sum + entry.weight, 0)
+    }
+
+    getStationWeight(station) {
+        if(station.maxAscend >= 3) return 1
+        if(station.maxAscend >= 2) return 0.5
+        return 0
+    }
+
+    isPenaltyReferenceStation(station) {
+        return station.maxAscend >= 3
+    }
+
+    hasValidTriggerStamp(station) {
+        return Number.isFinite(station?.triggerStamp) && station.triggerStamp > 0
+    }
+
+    createInvalidLikelihood(firstWave) {
+        return {
+            score: Infinity,
+            rmse: Infinity,
+            inactivePenalty: 0,
+            originStamp: null,
+            firstWave,
+            stations: []
+        }
+    }
+
+    run() {
+        this.refreshClusterResults()
+        this.mergeCloseClusters()
+        return this.getResults()
+    }
+}

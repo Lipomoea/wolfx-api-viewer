@@ -1,4 +1,4 @@
-import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendMyNotification, getClassLevel, focusWindow, calcCsisLevel, calcJmaShindoLevel, shindoScale, timeToStamp, formatTimeZone } from '@/utils/Utils';
+import { calcPassedTime, calcWaveDistance, calcReachTime, playSound, sendMyNotification, getClassLevel, focusWindow, calcCsisLevel, calcJmaShindoLevel, shindoScale, timeToStamp, formatTimeZone, calcDistanceKm } from '@/utils/Utils';
 import travelTimes from '@/utils/TravelTimes';
 import { chimeUrls, iconUrls } from '@/utils/Urls';
 import L from 'leaflet';
@@ -389,7 +389,7 @@ export class EewEvent {
                 this.hypoLatLng = [this.eqMessage.lat, this.eqMessage.lng]
                 this.maxWaveRadius = Math.min(Math.max(50 * this.eqMessage.magnitude ** 2, 200), 2000)
                 if(this.isValidUserLatLng) {
-                    this.userDist = L.latLng(this.hypoLatLng).distanceTo(L.latLng(this.userLatLng)) / 1000
+                    this.userDist = calcDistanceKm(this.hypoLatLng, this.userLatLng)
                     this.pReachTime = calcReachTime(this.userDist <= this.maxRadius1 ? travelTimes.jma2001 : travelTimes.jb, true, this.eqMessage.depth, this.userDist)
                     this.sReachTime = calcReachTime(this.userDist <= this.maxRadius1 ? travelTimes.jma2001 : travelTimes.jb, false, this.eqMessage.depth, this.userDist)
                     this.userCsis = settingsStore.advancedSettings.forceCalcInt && !this.eqMessage.isAssumption ? 

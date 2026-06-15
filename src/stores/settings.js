@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import merge from 'lodash/merge';
-import { point, distance } from '@turf/turf';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
+import { calcDistanceKm } from '@/utils/Utils';
 
 export const useSettingsStore = defineStore('settingsStore', {
     state: ()=>({
@@ -147,24 +147,22 @@ export const useSettingsStore = defineStore('settingsStore', {
         isValidViewLatLng: (state) => state.mainSettings.viewLatLng.every(item => item || item === 0) && !state.mainSettings.viewLatLng.every(item => item === 0),
         isDisplayUser(state) { return this.isValidUserLatLng && state.mainSettings.displayUser },
         nearestJmaLoc(state) {
-            if(this.isValidUserLatLng) {
-                const userCoord = [state.mainSettings.userLatLng[1], state.mainSettings.userLatLng[0]]
-                const userPoint = point(userCoord)
-                let nearestLoc = null
-                let nearestDist = 30
-                for(let loc in jmaSeisIntLoc) {
-                    const locCoord = [jmaSeisIntLoc[loc].location[1], jmaSeisIntLoc[loc].location[0]]
-                    if(Math.abs(userCoord[0] - locCoord[0]) >= 0.39 || Math.abs(userCoord[1] - locCoord[1]) >= 0.27) continue
-                    const locPoint = point(locCoord)
-                    const dist = distance(userPoint, locPoint, { units: 'kilometers' })
-                    if(dist < nearestDist) {
-                        nearestDist = dist
-                        nearestLoc = jmaSeisIntLoc[loc]
-                    }
+            if(!this.isValidUserLatLng) return null
+            const userLatLng = state.mainSettings.userLatLng
+            const [userLat, userLng] = userLatLng
+            let nearestLoc = null
+            let nearestDist = 30
+            for(let loc in jmaSeisIntLoc) {
+                const candidate = jmaSeisIntLoc[loc]
+                const [locLat, locLng] = candidate.location
+                if(Math.abs(userLng - locLng) >= 0.39 || Math.abs(userLat - locLat) >= 0.27) continue
+                const dist = calcDistanceKm(userLatLng, candidate.location)
+                if(dist < nearestDist) {
+                    nearestDist = dist
+                    nearestLoc = candidate
                 }
-                return nearestLoc
             }
-            else return null
+            return nearestLoc
         },
         displayTokenButton: (state) => state.advancedSettings.enableIclEew,
         actionWhiteListArr: (state) => state.mainSettings.actionWhiteList.split('|').filter(key => key)

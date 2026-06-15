@@ -165,6 +165,8 @@ export class NiedStation {
         this.maxRecentLength = 60
         this.shindo = getShindoFromChar(intensity)
         this.level = intensity.charCodeAt(0) - 100
+        this.updateStamp = 0
+        this.triggerStamp = 0
         this.ascend = 0
         this.recentLevel = []
         this.activity = 0
@@ -172,7 +174,8 @@ export class NiedStation {
         this.markerType = null
         this.render()
     }
-    update(intensity, render = true){
+    update(intensity, updateStamp, render = true){
+        this.updateStamp = updateStamp
         const originLevel = intensity.charCodeAt(0) - 100
         const level = originLevel == -1 ? this.recentLevel.slice(0, 4).find(val => val != -1) ?? -1 : originLevel
         if(level != this.level){
@@ -183,6 +186,7 @@ export class NiedStation {
         this.recentLevel.unshift(originLevel)
         this.recentLevel.splice(this.maxRecentLength)
         let ascend = 0
+        let triggerStamp = 0
         if(this.isAbnormalStation()) {
             if(!(this.id in abnormalNiedStations))
                 console.log(`已忽略异常NIED测站: id: ${this.id}, latLng: ${this.latLng}`);
@@ -196,16 +200,19 @@ export class NiedStation {
                 }
             }
             else {
-                ascend = this.calcAscend()
+                const ascendResult = this.calcAscend()
+                ascend = ascendResult.ascend
+                triggerStamp = ascendResult.triggerStamp
             }
         }
         this.ascend = ascend
+        this.triggerStamp = ascend > 0 ? triggerStamp : 0
         this.activity = this.calcActivity(level, ascend)
     }
     calcAscend() {
         const arr = [...this.recentLevel];
         if (arr.length === 0) {
-            return 0;
+            return { ascend: 0, triggerStamp: 0 };
         }
         let i = 0;
         fillNan: while (i < arr.length) {
@@ -232,31 +239,41 @@ export class NiedStation {
             }
         }
         if (arr.length === 0) {
-            return 0;
+            return { ascend: 0, triggerStamp: 0 };
         }
 
         let minVal = -1;
+        let triggerIndex = 0;
+        let latestMinVal = arr[0];
+        let latestMinIndex = 0;
         let identicalCount = 1;
         for (let i = 0; i < arr.length - 1; i++) {
             const current = arr[i];
             const next = arr[i + 1];
             if (next < current) {
+                latestMinVal = next;
+                latestMinIndex = i + 1;
                 identicalCount = 1;
             } else if (next > current) {
                 minVal = current;
+                triggerIndex = i;
                 break;
             } else {
                 identicalCount++;
                 if (identicalCount > this.expireSeconds) {
                     minVal = current;
+                    triggerIndex = i;
                     break;
                 }
             }
         }
         if (minVal == -1) {
-            minVal = arr[arr.length - 1];
+            minVal = latestMinVal;
+            triggerIndex = latestMinIndex;
         }
-        return this.level - minVal;
+        const ascend = this.level - minVal;
+        const triggerStamp = ascend > 0 ? this.updateStamp - triggerIndex * 1000 : 0;
+        return { ascend, triggerStamp };
     }
     isAbnormalStation() {
         // 如果近期数据出现3个及以上的高峰视为异常数据

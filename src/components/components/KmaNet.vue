@@ -9,7 +9,7 @@ import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, inject } fr
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { iconUrls, seisNetUrls } from '@/utils/Urls';
-import { playSound, sendMyNotification, calcTimeDiff, focusWindow, getMmiFromKmaLevel, exactRound } from '@/utils/Utils';
+import { playSound, sendMyNotification, calcTimeDiff, focusWindow, getMmiFromKmaLevel, exactRound, calcDistanceKm } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { KmaStation, simpleIcon } from '@/classes/StationClasses';
@@ -189,7 +189,7 @@ watch(()=>statusStore.map, newVal=>{
                 let latLngs = []
                 for(let i = 0; i < newVal.length; i++){
                     const { latitude, longitude } = newVal[i]
-                    latLngs[i] = L.latLng([latitude, longitude])
+                    latLngs[i] = [latitude, longitude]
                 }
                 for(let i = 0; i < stationList.length; i++){
                     const distances = []
@@ -198,7 +198,7 @@ watch(()=>statusStore.map, newVal=>{
                         let distance
                         if(j < i) distance = distMatrix[j][i]
                         else if(j == i) distance = 0
-                        else distance = latLngs[i].distanceTo(latLngs[j]) / 1000
+                        else distance = calcDistanceKm(latLngs[i], latLngs[j])
                         distMatrix[i][j] = distance
                         if(distance <= 30) distances.push({ id: j, distance })
                     }

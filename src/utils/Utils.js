@@ -4,7 +4,7 @@ import { chimeUrls } from "./Urls";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { isTauri } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-shell";
-import { booleanPointInPolygon, point, distance } from "@turf/turf";
+import { booleanPointInPolygon, point } from "@turf/turf";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -19,7 +19,19 @@ dayjs.extend(timezone);
 let timeStore;
 let settingsStore;
 
-const EARTH_RADIUS_KM = 6371;
+const EARTH_RADIUS_KM = 6371.0088;
+const toRadians = degrees => (degrees * Math.PI) / 180;
+
+export const calcDistanceKm = ([lat1, lng1], [lat2, lng2]) => {
+  const dLat = toRadians(lat2 - lat1);
+  const dLng = toRadians(lng2 - lng1);
+  const lat1Rad = toRadians(lat1);
+  const lat2Rad = toRadians(lat2);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1Rad) * Math.cos(lat2Rad) * Math.sin(dLng / 2) ** 2;
+  return 2 * EARTH_RADIUS_KM * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
 
 export const formatNumber = (value, digit) => {
   if (value) {
@@ -370,9 +382,10 @@ export const pointDistToCnArea = (pointLngLat, feature) => {
     const nearestPoint = around(kdbush, pointLngLat[0], pointLngLat[1], 1).map(
       index => cnSeisIntLoc[name][index],
     )[0];
-    const minDist = distance(turfPoint, point(nearestPoint), {
-      units: "kilometers",
-    });
+    const minDist = calcDistanceKm(
+      [pointLngLat[1], pointLngLat[0]],
+      [nearestPoint[1], nearestPoint[0]],
+    );
     return minDist;
   }
 };
@@ -386,9 +399,10 @@ export const pointDistToKrArea = (pointLngLat, feature) => {
     const nearestPoint = around(kdbush, pointLngLat[0], pointLngLat[1], 1).map(
       index => krSeisIntLoc[name][index],
     )[0];
-    const minDist = distance(turfPoint, point(nearestPoint), {
-      units: "kilometers",
-    });
+    const minDist = calcDistanceKm(
+      [pointLngLat[1], pointLngLat[0]],
+      [nearestPoint[1], nearestPoint[0]],
+    );
     return minDist;
   }
 };
@@ -431,9 +445,7 @@ export const formatChineseTaiwan = str =>
 export const calcJmaShindo = (mj, dep, hypoLat, hypoLng, loc) => {
   const mw = mj - 0.171;
   const long = 10 ** (0.5 * mw - 1.85) / 2;
-  const locPoint = point([loc.location[1], loc.location[0]]);
-  const hypoPoint = point([hypoLng, hypoLat]);
-  const surfaceDist = distance(hypoPoint, locPoint, { units: "kilometers" });
+  const surfaceDist = calcDistanceKm([hypoLat, hypoLng], loc.location);
   const lineDis = calcLineDis(dep, surfaceDist);
   const hypoDist = lineDis - long;
   const x = Math.max(hypoDist, 3);
@@ -556,7 +568,6 @@ export const exactRound = (input, digit) =>
   Number(Math.round(input + "e" + digit) + "e-" + digit);
 export const getCoordByDistanceBearing = (lat, lng, distanceKm, bearing) => {
   const radiusKm = EARTH_RADIUS_KM;
-  const toRadians = degrees => (degrees * Math.PI) / 180;
   const toDegrees = radians => (radians * 180) / Math.PI;
 
   const normalizedBearing = ((bearing % 360) + 360) % 360;
