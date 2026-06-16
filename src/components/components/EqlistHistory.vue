@@ -125,7 +125,7 @@ const createMockEew = (item) => {
         reportNumText: '第1报（最终）',
         reportTime: originTime,
         isAssumption: false,
-        isWarn: item.useShindo ? item.maxIntensity >= '5' : item.maxIntensity >= 6.5,
+        isWarn: item.useShindo ? item.maxIntensity >= '5' && item.maxIntensity != '不明' : Number(item.maxIntensity) >= 6.5,
         isFinal: true,
         isCanceled: false,
         title: `模拟回放·${item.source}`,

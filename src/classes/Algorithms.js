@@ -3,6 +3,7 @@ import travelTimes from '@/utils/TravelTimes'
 
 const nearTravelTimeMaxDistance = 2000
 const hypocenterSearchSteps = [
+    { degree: 3, depth: 100 },
     { degree: 1, depth: 50 },
     { degree: 0.3, depth: 20 },
     { degree: 0.1, depth: 10 }
@@ -15,7 +16,7 @@ const clusterMergeThreshold = {
     originStamp: 5000
 }
 const minInferenceClusterSize = 3
-const minPenaltyClusterSize = 20
+const minPenaltyClusterSize = 100
 const maxEmptyActiveUpdatesBeforeFinal = 15
 const maxClusterMatchResidual = 5000
 const sortedInactiveStationsCacheKey = Symbol('sortedInactiveStations')
@@ -31,6 +32,7 @@ export class FindNiedHypocenter {
         this.inactiveStationsVersion = 0
         this.inactivePenaltyCandidateCache = new WeakMap()
         this.adjStationIds = adjStationIds
+        this.stationDensityWeights = this.calcStationDensityWeights(adjStationIds)
         this.nextClusterId = 1
         this.updateVersion = 0
         this.setInactiveStations(inactiveStations)
@@ -79,9 +81,23 @@ export class FindNiedHypocenter {
             updateStamp: station.updateStamp,
             maxAscend: station.ascend,
             maxLevel: station.level,
+            densityWeight: this.getStationDensityWeight(station.id),
             activeForPenalty: false,
             source: station
         }
+    }
+
+    calcStationDensityWeights(adjStationIds) {
+        return Object.fromEntries(
+            Object.keys(adjStationIds || {}).map(id => {
+                const localNeighborCount = Math.max(adjStationIds[id]?.length || 0, 1)
+                return [id, 1 / Math.sqrt(localNeighborCount)]
+            })
+        )
+    }
+
+    getStationDensityWeight(stationId) {
+        return this.stationDensityWeights[stationId] ?? 1
     }
 
     updateActiveStationSources(stations) {
@@ -386,7 +402,7 @@ export class FindNiedHypocenter {
         if(exceeded) {
             return this.createInvalidLikelihood(firstWave)
         }
-        const score = rmse + inactivePenalty
+        const score = rmse + inactivePenalty * 2
         return {
             score,
             rmse,
@@ -404,7 +420,8 @@ export class FindNiedHypocenter {
             triggerStamp: station.triggerStamp,
             updateStamp: station.updateStamp,
             maxAscend: station.maxAscend,
-            maxLevel: station.maxLevel
+            maxLevel: station.maxLevel,
+            densityWeight: station.densityWeight
         }
     }
 
@@ -571,7 +588,7 @@ export class FindNiedHypocenter {
         return {
             lat: Math.min(Math.max(hypocenter.lat, -90), 90),
             lng: ((hypocenter.lng + 540) % 360) - 180,
-            depth: Math.max(hypocenter.depth ?? 10, 0)
+            depth: Math.min(Math.max(hypocenter.depth ?? 10, 0), 700)
         }
     }
 
@@ -637,15 +654,17 @@ export class FindNiedHypocenter {
     }
 
     getStationWeight(station) {
-        if(station.maxAscend >= 4) return 1
-        else if(station.maxAscend >= 3) return 0.7
-        else if(station.maxAscend >= 2) return 0.3
-        else if(station.maxAscend >= 1) return 0.1
-        else return 0
+        let ascendWeight
+        if(station.maxAscend >= 4) ascendWeight = 1
+        else if(station.maxAscend >= 3) ascendWeight = 0.7
+        else if(station.maxAscend >= 2) ascendWeight = 0.2
+        // else if(station.maxAscend >= 1) ascendWeight = 0.1
+        else ascendWeight = 0
+        return ascendWeight * (station.densityWeight ?? 1)
     }
 
     isPenaltyReferenceStation(station) {
-        return station.maxAscend >= 3
+        return station.maxAscend >= 3 && station.maxLevel >= 6
     }
 
     hasValidTriggerStamp(station) {

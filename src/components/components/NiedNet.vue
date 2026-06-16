@@ -108,6 +108,7 @@ const update = ()=>{
         const checkedStations = new Set();
         const clusters = [];
         const newActiveStations = [];
+        const stationPairAbnormalCache = new Map();
         possibleStations.forEach(station=>{
             if(!checkedStations.has(station)){
                 if(station.isActive && station.ascend > 0) {
@@ -117,21 +118,21 @@ const update = ()=>{
                 const nearbyStations = adjStationIds[station.id].map(id=>stations[id]).filter(station=>station.level > -1)
                 // const possibleNearbyStations = nearbyStations.filter(station=>station.activity > 0)
                 // const nearbyActiveNum = possibleNearbyStations.length - possibleNearbyStations.filter(station => station.ascend <= 1 && !station.isActive).length / 2
-                let nearest0Index = nearbyStations.map(station => station.activity).indexOf(0);
-                if (nearest0Index == -1) nearest0Index = Infinity;
+                // let nearest0Index = nearbyStations.map(station => station.activity).indexOf(0);
+                // if (nearest0Index == -1) nearest0Index = Infinity;
                 const nearbyActiveNum = nearbyStations.reduce((sum, nearbyStation, index) => {
                     let score = 1;
                     if (nearbyStation.activity <= 0) return sum;
                     if (nearbyStation.isActive) return sum + score;
                     if (nearbyStation.ascend <= 1) score /= 2;
-                    if (index >= nearest0Index) score /= 2;
+                    // if (index >= nearest0Index) score /= 2;
                     return sum + score;
                 }, 0);
                 let numThres, activityThres
                 switch(settingsStore.mainSettings.displaySeisNet.niedSensitivity) {
                     case 1:
                         numThres = nearbyStations.length / 2 + 1
-                        activityThres = activityThresArr1[nearbyStations.length] + 4
+                        activityThres = activityThresArr1[nearbyStations.length]
                         break
                     case 2:
                         numThres = nearbyStations.length <= 2 ? (nearbyStations.length + 1) / 2 : nearbyStations.length / 2
@@ -139,17 +140,22 @@ const update = ()=>{
                         break
                     case 3:
                         numThres = nearbyStations.length / 2
-                        activityThres = activityThresArr3[nearbyStations.length] - 2
+                        activityThres = activityThresArr3[nearbyStations.length]
                         break
                     default:
                         return
                 }
                 if (nearbyActiveNum >= numThres) {
+                    const abnormalCandidates = nearbyStations.filter(station => !station.isActive && station.ascend > 2);
+                    if (hasAbnormalStationPair(abnormalCandidates, stationPairAbnormalCache)) {
+                        activityThres *= 2;
+                        // console.log(abnormalCandidates.map(station => [station.triggerStamp / 1000, station.ascend]), abnormalCandidates.map(station => [...station.recentLevel]));
+                    }
                     const numActivity = nearbyActiveNum * (nearbyActiveNum + 1) / 2
                     const nearbyActivity = nearbyStations.reduce((sum, nearbyStation, index) => {
                         let score = nearbyStation.activity;
-                        if (nearbyStation.isActive) return sum + score;
-                        if (index >= nearest0Index) score /= 2;
+                        // if (nearbyStation.isActive) return sum + score;
+                        // if (index >= nearest0Index) score /= 2;
                         return sum + score;
                     }, 0) + numActivity;
                     if (nearbyActivity >= activityThres) {
@@ -184,6 +190,33 @@ const update = ()=>{
             clearTempHypocenters()
         }
     }
+}
+const hasAbnormalStationPair = (targetStations, stationPairAbnormalCache) => {
+    for(let i = 0; i < targetStations.length - 1; i++) {
+        for(let j = i + 1; j < targetStations.length; j++) {
+            if(isAbnormalStationPair(targetStations[i], targetStations[j], stationPairAbnormalCache)) {
+                return true
+            }
+        }
+    }
+    return false
+}
+const isAbnormalStationPair = (station1, station2, stationPairAbnormalCache) => {
+    const id1 = Math.min(station1.id, station2.id)
+    const id2 = Math.max(station1.id, station2.id)
+    const key = `${id1}-${id2}`
+    if(stationPairAbnormalCache.has(key)) return stationPairAbnormalCache.get(key)
+    const result = calcStationPairAbnormal(station1, station2)
+    stationPairAbnormalCache.set(key, result)
+    return result
+}
+const calcStationPairAbnormal = (station1, station2) => {
+    if(!station1.triggerStamp || !station2.triggerStamp) return false
+    const distance = distMatrix[station1.id]?.[station2.id]
+    if(!Number.isFinite(distance)) return false
+    const maxDiffSeconds = distance / 3.5 + 2
+    const triggerDiffSeconds = Math.abs(station1.triggerStamp - station2.triggerStamp) / 1000
+    return maxDiffSeconds < triggerDiffSeconds
 }
 const getHypocenterWorker = () => {
     if(hypocenterWorker) return hypocenterWorker
@@ -392,7 +425,8 @@ const fetchStationList = async () => {
                 distances.sort((a, b) => a.distance - b.distance).splice(nearbyLength)
                 adjStationIds[i] = distances.map(obj => obj.id)
                 const maxDist = distances[distances.length - 1].distance
-                expireSeconds[i] = Math.max(Math.ceil(maxDist / 3.5), 5)
+                // expireSeconds[i] = Math.max(Math.ceil(maxDist / 3.5), 5)
+                expireSeconds[i] = 10
             }
             stationList.forEach((latLng, index)=>{
                 const station = reactive(new NiedStation(map, index, latLng, 'c', expireSeconds[index]))

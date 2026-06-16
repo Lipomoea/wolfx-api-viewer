@@ -242,8 +242,6 @@ export class NiedStation {
             return { ascend: 0, triggerStamp: 0 };
         }
 
-        let minVal = -1;
-        let triggerIndex = 0;
         let latestMinVal = arr[0];
         let latestMinIndex = 0;
         let identicalCount = 1;
@@ -255,24 +253,16 @@ export class NiedStation {
                 latestMinIndex = i + 1;
                 identicalCount = 1;
             } else if (next > current) {
-                minVal = current;
-                triggerIndex = i;
                 break;
             } else {
                 identicalCount++;
                 if (identicalCount > this.expireSeconds) {
-                    minVal = current;
-                    triggerIndex = i;
                     break;
                 }
             }
         }
-        if (minVal == -1) {
-            minVal = latestMinVal;
-            triggerIndex = latestMinIndex;
-        }
-        const ascend = this.level - minVal;
-        const triggerStamp = ascend > 0 ? this.updateStamp - triggerIndex * 1000 : 0;
+        const ascend = this.level - latestMinVal;
+        const triggerStamp = ascend > 0 ? this.updateStamp - latestMinIndex * 1000 : 0;
         return { ascend, triggerStamp };
     }
     isAbnormalStation() {
