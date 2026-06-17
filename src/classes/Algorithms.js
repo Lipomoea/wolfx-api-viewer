@@ -414,7 +414,7 @@ export class FindNiedHypocenter {
                 stepIndex++
             }
         }
-        this.logFinalScenarioRmses(cluster, currentResult.hypocenter, previousWaveMap)
+        // this.logFinalScenarioRmses(cluster, currentResult.hypocenter, previousWaveMap)
         return currentResult
     }
 
@@ -646,15 +646,15 @@ export class FindNiedHypocenter {
                 return { penalty: maxPenalty + 1, exceeded: true }
             }
             const penalty = this.findLastPenalizedStationIndex(stations, 0, maxPenalty - 1, hypocenter, optionCache, referenceDistance) + 1
-            return { penalty: this.normalizeInactivePenalty(penalty, stations.length), exceeded: false }
+            return { penalty: this.normalizeInactivePenalty(penalty, cluster.length), exceeded: false }
         }
 
         const penalty = this.findLastPenalizedStationIndex(stations, 0, lastIndex, hypocenter, optionCache, referenceDistance) + 1
-        return { penalty: this.normalizeInactivePenalty(penalty, stations.length), exceeded: false }
+        return { penalty: this.normalizeInactivePenalty(penalty, cluster.length), exceeded: false }
     }
 
-    normalizeInactivePenalty(penalty, candidateCount) {
-        return candidateCount > 0 ? penalty / candidateCount : 0
+    normalizeInactivePenalty(penalty, denominator) {
+        return denominator > 0 ? penalty / denominator : 0
     }
 
     calcInactivePenaltyWeight(clusterSize) {
@@ -691,7 +691,19 @@ export class FindNiedHypocenter {
 
     getInactivePenaltyCandidates(cluster) {
         const cached = this.inactivePenaltyCandidateCache.get(cluster)
-        if(cached?.version === this.inactiveStationsVersion) return cached.stations
+        const clusterCount = this.clusters.length
+        if(cached?.version === this.inactiveStationsVersion && cached.clusterCount === clusterCount) return cached.stations
+
+        if(clusterCount === 1) {
+            const stations = [...this.inactiveStationMap.values()]
+                .filter(station => !this.activeStations.has(station.id))
+            this.inactivePenaltyCandidateCache.set(cluster, {
+                version: this.inactiveStationsVersion,
+                clusterCount,
+                stations
+            })
+            return stations
+        }
 
         const candidateMap = new Map()
         cluster.forEach(station => {
@@ -705,6 +717,7 @@ export class FindNiedHypocenter {
         const stations = [...candidateMap.values()]
         this.inactivePenaltyCandidateCache.set(cluster, {
             version: this.inactiveStationsVersion,
+            clusterCount,
             stations
         })
         return stations

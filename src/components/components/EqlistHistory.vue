@@ -45,7 +45,7 @@ import '@/assets/background.css';
 import { reactive, computed } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
 import { defaultEqMessage, useStatusStore } from '@/stores/status';
-import { openUrl, formatTimeZone, formatCsis, calcTimeDiff, formatShindo, calcPassedTime, stampToTime } from '@/utils/Utils';
+import { openUrl, formatTimeZone, formatCsis, calcTimeDiff, formatShindo, calcPassedTime, stampToTime, exactRound } from '@/utils/Utils';
 import { useTimeStore } from '@/stores/time';
 import { HistoryEvent } from '@/classes/EewEqlistClasses';
 import { isTauri } from '@tauri-apps/api/core';
@@ -69,7 +69,7 @@ const flatted = computed(() => Object.values(statusStore.history).flat())
 const sorted = computed(() => flatted.value.sort((a, b) => calcTimeDiff(b.originTime, b.timeZone, a.originTime, a.timeZone)))
 const eqlists = computed(() => sorted.value.filter(item => (settingsStore.mainSettings.historyMagThres == 0 || item.magnitude >= settingsStore.mainSettings.historyMagThres) && settingsStore.mainSettings.historySources.includes(item.source)).slice(0, maxHistoryNumber))
 const handleReplay = (item) => {
-    const passedTime = Math.max(calcPassedTime(item.originTime, item.timeZone) / 60000 + 0.1, 0)
+    const passedTime = exactRound(Math.max(calcPassedTime(item.originTime, item.timeZone) / 60000 + 0.1, 0), 2)
     settingsStore.mainSettings.displaySeisNet.delay = passedTime
     if (settingsStore.advancedSettings.mockOnReplay && settingsStore.advancedSettings.mockEew) {
         createMockEew(item)
