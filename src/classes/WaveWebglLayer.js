@@ -52,7 +52,9 @@ void main() {
   float radius = clamp(length(v_unitPosition), 0.0, 1.0);
   float bodyScale = smoothstep(0.18, 0.70, radius) * (1.0 - smoothstep(0.90, 0.96, radius));
   float edgeScale = smoothstep(0.84, 1.0, radius);
-  vec3 waveColor = mix(vec3(0.0), v_color.rgb, edgeScale);
+  // 波面本身只做同色系深浅，不再混黑；黑色压暗交给底图和层级处理。
+  float colorScale = mix(0.28, 1.0, max(bodyScale, edgeScale));
+  vec3 waveColor = v_color.rgb * colorScale;
   float alphaScale = max(bodyScale * 0.55, edgeScale);
   gl_FragColor = vec4(waveColor, v_color.a * alphaScale);
 }
