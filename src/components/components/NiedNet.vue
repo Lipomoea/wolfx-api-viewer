@@ -323,7 +323,7 @@ const renderTempHypocenters = results => {
                             origin stamp: ${Number.isFinite(result.originStamp) ? Math.round(result.originStamp) : '-'}<br>
                             score: ${result.score.toFixed(2)} / RMSE: ${result.rmse.toFixed(2)}<br>
                             inactive penalty: ${result.inactivePenalty}<br>
-                            first/last wave: ${result.firstWave}/${result.lastWave ?? '-'} / P:${waveCounts.P || 0} S:${waveCounts.S || 0}
+                            scenario: ${result.scenario ?? '-'} / first/last wave: ${result.firstWave}/${result.lastWave ?? '-'} / P:${waveCounts.P || 0} S:${waveCounts.S || 0}
                         </div>
                     `
                 }),

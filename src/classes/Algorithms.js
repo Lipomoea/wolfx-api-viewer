@@ -15,7 +15,7 @@ const clusterMergeThreshold = {
     depth: 50,
     originStamp: 5000
 }
-const minInferenceClusterSize = 3
+const minInferenceClusterSize = 4
 const penaltyFullWeightClusterSize = 20
 const penaltyZeroWeightClusterSize = 120
 const penaltyFullWeight = 5
@@ -26,6 +26,8 @@ const triggerRankDoubleWeightCount = 20
 const triggerRankFullWeightCount = 100
 const triggerRankMinWeightCount = 900
 const triggerRankMinWeight = 0.2
+const sWaveCountPenaltyRatio = 3
+const sWaveCountPenaltyMultiplier = 3
 const sortedInactiveStationsCacheKey = Symbol('sortedInactiveStations')
 
 export class FindNiedHypocenter {
@@ -310,7 +312,8 @@ export class FindNiedHypocenter {
                 return
             }
             const initialHypocenter = cluster.initialHypocenter || cluster.result?.hypocenter || null
-            const result = this.findBestHypocenter(cluster.stations, initialHypocenter)
+            const previousWaveMap = this.createPreviousWaveMap(cluster.result)
+            const result = this.findBestHypocenter(cluster.stations, initialHypocenter, previousWaveMap)
             cluster.result = this.createClusterResult(cluster, result)
             cluster.initialHypocenter = result.hypocenter
             cluster.dirty = false
@@ -368,29 +371,38 @@ export class FindNiedHypocenter {
             .filter(result => result?.hypocenter && Number.isFinite(result.score))
     }
 
-    calcLikelihood(cluster, hypocenter) {
-        const optionCache = new Map()
-        return ['P', 'S']
-            .flatMap(firstWave => ['P', 'S'].map(lastWave =>
-                this.calcScenarioLikelihood(cluster, hypocenter, firstWave, lastWave, optionCache)
-            ))
-            .reduce((best, result) => result.score < best.score ? result : best)
+    createPreviousWaveMap(result) {
+        if(!Array.isArray(result?.stations)) return null
+        const waveMap = new Map(
+            result.stations
+                .filter(item => item?.station?.id !== undefined && item.wave)
+                .map(item => [item.station.id, item.wave])
+        )
+        return waveMap.size > 0 ? waveMap : null
     }
 
-    findBestHypocenter(cluster, initialHypocenter = null) {
+    calcLikelihood(cluster, hypocenter, previousWaveMap = null) {
+        const optionCache = new Map()
+        const scenarios = ['P', 'S'].flatMap(firstWave => ['P', 'S'].map(lastWave =>
+            this.calcScenarioLikelihood(cluster, hypocenter, firstWave, lastWave, optionCache, previousWaveMap)
+        ))
+        return scenarios.reduce((best, result) => result.score < best.score ? result : best)
+    }
+
+    findBestHypocenter(cluster, initialHypocenter = null, previousWaveMap = null) {
         if(!Array.isArray(cluster) || cluster.length === 0) {
             return this.createHypocenterResult(null, this.createInvalidLikelihood(null))
         }
 
         const { lat, lng } = this.calcInitialHypocenterLatLng(cluster)
-        let currentResult = this.evaluateHypocenter(cluster, initialHypocenter || { lat, lng, depth: 10 })
+        let currentResult = this.evaluateHypocenter(cluster, initialHypocenter || { lat, lng, depth: 10 }, previousWaveMap)
         let stepIndex = 0
         let iteration = 0
         while(stepIndex < hypocenterSearchSteps.length && iteration < maxHypocenterSearchIterations) {
             iteration++
             const { degree, depth } = hypocenterSearchSteps[stepIndex]
             const candidates = this.createNeighborHypocenters(currentResult.hypocenter, degree, depth)
-                .map(hypocenter => this.evaluateHypocenter(cluster, hypocenter))
+                .map(hypocenter => this.evaluateHypocenter(cluster, hypocenter, previousWaveMap))
             const bestCandidate = candidates.reduce(
                 (best, candidate) => candidate.score < best.score ? candidate : best,
                 currentResult
@@ -402,21 +414,25 @@ export class FindNiedHypocenter {
                 stepIndex++
             }
         }
-        this.logFinalScenarioRmses(cluster, currentResult.hypocenter)
+        this.logFinalScenarioRmses(cluster, currentResult.hypocenter, previousWaveMap)
         return currentResult
     }
 
-    logFinalScenarioRmses(cluster, hypocenter) {
+    logFinalScenarioRmses(cluster, hypocenter, previousWaveMap = null) {
         const optionCache = new Map()
         const scenarioResults = ['P', 'S'].flatMap(firstWave => ['P', 'S'].map(lastWave => {
-            const key = `${firstWave}${lastWave}`
-            const result = this.calcScenarioLikelihood(cluster, hypocenter, firstWave, lastWave, optionCache)
-            return { key, result }
-        }))
+                const key = `${firstWave}${lastWave}`
+                const result = this.calcScenarioLikelihood(cluster, hypocenter, firstWave, lastWave, optionCache, previousWaveMap)
+                return { key: result.scenario || key, result }
+            }))
         const rmses = Object.fromEntries(
             scenarioResults.map(({ key, result }) => [key, result.rmse])
         )
+        const scores = Object.fromEntries(
+            scenarioResults.map(({ key, result }) => [key, result.score])
+        )
         console.log('[FindNiedHypocenter] final scenario RMSE', rmses)
+        console.log('[FindNiedHypocenter] final scenario score', scores)
         scenarioResults.forEach(({ key, result }) => {
             console.log(`[FindNiedHypocenter] ${key} waves`, result.stations.map(station => station.wave))
         })
@@ -435,7 +451,7 @@ export class FindNiedHypocenter {
         }
     }
 
-    calcScenarioLikelihood(cluster, hypocenter, firstWave, lastWave, optionCache) {
+    calcScenarioLikelihood(cluster, hypocenter, firstWave, lastWave, optionCache, previousWaveMap = null) {
         if(!Array.isArray(cluster) || cluster.length === 0) {
             return this.createInvalidLikelihood(firstWave, lastWave)
         }
@@ -443,6 +459,18 @@ export class FindNiedHypocenter {
             return this.createInvalidLikelihood(firstWave, lastWave)
         }
 
+        const results = [
+            this.calcGreedyScenarioLikelihood(cluster, hypocenter, firstWave, lastWave, optionCache)
+        ]
+        if(previousWaveMap?.size) {
+            results.push(
+                this.calcPreviousWaveScenarioLikelihood(cluster, hypocenter, firstWave, lastWave, optionCache, previousWaveMap)
+            )
+        }
+        return results.reduce((best, result) => result.score < best.score ? result : best)
+    }
+
+    calcGreedyScenarioLikelihood(cluster, hypocenter, firstWave, lastWave, optionCache) {
         const stationResults = []
         const originEntries = []
         const triggerRankWeights = this.calcTriggerRankWeights(cluster)
@@ -459,8 +487,51 @@ export class FindNiedHypocenter {
             this.addScenarioStationResult(station, hypocenter, selected.wave, optionCache, triggerRankWeights, stationResults, originEntries, options)
         }
         if(lastStationResult) stationResults.push(lastStationResult)
+        return this.createScenarioLikelihoodResult(
+            cluster,
+            hypocenter,
+            firstWave,
+            lastWave,
+            `${firstWave}${lastWave}`,
+            optionCache,
+            stationResults,
+            originEntries
+        )
+    }
+
+    calcPreviousWaveScenarioLikelihood(cluster, hypocenter, firstWave, lastWave, optionCache, previousWaveMap) {
+        const stationResults = []
+        const originEntries = []
+        const triggerRankWeights = this.calcTriggerRankWeights(cluster)
+        const lastStationIndex = cluster.length - 1
+        this.addScenarioStationResult(cluster[0], hypocenter, firstWave, optionCache, triggerRankWeights, stationResults, originEntries)
+        let lastStationResult = null
+        if(lastStationIndex > 0) {
+            lastStationResult = this.addScenarioStationResult(cluster[lastStationIndex], hypocenter, lastWave, optionCache, triggerRankWeights, null, originEntries)
+        }
+        for(const i of this.createMiddleOutStationIndexes(1, lastStationIndex - 1)) {
+            const station = cluster[i]
+            const options = this.calcStationOriginOptions(station, hypocenter, optionCache)
+            const previousWave = previousWaveMap.get(station.id)
+            const selected = previousWave ? options[previousWave] : this.selectClosestOption(options, originEntries)
+            this.addScenarioStationResult(station, hypocenter, selected.wave, optionCache, triggerRankWeights, stationResults, originEntries, options)
+        }
+        if(lastStationResult) stationResults.push(lastStationResult)
+        return this.createScenarioLikelihoodResult(
+            cluster,
+            hypocenter,
+            firstWave,
+            lastWave,
+            `${firstWave}${lastWave}_PREV`,
+            optionCache,
+            stationResults,
+            originEntries
+        )
+    }
+
+    createScenarioLikelihoodResult(cluster, hypocenter, firstWave, lastWave, scenario, optionCache, stationResults, originEntries) {
         if(this.calcWeightSum(originEntries) <= 0) {
-            return this.createInvalidLikelihood(firstWave, lastWave)
+            return this.createInvalidLikelihood(firstWave, lastWave, scenario)
         }
         const originStamp = this.calcWeightedMean(originEntries)
         const rmse = this.calcWeightedRmse(originEntries, originStamp) / 1000
@@ -471,20 +542,29 @@ export class FindNiedHypocenter {
             cluster.length
         )
         if(exceeded) {
-            return this.createInvalidLikelihood(firstWave, lastWave)
+            return this.createInvalidLikelihood(firstWave, lastWave, scenario)
         }
         const inactivePenaltyWeight = this.calcInactivePenaltyWeight(cluster.length)
-        const score = rmse + inactivePenalty * inactivePenaltyWeight
+        const waveCountPenaltyMultiplier = this.calcWaveCountPenaltyMultiplier(stationResults)
+        const score = (rmse + inactivePenalty * inactivePenaltyWeight) * waveCountPenaltyMultiplier
         return {
             score,
             rmse,
             inactivePenalty,
             inactivePenaltyWeight,
+            waveCountPenaltyMultiplier,
             originStamp,
             firstWave,
             lastWave,
+            scenario,
             stations: stationResults
         }
+    }
+
+    calcWaveCountPenaltyMultiplier(stationResults) {
+        const pWaveCount = stationResults.filter(result => result.wave === 'P').length
+        const sWaveCount = stationResults.filter(result => result.wave === 'S').length
+        return sWaveCount > pWaveCount * sWaveCountPenaltyRatio ? sWaveCountPenaltyMultiplier : 1
     }
 
     addScenarioStationResult(station, hypocenter, wave, optionCache, triggerRankWeights, stationResults, originEntries, options = null) {
@@ -683,11 +763,11 @@ export class FindNiedHypocenter {
         return stationCache
     }
 
-    evaluateHypocenter(cluster, hypocenter) {
+    evaluateHypocenter(cluster, hypocenter, previousWaveMap = null) {
         const normalizedHypocenter = this.normalizeHypocenter(hypocenter)
         return this.createHypocenterResult(
             normalizedHypocenter,
-            this.calcLikelihood(cluster, normalizedHypocenter)
+            this.calcLikelihood(cluster, normalizedHypocenter, previousWaveMap)
         )
     }
 
@@ -752,7 +832,7 @@ export class FindNiedHypocenter {
     selectClosestOptionByOriginStamp(options, originStamp) {
         const pDiff = Math.abs(options.P.originStamp - originStamp)
         const sDiff = Math.abs(options.S.originStamp - originStamp)
-        return pDiff <= sDiff * 3 ? options.P : options.S
+        return pDiff <= sDiff * 4 ? options.P : options.S
     }
 
     createMiddleOutStationIndexes(startIndex, endIndex) {
@@ -806,15 +886,17 @@ export class FindNiedHypocenter {
         return Number.isFinite(station?.triggerStamp) && station.triggerStamp > 0
     }
 
-    createInvalidLikelihood(firstWave = null, lastWave = null) {
+    createInvalidLikelihood(firstWave = null, lastWave = null, scenario = null) {
         return {
             score: Infinity,
             rmse: Infinity,
             inactivePenalty: 0,
             inactivePenaltyWeight: 0,
+            waveCountPenaltyMultiplier: 1,
             originStamp: null,
             firstWave,
             lastWave,
+            scenario,
             stations: []
         }
     }
