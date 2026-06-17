@@ -11,14 +11,21 @@ import axios from 'axios';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { seisNetUrls, iconUrls } from '@/utils/Urls';
-import { getTimeNumberString, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromLevel, exactRound, timeToStamp, calcDistanceKm, stampToTime } from '@/utils/Utils';
+import { getTimeNumberString, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromLevel, exactRound, timeToStamp, calcDistanceKm, stampToTime, calcWaveDistance } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { abnormalNiedStations, NiedStation, simpleIcon } from '@/classes/StationClasses';
 import { niedSitePub } from '@/utils/NiedSitePub';
+import travelTimes from '@/utils/TravelTimes';
+import infHypoIconUrl from '@/assets/icon/hypocenter/infHypo.svg';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
+const infHypoIcon = L.icon({
+    iconUrl: infHypoIconUrl,
+    iconSize: [40, 40],
+    iconAnchor: [20, 20]
+})
 let stationList = []
 const stationData = ref([])
 const stations = reactive([])
@@ -91,11 +98,12 @@ let tempHypocenterLayers = []
 let hypocenterWorker = null
 let hypocenterRequestId = 0
 let latestHypocenterRequestId = 0
+let updateStamp = null
 const update = ()=>{
     if(stationList.length == stations.length && stations.length == stationData.value.length){
         const render = document.visibilityState === 'visible'
         if(!render) pendingRender = true
-        const updateStamp = timeToStamp(niedUpdateTime.value, 9)
+        updateStamp = timeToStamp(niedUpdateTime.value, 9)
         let maxLevel = -1
         for(let i = 0; i < stationList.length; i++){
             stations[i].update(stationData.value[i], updateStamp, render)
@@ -177,7 +185,7 @@ const update = ()=>{
             if (activeStations.has(station)) {
                 if (!station.isActive) newActiveStations.push(station)
                 station.setActive();
-            } else if (station.level > -1 && station.activity <= 0) {
+            } else if (station.level > -1 && station.activity <= 0 && !station.isActive) {
                 inactiveStations.add(station);
             }
         })
@@ -281,12 +289,11 @@ const renderTempHypocenters = results => {
             }, {})
             const clusterSize = result.cluster?.length ?? stationDetails.length
             const originTimeJst = Number.isFinite(result.originStamp) ? stampToTime(result.originStamp, 9) : '-'
-            const markerLayer = L.circleMarker(latLng, {
-                radius: 10,
-                color: '#ffffff',
-                fillColor: '#ff2d55',
-                fillOpacity: 0.9,
-                weight: 3,
+            const waveLayers = createTempWaveLayers(latLng, result)
+            const markerLayer = L.marker(latLng, {
+                icon: infHypoIcon,
+                opacity: 1,
+                interactive: false,
                 pane: 'eewMarkerPane',
             }).addTo(map)
             const labelLayer = L.marker(latLng, {
@@ -310,21 +317,46 @@ const renderTempHypocenters = results => {
                             <strong>NIED推算震源</strong><br>
                             cluster: ${result.clusterId ?? '-'} / report: ${result.reportNum ?? '-'} / final: ${result.final ? 'true' : 'false'}<br>
                             stations: ${clusterSize} / wave picks: ${stationDetails.length}<br>
-                            经纬度: ${lat.toFixed(3)}, ${lng.toFixed(3)}<br>
+                            经纬度: ${lat.toFixed(1)}, ${lng.toFixed(1)}<br>
                             深度: ${depth.toFixed(0)} km<br>
                             发震: ${originTimeJst} UTC+9<br>
                             origin stamp: ${Number.isFinite(result.originStamp) ? Math.round(result.originStamp) : '-'}<br>
                             score: ${result.score.toFixed(2)} / RMSE: ${result.rmse.toFixed(2)}<br>
                             inactive penalty: ${result.inactivePenalty}<br>
-                            first wave: ${result.firstWave} / P:${waveCounts.P || 0} S:${waveCounts.S || 0}
+                            first/last wave: ${result.firstWave}/${result.lastWave ?? '-'} / P:${waveCounts.P || 0} S:${waveCounts.S || 0}
                         </div>
                     `
                 }),
                 // pane: 'eewMarkerPane',
                 interactive: false
             }).addTo(map)
-            tempHypocenterLayers.push(markerLayer, labelLayer)
+            tempHypocenterLayers.push(...waveLayers, markerLayer, labelLayer)
         })
+}
+const createTempWaveLayers = (latLng, result) => {
+    if(!Number.isFinite(result.originStamp)) return []
+    if(!Number.isFinite(updateStamp)) return []
+    const passedTime = (updateStamp - result.originStamp) / 1000
+    if(!Number.isFinite(passedTime) || passedTime < 0) return []
+    return [
+        createTempWaveLayer(latLng, result.hypocenter.depth, passedTime, true, '#ffffff'),
+        createTempWaveLayer(latLng, result.hypocenter.depth, passedTime, false, '#ff9500')
+    ].filter(Boolean)
+}
+const createTempWaveLayer = (latLng, depth, passedTime, isPWave, color) => {
+    let waveInfo = calcWaveDistance(travelTimes.jma2001, isPWave, depth, passedTime)
+    if(waveInfo.radius > 2000) waveInfo = calcWaveDistance(travelTimes.jb, isPWave, depth, passedTime)
+    if(waveInfo.radius <= 0) return null
+    return L.circle(latLng, {
+        radius: waveInfo.radius * 1000,
+        color,
+        weight: 2,
+        opacity: 1,
+        fill: false,
+        dashArray: '8 8',
+        interactive: false,
+        pane: 'wavePane'
+    }).addTo(map)
 }
 const clearTempHypocenters = () => {
     if(!map) {

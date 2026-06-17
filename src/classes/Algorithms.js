@@ -16,9 +16,16 @@ const clusterMergeThreshold = {
     originStamp: 5000
 }
 const minInferenceClusterSize = 3
-const minPenaltyClusterSize = 100
+const penaltyFullWeightClusterSize = 20
+const penaltyZeroWeightClusterSize = 120
+const penaltyFullWeight = 5
 const maxEmptyActiveUpdatesBeforeFinal = 15
+const maxInactiveUpdatesBeforeRemove = 10
 const maxClusterMatchResidual = 5000
+const triggerRankDoubleWeightCount = 20
+const triggerRankFullWeightCount = 100
+const triggerRankMinWeightCount = 900
+const triggerRankMinWeight = 0.2
 const sortedInactiveStationsCacheKey = Symbol('sortedInactiveStations')
 
 export class FindNiedHypocenter {
@@ -47,6 +54,7 @@ export class FindNiedHypocenter {
         this.refreshActiveStationMaxAscends()
         this.refreshClusterResults()
         this.mergeCloseClusters()
+        this.removeInactiveClusters()
         return this.getResults()
     }
 
@@ -161,6 +169,7 @@ export class FindNiedHypocenter {
             result: null,
             reportNum: 0,
             emptyActiveUpdateCount: 0,
+            inactiveUpdateCount: 0,
             hasNewStation: false,
             final: false,
             lastReportUpdateVersion: null,
@@ -173,13 +182,29 @@ export class FindNiedHypocenter {
 
     addStationToCluster(station, cluster, markUpdated = true) {
         if(cluster.stations.some(item => item.id === station.id)) return
-        cluster.stations.push(station)
+        this.insertStationToCluster(station, cluster)
         this.stationClusterMap.set(station.id, cluster)
         cluster.final = false
         if(markUpdated) this.markClusterUpdated(cluster)
         else if(!cluster.final) cluster.dirty = true
         cluster.hasNewStation = true
         cluster.emptyActiveUpdateCount = 0
+        cluster.inactiveUpdateCount = 0
+    }
+
+    insertStationToCluster(station, cluster) {
+        let low = 0
+        let high = cluster.stations.length
+        while(low < high) {
+            const mid = Math.floor((low + high) / 2)
+            if(cluster.stations[mid].triggerStamp <= station.triggerStamp) {
+                low = mid + 1
+            }
+            else {
+                high = mid
+            }
+        }
+        cluster.stations.splice(low, 0, station)
     }
 
     markClusterUpdated(cluster) {
@@ -208,6 +233,7 @@ export class FindNiedHypocenter {
         const mergedCluster = this.createCluster(stations, initialHypocenter, false)
         mergedCluster.reportNum = reportNum
         mergedCluster.emptyActiveUpdateCount = emptyActiveUpdateCount
+        mergedCluster.inactiveUpdateCount = 0
         mergedCluster.lastReportUpdateVersion = baseCluster.lastReportUpdateVersion
         this.markClusterUpdated(mergedCluster)
         mergedCluster.hasNewStation = true
@@ -217,6 +243,26 @@ export class FindNiedHypocenter {
     removeCluster(cluster) {
         this.clusters = this.clusters.filter(item => item !== cluster)
         cluster.stations.forEach(station => this.stationClusterMap.delete(station.id))
+    }
+
+    removeInactiveClusters() {
+        this.clusters
+            .filter(cluster => this.refreshClusterInactiveUpdateCount(cluster))
+            .forEach(cluster => this.removeCluster(cluster))
+    }
+
+    refreshClusterInactiveUpdateCount(cluster) {
+        if(this.isClusterFullyInactive(cluster)) {
+            cluster.inactiveUpdateCount++
+            return cluster.inactiveUpdateCount >= maxInactiveUpdatesBeforeRemove
+        }
+        cluster.inactiveUpdateCount = 0
+        return false
+    }
+
+    isClusterFullyInactive(cluster) {
+        return cluster.stations.length > 0 &&
+            cluster.stations.every(station => this.inactiveStationMap.has(station.id))
     }
 
     setInactiveStations(inactiveStations) {
@@ -290,6 +336,7 @@ export class FindNiedHypocenter {
                         const mergedCluster = this.createCluster(stations, initialHypocenter, false)
                         mergedCluster.reportNum = reportNum
                         mergedCluster.emptyActiveUpdateCount = emptyActiveUpdateCount
+                        mergedCluster.inactiveUpdateCount = 0
                         mergedCluster.hasNewStation = false
                         mergedCluster.lastReportUpdateVersion = baseCluster.lastReportUpdateVersion
                         this.markClusterUpdated(mergedCluster)
@@ -323,9 +370,11 @@ export class FindNiedHypocenter {
 
     calcLikelihood(cluster, hypocenter) {
         const optionCache = new Map()
-        const pResult = this.calcScenarioLikelihood(cluster, hypocenter, 'P', optionCache)
-        const sResult = this.calcScenarioLikelihood(cluster, hypocenter, 'S', optionCache)
-        return pResult.score <= sResult.score ? pResult : sResult
+        return ['P', 'S']
+            .flatMap(firstWave => ['P', 'S'].map(lastWave =>
+                this.calcScenarioLikelihood(cluster, hypocenter, firstWave, lastWave, optionCache)
+            ))
+            .reduce((best, result) => result.score < best.score ? result : best)
     }
 
     findBestHypocenter(cluster, initialHypocenter = null) {
@@ -333,9 +382,7 @@ export class FindNiedHypocenter {
             return this.createHypocenterResult(null, this.createInvalidLikelihood(null))
         }
 
-        const [stationLat, stationLng] = cluster[0].latLng
-        const lat = exactRound(stationLat, 1)
-        const lng = exactRound(stationLng, 1)
+        const { lat, lng } = this.calcInitialHypocenterLatLng(cluster)
         let currentResult = this.evaluateHypocenter(cluster, initialHypocenter || { lat, lng, depth: 10 })
         let stepIndex = 0
         let iteration = 0
@@ -355,41 +402,65 @@ export class FindNiedHypocenter {
                 stepIndex++
             }
         }
+        this.logFinalScenarioRmses(cluster, currentResult.hypocenter)
         return currentResult
     }
 
-    calcScenarioLikelihood(cluster, hypocenter, firstWave, optionCache) {
+    logFinalScenarioRmses(cluster, hypocenter) {
+        const optionCache = new Map()
+        const scenarioResults = ['P', 'S'].flatMap(firstWave => ['P', 'S'].map(lastWave => {
+            const key = `${firstWave}${lastWave}`
+            const result = this.calcScenarioLikelihood(cluster, hypocenter, firstWave, lastWave, optionCache)
+            return { key, result }
+        }))
+        const rmses = Object.fromEntries(
+            scenarioResults.map(({ key, result }) => [key, result.rmse])
+        )
+        console.log('[FindNiedHypocenter] final scenario RMSE', rmses)
+        scenarioResults.forEach(({ key, result }) => {
+            console.log(`[FindNiedHypocenter] ${key} waves`, result.stations.map(station => station.wave))
+        })
+    }
+
+    calcInitialHypocenterLatLng(cluster) {
+        const earliestTriggerStamp = cluster[0].triggerStamp
+        const earliestStations = cluster.filter(station => station.triggerStamp === earliestTriggerStamp)
+        const [latSum, lngSum] = earliestStations.reduce(
+            (sum, station) => [sum[0] + station.latLng[0], sum[1] + station.latLng[1]],
+            [0, 0]
+        )
+        return {
+            lat: exactRound(latSum / earliestStations.length, 1),
+            lng: exactRound(lngSum / earliestStations.length, 1)
+        }
+    }
+
+    calcScenarioLikelihood(cluster, hypocenter, firstWave, lastWave, optionCache) {
         if(!Array.isArray(cluster) || cluster.length === 0) {
-            return this.createInvalidLikelihood(firstWave)
+            return this.createInvalidLikelihood(firstWave, lastWave)
         }
         if(!cluster.every(station => this.hasValidTriggerStamp(station))) {
-            return this.createInvalidLikelihood(firstWave)
+            return this.createInvalidLikelihood(firstWave, lastWave)
         }
 
         const stationResults = []
         const originEntries = []
-        for(let i = 0; i < cluster.length; i++) {
+        const triggerRankWeights = this.calcTriggerRankWeights(cluster)
+        const lastStationIndex = cluster.length - 1
+        this.addScenarioStationResult(cluster[0], hypocenter, firstWave, optionCache, triggerRankWeights, stationResults, originEntries)
+        let lastStationResult = null
+        if(lastStationIndex > 0) {
+            lastStationResult = this.addScenarioStationResult(cluster[lastStationIndex], hypocenter, lastWave, optionCache, triggerRankWeights, null, originEntries)
+        }
+        for(const i of this.createMiddleOutStationIndexes(1, lastStationIndex - 1)) {
             const station = cluster[i]
             const options = this.calcStationOriginOptions(station, hypocenter, optionCache)
-            const selected = i == 0 ? options[firstWave] : this.selectClosestOption(options, originEntries)
-            const weight = this.getStationWeight(station)
-            stationResults.push({
-                station: this.createStationResultSnapshot(station),
-                wave: selected.wave,
-                originStamp: selected.originStamp,
-                reachTime: selected.reachTime,
-                distance: options.distance,
-                maxAscend: station.maxAscend,
-                weight
-            })
-            originEntries.push({
-                value: selected.originStamp,
-                weight
-            })
+            const selected = this.selectClosestOption(options, originEntries)
+            this.addScenarioStationResult(station, hypocenter, selected.wave, optionCache, triggerRankWeights, stationResults, originEntries, options)
         }
-
+        if(lastStationResult) stationResults.push(lastStationResult)
         if(this.calcWeightSum(originEntries) <= 0) {
-            return this.createInvalidLikelihood(firstWave)
+            return this.createInvalidLikelihood(firstWave, lastWave)
         }
         const originStamp = this.calcWeightedMean(originEntries)
         const rmse = this.calcWeightedRmse(originEntries, originStamp) / 1000
@@ -400,17 +471,58 @@ export class FindNiedHypocenter {
             cluster.length
         )
         if(exceeded) {
-            return this.createInvalidLikelihood(firstWave)
+            return this.createInvalidLikelihood(firstWave, lastWave)
         }
-        const score = rmse + inactivePenalty * 2
+        const inactivePenaltyWeight = this.calcInactivePenaltyWeight(cluster.length)
+        const score = rmse + inactivePenalty * inactivePenaltyWeight
         return {
             score,
             rmse,
             inactivePenalty,
+            inactivePenaltyWeight,
             originStamp,
             firstWave,
+            lastWave,
             stations: stationResults
         }
+    }
+
+    addScenarioStationResult(station, hypocenter, wave, optionCache, triggerRankWeights, stationResults, originEntries, options = null) {
+        options ??= this.calcStationOriginOptions(station, hypocenter, optionCache)
+        const selected = options[wave]
+        const triggerRankWeight = triggerRankWeights.get(station.id) ?? 1
+        const weight = this.getStationWeight(station, triggerRankWeight)
+        const stationResult = {
+            station: this.createStationResultSnapshot(station),
+            wave: selected.wave,
+            originStamp: selected.originStamp,
+            reachTime: selected.reachTime,
+            distance: options.distance,
+            maxAscend: station.maxAscend,
+            triggerRankWeight,
+            weight
+        }
+        stationResults?.push(stationResult)
+        originEntries.push({
+            value: selected.originStamp,
+            weight
+        })
+        return stationResult
+    }
+
+    calcTriggerRankWeights(cluster) {
+        return new Map(cluster.map((station, index) => [
+            station.id,
+            this.calcTriggerRankWeight(index + 1)
+        ]))
+    }
+
+    calcTriggerRankWeight(rank) {
+        if(rank <= triggerRankDoubleWeightCount) return 2
+        if(rank <= triggerRankFullWeightCount) return 1
+        if(rank >= triggerRankMinWeightCount) return triggerRankMinWeight
+        const progress = (rank - triggerRankFullWeightCount) / (triggerRankMinWeightCount - triggerRankFullWeightCount)
+        return 1 - progress * (1 - triggerRankMinWeight)
     }
 
     createStationResultSnapshot(station) {
@@ -436,7 +548,7 @@ export class FindNiedHypocenter {
     }
 
     calcInactiveStationPenalty(hypocenter, cluster, optionCache, maxPenalty = Infinity) {
-        if(cluster.length >= minPenaltyClusterSize) {
+        if(cluster.length >= penaltyZeroWeightClusterSize) {
             return { penalty: 0, exceeded: false }
         }
         const referenceDistance = this.getInactivePenaltyReferenceDistance(cluster, hypocenter, optionCache)
@@ -463,6 +575,13 @@ export class FindNiedHypocenter {
 
     normalizeInactivePenalty(penalty, candidateCount) {
         return candidateCount > 0 ? penalty / candidateCount : 0
+    }
+
+    calcInactivePenaltyWeight(clusterSize) {
+        if(clusterSize <= penaltyFullWeightClusterSize) return penaltyFullWeight
+        if(clusterSize >= penaltyZeroWeightClusterSize) return 0
+        const progress = (clusterSize - penaltyFullWeightClusterSize) / (penaltyZeroWeightClusterSize - penaltyFullWeightClusterSize)
+        return penaltyFullWeight * (1 - progress)
     }
 
     getInactivePenaltyReferenceDistance(cluster, hypocenter, optionCache) {
@@ -627,9 +746,25 @@ export class FindNiedHypocenter {
 
     selectClosestOption(options, originEntries) {
         const currentOriginStamp = this.calcWeightedMean(originEntries)
-        const pDiff = Math.abs(options.P.originStamp - currentOriginStamp)
-        const sDiff = Math.abs(options.S.originStamp - currentOriginStamp)
-        return pDiff <= sDiff ? options.P : options.S
+        return this.selectClosestOptionByOriginStamp(options, currentOriginStamp)
+    }
+
+    selectClosestOptionByOriginStamp(options, originStamp) {
+        const pDiff = Math.abs(options.P.originStamp - originStamp)
+        const sDiff = Math.abs(options.S.originStamp - originStamp)
+        return pDiff <= sDiff * 3 ? options.P : options.S
+    }
+
+    createMiddleOutStationIndexes(startIndex, endIndex) {
+        if(startIndex > endIndex) return []
+        const indexes = []
+        const mid = Math.floor((startIndex + endIndex) / 2)
+        indexes.push(mid)
+        for(let offset = 1; mid - offset >= startIndex || mid + offset <= endIndex; offset++) {
+            if(mid + offset <= endIndex) indexes.push(mid + offset)
+            if(mid - offset >= startIndex) indexes.push(mid - offset)
+        }
+        return indexes
     }
 
     calcWeightedMean(entries) {
@@ -653,31 +788,33 @@ export class FindNiedHypocenter {
         return entries.reduce((sum, entry) => sum + entry.weight, 0)
     }
 
-    getStationWeight(station) {
+    getStationWeight(station, triggerRankWeight = 1) {
         let ascendWeight
         if(station.maxAscend >= 4) ascendWeight = 1
         else if(station.maxAscend >= 3) ascendWeight = 0.7
         else if(station.maxAscend >= 2) ascendWeight = 0.2
         // else if(station.maxAscend >= 1) ascendWeight = 0.1
         else ascendWeight = 0
-        return ascendWeight * (station.densityWeight ?? 1)
+        return ascendWeight * (station.densityWeight ?? 1) * triggerRankWeight
     }
 
     isPenaltyReferenceStation(station) {
-        return station.maxAscend >= 3 && station.maxLevel >= 6
+        return station.maxAscend >= 3 && station.maxLevel >= 4
     }
 
     hasValidTriggerStamp(station) {
         return Number.isFinite(station?.triggerStamp) && station.triggerStamp > 0
     }
 
-    createInvalidLikelihood(firstWave) {
+    createInvalidLikelihood(firstWave = null, lastWave = null) {
         return {
             score: Infinity,
             rmse: Infinity,
             inactivePenalty: 0,
+            inactivePenaltyWeight: 0,
             originStamp: null,
             firstWave,
+            lastWave,
             stations: []
         }
     }
