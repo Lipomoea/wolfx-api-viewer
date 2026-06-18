@@ -350,7 +350,7 @@ const renderTempHypocenters = results => {
                         ">
                             ${labelHtml}
                             <div style="display: ${settingsStore.advancedSettings.advancedHypoInf ? 'block' : 'none'};">
-                            经纬度: ${lat.toFixed(1)}, ${lng.toFixed(1)}<br>
+                            latlng: ${lat.toFixed(1)}, ${lng.toFixed(1)}<br>
                             cluster: ${result.clusterId ?? '-'}<br>
                             loss: ${result.score.toFixed(2)} / RMSE: ${result.rmse.toFixed(2)} / penalty: ${result.inactivePenalty.toFixed(2)}<br>
                             scenario: ${result.scenario ?? '-'} / P: ${waveCounts.P || 0} S: ${waveCounts.S || 0}
