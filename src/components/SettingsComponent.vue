@@ -112,7 +112,7 @@
                                     v-model="settingsStore.mainSettings.displaySeisNet.niedSensitivity"
                                     size="small"
                                     :disabled="!settingsStore.mainSettings.displaySeisNet.niedNet"
-                                    style="width: 48px;"
+                                    style="width: 72px;"
                                 >
                                     <el-option label="关闭" :value=0 />
                                     <el-option label="标准" :value=1 />
@@ -186,7 +186,7 @@
                                     v-model="settingsStore.mainSettings.displaySeisNet.kmaSensitivity"
                                     size="small"
                                     :disabled="!settingsStore.mainSettings.displaySeisNet.kmaNet"
-                                    style="width: 48px;"
+                                    style="width: 72px;"
                                 >
                                     <el-option label="关闭" :value=0 />
                                     <el-option label="标准" :value=1 />
