@@ -647,7 +647,7 @@ onMounted(()=>{
     map.getPane('terminatorFillPane').style.zIndex = 9
     map.createPane('waveFillPane')
     waveFillPane = map.getPane('waveFillPane')
-    // 不盖住烈度图层，改回10
+    // 横波填色不能压住烈度区域；有烈度颜色的面应盖在波面上。
     waveFillPane.style.zIndex = 10
     map.createPane('eewBasePane')
     eewBasePane = map.getPane('eewBasePane')

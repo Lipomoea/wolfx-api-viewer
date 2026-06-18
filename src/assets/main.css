@@ -24,7 +24,8 @@ body{
 }
 
 .leaflet-waveFill-pane canvas.leaflet-wave-webgl-layer {
-  mix-blend-mode: multiply;
+  /* WebGL 的透明 canvas 在部分 Windows/ANGLE 环境下用 multiply 会丢失填色。 */
+  mix-blend-mode: normal;
 }
 
 path.leaflet-interactive:focus {

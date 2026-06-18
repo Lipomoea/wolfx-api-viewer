@@ -169,6 +169,7 @@ const renderWebglStation = station => {
     const stationWebglLayer = getStationWebglLayer(station.map)
     if(!stationWebglLayer) return false
     clearLeafletMarker(station)
+    stationWebglLayer.invalidateStyles()
     stationWebglLayer.requestRender()
     return true
 }
@@ -445,6 +446,7 @@ export class NiedStation {
         this.map = null
         this.marker = null
         this.webglStyle = null
+        stationWebglLayer?.invalidateStyles()
         stationWebglLayer?.requestRender()
         clearTimeout(this.activeTimer)
     }
@@ -606,6 +608,7 @@ export class TremStation {
         this.map = null
         this.marker = null
         this.webglStyle = null
+        stationWebglLayer?.invalidateStyles()
         stationWebglLayer?.requestRender()
     }
 }
@@ -783,6 +786,7 @@ export class KmaStation {
         this.map = null
         this.marker = null
         this.webglStyle = null
+        stationWebglLayer?.invalidateStyles()
         stationWebglLayer?.requestRender()
         clearTimeout(this.activeTimer)
     }
