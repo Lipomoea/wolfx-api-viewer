@@ -33,6 +33,11 @@ export const calcDistanceKm = ([lat1, lng1], [lat2, lng2]) => {
   return 2 * EARTH_RADIUS_KM * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
+export const calcLngDiff = (lng1, lng2) => {
+  const diff = Math.abs(lng1 - lng2) % 360;
+  return Math.min(diff, 360 - diff);
+};
+
 export const formatNumber = (value, digit) => {
   if (value) {
     if (digit) return value.toFixed(digit);

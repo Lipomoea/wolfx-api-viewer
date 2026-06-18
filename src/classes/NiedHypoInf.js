@@ -1,4 +1,4 @@
-import { calcDistanceKm, calcReachTime, exactRound } from '@/utils/Utils'
+import { calcDistanceKm, calcLngDiff, calcReachTime, exactRound } from '@/utils/Utils'
 import travelTimes from '@/utils/TravelTimes'
 
 const nearTravelTimeMaxDistance = 2000
@@ -12,8 +12,8 @@ const maxHypocenterSearchIterations = 1000
 const clusterMergeThreshold = {
     lat: 1,
     lng: 1,
-    depth: 50,
-    originStamp: 5000
+    depth: 100,
+    originStamp: 10000
 }
 const minInferenceClusterSize = 4
 const penaltyFullWeightClusterSize = 20
@@ -827,14 +827,9 @@ export class FindNiedHypocenter {
         const hypo1 = result1.hypocenter
         const hypo2 = result2.hypocenter
         return Math.abs(hypo1.lat - hypo2.lat) <= clusterMergeThreshold.lat &&
-            this.calcLngDiff(hypo1.lng, hypo2.lng) <= clusterMergeThreshold.lng &&
+            calcLngDiff(hypo1.lng, hypo2.lng) <= clusterMergeThreshold.lng &&
             Math.abs(hypo1.depth - hypo2.depth) <= clusterMergeThreshold.depth &&
             Math.abs(result1.originStamp - result2.originStamp) <= clusterMergeThreshold.originStamp
-    }
-
-    calcLngDiff(lng1, lng2) {
-        const diff = Math.abs(lng1 - lng2) % 360
-        return Math.min(diff, 360 - diff)
     }
 
     selectClosestOption(options, originEntries) {

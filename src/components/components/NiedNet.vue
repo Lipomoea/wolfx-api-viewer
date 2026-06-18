@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <div>
 
     </div>
@@ -11,7 +11,7 @@ import axios from 'axios';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { seisNetUrls, iconUrls } from '@/utils/Urls';
-import { getTimeNumberString, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromLevel, exactRound, timeToStamp, calcDistanceKm, stampToTime, calcWaveDistance } from '@/utils/Utils';
+import { getTimeNumberString, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromLevel, exactRound, timeToStamp, calcDistanceKm, calcLngDiff, stampToTime, calcWaveDistance } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { abnormalNiedStations, NiedStation, simpleIcon } from '@/classes/StationClasses';
@@ -40,6 +40,7 @@ const niedPeriodMaxShindo = inject('niedPeriodMaxShindo')
 const niedPeriodBarClass = inject('niedPeriodBarClass')
 const handleTempEqlists = inject('handleTempEqlists')
 const smartSetView = inject('smartSetView')
+const activeEewList = inject('activeEewList')
 let periodMaxLevel = -1
 const currentMaxShindo = computed(()=>{
     const currentMaxLevel = Math.max(...Object.keys(grids.value).map(key=>grids.value[key].level), -1)
@@ -99,6 +100,12 @@ let hypocenterWorker = null
 let hypocenterRequestId = 0
 let latestHypocenterRequestId = 0
 let updateStamp = null
+const hypoInfEewMatchThreshold = {
+    lat: 1,
+    lng: 1,
+    depth: 100,
+    originStamp: 10000
+}
 const isNiedHypoInfEnabled = () => 
     settingsStore.mainSettings.displaySeisNet.niedNet &&
     settingsStore.mainSettings.displaySeisNet.niedHypoInf
@@ -291,6 +298,7 @@ const renderTempHypocenters = results => {
     if(!map || !Array.isArray(results)) return
     results
         .filter(result => result.hypocenter && Number.isFinite(result.score))
+        .filter(shouldDisplayHypocenterResult)
         .forEach(result => {
             const { lat, lng, depth } = result.hypocenter
             const latLng = [lat, lng]
@@ -302,6 +310,15 @@ const renderTempHypocenters = results => {
             const clusterSize = result.cluster?.length ?? stationDetails.length
             const originTimeJst = Number.isFinite(result.originStamp) ? stampToTime(result.originStamp, 9) : '-'
             const waveLayers = createTempWaveLayers(latLng, result)
+            const labelHtml = createHypocenterLabelHtml(result, {
+                lat,
+                lng,
+                depth,
+                clusterSize,
+                stationPickCount: stationDetails.length,
+                originTimeJst,
+                waveCounts
+            })
             const markerLayer = L.marker(latLng, {
                 icon: infHypoIcon,
                 opacity: 1,
@@ -311,31 +328,33 @@ const renderTempHypocenters = results => {
             const labelLayer = L.marker(latLng, {
                 icon: L.divIcon({
                     className: '',
-                    iconAnchor: [-20, -20],
+                    iconSize: null,
+                    iconAnchor: [0, -24],
                     html: `
                         <div style="
-                            min-width: 220px;
+                            display: inline-block;
+                            width: max-content;
+                            max-width: 360px;
                             padding: 8px 10px;
-                            border: 2px solid #ff2d5500;
-                            border-radius: 6px;
-                            background: rgba(255, 255, 255, 0);
-                            color: #ffffff;
+                            color: #fff;
+                            -webkit-text-stroke: 0.35px #000000cc;
+                            paint-order: stroke fill;
+                            text-shadow: 0 0 2px #000000cc, 0 0 4px #000000aa, 1px 1px 2px #000000cc, -1px -1px 2px #000000cc;
                             font-size: 12px;
-                            line-height: 1.35;
-                            box-shadow: 0 2px 8px rgba(0,0,0,0.28);
+                            line-height: 1.25;
+                            text-align: center;
+                            overflow: hidden;
                             pointer-events: none;
                             white-space: nowrap;
+                            transform: translateX(-50%);
                         ">
-                            <strong>NIED推算震源</strong><br>
-                            cluster: ${result.clusterId ?? '-'} / report: ${result.reportNum ?? '-'} / final: ${result.final ? 'true' : 'false'}<br>
-                            stations: ${clusterSize} / wave picks: ${stationDetails.length}<br>
+                            ${labelHtml}
+                            <div style="display: ${settingsStore.advancedSettings.advancedHypoInf ? 'block' : 'none'};">
                             经纬度: ${lat.toFixed(1)}, ${lng.toFixed(1)}<br>
-                            深度: ${depth.toFixed(0)} km<br>
-                            发震: ${originTimeJst} UTC+9<br>
-                            origin stamp: ${Number.isFinite(result.originStamp) ? Math.round(result.originStamp) : '-'}<br>
-                            score: ${result.score.toFixed(2)} / RMSE: ${result.rmse.toFixed(2)}<br>
-                            inactive penalty: ${result.inactivePenalty}<br>
-                            scenario: ${result.scenario ?? '-'} / first/last wave: ${result.firstWave}/${result.lastWave ?? '-'} / P:${waveCounts.P || 0} S:${waveCounts.S || 0}
+                            cluster: ${result.clusterId ?? '-'}<br>
+                            loss: ${result.score.toFixed(2)} / RMSE: ${result.rmse.toFixed(2)} / penalty: ${result.inactivePenalty.toFixed(2)}<br>
+                            scenario: ${result.scenario ?? '-'} / P:${waveCounts.P || 0} S:${waveCounts.S || 0}
+                            </div>
                         </div>
                     `
                 }),
@@ -344,6 +363,40 @@ const renderTempHypocenters = results => {
             }).addTo(map)
             tempHypocenterLayers.push(...waveLayers, markerLayer, labelLayer)
         })
+}
+const shouldDisplayHypocenterResult = result => {
+    if(settingsStore.mainSettings.displaySeisNet.niedHypoInfAlwaysOn) return true
+    return !isMatchedWithActiveJmaEew(result)
+}
+const isMatchedWithActiveJmaEew = result => {
+    if(!Array.isArray(activeEewList)) return false
+    return activeEewList.some(event => isCloseToJmaEewHypocenter(result, event?.eqMessage))
+}
+const isCloseToJmaEewHypocenter = (result, eqMessage) => {
+    if(eqMessage?.source !== 'jmaEew') return false
+    if(eqMessage.isAssumption || eqMessage.isCanceled) return false
+    if(!Number.isFinite(result?.originStamp)) return false
+    if(!Number.isFinite(eqMessage.lat) || !Number.isFinite(eqMessage.lng)) return false
+    if(!Number.isFinite(eqMessage.depth)) return false
+    const eewOriginStamp = timeToStamp(eqMessage.originTime, eqMessage.timeZone)
+    if(!Number.isFinite(eewOriginStamp) || eewOriginStamp <= 0) return false
+    const hypocenter = result.hypocenter
+    return Math.abs(hypocenter.lat - eqMessage.lat) <= hypoInfEewMatchThreshold.lat &&
+        calcLngDiff(hypocenter.lng, eqMessage.lng) <= hypoInfEewMatchThreshold.lng &&
+        Math.abs((hypocenter.depth ?? 10) - eqMessage.depth) <= hypoInfEewMatchThreshold.depth &&
+        Math.abs(result.originStamp - eewOriginStamp) <= hypoInfEewMatchThreshold.originStamp
+}
+const createHypocenterLabelHtml = (result, { depth, clusterSize, originTimeJst }) => {
+    const reportText = result.reportNum ?? '-'
+    const finalText = result.final ? '（最终）' : ''
+    return `
+        <div style="font-size: 14px; font-weight: 700; line-height: 1.25;">
+            NIED震源推算 第${reportText}报${finalText}<br>
+            ${originTimeJst} (+9)<br>
+            深${depth.toFixed(0)}km<br>
+            ${clusterSize}测站
+        </div>
+    `
 }
 const createTempWaveLayers = (latLng, result) => {
     if(!Number.isFinite(result.originStamp)) return []

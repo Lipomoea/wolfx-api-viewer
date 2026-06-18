@@ -36,6 +36,7 @@ export const useSettingsStore = defineStore('settingsStore', {
                 niedSensitivity: 1,
                 displayNiedShindo: false,
                 niedHypoInf: false,
+                niedHypoInfAlwaysOn: false,
                 tremNet: false,
                 tremApi: 'lb-1',
                 displayTremShindo: false,
@@ -140,7 +141,8 @@ export const useSettingsStore = defineStore('settingsStore', {
             useClassicMapLoader: false,
             preventFlickerMode: false,
             mockEew: false,
-            mockOnReplay: false
+            mockOnReplay: false,
+            advancedHypoInf: false
         }
     }),
     getters: {

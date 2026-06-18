@@ -140,6 +140,10 @@
                                 </span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.niedHypoInf" :disabled="!settingsStore.mainSettings.displaySeisNet.niedNet" />
                             </div>
+                            <div class="switch-full pl-8">
+                                <span>不自动隐藏推算震源</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.niedHypoInfAlwaysOn" :disabled="!settingsStore.mainSettings.displaySeisNet.niedNet" />
+                            </div>
                         </div>
                         <div class="w-full" v-if="settingsStore.advancedSettings.enableTremFunctions">
                             <div class="switch-full">
@@ -1588,6 +1592,14 @@ const handleAdvance = (val)=>{
         case 'verifyAdmin': {
             verifyType = val
             verifyDialog.value = true
+            break
+        }
+        case 'enableAdvancedHypoInf': {
+            settingsStore.advancedSettings.advancedHypoInf = true
+            break
+        }
+        case 'disableAdvancedHypoInf': {
+            settingsStore.advancedSettings.advancedHypoInf = false
             break
         }
         case 'disableIclEew': {
