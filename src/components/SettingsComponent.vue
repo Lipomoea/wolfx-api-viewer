@@ -272,7 +272,7 @@
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayShindo0" />
                             </div>
                             <div class="switch-full">
-                                <span>地震预警时也显示摇晃检知框</span>
+                                <span>不自动隐藏摇晃检知框</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid" />
                             </div>
                             <div class="switch-full">

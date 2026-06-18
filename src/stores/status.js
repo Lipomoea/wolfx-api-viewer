@@ -232,6 +232,7 @@ export const useStatusStore = defineStore('statusStore', {
             niedNet: false,
             tremNet: false,
             kmaNet: false,
+            niedInfHypo: false,
         },
         history: {
             jmaEqlist: [],

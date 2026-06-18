@@ -95,7 +95,7 @@ const nearbyLength = 6
 const activityThresArr1 = [Infinity, 10, 14, 16, 18, 19, 20]
 const activityThresArr2 = [Infinity, 8, 11, 13, 14, 15, 16]
 const activityThresArr3 = [Infinity, 6, 9, 11, 12, 13, 14]
-let tempHypocenterLayers = []
+let inferredHypocenterLayers = []
 let hypocenterWorker = null
 let hypocenterRequestId = 0
 let latestHypocenterRequestId = 0
@@ -202,15 +202,15 @@ const update = ()=>{
         const currentActiveStations = stations.filter(station => station.isActive)
         if(!isNiedHypoInfEnabled()) {
             terminateHypocenterWorker()
-            clearTempHypocenters()
+            clearInferredHypocenters()
         }
         else if(currentActiveStations.length > 0) {
             const initialActiveStations = hypocenterWorker ? newActiveStations : currentActiveStations
-            updateHypocentersInWorker(initialActiveStations, inactiveStations)
+            updateInferredHypocentersInWorker(initialActiveStations, inactiveStations)
         }
         else {
             resetHypocenterWorker()
-            clearTempHypocenters()
+            clearInferredHypocenters()
         }
     }
 }
@@ -248,7 +248,7 @@ const getHypocenterWorker = () => {
         const { requestId, results } = event.data || {}
         if(requestId !== latestHypocenterRequestId) return
         if(!isNiedHypoInfEnabled()) return
-        renderTempHypocenters(results)
+        renderInferredHypocenters(results)
     }
     hypocenterWorker.onerror = err => {
         console.log(err)
@@ -270,7 +270,7 @@ const terminateHypocenterWorker = () => {
     hypocenterWorker.terminate()
     hypocenterWorker = null
 }
-const stationToHypocenterSnapshot = station => ({
+const stationToInferredHypocenterSnapshot = station => ({
     id: station.id,
     latLng: [...station.latLng],
     triggerStamp: station.triggerStamp,
@@ -279,26 +279,28 @@ const stationToHypocenterSnapshot = station => ({
     level: station.level,
     isActive: station.isActive
 })
-const updateHypocentersInWorker = (newActiveStations, inactiveStations) => {
+const updateInferredHypocentersInWorker = (newActiveStations, inactiveStations) => {
     if(!isNiedHypoInfEnabled()) return
     const requestId = ++hypocenterRequestId
     latestHypocenterRequestId = requestId
     getHypocenterWorker().postMessage({
         type: 'update',
         requestId,
-        newActiveStations: newActiveStations.map(stationToHypocenterSnapshot),
-        activeStations: stations.filter(station => station.isActive).map(stationToHypocenterSnapshot),
-        inactiveStations: [...inactiveStations].map(stationToHypocenterSnapshot),
+        newActiveStations: newActiveStations.map(stationToInferredHypocenterSnapshot),
+        activeStations: stations.filter(station => station.isActive).map(stationToInferredHypocenterSnapshot),
+        inactiveStations: [...inactiveStations].map(stationToInferredHypocenterSnapshot),
         adjStationIds: adjStationIds4Hypo
     })
 }
-const renderTempHypocenters = results => {
-    clearTempHypocenters()
+const renderInferredHypocenters = results => {
+    clearInferredHypocenters()
     if(!isNiedHypoInfEnabled()) return
     if(!map || !Array.isArray(results)) return
-    results
+    const visibleResults = results
         .filter(result => result.hypocenter && Number.isFinite(result.score))
         .filter(shouldDisplayHypocenterResult)
+    statusStore.isActive.niedInfHypo = visibleResults.length > 0
+    visibleResults
         .forEach(result => {
             const { lat, lng, depth } = result.hypocenter
             const latLng = [lat, lng]
@@ -309,7 +311,7 @@ const renderTempHypocenters = results => {
             }, {})
             const clusterSize = result.cluster?.length ?? stationDetails.length
             const originTimeJst = Number.isFinite(result.originStamp) ? stampToTime(result.originStamp, 9) : '-'
-            const waveLayers = createTempWaveLayers(latLng, result)
+            const waveLayers = createInferredWaveLayers(latLng, result)
             const labelHtml = createHypocenterLabelHtml(result, {
                 lat,
                 lng,
@@ -361,7 +363,7 @@ const renderTempHypocenters = results => {
                 // pane: 'eewMarkerPane',
                 interactive: false
             }).addTo(map)
-            tempHypocenterLayers.push(...waveLayers, markerLayer, labelLayer)
+            inferredHypocenterLayers.push(...waveLayers, markerLayer, labelLayer)
         })
 }
 const shouldDisplayHypocenterResult = result => {
@@ -398,17 +400,17 @@ const createHypocenterLabelHtml = (result, { depth, clusterSize, originTimeJst }
         </div>
     `
 }
-const createTempWaveLayers = (latLng, result) => {
+const createInferredWaveLayers = (latLng, result) => {
     if(!Number.isFinite(result.originStamp)) return []
     if(!Number.isFinite(updateStamp)) return []
     const passedTime = (updateStamp - result.originStamp) / 1000
     if(!Number.isFinite(passedTime) || passedTime < 0) return []
     return [
-        createTempWaveLayer(latLng, result.hypocenter.depth, passedTime, true, '#ffffff'),
-        createTempWaveLayer(latLng, result.hypocenter.depth, passedTime, false, '#ff9500')
+        createInferredWaveLayer(latLng, result.hypocenter.depth, passedTime, true, '#ffffff'),
+        createInferredWaveLayer(latLng, result.hypocenter.depth, passedTime, false, '#ff9500')
     ].filter(Boolean)
 }
-const createTempWaveLayer = (latLng, depth, passedTime, isPWave, color) => {
+const createInferredWaveLayer = (latLng, depth, passedTime, isPWave, color) => {
     let waveInfo = calcWaveDistance(travelTimes.jma2001, isPWave, depth, passedTime)
     if(waveInfo.radius > 2000) waveInfo = calcWaveDistance(travelTimes.jb, isPWave, depth, passedTime)
     if(waveInfo.radius <= 0) return null
@@ -423,15 +425,16 @@ const createTempWaveLayer = (latLng, depth, passedTime, isPWave, color) => {
         pane: 'wavePane'
     }).addTo(map)
 }
-const clearTempHypocenters = () => {
+const clearInferredHypocenters = () => {
+    statusStore.isActive.niedInfHypo = false
     if(!map) {
-        tempHypocenterLayers = []
+        inferredHypocenterLayers = []
         return
     }
-    tempHypocenterLayers.forEach(layer => {
+    inferredHypocenterLayers.forEach(layer => {
         if(map.hasLayer(layer)) map.removeLayer(layer)
     })
-    tempHypocenterLayers = []
+    inferredHypocenterLayers = []
 }
 const chainActivate = (station, activeStations, checkedStations, clusters)=>{
     const pendingStations = new Set([station])
@@ -677,7 +680,7 @@ watch(
     enabled => {
         if(enabled) return
         terminateHypocenterWorker()
-        clearTempHypocenters()
+        clearInferredHypocenters()
     },
     { immediate: true }
 )
@@ -747,7 +750,7 @@ onBeforeUnmount(()=>{
     stations.length = 0
     clearAbnormalList()
     terminateHypocenterWorker()
-    clearTempHypocenters()
+    clearInferredHypocenters()
     map.eachLayer(layer=>{
         if(layer.options.pane == 'niedGridPane' || layer.options.pane.includes('niedStationPane')){
             map.removeLayer(layer)
