@@ -99,6 +99,9 @@ let hypocenterWorker = null
 let hypocenterRequestId = 0
 let latestHypocenterRequestId = 0
 let updateStamp = null
+const isNiedHypoInfEnabled = () => 
+    settingsStore.mainSettings.displaySeisNet.niedNet &&
+    settingsStore.mainSettings.displaySeisNet.niedHypoInf
 const update = ()=>{
     if(stationList.length == stations.length && stations.length == stationData.value.length){
         const render = document.visibilityState === 'visible'
@@ -189,9 +192,14 @@ const update = ()=>{
                 inactiveStations.add(station);
             }
         })
-        const hasActiveStations = stations.some(station => station.isActive)
-        if(hasActiveStations) {
-            updateHypocentersInWorker(newActiveStations, inactiveStations)
+        const currentActiveStations = stations.filter(station => station.isActive)
+        if(!isNiedHypoInfEnabled()) {
+            terminateHypocenterWorker()
+            clearTempHypocenters()
+        }
+        else if(currentActiveStations.length > 0) {
+            const initialActiveStations = hypocenterWorker ? newActiveStations : currentActiveStations
+            updateHypocentersInWorker(initialActiveStations, inactiveStations)
         }
         else {
             resetHypocenterWorker()
@@ -232,6 +240,7 @@ const getHypocenterWorker = () => {
     hypocenterWorker.onmessage = event => {
         const { requestId, results } = event.data || {}
         if(requestId !== latestHypocenterRequestId) return
+        if(!isNiedHypoInfEnabled()) return
         renderTempHypocenters(results)
     }
     hypocenterWorker.onerror = err => {
@@ -249,6 +258,7 @@ const resetHypocenterWorker = () => {
     })
 }
 const terminateHypocenterWorker = () => {
+    latestHypocenterRequestId = ++hypocenterRequestId
     if(!hypocenterWorker) return
     hypocenterWorker.terminate()
     hypocenterWorker = null
@@ -263,6 +273,7 @@ const stationToHypocenterSnapshot = station => ({
     isActive: station.isActive
 })
 const updateHypocentersInWorker = (newActiveStations, inactiveStations) => {
+    if(!isNiedHypoInfEnabled()) return
     const requestId = ++hypocenterRequestId
     latestHypocenterRequestId = requestId
     getHypocenterWorker().postMessage({
@@ -276,6 +287,7 @@ const updateHypocentersInWorker = (newActiveStations, inactiveStations) => {
 }
 const renderTempHypocenters = results => {
     clearTempHypocenters()
+    if(!isNiedHypoInfEnabled()) return
     if(!map || !Array.isArray(results)) return
     results
         .filter(result => result.hypocenter && Number.isFinite(result.score))
@@ -607,6 +619,15 @@ watch(()=>(statusStore.isActive.jmaEew || statusStore.isActive.niedNet), newVal=
     }
 }, { immediate: true })
 watch(() => Object.keys(grids.value).length, () => smartSetView())
+watch(
+    () => isNiedHypoInfEnabled(),
+    enabled => {
+        if(enabled) return
+        terminateHypocenterWorker()
+        clearTempHypocenters()
+    },
+    { immediate: true }
+)
 let shake1Notified = false, shake2Notified = false
 let focused = false
 watch(currentMaxShindo, (newVal, oldVal)=>{

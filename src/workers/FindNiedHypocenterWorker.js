@@ -1,4 +1,4 @@
-import { FindNiedHypocenter } from '@/classes/Algorithms'
+import { FindNiedHypocenter } from '@/classes/NiedHypoInf'
 
 let finder = null
 

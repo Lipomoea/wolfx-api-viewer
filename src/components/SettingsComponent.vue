@@ -114,11 +114,31 @@
                                     :disabled="!settingsStore.mainSettings.displaySeisNet.niedNet"
                                     style="width: 48px;"
                                 >
-                                    <el-option label="关" :value=0 />
-                                    <el-option label="低" :value=1 />
-                                    <el-option label="中" :value=2 />
-                                    <el-option label="高" :value=3 />
+                                    <el-option label="关闭" :value=0 />
+                                    <el-option label="标准" :value=1 />
+                                    <el-option label="高" :value=2 />
+                                    <el-option label="极高" :value=3 />
                                 </el-select>
+                            </div>
+                            <div class="switch-full pl-4">
+                                <span>
+                                    本地推算震源
+                                    <el-popover
+                                        placement="top"
+                                        :width="310"
+                                        trigger="hover"
+                                    >
+                                        <template #reference>
+                                            <question-filled width="1em" height="1em" />
+                                        </template>
+                                        <p>启用后，会在软件内部通过测站信息自行推算可能的震源。</p>
+                                        <strong>
+                                            <p>实验性功能，精度低，不代表任何权威信息来源，仅供参考。</p>
+                                            <p>此功能会消耗较多计算机资源。</p>
+                                        </strong>
+                                    </el-popover>
+                                </span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.niedHypoInf" :disabled="!settingsStore.mainSettings.displaySeisNet.niedNet" />
                             </div>
                         </div>
                         <div class="w-full" v-if="settingsStore.advancedSettings.enableTremFunctions">
@@ -164,10 +184,10 @@
                                     :disabled="!settingsStore.mainSettings.displaySeisNet.kmaNet"
                                     style="width: 48px;"
                                 >
-                                    <el-option label="关" :value=0 />
-                                    <el-option label="低" :value=1 />
-                                    <el-option label="中" :value=2 />
-                                    <el-option label="高" :value=3 />
+                                    <el-option label="关闭" :value=0 />
+                                    <el-option label="标准" :value=1 />
+                                    <el-option label="高" :value=2 />
+                                    <el-option label="极高" :value=3 />
                                 </el-select>
                             </div>
                             <div class="switch-full pl-4">
