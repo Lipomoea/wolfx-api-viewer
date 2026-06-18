@@ -26,7 +26,7 @@ const triggerRankDoubleWeightCount = 20
 const triggerRankFullWeightCount = 100
 const triggerRankMinWeightCount = 900
 const triggerRankMinWeight = 0.2
-const sWaveCountPenaltyRatio = 3
+const sWaveCountPenaltyRatio = 2
 const sWaveCountPenaltyMultiplier = 3
 const sortedInactiveStationsCacheKey = Symbol('sortedInactiveStations')
 
