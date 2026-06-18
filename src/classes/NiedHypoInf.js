@@ -21,7 +21,10 @@ const penaltyZeroWeightClusterSize = 120
 const penaltyFullWeight = 5
 const maxEmptyActiveUpdatesBeforeFinal = 15
 const maxInactiveUpdatesBeforeRemove = 10
-const maxClusterMatchResidual = 5000
+const minResidualThreshold = 5000
+const residualOutlierToleranceRatio = 3
+const maxClusterMatchResidual = minResidualThreshold
+const minReliableStationCount = 100
 const sWaveCountPenaltyRatio = 2
 const sWaveCountPenaltyMultiplier = 3
 const sortedInactiveStationsCacheKey = Symbol('sortedInactiveStations')
@@ -186,9 +189,9 @@ export class FindNiedHypocenter {
         if(cluster.stations.some(item => item.id === station.id)) return
         this.insertStationToCluster(station, cluster)
         this.stationClusterMap.set(station.id, cluster)
-        cluster.final = false
+        if(cluster.final) return
         if(markUpdated) this.markClusterUpdated(cluster)
-        else if(!cluster.final) cluster.dirty = true
+        else cluster.dirty = true
         cluster.hasNewStation = true
         cluster.emptyActiveUpdateCount = 0
         cluster.inactiveUpdateCount = 0
@@ -537,7 +540,7 @@ export class FindNiedHypocenter {
         for(const i of this.createMiddleOutStationIndexes(1, lastStationIndex - 1)) {
             const station = cluster[i]
             const options = this.calcStationOriginOptions(station, hypocenter, optionCache)
-            const selected = this.selectClosestOption(options, originEntries, cluster.length)
+            const selected = this.selectClosestOption(options, originEntries)
             this.addScenarioStationResult(station, hypocenter, selected?.wave ?? 'N', optionCache, triggerRankWeights, stationResults, originEntries, options)
         }
         if(lastStationResult) stationResults.push(lastStationResult)
@@ -563,9 +566,9 @@ export class FindNiedHypocenter {
             const station = cluster[i]
             const options = this.calcStationOriginOptions(station, hypocenter, optionCache)
             const previousWave = previousWaveMap.get(station.id)
-            const selected = previousWave && !this.isWaveResidualOutlier(options[previousWave], originEntries, cluster.length)
+            const selected = previousWave && !this.isWaveResidualOutlier(options[previousWave], originEntries)
                 ? options[previousWave]
-                : this.selectClosestOption(options, originEntries, cluster.length)
+                : this.selectClosestOption(options, originEntries)
             this.addScenarioStationResult(station, hypocenter, selected?.wave ?? 'N', optionCache, triggerRankWeights, stationResults, originEntries, options)
         }
         return this.createScenarioLikelihoodResult(
@@ -663,7 +666,7 @@ export class FindNiedHypocenter {
     }
 
     calcTriggerRankWeight(rank, clusterSize) {
-        const ratio = rank / Math.max(clusterSize, 100)
+        const ratio = rank / Math.max(clusterSize, minReliableStationCount)
         if(ratio <= 0.1) return 2
         if(ratio <= 0.4) return 1
         if(ratio >= 0.8) return 0.2
@@ -903,27 +906,27 @@ export class FindNiedHypocenter {
             Math.abs(result1.originStamp - result2.originStamp) <= clusterMergeThreshold.originStamp
     }
 
-    selectClosestOption(options, originEntries, clusterSize) {
+    selectClosestOption(options, originEntries) {
         const currentOriginStamp = this.calcWeightedMean(originEntries)
-        if(this.isResidualOutlier(options, originEntries, currentOriginStamp, clusterSize)) return null
+        if(this.isResidualOutlier(options, originEntries, currentOriginStamp)) return null
         return this.selectClosestOptionByOriginStamp(options, currentOriginStamp)
     }
 
-    isResidualOutlier(options, originEntries, originStamp, clusterSize) {
-        if(clusterSize < 100) return false
+    isResidualOutlier(options, originEntries, originStamp) {
+        if(originEntries.length < minReliableStationCount) return false
         const meanResidual = this.calcMeanAbsResidual(originEntries, originStamp)
         if(!Number.isFinite(meanResidual) || meanResidual <= 0) return false
-        const threshold = Math.max(meanResidual * 3, 5000)
+        const threshold = Math.max(meanResidual * residualOutlierToleranceRatio, minResidualThreshold)
         return Math.abs(options.P.originStamp - originStamp) > threshold &&
             Math.abs(options.S.originStamp - originStamp) > threshold
     }
 
-    isWaveResidualOutlier(option, originEntries, clusterSize) {
-        if(clusterSize < 100) return false
+    isWaveResidualOutlier(option, originEntries) {
+        if(originEntries.length < minReliableStationCount) return false
         const originStamp = this.calcWeightedMean(originEntries)
         const meanResidual = this.calcMeanAbsResidual(originEntries, originStamp)
         if(!Number.isFinite(meanResidual) || meanResidual <= 0) return false
-        const threshold = Math.max(meanResidual * 3, 5000)
+        const threshold = Math.max(meanResidual * residualOutlierToleranceRatio, minResidualThreshold)
         return Math.abs(option.originStamp - originStamp) > threshold
     }
 
