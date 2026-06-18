@@ -295,7 +295,7 @@ export class NiedStation {
                 peakCount++;
             }
         }
-        return peakCount >= 2;
+        return peakCount >= 3;
     }
     calcActivity(level, ascend){
         let levelActivity, ascendActivity
