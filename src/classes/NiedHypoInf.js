@@ -557,19 +557,59 @@ export class FindNiedHypocenter {
     }
 
     calcPreviousWaveScenarioLikelihood(cluster, hypocenter, firstWave, optionCache, previousWaveMap) {
-        const stationResults = []
+        const stationResults = new Array(cluster.length)
         const originEntries = []
         const triggerRankWeights = this.calcTriggerRankWeights(cluster)
         const lastStationIndex = cluster.length - 1
-        this.addScenarioStationResult(cluster[0], hypocenter, firstWave, optionCache, triggerRankWeights, stationResults, originEntries)
+        const inheritedItems = []
+        const firstItem = this.createInheritedScenarioStationItem(0, cluster[0], hypocenter, firstWave, optionCache, triggerRankWeights)
+        if(firstItem) inheritedItems.push(firstItem)
+        else {
+            stationResults[0] = this.addScenarioStationResult(
+                cluster[0],
+                hypocenter,
+                firstWave,
+                optionCache,
+                triggerRankWeights,
+                null,
+                originEntries
+            )
+        }
         for(const i of this.createMiddleOutStationIndexes(1, lastStationIndex)) {
             const station = cluster[i]
-            const options = this.calcStationOriginOptions(station, hypocenter, optionCache)
             const previousWave = previousWaveMap.get(station.id)
-            const selected = previousWave && !this.isWaveResidualOutlier(options[previousWave], originEntries)
-                ? options[previousWave]
-                : this.selectClosestOption(options, originEntries)
-            this.addScenarioStationResult(station, hypocenter, selected?.wave ?? 'N', optionCache, triggerRankWeights, stationResults, originEntries, options)
+            const item = this.createInheritedScenarioStationItem(i, station, hypocenter, previousWave, optionCache, triggerRankWeights)
+            if(item) inheritedItems.push(item)
+        }
+        const outlierIndexes = this.findRemovableInheritedOutlierIndexes(inheritedItems)
+        inheritedItems.forEach(item => {
+            if(outlierIndexes.has(item.index)) return
+            stationResults[item.index] = this.addScenarioStationResult(
+                cluster[item.index],
+                hypocenter,
+                item.wave,
+                optionCache,
+                triggerRankWeights,
+                null,
+                originEntries,
+                item.options
+            )
+        })
+        for(const i of this.createMiddleOutStationIndexes(1, lastStationIndex)) {
+            if(stationResults[i]) continue
+            const station = cluster[i]
+            const options = this.calcStationOriginOptions(station, hypocenter, optionCache)
+            const selected = this.selectClosestOption(options, originEntries)
+            stationResults[i] = this.addScenarioStationResult(
+                station,
+                hypocenter,
+                selected?.wave ?? 'N',
+                optionCache,
+                triggerRankWeights,
+                null,
+                originEntries,
+                options
+            )
         }
         return this.createScenarioLikelihoodResult(
             cluster,
@@ -578,9 +618,41 @@ export class FindNiedHypocenter {
             null,
             `${firstWave}_PREV`,
             optionCache,
-            stationResults,
+            stationResults.filter(Boolean),
             originEntries
         )
+    }
+
+    createInheritedScenarioStationItem(index, station, hypocenter, wave, optionCache, triggerRankWeights) {
+        if(wave !== 'P' && wave !== 'S') return null
+        const options = this.calcStationOriginOptions(station, hypocenter, optionCache)
+        const triggerRankWeight = triggerRankWeights.get(station.id) ?? 1
+        const weight = this.getStationWeight(station, triggerRankWeight)
+        if(weight <= 0) return null
+        return {
+            index,
+            wave,
+            options,
+            originStamp: options[wave].originStamp,
+            weight
+        }
+    }
+
+    findRemovableInheritedOutlierIndexes(inheritedItems) {
+        if(inheritedItems.length < minReliableStationCount) return new Set()
+        const originEntries = inheritedItems.map(item => ({
+            value: item.originStamp,
+            weight: item.weight
+        }))
+        const originStamp = this.calcWeightedMean(originEntries)
+        const meanResidual = this.calcMeanAbsResidual(originEntries, originStamp)
+        const threshold = this.calcResidualOutlierThreshold(meanResidual)
+        if(threshold === null) return new Set()
+        const outlierIndexes = inheritedItems
+            .filter(item => item.index > 0 && Math.abs(item.originStamp - originStamp) > threshold)
+            .map(item => item.index)
+        if(inheritedItems.length - outlierIndexes.length < minReliableStationCount) return new Set()
+        return new Set(outlierIndexes)
     }
 
     createScenarioLikelihoodResult(cluster, hypocenter, firstWave, lastWave, scenario, optionCache, stationResults, originEntries) {
@@ -589,16 +661,17 @@ export class FindNiedHypocenter {
         }
         const originStamp = this.calcWeightedMean(originEntries)
         const rmse = this.calcWeightedRmse(originEntries, originStamp) / 1000
+        const effectiveStationCount = this.calcEffectiveStationCount(stationResults)
         const { penalty: inactivePenalty, exceeded } = this.calcInactiveStationPenalty(
             hypocenter,
             cluster,
             optionCache,
-            cluster.length
+            effectiveStationCount
         )
         if(exceeded) {
             return this.createInvalidLikelihood(firstWave, lastWave, scenario)
         }
-        const inactivePenaltyWeight = this.calcInactivePenaltyWeight(cluster.length)
+        const inactivePenaltyWeight = this.calcInactivePenaltyWeight(effectiveStationCount)
         const waveCountPenaltyMultiplier = this.calcWaveCountPenaltyMultiplier(stationResults)
         const score = (rmse + inactivePenalty * inactivePenaltyWeight) * waveCountPenaltyMultiplier
         return {
@@ -613,6 +686,12 @@ export class FindNiedHypocenter {
             scenario,
             stations: stationResults
         }
+    }
+
+    calcEffectiveStationCount(stationResults) {
+        return stationResults.filter(result =>
+            (result.wave === 'P' || result.wave === 'S') && result.weight > 0
+        ).length
     }
 
     calcWaveCountPenaltyMultiplier(stationResults) {
@@ -696,8 +775,8 @@ export class FindNiedHypocenter {
         }
     }
 
-    calcInactiveStationPenalty(hypocenter, cluster, optionCache, maxPenalty = Infinity) {
-        if(cluster.length >= penaltyZeroWeightClusterSize) {
+    calcInactiveStationPenalty(hypocenter, cluster, optionCache, effectiveStationCount = cluster.length) {
+        if(effectiveStationCount >= penaltyZeroWeightClusterSize) {
             return { penalty: 0, exceeded: false }
         }
         const referenceDistance = this.getInactivePenaltyReferenceDistance(cluster, hypocenter, optionCache)
@@ -710,16 +789,16 @@ export class FindNiedHypocenter {
         }
 
         const lastIndex = stations.length - 1
-        if(Number.isFinite(maxPenalty) && stations.length > maxPenalty) {
-            if(this.isInactiveStationPenalized(stations[maxPenalty], hypocenter, optionCache, referenceDistance)) {
-                return { penalty: maxPenalty + 1, exceeded: true }
+        if(Number.isFinite(effectiveStationCount) && stations.length > effectiveStationCount) {
+            if(this.isInactiveStationPenalized(stations[effectiveStationCount], hypocenter, optionCache, referenceDistance)) {
+                return { penalty: effectiveStationCount + 1, exceeded: true }
             }
-            const penalty = this.findLastPenalizedStationIndex(stations, 0, maxPenalty - 1, hypocenter, optionCache, referenceDistance) + 1
-            return { penalty: this.normalizeInactivePenalty(penalty, cluster.length), exceeded: false }
+            const penalty = this.findLastPenalizedStationIndex(stations, 0, effectiveStationCount - 1, hypocenter, optionCache, referenceDistance) + 1
+            return { penalty: this.normalizeInactivePenalty(penalty, effectiveStationCount), exceeded: false }
         }
 
         const penalty = this.findLastPenalizedStationIndex(stations, 0, lastIndex, hypocenter, optionCache, referenceDistance) + 1
-        return { penalty: this.normalizeInactivePenalty(penalty, cluster.length), exceeded: false }
+        return { penalty: this.normalizeInactivePenalty(penalty, effectiveStationCount), exceeded: false }
     }
 
     normalizeInactivePenalty(penalty, denominator) {
@@ -915,8 +994,8 @@ export class FindNiedHypocenter {
     isResidualOutlier(options, originEntries, originStamp) {
         if(originEntries.length < minReliableStationCount) return false
         const meanResidual = this.calcMeanAbsResidual(originEntries, originStamp)
-        if(!Number.isFinite(meanResidual) || meanResidual <= 0) return false
-        const threshold = Math.max(meanResidual * residualOutlierToleranceRatio, minResidualThreshold)
+        const threshold = this.calcResidualOutlierThreshold(meanResidual)
+        if(threshold === null) return false
         return Math.abs(options.P.originStamp - originStamp) > threshold &&
             Math.abs(options.S.originStamp - originStamp) > threshold
     }
@@ -925,9 +1004,14 @@ export class FindNiedHypocenter {
         if(originEntries.length < minReliableStationCount) return false
         const originStamp = this.calcWeightedMean(originEntries)
         const meanResidual = this.calcMeanAbsResidual(originEntries, originStamp)
-        if(!Number.isFinite(meanResidual) || meanResidual <= 0) return false
-        const threshold = Math.max(meanResidual * residualOutlierToleranceRatio, minResidualThreshold)
+        const threshold = this.calcResidualOutlierThreshold(meanResidual)
+        if(threshold === null) return false
         return Math.abs(option.originStamp - originStamp) > threshold
+    }
+
+    calcResidualOutlierThreshold(meanResidual) {
+        if(!Number.isFinite(meanResidual) || meanResidual <= 0) return null
+        return Math.max(meanResidual * residualOutlierToleranceRatio, minResidualThreshold)
     }
 
     selectClosestOptionByOriginStamp(options, originStamp) {
