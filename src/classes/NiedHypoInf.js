@@ -18,14 +18,14 @@ const clusterMergeThreshold = {
 const minInferenceClusterSize = 4
 const penaltyFullWeightClusterSize = 20
 const penaltyZeroWeightClusterSize = 120
-const penaltyFullWeight = 5
+const penaltyFullWeight = 10
 const maxEmptyActiveUpdatesBeforeFinal = 15
 const maxInactiveUpdatesBeforeRemove = 10
 const minResidualThreshold = 5000
 const residualOutlierToleranceRatio = 3
 const maxClusterMatchResidual = minResidualThreshold
 const minReliableStationCount = 100
-const sWaveCountPenaltyRatio = 2
+const sWaveCountPenaltyRatio = 2.5
 const sWaveCountPenaltyMultiplier = 3
 const sortedInactiveStationsCacheKey = Symbol('sortedInactiveStations')
 
