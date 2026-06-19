@@ -746,11 +746,10 @@ export class FindNiedHypocenter {
 
     calcTriggerRankWeight(rank, clusterSize) {
         const ratio = rank / Math.max(clusterSize, minReliableStationCount)
-        if(ratio <= 0.1) return 2
-        if(ratio <= 0.4) return 1
-        if(ratio >= 0.8) return 0.2
-        const progress = (ratio - 0.4) / 0.4
-        return 1 - progress * 0.8
+        if(ratio <= 0.2) return 1
+        else if(ratio <= 0.4) return 1.5 - ratio * 2.5
+        else if(ratio <= 0.8) return 0.9 - ratio
+        else return 0.1
     }
 
     createStationResultSnapshot(station) {
