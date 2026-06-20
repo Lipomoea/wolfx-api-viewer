@@ -26,7 +26,7 @@ const residualOutlierToleranceRatio = 3
 const maxClusterMatchResidual = minResidualThreshold
 const minReliableStationCount = 100
 const sWaveCountPenaltyRatio = 2.5
-const sWaveCountPenaltyMultiplier = 3
+const sWaveCountPenaltyMaxMultiplier = 3
 const sortedInactiveStationsCacheKey = Symbol('sortedInactiveStations')
 
 export class FindNiedHypocenter {
@@ -695,9 +695,9 @@ export class FindNiedHypocenter {
     }
 
     calcWaveCountPenaltyMultiplier(stationResults) {
-        const pWaveCount = stationResults.filter(result => result.wave === 'P').length
+        const pWaveCount = stationResults.filter(result => result.wave === 'P').length || 1
         const sWaveCount = stationResults.filter(result => result.wave === 'S').length
-        return sWaveCount > pWaveCount * sWaveCountPenaltyRatio ? sWaveCountPenaltyMultiplier : 1
+        return Math.min(Math.max(sWaveCount / pWaveCount - sWaveCountPenaltyRatio + 1, 1), sWaveCountPenaltyMaxMultiplier)
     }
 
     addScenarioStationResult(station, hypocenter, wave, optionCache, triggerRankWeights, stationResults, originEntries, options = null) {
