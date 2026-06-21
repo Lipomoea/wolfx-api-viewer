@@ -999,15 +999,6 @@ export class FindNiedHypocenter {
             Math.abs(options.S.originStamp - originStamp) > threshold
     }
 
-    isWaveResidualOutlier(option, originEntries) {
-        if(originEntries.length < minReliableStationCount) return false
-        const originStamp = this.calcWeightedMean(originEntries)
-        const meanResidual = this.calcMeanAbsResidual(originEntries, originStamp)
-        const threshold = this.calcResidualOutlierThreshold(meanResidual)
-        if(threshold === null) return false
-        return Math.abs(option.originStamp - originStamp) > threshold
-    }
-
     calcResidualOutlierThreshold(meanResidual) {
         if(!Number.isFinite(meanResidual) || meanResidual <= 0) return null
         return Math.max(meanResidual * residualOutlierToleranceRatio, minResidualThreshold)
