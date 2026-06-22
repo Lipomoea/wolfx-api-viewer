@@ -37,6 +37,7 @@ export const useSettingsStore = defineStore('settingsStore', {
                 displayNiedShindo: false,
                 niedHypoInf: false,
                 niedHypoInfAlwaysOn: false,
+                niedHypoInfTextInfo: 0,
                 tremNet: false,
                 tremApi: 'lb-1',
                 displayTremShindo: false,

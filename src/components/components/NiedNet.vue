@@ -312,7 +312,13 @@ const renderInferredHypocenters = results => {
             const clusterSize = result.cluster?.length ?? stationDetails.length
             const originTimeJst = Number.isFinite(result.originStamp) ? stampToTime(result.originStamp, 9) : '-'
             const waveLayers = createInferredWaveLayers(latLng, result)
-            const labelHtml = createHypocenterLabelHtml(result, {
+            const markerLayer = L.marker(latLng, {
+                icon: infHypoIcon,
+                opacity: 1,
+                interactive: false,
+                pane: 'eewMarkerPane',
+            }).addTo(map)
+            const labelLayer = createInferredHypocenterLabelLayer(result, latLng, {
                 lat,
                 lng,
                 depth,
@@ -321,51 +327,51 @@ const renderInferredHypocenters = results => {
                 originTimeJst,
                 waveCounts
             })
-            const markerLayer = L.marker(latLng, {
-                icon: infHypoIcon,
-                opacity: 1,
-                interactive: false,
-                pane: 'eewMarkerPane',
-            }).addTo(map)
-            const labelLayer = L.marker(latLng, {
-                icon: L.divIcon({
-                    className: '',
-                    iconSize: null,
-                    iconAnchor: [0, -24],
-                    html: `
-                        <div style="
-                            display: inline-block;
-                            width: max-content;
-                            max-width: 360px;
-                            padding: 8px 10px;
-                            color: #fff;
-                            -webkit-text-stroke: 0.35px #000000cc;
-                            paint-order: stroke fill;
-                            text-shadow: 0 0 2px #000000cc, 0 0 4px #000000aa, 1px 1px 2px #000000cc, -1px -1px 2px #000000cc;
-                            font-size: 12px;
-                            line-height: 1.25;
-                            text-align: center;
-                            overflow: hidden;
-                            pointer-events: none;
-                            white-space: nowrap;
-                            transform: translateX(-50%);
-                        ">
-                            ${labelHtml}
-                            <div style="display: ${settingsStore.advancedSettings.advancedHypoInf ? 'block' : 'none'};">
-                            latlng: ${lat.toFixed(1)}, ${lng.toFixed(1)}<br>
-                            clusterId: ${result.clusterId ?? '-'}<br>
-                            effective: ${result.effectiveStationCount} / qualityScore: ${result.qualityScore.toFixed(2)}<br>
-                            loss: ${result.score.toFixed(2)} / rmse: ${result.rmse.toFixed(2)} / penalty: ${result.inactivePenalty.toFixed(2)}<br>
-                            scenario: ${result.scenario ?? '-'} / P: ${waveCounts.P || 0} S: ${waveCounts.S || 0} N: ${waveCounts.N || 0}
-                            </div>
-                        </div>
-                    `
-                }),
-                // pane: 'eewMarkerPane',
-                interactive: false
-            }).addTo(map)
-            inferredHypocenterLayers.push(...waveLayers, markerLayer, labelLayer)
+            inferredHypocenterLayers.push(...waveLayers, markerLayer)
+            if(labelLayer) inferredHypocenterLayers.push(labelLayer)
         })
+}
+const createInferredHypocenterLabelLayer = (result, latLng, labelInfo) => {
+    const textInfoMode = Number(settingsStore.mainSettings.displaySeisNet.niedHypoInfTextInfo)
+    if(textInfoMode === 0) return null
+    const labelHtml = createBasicInfLabelHtml(result, labelInfo)
+    return L.marker(latLng, {
+        icon: L.divIcon({
+            className: '',
+            iconSize: null,
+            iconAnchor: [0, -24],
+            html: `
+                <div style="
+                    display: inline-block;
+                    width: max-content;
+                    max-width: 360px;
+                    padding: 8px 10px;
+                    color: #fff;
+                    -webkit-text-stroke: 0.35px #000000cc;
+                    paint-order: stroke fill;
+                    text-shadow: 0 0 2px #000000cc, 0 0 4px #000000aa, 1px 1px 2px #000000cc, -1px -1px 2px #000000cc;
+                    font-size: 12px;
+                    line-height: 1.25;
+                    text-align: center;
+                    overflow: hidden;
+                    pointer-events: none;
+                    white-space: nowrap;
+                    transform: translateX(-50%);
+                ">
+                    ${labelHtml}
+                    <div style="display: ${textInfoMode === 2 ? 'block' : 'none'};">
+                    latlng: ${labelInfo.lat.toFixed(1)}, ${labelInfo.lng.toFixed(1)}<br>
+                    clusterId: ${result.clusterId ?? '-'}<br>
+                    effective: ${result.effectiveStationCount} / qualityScore: ${result.qualityScore.toFixed(2)}<br>
+                    loss: ${result.score.toFixed(2)} / rmse: ${result.rmse.toFixed(2)} / penalty: ${result.inactivePenalty.toFixed(2)}<br>
+                    scenario: ${result.scenario ?? '-'} / P: ${labelInfo.waveCounts.P || 0} S: ${labelInfo.waveCounts.S || 0} N: ${labelInfo.waveCounts.N || 0}
+                    </div>
+                </div>
+            `
+        }),
+        // pane: 'eewMarkerPane',
+        interactive: false
+    }).addTo(map)
 }
 const shouldDisplayHypocenterResult = result => {
     if(settingsStore.mainSettings.displaySeisNet.niedHypoInfAlwaysOn) return true
@@ -389,7 +395,7 @@ const isCloseToJmaEewHypocenter = (result, eqMessage) => {
         Math.abs((hypocenter.depth ?? 10) - eqMessage.depth) <= hypoInfEewMatchThreshold.depth &&
         Math.abs(result.originStamp - eewOriginStamp) <= hypoInfEewMatchThreshold.originStamp
 }
-const createHypocenterLabelHtml = (result, { depth, clusterSize, originTimeJst }) => {
+const createBasicInfLabelHtml = (result, { depth, clusterSize, originTimeJst }) => {
     const reportText = result.reportNum ?? '-'
     const finalText = result.final ? '（最终）' : ''
     const qualityText = result.qualityRank ? `质量${result.qualityRank}` : ''
