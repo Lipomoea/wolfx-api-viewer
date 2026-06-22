@@ -27,6 +27,13 @@ const maxClusterMatchResidual = minResidualThreshold
 const minReliableStationCount = 100
 const sWaveCountPenaltyRatio = 2.5
 const sWaveCountPenaltyMaxMultiplier = 3
+const qualityRankMinStationCounts = {
+    S: 300,
+    A: 100,
+    B: 30,
+    C: 10,
+    D: 0
+}
 const sortedInactiveStationsCacheKey = Symbol('sortedInactiveStations')
 
 export class FindNiedHypocenter {
@@ -674,12 +681,17 @@ export class FindNiedHypocenter {
         const inactivePenaltyWeight = this.calcInactivePenaltyWeight(effectiveStationCount)
         const waveCountPenaltyMultiplier = this.calcWaveCountPenaltyMultiplier(stationResults)
         const score = (rmse + inactivePenalty * inactivePenaltyWeight) * waveCountPenaltyMultiplier
+        const qualityScore = this.calcQualityScore(score, effectiveStationCount)
+        const qualityRank = this.calcQualityRank(qualityScore, effectiveStationCount)
         return {
             score,
             rmse,
             inactivePenalty,
             inactivePenaltyWeight,
             waveCountPenaltyMultiplier,
+            effectiveStationCount,
+            qualityScore,
+            qualityRank,
             originStamp,
             firstWave,
             lastWave,
@@ -692,6 +704,27 @@ export class FindNiedHypocenter {
         return stationResults.filter(result =>
             (result.wave === 'P' || result.wave === 'S') && result.weight > 0
         ).length
+    }
+
+    calcQualityScore(score, effectiveStationCount) {
+        const stationCount = Math.max(effectiveStationCount, 10)
+        return 3.8 + Math.sqrt(stationCount / 10) * 0.2 - score * 5 / 3
+    }
+
+    calcQualityRank(qualityScore, effectiveStationCount) {
+        const scoreRank = this.calcQualityRankByScore(qualityScore)
+        return ['S', 'A', 'B', 'C', 'D'].find(rank =>
+            qualityRankMinStationCounts[rank] <= effectiveStationCount &&
+            qualityRankMinStationCounts[rank] <= qualityRankMinStationCounts[scoreRank]
+        ) || 'D'
+    }
+
+    calcQualityRankByScore(qualityScore) {
+        if(qualityScore < 0) return 'D'
+        if(qualityScore < 1) return 'C'
+        if(qualityScore < 2) return 'B'
+        if(qualityScore < 3) return 'A'
+        return 'S'
     }
 
     calcWaveCountPenaltyMultiplier(stationResults) {
@@ -1076,6 +1109,9 @@ export class FindNiedHypocenter {
             inactivePenalty: 0,
             inactivePenaltyWeight: 0,
             waveCountPenaltyMultiplier: 1,
+            effectiveStationCount: 0,
+            qualityScore: -Infinity,
+            qualityRank: 'D',
             originStamp: null,
             firstWave,
             lastWave,

@@ -353,8 +353,9 @@ const renderInferredHypocenters = results => {
                             ${labelHtml}
                             <div style="display: ${settingsStore.advancedSettings.advancedHypoInf ? 'block' : 'none'};">
                             latlng: ${lat.toFixed(1)}, ${lng.toFixed(1)}<br>
-                            cluster: ${result.clusterId ?? '-'}<br>
-                            loss: ${result.score.toFixed(2)} / RMSE: ${result.rmse.toFixed(2)} / penalty: ${result.inactivePenalty.toFixed(2)}<br>
+                            clusterId: ${result.clusterId ?? '-'}<br>
+                            effective: ${result.effectiveStationCount} / qualityScore: ${result.qualityScore.toFixed(2)}<br>
+                            loss: ${result.score.toFixed(2)} / rmse: ${result.rmse.toFixed(2)} / penalty: ${result.inactivePenalty.toFixed(2)}<br>
                             scenario: ${result.scenario ?? '-'} / P: ${waveCounts.P || 0} S: ${waveCounts.S || 0} N: ${waveCounts.N || 0}
                             </div>
                         </div>
@@ -391,12 +392,13 @@ const isCloseToJmaEewHypocenter = (result, eqMessage) => {
 const createHypocenterLabelHtml = (result, { depth, clusterSize, originTimeJst }) => {
     const reportText = result.reportNum ?? '-'
     const finalText = result.final ? '（最终）' : ''
+    const qualityText = result.qualityRank ? `质量${result.qualityRank}` : ''
     return `
         <div style="font-size: 14px; font-weight: 700; line-height: 1.25;">
             NIED震源推算 第${reportText}报${finalText}<br>
             ${originTimeJst} (+9)<br>
             深${depth.toFixed(0)}km<br>
-            ${clusterSize}测站
+            ${clusterSize}测站 ${qualityText}
         </div>
     `
 }
