@@ -707,8 +707,7 @@ export class FindNiedHypocenter {
     }
 
     calcQualityScore(score, effectiveStationCount) {
-        const stationCount = Math.max(effectiveStationCount, 10)
-        return 3.8 + Math.sqrt(stationCount / 10) * 0.2 - score * 5 / 3
+        return 3.8 + Math.sqrt(effectiveStationCount / 10) * 0.2 - score * 5 / 3
     }
 
     calcQualityRank(qualityScore, effectiveStationCount) {
