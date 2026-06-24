@@ -107,7 +107,19 @@
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayNiedShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.niedNet" />
                             </div>
                             <div class="switch-full pl-4">
-                                <span>检知灵敏度</span>
+                                <span>
+                                    检知灵敏度
+                                    <el-popover
+                                        placement="top"
+                                        :width="300"
+                                        trigger="hover"
+                                    >
+                                        <template #reference>
+                                            <question-filled width="1em" height="1em" />
+                                        </template>
+                                        <p>越高灵敏度，越容易检测到地震，但越容易误检测。</p>
+                                    </el-popover>
+                                </span>
                                 <el-select 
                                     v-model="settingsStore.mainSettings.displaySeisNet.niedSensitivity"
                                     size="small"
@@ -134,6 +146,7 @@
                                         <p>启用后，会在软件内部通过测站信息自行推算可能的震源。</p>
                                         <strong>
                                             <p>实验性功能，精度低，不代表任何权威信息来源，仅供参考。</p>
+                                            <p>启用更高检测灵敏度能够略微提升推算精度。</p>
                                             <p>此功能会消耗较多计算机资源。</p>
                                         </strong>
                                     </el-popover>
@@ -194,7 +207,19 @@
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayKmaInt" :disabled="!settingsStore.mainSettings.displaySeisNet.kmaNet" />
                             </div>
                             <div class="switch-full pl-4">
-                                <span>检知灵敏度</span>
+                                <span>
+                                    检知灵敏度
+                                    <el-popover
+                                        placement="top"
+                                        :width="300"
+                                        trigger="hover"
+                                    >
+                                        <template #reference>
+                                            <question-filled width="1em" height="1em" />
+                                        </template>
+                                        <p>越高灵敏度，越容易检测到地震，但越容易误检测。</p>
+                                    </el-popover>
+                                </span>
                                 <el-select 
                                     v-model="settingsStore.mainSettings.displaySeisNet.kmaSensitivity"
                                     size="small"

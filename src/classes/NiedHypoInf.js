@@ -15,20 +15,25 @@ const clusterMergeThreshold = {
     depth: 100,
     originStamp: 10000
 }
-const minInferenceClusterSize = 4
-const penaltyFullWeightClusterSize = 20
-const penaltyZeroWeightClusterSize = 120
+const minInferenceClusterSize = 5
+const penaltyFullWeightClusterSize = 0
+const penaltyZeroWeightClusterSize = 30
 const penaltyFullWeight = 10
 const maxEmptyActiveUpdatesBeforeFinal = 15
 const maxInactiveUpdatesBeforeRemove = 10
 const minResidualThreshold = 5000
 const residualOutlierToleranceRatio = 3
 const maxClusterMatchResidual = minResidualThreshold
+const inheritedOutlierFilterStages = [
+    { minCount: 100, minInheritedRatio: 2 / 3, ratio: 2, minResidual: 3000, pWaveBiasRatio: 1 },
+    { minCount: 30, minInheritedRatio: 1 / 2, ratio: 2.5, minResidual: 4000, pWaveBiasRatio: 1.5 }
+]
 const minReliableStationCount = 100
-const sWaveCountPenaltyRatio = 2.5
+const pWaveOriginStampBiasRatio = 2
+const sWaveCountPenaltyRatio = 3
 const sWaveCountPenaltyMaxMultiplier = 3
 const qualityRankMinStationCounts = {
-    S: 300,
+    S: 200,
     A: 100,
     B: 30,
     C: 10,
@@ -327,6 +332,7 @@ export class FindNiedHypocenter {
             const previousWaveMaps = this.createPreviousWaveMaps(cluster.previousResults)
             const result = this.findBestHypocenter(cluster.stations, initialHypocenter, previousWaveMaps)
             // this.logNewScenarioStations(result, previousWaveMaps)
+            // this.logNextPreviousResults(result.previousResults)
             cluster.previousResults = this.mergeValidPreviousResults(cluster.previousResults, result.previousResults)
             cluster.result = this.createClusterResult(cluster, this.createPublicHypocenterResult(result))
             cluster.initialHypocenter = result.hypocenter
@@ -418,6 +424,22 @@ export class FindNiedHypocenter {
         }
     }
 
+    logNextPreviousResults(previousResults) {
+        const summary = Object.fromEntries(['P', 'S'].map(firstWave => {
+            const result = previousResults?.[firstWave]
+            return [
+                firstWave,
+                {
+                    scenario: result?.scenario ?? null,
+                    score: result?.score ?? null,
+                    rmse: result?.rmse ?? null,
+                    effectiveStationCount: result?.effectiveStationCount ?? null
+                }
+            ]
+        }))
+        console.log('[FindNiedHypocenter] next previous results', summary)
+    }
+
     calcLikelihood(cluster, hypocenter, previousWaveMaps = null) {
         const optionCache = new Map()
         const previousResults = Object.fromEntries(['P', 'S'].map(firstWave => [
@@ -448,6 +470,7 @@ export class FindNiedHypocenter {
                 this.calcPreviousWaveScenarioLikelihood(cluster, hypocenter, firstWave, optionCache, previousWaveMap)
             )
         }
+        // console.log(this.updateVersion, hypocenter, firstWave, results)
         return results.reduce((best, result) => result.score < best.score ? result : best)
     }
 
@@ -486,27 +509,40 @@ export class FindNiedHypocenter {
                 stepIndex++
             }
         }
-        // this.logFinalScenarioRmses(cluster, currentResult.hypocenter)
+        // this.logFinalScenarioRmses(cluster, currentResult.hypocenter, previousWaveMaps)
         return currentResult
     }
 
-    logFinalScenarioRmses(cluster, hypocenter) {
+    logFinalScenarioRmses(cluster, hypocenter, previousWaveMaps = null) {
         const optionCache = new Map()
-        const scenarioResults = ['P', 'S'].flatMap(firstWave => ['P', 'S'].map(lastWave => {
+        const greedyScenarioResults = ['P', 'S'].flatMap(firstWave => ['P', 'S'].map(lastWave => {
                 const key = `${firstWave}${lastWave}`
                 const result = this.calcScenarioLikelihood(cluster, hypocenter, firstWave, lastWave, optionCache)
                 return { key: result.scenario || key, result }
             }))
+        const previousScenarioResults = ['P', 'S']
+            .map(firstWave => {
+                const previousWaveMap = previousWaveMaps?.[firstWave]
+                if(!previousWaveMap?.size) return null
+                const result = this.calcPreviousWaveScenarioLikelihood(cluster, hypocenter, firstWave, optionCache, previousWaveMap)
+                return { key: result.scenario || `${firstWave}_PREV`, result }
+            })
+            .filter(Boolean)
+        const scenarioResults = [...greedyScenarioResults, ...previousScenarioResults]
         const rmses = Object.fromEntries(
             scenarioResults.map(({ key, result }) => [key, result.rmse])
         )
         const scores = Object.fromEntries(
             scenarioResults.map(({ key, result }) => [key, result.score])
         )
+        console.log('[FindNiedHypocenter] cluster station ids', cluster.map(station => station.id))
         console.log('[FindNiedHypocenter] final scenario RMSE', rmses)
         console.log('[FindNiedHypocenter] final scenario score', scores)
         scenarioResults.forEach(({ key, result }) => {
-            console.log(`[FindNiedHypocenter] ${key} waves`, result.stations.map(station => station.wave))
+            console.log(`[FindNiedHypocenter] ${key} waves`, result.stations.map(item => ({
+                id: item.station?.id,
+                wave: item.wave
+            })))
         })
     }
 
@@ -535,22 +571,20 @@ export class FindNiedHypocenter {
     }
 
     calcGreedyScenarioLikelihood(cluster, hypocenter, firstWave, lastWave, optionCache) {
-        const stationResults = []
+        const stationResults = new Array(cluster.length)
         const originEntries = []
         const triggerRankWeights = this.calcTriggerRankWeights(cluster)
-        const lastStationIndex = cluster.length - 1
-        this.addScenarioStationResult(cluster[0], hypocenter, firstWave, optionCache, triggerRankWeights, stationResults, originEntries)
-        let lastStationResult = null
-        if(lastStationIndex > 0) {
-            lastStationResult = this.addScenarioStationResult(cluster[lastStationIndex], hypocenter, lastWave, optionCache, triggerRankWeights, null, originEntries)
-        }
-        for(const i of this.createMiddleOutStationIndexes(1, lastStationIndex - 1)) {
+        const anchorIndexes = this.getScenarioAnchorIndexes(cluster, triggerRankWeights)
+        if(!anchorIndexes) return this.createInvalidLikelihood(firstWave, lastWave)
+        const { firstAnchorIndex, lastAnchorIndex } = anchorIndexes
+        stationResults[firstAnchorIndex] = this.addScenarioStationResult(cluster[firstAnchorIndex], hypocenter, firstWave, optionCache, triggerRankWeights, null, originEntries)
+        stationResults[lastAnchorIndex] = this.addScenarioStationResult(cluster[lastAnchorIndex], hypocenter, lastWave, optionCache, triggerRankWeights, null, originEntries)
+        for(const i of this.createScenarioInferenceIndexes(cluster, firstAnchorIndex, lastAnchorIndex)) {
             const station = cluster[i]
             const options = this.calcStationOriginOptions(station, hypocenter, optionCache)
             const selected = this.selectClosestOption(options, originEntries)
-            this.addScenarioStationResult(station, hypocenter, selected?.wave ?? 'N', optionCache, triggerRankWeights, stationResults, originEntries, options)
+            stationResults[i] = this.addScenarioStationResult(station, hypocenter, selected?.wave ?? 'N', optionCache, triggerRankWeights, null, originEntries, options)
         }
-        if(lastStationResult) stationResults.push(lastStationResult)
         return this.createScenarioLikelihoodResult(
             cluster,
             hypocenter,
@@ -558,7 +592,7 @@ export class FindNiedHypocenter {
             lastWave,
             `${firstWave}${lastWave}`,
             optionCache,
-            stationResults,
+            stationResults.filter(Boolean),
             originEntries
         )
     }
@@ -567,28 +601,15 @@ export class FindNiedHypocenter {
         const stationResults = new Array(cluster.length)
         const originEntries = []
         const triggerRankWeights = this.calcTriggerRankWeights(cluster)
-        const lastStationIndex = cluster.length - 1
         const inheritedItems = []
-        const firstItem = this.createInheritedScenarioStationItem(0, cluster[0], hypocenter, firstWave, optionCache, triggerRankWeights)
-        if(firstItem) inheritedItems.push(firstItem)
-        else {
-            stationResults[0] = this.addScenarioStationResult(
-                cluster[0],
-                hypocenter,
-                firstWave,
-                optionCache,
-                triggerRankWeights,
-                null,
-                originEntries
-            )
-        }
-        for(const i of this.createMiddleOutStationIndexes(1, lastStationIndex)) {
+        for(const i of this.createScenarioInferenceIndexes(cluster)) {
             const station = cluster[i]
             const previousWave = previousWaveMap.get(station.id)
             const item = this.createInheritedScenarioStationItem(i, station, hypocenter, previousWave, optionCache, triggerRankWeights)
             if(item) inheritedItems.push(item)
         }
-        const outlierIndexes = this.findRemovableInheritedOutlierIndexes(inheritedItems)
+        const inheritedFilterResult = this.calcInheritedOutlierFilterResult(inheritedItems, cluster.length)
+        const { outlierIndexes, filterStage } = inheritedFilterResult
         inheritedItems.forEach(item => {
             if(outlierIndexes.has(item.index)) return
             stationResults[item.index] = this.addScenarioStationResult(
@@ -602,11 +623,19 @@ export class FindNiedHypocenter {
                 item.options
             )
         })
-        for(const i of this.createMiddleOutStationIndexes(1, lastStationIndex)) {
+        if(this.calcWeightSum(originEntries) <= 0) {
+            return this.createInvalidLikelihood(firstWave, null, `${firstWave}_PREV`)
+        }
+        for(const i of this.createScenarioInferenceIndexes(cluster)) {
             if(stationResults[i]) continue
             const station = cluster[i]
             const options = this.calcStationOriginOptions(station, hypocenter, optionCache)
-            const selected = this.selectClosestOption(options, originEntries)
+            const selected = this.selectClosestOption(
+                options,
+                originEntries,
+                filterStage?.pWaveBiasRatio ?? pWaveOriginStampBiasRatio,
+                filterStage
+            )
             stationResults[i] = this.addScenarioStationResult(
                 station,
                 hypocenter,
@@ -630,6 +659,70 @@ export class FindNiedHypocenter {
         )
     }
 
+    getScenarioAnchorIndexes(cluster, triggerRankWeights) {
+        if(!Array.isArray(cluster) || cluster.length < minInferenceClusterSize) return null
+        const lastIndex = cluster.length - 1
+        const preferredFirstAnchorIndex = Math.ceil(lastIndex * 0.25)
+        const preferredLastAnchorIndex = Math.floor(lastIndex * 0.75)
+        const firstAnchorIndex = this.findValidScenarioAnchorIndex(
+            cluster,
+            preferredFirstAnchorIndex,
+            preferredLastAnchorIndex,
+            1,
+            triggerRankWeights,
+            new Set()
+        )
+        if(firstAnchorIndex === null) return null
+        const lastAnchorIndex = this.findValidScenarioAnchorIndex(
+            cluster,
+            preferredLastAnchorIndex,
+            preferredFirstAnchorIndex,
+            -1,
+            triggerRankWeights,
+            new Set([firstAnchorIndex])
+        )
+        if(lastAnchorIndex === null) return null
+        return {
+            firstAnchorIndex,
+            lastAnchorIndex
+        }
+    }
+
+    createScenarioInferenceIndexes(cluster, ...anchorIndexes) {
+        const anchors = new Set(anchorIndexes.filter(index => Number.isInteger(index)))
+        return this.createMiddleOutStationIndexes(0, cluster.length - 1)
+            .filter(index => !anchors.has(index))
+    }
+
+    findValidScenarioAnchorIndex(cluster, preferredIndex, centerIndex, centerDirection, triggerRankWeights, usedIndexes) {
+        const candidateIndexes = this.createScenarioAnchorCandidateIndexes(
+            cluster.length,
+            preferredIndex,
+            centerIndex,
+            centerDirection
+        )
+        return candidateIndexes.find(index =>
+            !usedIndexes.has(index) &&
+            this.getStationWeight(cluster[index], triggerRankWeights.get(cluster[index].id) ?? 1) > 0
+        ) ?? null
+    }
+
+    createScenarioAnchorCandidateIndexes(clusterLength, preferredIndex, centerIndex, centerDirection) {
+        const indexes = []
+        const addIndex = index => {
+            if(index >= 0 && index < clusterLength && !indexes.includes(index)) indexes.push(index)
+        }
+        const centerStep = centerDirection > 0 ? 1 : -1
+        for(let index = preferredIndex; centerDirection > 0 ? index <= centerIndex : index >= centerIndex; index += centerStep) {
+            addIndex(index)
+        }
+        for(let offset = 1; preferredIndex - offset >= 0 || preferredIndex + offset < clusterLength; offset++) {
+            addIndex(preferredIndex - offset)
+            addIndex(preferredIndex + offset)
+        }
+        return indexes
+    }
+
     createInheritedScenarioStationItem(index, station, hypocenter, wave, optionCache, triggerRankWeights) {
         if(wave !== 'P' && wave !== 'S') return null
         const options = this.calcStationOriginOptions(station, hypocenter, optionCache)
@@ -645,21 +738,32 @@ export class FindNiedHypocenter {
         }
     }
 
-    findRemovableInheritedOutlierIndexes(inheritedItems) {
-        if(inheritedItems.length < minReliableStationCount) return new Set()
+    calcInheritedOutlierFilterResult(inheritedItems, clusterSize) {
+        const stages = inheritedOutlierFilterStages
+            .filter(stage =>
+                inheritedItems.length >= stage.minCount &&
+                inheritedItems.length >= clusterSize * stage.minInheritedRatio
+            )
+        if(stages.length === 0) return { outlierIndexes: new Set(), filterStage: null }
         const originEntries = inheritedItems.map(item => ({
             value: item.originStamp,
             weight: item.weight
         }))
         const originStamp = this.calcWeightedMean(originEntries)
         const meanResidual = this.calcMeanAbsResidual(originEntries, originStamp)
-        const threshold = this.calcResidualOutlierThreshold(meanResidual)
-        if(threshold === null) return new Set()
-        const outlierIndexes = inheritedItems
-            .filter(item => item.index > 0 && Math.abs(item.originStamp - originStamp) > threshold)
-            .map(item => item.index)
-        if(inheritedItems.length - outlierIndexes.length < minReliableStationCount) return new Set()
-        return new Set(outlierIndexes)
+        if(!Number.isFinite(meanResidual) || meanResidual <= 0) {
+            return { outlierIndexes: new Set(), filterStage: null }
+        }
+        for(const stage of stages) {
+            const threshold = Math.max(meanResidual * stage.ratio, stage.minResidual)
+            const outlierIndexes = inheritedItems
+                .filter(item => item.index > 0 && Math.abs(item.originStamp - originStamp) > threshold)
+                .map(item => item.index)
+            if(inheritedItems.length - outlierIndexes.length >= stage.minCount) {
+                return { outlierIndexes: new Set(outlierIndexes), filterStage: stage }
+            }
+        }
+        return { outlierIndexes: new Set(), filterStage: null }
     }
 
     createScenarioLikelihoodResult(cluster, hypocenter, firstWave, lastWave, scenario, optionCache, stationResults, originEntries) {
@@ -849,7 +953,7 @@ export class FindNiedHypocenter {
         const distances = referenceStations
             .map(station => this.getStationOptionCache(station, hypocenter, optionCache).distance)
             .sort((a, b) => a - b)
-        const referenceIndex = Math.ceil(distances.length * 0.9) - 1
+        const referenceIndex = Math.max(Math.floor(distances.length * 0.9) - 1, 0)
         return distances[referenceIndex]
     }
 
@@ -1016,30 +1120,48 @@ export class FindNiedHypocenter {
             Math.abs(result1.originStamp - result2.originStamp) <= clusterMergeThreshold.originStamp
     }
 
-    selectClosestOption(options, originEntries) {
+    selectClosestOption(
+        options,
+        originEntries,
+        pWaveBiasRatio = pWaveOriginStampBiasRatio,
+        outlierFilterStage = {
+            minCount: minReliableStationCount,
+            ratio: residualOutlierToleranceRatio,
+            minResidual: minResidualThreshold
+        }
+    ) {
         const currentOriginStamp = this.calcWeightedMean(originEntries)
-        if(this.isResidualOutlier(options, originEntries, currentOriginStamp)) return null
-        return this.selectClosestOptionByOriginStamp(options, currentOriginStamp)
+        if(this.isResidualOutlier(options, originEntries, currentOriginStamp, outlierFilterStage)) return null
+        return this.selectClosestOptionByOriginStamp(options, currentOriginStamp, pWaveBiasRatio)
     }
 
-    isResidualOutlier(options, originEntries, originStamp) {
-        if(originEntries.length < minReliableStationCount) return false
+    isResidualOutlier(options, originEntries, originStamp, outlierFilterStage = {
+        minCount: minReliableStationCount,
+        ratio: residualOutlierToleranceRatio,
+        minResidual: minResidualThreshold
+    }) {
+        if(!outlierFilterStage) return false
+        if(originEntries.length < outlierFilterStage.minCount) return false
         const meanResidual = this.calcMeanAbsResidual(originEntries, originStamp)
-        const threshold = this.calcResidualOutlierThreshold(meanResidual)
+        const threshold = this.calcResidualOutlierThreshold(
+            meanResidual,
+            outlierFilterStage.minResidual,
+            outlierFilterStage.ratio
+        )
         if(threshold === null) return false
         return Math.abs(options.P.originStamp - originStamp) > threshold &&
             Math.abs(options.S.originStamp - originStamp) > threshold
     }
 
-    calcResidualOutlierThreshold(meanResidual) {
+    calcResidualOutlierThreshold(meanResidual, minThreshold = minResidualThreshold, ratio = residualOutlierToleranceRatio) {
         if(!Number.isFinite(meanResidual) || meanResidual <= 0) return null
-        return Math.max(meanResidual * residualOutlierToleranceRatio, minResidualThreshold)
+        return Math.max(meanResidual * ratio, minThreshold)
     }
 
-    selectClosestOptionByOriginStamp(options, originStamp) {
+    selectClosestOptionByOriginStamp(options, originStamp, pWaveBiasRatio = pWaveOriginStampBiasRatio) {
         const pDiff = Math.abs(options.P.originStamp - originStamp)
         const sDiff = Math.abs(options.S.originStamp - originStamp)
-        return pDiff <= sDiff * 4 ? options.P : options.S
+        return pDiff <= sDiff * pWaveBiasRatio ? options.P : options.S
     }
 
     createMiddleOutStationIndexes(startIndex, endIndex) {
