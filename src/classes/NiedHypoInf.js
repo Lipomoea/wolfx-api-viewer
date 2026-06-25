@@ -19,16 +19,19 @@ const minInferenceClusterSize = 5
 const penaltyFullWeightClusterSize = 0
 const penaltyZeroWeightClusterSize = 50
 const penaltyFullWeight = 10
-const maxEmptyActiveUpdatesBeforeFinal = 15
 const maxInactiveUpdatesBeforeRemove = 10
+const stableHypocenterUpdateThreshold = 15
+const floatPrecisionEpsilon = 1e-9
 const minResidualThreshold = 5000
 const residualOutlierToleranceRatio = 3
 const maxClusterMatchResidual = minResidualThreshold
 const inheritedOutlierFilterStages = [
-    { level: 2, minCount: 100, minRemainingInheritedRatio: 0.9, ratio: 2, minResidual: 3000, pWaveBiasRatio: 1 },
-    { level: 1, minCount: 30, minRemainingInheritedRatio: 0.85, ratio: 2.5, minResidual: 4000, pWaveBiasRatio: 1.5 }
+    { level: 3, minCount: 100, minRemainingInheritedRatio: 0.9, ratio: 2, minResidual: 3000, pWaveBiasRatio: 1 },
+    { level: 2, minCount: 30, minRemainingInheritedRatio: 0.8, ratio: 2.5, minResidual: 4000, pWaveBiasRatio: 1.5 },
+    { level: 1, minCount: 10, minRemainingInheritedRatio: 0.5, ratio: 3, minResidual: 5000, pWaveBiasRatio: 2 }
 ]
 const minReliableStationCount = 100
+const minGreedyOutlierStationCount = 30
 const pWaveOriginStampBiasRatio = 2
 const sWaveCountPenaltyRatio = 3
 const sWaveCountPenaltyMaxMultiplier = 3
@@ -63,7 +66,6 @@ export class FindNiedHypocenter {
         this.setInactiveStations(inactiveStations)
         newActiveStations.forEach(station => this.addActiveStation(station))
         this.updateActiveStationSources(stationUpdates)
-        this.refreshClusterFinalStates()
         this.refreshActiveStationMaxAscends()
         this.refreshClusterResults()
         this.mergeCloseClusters()
@@ -184,12 +186,14 @@ export class FindNiedHypocenter {
                 P: null,
                 S: null
             },
+            updates: 0,
             reportNum: 0,
-            emptyActiveUpdateCount: 0,
             inactiveUpdateCount: 0,
-            hasNewStation: false,
-            final: false,
-            lastReportUpdateVersion: null,
+            reportHypocenter: null,
+            stableHypocenterUpdateCount: 0,
+            stableHypocenter: null,
+            stable: false,
+            lastUpdateVersion: null,
             initialHypocenter
         }
         stations.forEach(station => this.addStationToCluster(station, cluster, markUpdated))
@@ -201,11 +205,8 @@ export class FindNiedHypocenter {
         if(cluster.stations.some(item => item.id === station.id)) return
         this.insertStationToCluster(station, cluster)
         this.stationClusterMap.set(station.id, cluster)
-        if(cluster.final) return
         if(markUpdated) this.markClusterUpdated(cluster)
         else cluster.dirty = true
-        cluster.hasNewStation = true
-        cluster.emptyActiveUpdateCount = 0
         cluster.inactiveUpdateCount = 0
     }
 
@@ -225,10 +226,9 @@ export class FindNiedHypocenter {
     }
 
     markClusterUpdated(cluster) {
-        if(cluster.final) return
-        if(cluster.lastReportUpdateVersion !== this.updateVersion) {
-            cluster.reportNum++
-            cluster.lastReportUpdateVersion = this.updateVersion
+        if(cluster.lastUpdateVersion !== this.updateVersion) {
+            cluster.updates++
+            cluster.lastUpdateVersion = this.updateVersion
         }
         cluster.dirty = true
     }
@@ -238,23 +238,22 @@ export class FindNiedHypocenter {
             clusters.find(cluster => cluster.initialHypocenter)?.initialHypocenter ||
             null
         const baseCluster = clusters.reduce((best, cluster) => 
-            this.selectReportNumBaseCluster(best, cluster)
+            this.selectMergeBaseCluster(best, cluster)
         )
-        const reportNum = baseCluster.reportNum
-        const emptyActiveUpdateCount = Math.min(...clusters.map(cluster => cluster.emptyActiveUpdateCount))
         const stations = [station]
         clusters.forEach(cluster => {
             stations.push(...cluster.stations)
             this.removeCluster(cluster)
         })
         const mergedCluster = this.createCluster(stations, initialHypocenter, false)
-        mergedCluster.reportNum = reportNum
+        mergedCluster.updates = baseCluster.updates
+        mergedCluster.reportNum = baseCluster.reportNum
+        mergedCluster.reportHypocenter = baseCluster.reportHypocenter ? { ...baseCluster.reportHypocenter } : null
+        this.copyClusterStableState(mergedCluster, baseCluster)
         mergedCluster.previousResults = baseCluster.previousResults
-        mergedCluster.emptyActiveUpdateCount = emptyActiveUpdateCount
         mergedCluster.inactiveUpdateCount = 0
-        mergedCluster.lastReportUpdateVersion = baseCluster.lastReportUpdateVersion
+        mergedCluster.lastUpdateVersion = baseCluster.lastUpdateVersion
         this.markClusterUpdated(mergedCluster)
-        mergedCluster.hasNewStation = true
         return mergedCluster
     }
 
@@ -298,33 +297,13 @@ export class FindNiedHypocenter {
         })
     }
 
-    refreshClusterFinalStates() {
-        this.clusters.forEach(cluster => {
-            if(cluster.final) return
-            if(cluster.hasNewStation) {
-                cluster.emptyActiveUpdateCount = 0
-                cluster.hasNewStation = false
-                return
-            }
-            cluster.emptyActiveUpdateCount++
-            if(cluster.emptyActiveUpdateCount >= maxEmptyActiveUpdatesBeforeFinal) {
-                if(cluster.lastReportUpdateVersion !== this.updateVersion) {
-                    cluster.reportNum++
-                    cluster.lastReportUpdateVersion = this.updateVersion
-                }
-                cluster.final = true
-                cluster.dirty = false
-            }
-        })
-    }
-
     refreshClusterResults() {
         this.clusters.forEach(cluster => {
-            if(cluster.final) return
             if(!cluster.dirty) return
             if(cluster.stations.length < minInferenceClusterSize) {
                 cluster.result = this.createClusterResult(cluster, this.createHypocenterResult(null, this.createInvalidLikelihood(null)))
                 cluster.previousResults = { P: null, S: null }
+                this.resetClusterStableHypocenterState(cluster)
                 cluster.dirty = false
                 return
             }
@@ -334,10 +313,55 @@ export class FindNiedHypocenter {
             // this.logNewScenarioStations(result, previousWaveMaps)
             // this.logNextPreviousResults(result.previousResults)
             cluster.previousResults = this.mergeValidPreviousResults(cluster.previousResults, result.previousResults)
+            this.refreshClusterHypocenterState(cluster, result)
             cluster.result = this.createClusterResult(cluster, this.createPublicHypocenterResult(result))
             cluster.initialHypocenter = result.hypocenter
             cluster.dirty = false
         })
+    }
+
+    refreshClusterHypocenterState(cluster, result) {
+        const hypocenter = Number.isFinite(result?.score) ? result.hypocenter : null
+        this.refreshClusterReportState(cluster, hypocenter)
+        this.refreshClusterStableHypocenterState(cluster, hypocenter)
+    }
+
+    refreshClusterReportState(cluster, hypocenter) {
+        if(!hypocenter) return
+        if(this.isSameHypocenter(cluster.reportHypocenter, hypocenter)) return
+        cluster.reportNum++
+        cluster.reportHypocenter = { ...hypocenter }
+    }
+
+    refreshClusterStableHypocenterState(cluster, hypocenter) {
+        if(!hypocenter) {
+            this.resetClusterStableHypocenterState(cluster)
+            return
+        }
+        if(this.isSameHypocenter(cluster.stableHypocenter, hypocenter)) {
+            cluster.stableHypocenterUpdateCount++
+        }
+        else {
+            cluster.stableHypocenter = { ...hypocenter }
+            cluster.stableHypocenterUpdateCount = 1
+            cluster.stable = false
+        }
+        if(cluster.stableHypocenterUpdateCount >= stableHypocenterUpdateThreshold) {
+            cluster.stable = true
+        }
+    }
+
+    resetClusterStableHypocenterState(cluster) {
+        cluster.stableHypocenter = null
+        cluster.stableHypocenterUpdateCount = 0
+        cluster.stable = false
+    }
+
+    isSameHypocenter(hypocenter1, hypocenter2) {
+        if(!hypocenter1 || !hypocenter2) return false
+        return Math.abs(hypocenter1.lat - hypocenter2.lat) <= floatPrecisionEpsilon &&
+            calcLngDiff(hypocenter1.lng, hypocenter2.lng) <= floatPrecisionEpsilon &&
+            Math.abs(hypocenter1.depth - hypocenter2.depth) <= floatPrecisionEpsilon
     }
 
     mergeCloseClusters() {
@@ -351,18 +375,17 @@ export class FindNiedHypocenter {
                     if(this.canMergeClusterResults(cluster1.result, cluster2.result)) {
                         const initialHypocenter = cluster1.result?.hypocenter || cluster2.result?.hypocenter || null
                         const stations = [...cluster1.stations, ...cluster2.stations]
-                        const baseCluster = this.selectReportNumBaseCluster(cluster1, cluster2)
-                        const reportNum = baseCluster.reportNum
-                        const emptyActiveUpdateCount = Math.min(cluster1.emptyActiveUpdateCount, cluster2.emptyActiveUpdateCount)
+                        const baseCluster = this.selectMergeBaseCluster(cluster1, cluster2)
                         this.removeCluster(cluster1)
                         this.removeCluster(cluster2)
                         const mergedCluster = this.createCluster(stations, initialHypocenter, false)
-                        mergedCluster.reportNum = reportNum
+                        mergedCluster.updates = baseCluster.updates
+                        mergedCluster.reportNum = baseCluster.reportNum
+                        mergedCluster.reportHypocenter = baseCluster.reportHypocenter ? { ...baseCluster.reportHypocenter } : null
+                        this.copyClusterStableState(mergedCluster, baseCluster)
                         mergedCluster.previousResults = baseCluster.previousResults
-                        mergedCluster.emptyActiveUpdateCount = emptyActiveUpdateCount
                         mergedCluster.inactiveUpdateCount = 0
-                        mergedCluster.hasNewStation = false
-                        mergedCluster.lastReportUpdateVersion = baseCluster.lastReportUpdateVersion
+                        mergedCluster.lastUpdateVersion = baseCluster.lastUpdateVersion
                         this.markClusterUpdated(mergedCluster)
                         this.refreshClusterResults()
                         mergedCluster.dirty = false
@@ -375,19 +398,26 @@ export class FindNiedHypocenter {
         }
     }
 
-    selectReportNumBaseCluster(cluster1, cluster2) {
+    selectMergeBaseCluster(cluster1, cluster2) {
         if(cluster1.stations.length !== cluster2.stations.length) {
             return cluster1.stations.length > cluster2.stations.length ? cluster1 : cluster2
         }
-        return cluster1.reportNum >= cluster2.reportNum ? cluster1 : cluster2
+        return cluster1.updates >= cluster2.updates ? cluster1 : cluster2
+    }
+
+    copyClusterStableState(targetCluster, sourceCluster) {
+        targetCluster.stable = sourceCluster.stable
+        targetCluster.stableHypocenter = sourceCluster.stableHypocenter ? { ...sourceCluster.stableHypocenter } : null
+        targetCluster.stableHypocenterUpdateCount = sourceCluster.stableHypocenterUpdateCount
     }
 
     getResults() {
         return this.clusters
             .map(cluster => cluster.result && {
                 ...cluster.result,
+                updates: cluster.updates,
                 reportNum: cluster.reportNum,
-                final: cluster.final
+                stable: cluster.stable
             })
             .filter(result => result?.hypocenter && Number.isFinite(result.score))
     }
@@ -1115,8 +1145,9 @@ export class FindNiedHypocenter {
         return {
             cluster: cluster.stations.map(station => this.createStationResultSnapshot(station)),
             clusterId: cluster.id,
+            updates: cluster.updates,
             reportNum: cluster.reportNum,
-            final: cluster.final,
+            stable: cluster.stable,
             ...result
         }
     }
@@ -1137,7 +1168,7 @@ export class FindNiedHypocenter {
         originEntries,
         pWaveBiasRatio = pWaveOriginStampBiasRatio,
         outlierFilterStage = {
-            minCount: minReliableStationCount,
+            minCount: minGreedyOutlierStationCount,
             ratio: residualOutlierToleranceRatio,
             minResidual: minResidualThreshold
         }
@@ -1148,7 +1179,7 @@ export class FindNiedHypocenter {
     }
 
     isResidualOutlier(options, originEntries, originStamp, outlierFilterStage = {
-        minCount: minReliableStationCount,
+        minCount: minGreedyOutlierStationCount,
         ratio: residualOutlierToleranceRatio,
         minResidual: minResidualThreshold
     }) {

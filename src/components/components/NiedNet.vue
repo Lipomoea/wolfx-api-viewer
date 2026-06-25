@@ -364,7 +364,7 @@ const createInferredHypocenterLabelLayer = (result, latLng, labelInfo) => {
                     ${labelHtml}
                     <div style="display: ${textInfoMode === 2 ? 'block' : 'none'};">
                     latlng: ${labelInfo.lat.toFixed(1)}, ${labelInfo.lng.toFixed(1)}<br>
-                    clusterId: ${result.clusterId ?? '-'}<br>
+                    clusterId: ${result.clusterId ?? '-'} / updates: ${result.updates ?? '-'}<br>
                     effective: ${result.effectiveStationCount} / qualityScore: ${result.qualityScore.toFixed(2)} / filter: ${result.filterStageLevel ?? 0}<br>
                     loss: ${result.score.toFixed(2)} / rmse: ${result.rmse.toFixed(2)} / penalty: ${result.inactivePenalty.toFixed(2)}<br>
                     scenario: ${result.scenario ?? '-'} / P: ${labelInfo.waveCounts.P || 0} S: ${labelInfo.waveCounts.S || 0} L: ${labelInfo.waveCounts.L || 0} O: ${labelInfo.waveCounts.O || 0}
@@ -400,11 +400,11 @@ const isCloseToJmaEewHypocenter = (result, eqMessage) => {
 }
 const createBasicInfLabelHtml = (result, { depth, clusterSize, originTimeJst }) => {
     const reportText = result.reportNum ?? '-'
-    const finalText = result.final ? '（最终）' : ''
+    const stableText = result.stable ? '（稳定）' : ''
     const qualityText = result.qualityRank ? `质量${result.qualityRank}` : ''
     return `
         <div style="font-size: 14px; font-weight: 700; line-height: 1.25;">
-            NIED震源推算 第${reportText}报${finalText}<br>
+            NIED震源推算 第${reportText}报${stableText}<br>
             ${originTimeJst} (+9)<br>
             深${depth.toFixed(0)}km<br>
             ${clusterSize}测站 ${qualityText}
