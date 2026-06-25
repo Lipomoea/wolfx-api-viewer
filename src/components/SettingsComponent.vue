@@ -879,7 +879,19 @@
                             @change="handleNeedReload" />
                         </div>
                         <div class="switch-full">
-                            <span>鼠标悬浮地图时显示地名</span>
+                            <span>
+                                鼠标悬浮地图时显示地名
+                                <el-popover
+                                    placement="top"
+                                    :width="300"
+                                    trigger="hover"
+                                >
+                                    <template #reference>
+                                        <question-filled width="1em" height="1em" />
+                                    </template>
+                                    <p>此功能与“启用位图渲染”冲突。</p>
+                                </el-popover>
+                            </span>
                             <el-switch v-model="settingsStore.mainSettings.placeNameOnHover"
                             :disabled="settingsStore.mainSettings.useCanvasRenderer"
                             @change="handleNeedReload" />
@@ -1025,7 +1037,7 @@
                         </div>
                         <div class="switch-full">
                             <span>
-                                位图渲染
+                                启用位图渲染
                                 <el-popover
                                     placement="top"
                                     :width="300"
@@ -1035,8 +1047,8 @@
                                         <question-filled width="1em" height="1em" />
                                     </template>
                                     <p>部分图层使用Canvas渲染器加载。</p>
-                                    <p>可提升性能，但部分情况下图形边缘可能模糊。</p>
-                                    <p>开启后无法使用“悬浮时显示地名”功能。</p>
+                                    <p>可较大幅度提升性能，但少部分情况下图形边缘可能模糊。</p>
+                                    <p>开启后无法使用“鼠标悬浮地图时显示地名”功能。</p>
                                     <p><strong>需重新加载页面后生效。</strong></p>
                                 </el-popover>
                             </span>

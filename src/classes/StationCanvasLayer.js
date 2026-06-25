@@ -16,7 +16,6 @@ export class StationCanvasLayer extends L.Layer {
         this.stations = stations
         this.options = {
             className: 'leaflet-station-canvas',
-            animationRedrawInterval: 50,
             panePrefix: 'niedStationPane',
             levels: defaultStationLevels,
             iconUrls: shindoIconUrls,
@@ -24,22 +23,19 @@ export class StationCanvasLayer extends L.Layer {
             ...options
         }
         this.levelSet = new Set(this.options.levels)
-        this.canvases = new Map()
-        this.contexts = new Map()
+        this.canvas = null
+        this.context = null
         this.images = {}
         this.redrawFrame = null
-        this.animationRedrawTimer = null
-        this.lastAnimationRedraw = 0
         this.zoomAnimating = false
         this.topLeft = L.point(0, 0)
     }
 
     onAdd(map) {
         this.map = map
-        this.options.levels.forEach(level => this.createCanvas(level))
+        this.createCanvas()
         map.on('zoomstart', this.handleZoomStart, this)
         map.on('moveend zoomend resize viewreset', this.reset, this)
-        map.on('move', this.scheduleAnimationRedraw, this)
         map.on('zoomanim', this.animateZoom, this)
         this.reset()
     }
@@ -47,41 +43,36 @@ export class StationCanvasLayer extends L.Layer {
     onRemove() {
         if(this.map) this.map.off('zoomstart', this.handleZoomStart, this)
         if(this.map) this.map.off('moveend zoomend resize viewreset', this.reset, this)
-        if(this.map) this.map.off('move', this.scheduleAnimationRedraw, this)
         if(this.map) this.map.off('zoomanim', this.animateZoom, this)
         if(this.redrawFrame) cancelAnimationFrame(this.redrawFrame)
-        if(this.animationRedrawTimer) clearTimeout(this.animationRedrawTimer)
         this.redrawFrame = null
-        this.animationRedrawTimer = null
-        this.canvases.forEach(canvas => canvas.remove())
-        this.canvases.clear()
-        this.contexts.clear()
+        this.canvas?.remove()
+        this.canvas = null
+        this.context = null
         this.map = null
     }
 
-    createCanvas(level) {
-        const pane = this.map.getPane(`${this.options.panePrefix}${level}`)
+    createCanvas() {
+        const pane = this.map.getPane(`${this.options.panePrefix}0`)
         if(!pane) return
         const canvas = L.DomUtil.create('canvas', this.options.className, pane)
         if(this.map.options.zoomAnimation && L.Browser.any3d) L.DomUtil.addClass(canvas, 'leaflet-zoom-animated')
         canvas.style.position = 'absolute'
         canvas.style.pointerEvents = 'none'
-        this.canvases.set(level, canvas)
-        this.contexts.set(level, canvas.getContext('2d'))
+        this.canvas = canvas
+        this.context = canvas.getContext('2d')
     }
 
     reset() {
-        if(!this.map) return
+        if(!this.map || !this.canvas) return
         this.zoomAnimating = false
         const size = this.map.getSize()
         const ratio = window.devicePixelRatio || 1
         this.updateCanvasPosition()
-        this.canvases.forEach(canvas => {
-            canvas.width = Math.ceil(size.x * ratio)
-            canvas.height = Math.ceil(size.y * ratio)
-            canvas.style.width = `${size.x}px`
-            canvas.style.height = `${size.y}px`
-        })
+        this.canvas.width = Math.ceil(size.x * ratio)
+        this.canvas.height = Math.ceil(size.y * ratio)
+        this.canvas.style.width = `${size.x}px`
+        this.canvas.style.height = `${size.y}px`
         this.redraw()
     }
 
@@ -91,41 +82,14 @@ export class StationCanvasLayer extends L.Layer {
 
     updateCanvasPosition() {
         this.topLeft = this.map.containerPointToLayerPoint([0, 0])
-        this.canvases.forEach(canvas => {
-            L.DomUtil.setPosition(canvas, this.topLeft)
-        })
+        if(this.canvas) L.DomUtil.setPosition(this.canvas, this.topLeft)
     }
 
     animateZoom(event) {
-        if(!this.map) return
+        if(!this.map || !this.canvas) return
         const scale = this.map.getZoomScale(event.zoom)
         const offset = this.map._latLngToNewLayerPoint(this.map.containerPointToLatLng([0, 0]), event.zoom, event.center)
-        this.canvases.forEach(canvas => {
-            L.DomUtil.setTransform(canvas, offset, scale)
-        })
-    }
-
-    scheduleAnimationRedraw() {
-        if(!this.map) return
-        if(this.zoomAnimating) return
-        const now = performance.now()
-        const wait = this.options.animationRedrawInterval - (now - this.lastAnimationRedraw)
-        if(wait <= 0) {
-            this.redrawDuringAnimation()
-            return
-        }
-        if(this.animationRedrawTimer) return
-        this.animationRedrawTimer = setTimeout(() => {
-            this.animationRedrawTimer = null
-            this.redrawDuringAnimation()
-        }, wait)
-    }
-
-    redrawDuringAnimation() {
-        if(!this.map) return
-        this.lastAnimationRedraw = performance.now()
-        this.updateCanvasPosition()
-        this.redraw()
+        L.DomUtil.setTransform(this.canvas, offset, scale)
     }
 
     redraw() {
@@ -140,16 +104,18 @@ export class StationCanvasLayer extends L.Layer {
     }
 
     draw() {
-        if(!this.map) return
+        if(!this.map || !this.context) return
         if(this.zoomAnimating) return
         const ratio = window.devicePixelRatio || 1
         const size = this.map.getSize()
-        this.contexts.forEach(ctx => {
-            ctx.setTransform(ratio, 0, 0, ratio, 0, 0)
-            ctx.clearRect(0, 0, size.x, size.y)
-        })
+        this.context.setTransform(ratio, 0, 0, ratio, 0, 0)
+        this.context.clearRect(0, 0, size.x, size.y)
         const zoom = this.map.getZoom()
-        this.getStations().forEach(station => this.drawStation(station, zoom, size))
+        this.getStations()
+            .map(station => station?.getCanvasDrawInfo?.(zoom))
+            .filter(Boolean)
+            .sort((a, b) => this.getPaneLevel(a.paneLevel ?? a.level) - this.getPaneLevel(b.paneLevel ?? b.level))
+            .forEach(info => this.drawStation(info, zoom, size))
     }
 
     getStations() {
@@ -160,12 +126,8 @@ export class StationCanvasLayer extends L.Layer {
         return this.levelSet.has(level) ? level : this.options.levels[0]
     }
 
-    drawStation(station, zoom, size) {
-        if(!station?.getCanvasDrawInfo) return
-        const info = station.getCanvasDrawInfo(zoom)
-        if(!info) return
-        const level = this.getPaneLevel(info.paneLevel ?? info.level)
-        const ctx = this.contexts.get(level)
+    drawStation(info, zoom, size) {
+        const ctx = this.context
         if(!ctx) return
         const point = this.map.latLngToLayerPoint(info.latLng).subtract(this.topLeft)
         const margin = Math.max(info.radius * 4, 24)
