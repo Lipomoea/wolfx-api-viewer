@@ -1268,7 +1268,7 @@ const setView = (force = false) => {
             //历史地震
             if(!bounds.isValid() && menuId.value == 'eqlists' && historyList.length > 0) {
                 map.eachLayer(layer => {
-                    if(layer.options.pane == 'historyMarkerPane' || layer.options.pane.includes('intReportStationPane')) {
+                    if(layer.options.pane == 'historyMarkerPane' || layer.options.pane?.includes('intReportStationPane')) {
                         bounds.extend(layer.getLatLng())
                     }
                 })

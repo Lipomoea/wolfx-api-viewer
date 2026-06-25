@@ -777,7 +777,7 @@ onBeforeUnmount(()=>{
     terminateHypocenterWorker()
     clearInferredHypocenters()
     map.eachLayer(layer=>{
-        if(layer.options.pane == 'niedGridPane' || layer.options.pane.includes('niedStationPane')){
+        if(layer.options.pane == 'niedGridPane' || layer.options.pane?.includes('niedStationPane')){
             map.removeLayer(layer)
         }
     })
