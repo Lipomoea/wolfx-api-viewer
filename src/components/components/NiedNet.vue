@@ -15,6 +15,7 @@ import { getTimeNumberString, playSound, sendMyNotification, calcTimeDiff, focus
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { abnormalNiedStations, NiedStation, simpleIcon } from '@/classes/StationClasses';
+import { NiedStationCanvasLayer } from '@/classes/StationCanvasLayer';
 import { niedSitePub } from '@/utils/NiedSitePub';
 import travelTimes from '@/utils/TravelTimes';
 import infHypoIconUrl from '@/assets/icon/hypocenter/infHypo.svg';
@@ -96,6 +97,7 @@ const activityThresArr1 = [Infinity, 10, 14, 16, 18, 19, 20]
 const activityThresArr2 = [Infinity, 8, 11, 13, 14, 15, 16]
 const activityThresArr3 = [Infinity, 6, 9, 11, 12, 13, 14]
 let inferredHypocenterLayers = []
+let stationCanvasLayer = null
 let hypocenterWorker = null
 let hypocenterRequestId = 0
 let latestHypocenterRequestId = 0
@@ -200,6 +202,7 @@ const update = ()=>{
             }
         })
         const currentActiveStations = stations.filter(station => station.isActive)
+        if(render && settingsStore.mainSettings.useCanvasRenderer) renderAll()
         if(!isNiedHypoInfEnabled()) {
             terminateHypocenterWorker()
             clearInferredHypocenters()
@@ -463,9 +466,18 @@ const chainActivate = (station, activeStations, checkedStations, clusters)=>{
     clusters.push(cluster);
 }
 const renderAll = ()=>{
+    if(settingsStore.mainSettings.useCanvasRenderer) {
+        stationCanvasLayer?.redraw()
+        return
+    }
     stations.forEach(station=>{
         station.render()
     })
+}
+const initStationCanvasLayer = () => {
+    if(!settingsStore.mainSettings.useCanvasRenderer) return
+    if(!map || stationCanvasLayer || stations.length === 0) return
+    stationCanvasLayer = new NiedStationCanvasLayer(stations).addTo(map)
 }
 let fetchStationInterval, requestInterval, delayInterval
 const fetchStationList = async () => {
@@ -537,9 +549,11 @@ const fetchStationList = async () => {
                 expireSeconds[i] = 10
             }
             stationList.forEach((latLng, index)=>{
-                const station = reactive(new NiedStation(map, index, latLng, 'c', expireSeconds[index]))
+                const station = reactive(new NiedStation(map, index, latLng, 'c', expireSeconds[index], settingsStore.mainSettings.useCanvasRenderer))
                 stations.push(station)
             })
+            initStationCanvasLayer()
+            renderAll()
             clearAbnormalList()
         }
     } catch (err) {
@@ -619,6 +633,7 @@ let unwatchGrids, unwatchRender
 watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
+        initStationCanvasLayer()
         map.on('zoomend', renderAll)
         unwatchGrids = watch(grids, (newVal)=>{
             let maxLevel = -1, maxColor = 'gray'
@@ -751,6 +766,8 @@ onBeforeUnmount(()=>{
     if(map !== null) map.off('zoomend', renderAll)
     if(unwatchGrids) unwatchGrids()
     if(unwatchRender) unwatchRender()
+    if(stationCanvasLayer && map?.hasLayer(stationCanvasLayer)) map.removeLayer(stationCanvasLayer)
+    stationCanvasLayer = null
     stations.forEach((station, index)=>{
         station.terminate()
         stations[index] = null

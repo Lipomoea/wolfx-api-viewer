@@ -28,7 +28,7 @@ import int10 from '@/assets/icon/intensity/10.svg';
 import int11 from '@/assets/icon/intensity/11.svg';
 import int12 from '@/assets/icon/intensity/12.svg';
 
-const shindoIconUrls = {
+export const shindoIconUrls = {
     '0': shindo0,
     '1': shindo1,
     '2': shindo2,
@@ -99,7 +99,7 @@ const kmaColorBand = {
     ]
 }
 
-const shindoColorBand = [
+export const shindoColorBand = [
     'var(--dark-gray)', 'var(--dark-gray)', 'var(--dark-gray)', 'var(--dark-gray)', 'var(--dark-gray)', 'var(--dark-gray)', 
     'var(--dark-gray)', 'var(--dark-gray)', 
     'var(--gray)', 'var(--gray)', 
@@ -155,13 +155,56 @@ for(let zoom = 6; zoom <= 10; zoom ++) {
 let settingsStore
 export const abnormalNiedStations = {}
 
+const getNiedColorRadius = (level, zoom) => {
+    const style = settingsStore.mainSettings.displaySeisNet.style
+    let color, radius
+    switch(style) {
+        case 'nied':
+            if(level < 0 || level >= colorBand.nied.length){
+                if(settingsStore.mainSettings.displaySeisNet.hideNoData) color = '#cfcfcf00'
+                else color = '#cfcfcf'
+            }
+            else{
+                color = colorBand.nied[level]
+            }
+            radius = (level <= 5 ? 2 : 2.5) * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+            break
+        case 'srev':
+            if(level < 0 || level >= colorBand.srev.length){
+                color = colorBand.srev[0]
+            }
+            else{
+                color = colorBand.srev[level]
+            }
+            radius = 2.5 * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+            break
+        case 'mix':
+            if(level < 0 || level >= colorBand.mix.length){
+                color = colorBand.mix[0]
+            }
+            else{
+                color = colorBand.mix[level]
+            }
+            radius = 2.5 * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+            break
+    }
+    return { color, radius }
+}
+const getNiedMarkerType = (level, zoom) => {
+    if(settingsStore.mainSettings.displaySeisNet.displayNiedShindo && level >= (settingsStore.mainSettings.displaySeisNet.displayShindo0 ? 6 : 8) && zoom >= 4){
+        return simpleIcon.value ? 1 : 2
+    }
+    return 0
+}
+
 export class NiedStation {
-    constructor(map, id, latLng, intensity, expireSeconds){
+    constructor(map, id, latLng, intensity, expireSeconds, useCanvasLayer = false){
         if(!settingsStore) settingsStore = useSettingsStore()
         this.map = map
         this.id = id
         this.latLng = latLng
         this.expireSeconds = expireSeconds
+        this.useCanvasLayer = useCanvasLayer
         this.maxRecentLength = 60
         this.shindo = getShindoFromChar(intensity)
         this.level = intensity.charCodeAt(0) - 100
@@ -172,7 +215,7 @@ export class NiedStation {
         this.activity = 0
         this.isActive = false
         this.markerType = null
-        this.render()
+        if(!this.useCanvasLayer) this.render()
     }
     update(intensity, updateStamp, render = true){
         this.updateStamp = updateStamp
@@ -181,7 +224,7 @@ export class NiedStation {
         if(level != this.level){
             this.shindo = getShindoFromChar(intensity)
             this.level = level
-            render && this.render()
+            render && !this.useCanvasLayer && this.render()
         }
         this.recentLevel.unshift(originLevel)
         this.recentLevel.splice(this.maxRecentLength)
@@ -321,6 +364,7 @@ export class NiedStation {
         return levelActivity + ascendActivity
     }
     render(){
+        if(this.useCanvasLayer) return
         const oldMarkerType = this.markerType
         const oldColor = this.color
         const oldRadius = this.radius
@@ -402,35 +446,20 @@ export class NiedStation {
     }
     setColorRadius(){
         const zoom = this.map.getZoom()
-        switch(settingsStore.mainSettings.displaySeisNet.style) {
-            case 'nied':
-                if(this.level < 0 || this.level >= colorBand.nied.length){
-                    if(settingsStore.mainSettings.displaySeisNet.hideNoData) this.color = '#cfcfcf00'
-                    else this.color = '#cfcfcf'
-                }
-                else{
-                    this.color = colorBand.nied[this.level]
-                }
-                this.radius = (this.level <= 5 ? 2 : 2.5) * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
-                break
-            case 'srev':
-                if(this.level < 0 || this.level >= colorBand.srev.length){
-                    this.color = colorBand.srev[0]
-                }
-                else{
-                    this.color = colorBand.srev[this.level]
-                }
-                this.radius = 2.5 * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
-                break
-            case 'mix':
-                if(this.level < 0 || this.level >= colorBand.mix.length){
-                    this.color = colorBand.mix[0]
-                }
-                else{
-                    this.color = colorBand.mix[this.level]
-                }
-                this.radius = 2.5 * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
-                break
+        const { color, radius } = getNiedColorRadius(this.level, zoom)
+        this.color = color
+        this.radius = radius
+    }
+    getCanvasDrawInfo(zoom = this.map.getZoom()){
+        if(!settingsStore) settingsStore = useSettingsStore()
+        const { color, radius } = getNiedColorRadius(this.level, zoom)
+        return {
+            latLng: this.latLng,
+            level: this.level,
+            shindo: this.shindo,
+            color,
+            radius,
+            markerType: getNiedMarkerType(this.level, zoom)
         }
     }
     setActive(){
