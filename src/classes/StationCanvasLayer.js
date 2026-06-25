@@ -1,8 +1,7 @@
 import L from 'leaflet'
-import { shindoColorBand, shindoIconUrls } from './StationClasses'
+import { intIconUrls, kmaIntColorBand, shindoColorBand, shindoIconUrls } from './StationClasses'
 
-const niedStationLevels = Array.from({ length: 22 }, (_, index) => index - 1)
-const getNiedPaneLevel = level => level >= -1 && level <= 20 ? level : -1
+const defaultStationLevels = Array.from({ length: 22 }, (_, index) => index - 1)
 const getIconRadius = zoom => 8 * 1.5 ** (Math.min(Math.max(zoom, 6), 10) / 2 - 3)
 const resolveCssColor = color => {
     if(typeof color !== 'string') return color
@@ -11,15 +10,20 @@ const resolveCssColor = color => {
     return getComputedStyle(document.documentElement).getPropertyValue(match[1]).trim() || color
 }
 
-export class NiedStationCanvasLayer extends L.Layer {
+export class StationCanvasLayer extends L.Layer {
     constructor(stations, options = {}) {
         super()
         this.stations = stations
         this.options = {
-            className: 'leaflet-nied-station-canvas',
+            className: 'leaflet-station-canvas',
             animationRedrawInterval: 50,
+            panePrefix: 'niedStationPane',
+            levels: defaultStationLevels,
+            iconUrls: shindoIconUrls,
+            simpleColorBand: shindoColorBand,
             ...options
         }
+        this.levelSet = new Set(this.options.levels)
         this.canvases = new Map()
         this.contexts = new Map()
         this.images = {}
@@ -32,7 +36,7 @@ export class NiedStationCanvasLayer extends L.Layer {
 
     onAdd(map) {
         this.map = map
-        niedStationLevels.forEach(level => this.createCanvas(level))
+        this.options.levels.forEach(level => this.createCanvas(level))
         map.on('zoomstart', this.handleZoomStart, this)
         map.on('moveend zoomend resize viewreset', this.reset, this)
         map.on('move', this.scheduleAnimationRedraw, this)
@@ -56,7 +60,7 @@ export class NiedStationCanvasLayer extends L.Layer {
     }
 
     createCanvas(level) {
-        const pane = this.map.getPane(`niedStationPane${level}`)
+        const pane = this.map.getPane(`${this.options.panePrefix}${level}`)
         if(!pane) return
         const canvas = L.DomUtil.create('canvas', this.options.className, pane)
         if(this.map.options.zoomAnimation && L.Browser.any3d) L.DomUtil.addClass(canvas, 'leaflet-zoom-animated')
@@ -145,13 +149,22 @@ export class NiedStationCanvasLayer extends L.Layer {
             ctx.clearRect(0, 0, size.x, size.y)
         })
         const zoom = this.map.getZoom()
-        this.stations.forEach(station => this.drawStation(station, zoom, size))
+        this.getStations().forEach(station => this.drawStation(station, zoom, size))
+    }
+
+    getStations() {
+        return Array.isArray(this.stations) ? this.stations : Object.values(this.stations || {})
+    }
+
+    getPaneLevel(level) {
+        return this.levelSet.has(level) ? level : this.options.levels[0]
     }
 
     drawStation(station, zoom, size) {
+        if(!station?.getCanvasDrawInfo) return
         const info = station.getCanvasDrawInfo(zoom)
         if(!info) return
-        const level = getNiedPaneLevel(info.level)
+        const level = this.getPaneLevel(info.paneLevel ?? info.level)
         const ctx = this.contexts.get(level)
         if(!ctx) return
         const point = this.map.latLngToLayerPoint(info.latLng).subtract(this.topLeft)
@@ -159,10 +172,10 @@ export class NiedStationCanvasLayer extends L.Layer {
         if(point.x < -margin || point.y < -margin || point.x > size.x + margin || point.y > size.y + margin) return
         switch(info.markerType) {
             case 2:
-                this.drawShindoIcon(ctx, info.shindo, point, zoom)
+                this.drawIcon(ctx, info.iconKey ?? info.shindo, point, zoom)
                 break
             case 1:
-                this.drawSimpleShindo(ctx, info, point)
+                this.drawSimpleIcon(ctx, info, point)
                 break
             default:
                 this.drawCircle(ctx, info, point)
@@ -177,32 +190,64 @@ export class NiedStationCanvasLayer extends L.Layer {
         ctx.fill()
     }
 
-    drawSimpleShindo(ctx, info, point) {
+    drawSimpleIcon(ctx, info, point) {
         const radius = Math.max(info.radius, 2) * 1.8
         ctx.beginPath()
         ctx.arc(point.x, point.y, radius, 0, Math.PI * 2)
-        ctx.fillStyle = resolveCssColor(shindoColorBand[info.level])
+        ctx.fillStyle = resolveCssColor(this.options.simpleColorBand[info.simpleColorLevel ?? info.level])
         ctx.fill()
         ctx.lineWidth = Math.max(info.radius, 2) * 0.4
         ctx.strokeStyle = '#ffffff'
         ctx.stroke()
     }
 
-    drawShindoIcon(ctx, shindo, point, zoom) {
-        const image = this.getShindoImage(shindo)
+    drawIcon(ctx, iconKey, point, zoom) {
+        const image = this.getIconImage(iconKey)
         if(!image?.complete || image.naturalWidth === 0) return
         const radius = getIconRadius(zoom)
         ctx.drawImage(image, point.x - radius, point.y - radius, radius * 2, radius * 2)
     }
 
-    getShindoImage(shindo) {
-        if(this.images[shindo]) return this.images[shindo]
-        const url = shindoIconUrls[shindo]
+    getIconImage(iconKey) {
+        if(this.images[iconKey]) return this.images[iconKey]
+        const url = this.options.iconUrls[iconKey]
         if(!url) return null
         const image = new Image()
         image.onload = () => this.redraw()
         image.src = url
-        this.images[shindo] = image
+        this.images[iconKey] = image
         return image
+    }
+}
+
+export class NiedStationCanvasLayer extends StationCanvasLayer {
+    constructor(stations, options = {}) {
+        super(stations, {
+            panePrefix: 'niedStationPane',
+            levels: defaultStationLevels,
+            ...options
+        })
+    }
+}
+
+export class TremStationCanvasLayer extends StationCanvasLayer {
+    constructor(stations, options = {}) {
+        super(stations, {
+            panePrefix: 'tremStationPane',
+            levels: defaultStationLevels,
+            ...options
+        })
+    }
+}
+
+export class KmaStationCanvasLayer extends StationCanvasLayer {
+    constructor(stations, options = {}) {
+        super(stations, {
+            panePrefix: 'kmaStationPane',
+            levels: Array.from({ length: 15 }, (_, index) => index - 1),
+            iconUrls: intIconUrls,
+            simpleColorBand: kmaIntColorBand,
+            ...options
+        })
     }
 }

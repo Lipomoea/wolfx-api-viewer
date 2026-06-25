@@ -41,7 +41,7 @@ export const shindoIconUrls = {
     '7': shindo7,
 }
 
-const intIconUrls = {
+export const intIconUrls = {
     '0': int0,
     '1': int1,
     '2': int2,
@@ -111,7 +111,7 @@ export const shindoColorBand = [
     'var(--purple)'
 ]
 
-const kmaIntColorBand = [
+export const kmaIntColorBand = [
     'var(--dark-gray)', 'var(--dark-gray)', 'var(--dark-gray)', 'var(--dark-gray)', 
     'var(--gray)', 
     'var(--sky-blue)', 
@@ -190,8 +190,55 @@ const getNiedColorRadius = (level, zoom) => {
     }
     return { color, radius }
 }
+const getKmaColorRadius = (holdLevel, zoom) => {
+    const style = settingsStore.mainSettings.displaySeisNet.style
+    let color, radius
+    switch(style) {
+        case 'nied':
+            if(holdLevel < 0 || holdLevel >= kmaColorBand.nied.length){
+                if(settingsStore.mainSettings.displaySeisNet.hideNoData) color = '#cfcfcf00'
+                else color = '#cfcfcf'
+            }
+            else{
+                color = kmaColorBand.nied[holdLevel]
+            }
+            radius = (holdLevel <= 2 ? 2 : 2.5) * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+            break
+        case 'srev':
+            if(holdLevel < 0 || holdLevel >= kmaColorBand.srev.length){
+                color = kmaColorBand.srev[0]
+            }
+            else{
+                color = kmaColorBand.srev[holdLevel]
+            }
+            radius = 2.5 * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+            break
+        case 'mix':
+            if(holdLevel < 0 || holdLevel >= kmaColorBand.mix.length){
+                color = kmaColorBand.mix[0]
+            }
+            else{
+                color = kmaColorBand.mix[holdLevel]
+            }
+            radius = 2.5 * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
+            break
+    }
+    return { color, radius }
+}
 const getNiedMarkerType = (level, zoom) => {
     if(settingsStore.mainSettings.displaySeisNet.displayNiedShindo && level >= (settingsStore.mainSettings.displaySeisNet.displayShindo0 ? 6 : 8) && zoom >= 4){
+        return simpleIcon.value ? 1 : 2
+    }
+    return 0
+}
+const getTremMarkerType = (level, zoom) => {
+    if(settingsStore.mainSettings.displaySeisNet.displayTremShindo && level >= (settingsStore.mainSettings.displaySeisNet.displayShindo0 ? 6 : 8) && zoom >= 4){
+        return simpleIcon.value ? 1 : 2
+    }
+    return 0
+}
+const getKmaMarkerType = (holdLevel, zoom) => {
+    if(settingsStore.mainSettings.displaySeisNet.displayKmaInt && holdLevel >= (settingsStore.mainSettings.displaySeisNet.displayShindo0 ? 3 : 4) && zoom >= 4){
         return simpleIcon.value ? 1 : 2
     }
     return 0
@@ -370,12 +417,7 @@ export class NiedStation {
         const oldRadius = this.radius
         this.setColorRadius()
         const zoom = this.map.getZoom()
-        if(settingsStore.mainSettings.displaySeisNet.displayNiedShindo && this.level >= (settingsStore.mainSettings.displaySeisNet.displayShindo0 ? 6 : 8) && zoom >= 4){
-            this.markerType = simpleIcon.value ? 1 : 2
-        }
-        else{
-            this.markerType = 0
-        }
+        this.markerType = getNiedMarkerType(this.level, zoom)
         if(this.markerType == oldMarkerType && this.color == oldColor && this.radius == oldRadius) return
         if((this.markerType == 2) != (oldMarkerType == 2) || this.color != oldColor) {
             if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
@@ -456,7 +498,10 @@ export class NiedStation {
         return {
             latLng: this.latLng,
             level: this.level,
+            paneLevel: this.level,
+            simpleColorLevel: this.level,
             shindo: this.shindo,
+            iconKey: this.shindo,
             color,
             radius,
             markerType: getNiedMarkerType(this.level, zoom)
@@ -477,17 +522,18 @@ export class NiedStation {
     }
 }
 export class TremStation {
-    constructor(map, id, latLng, intensity, isActive){
+    constructor(map, id, latLng, intensity, isActive, useCanvasLayer = false){
         if(!settingsStore) settingsStore = useSettingsStore()
         this.map = map
         this.id = id
         this.latLng = latLng
+        this.useCanvasLayer = useCanvasLayer
         this.intensity = intensity
         this.shindo = getShindoFromInstShindo(intensity)
         this.level = getLevelFromInstShindo(intensity)
         this.isActive = isActive
         this.markerType = null
-        this.render()
+        if(!this.useCanvasLayer) this.render()
     }
     update(intensity, isActive, render = true){
         this.intensity = intensity
@@ -495,22 +541,18 @@ export class TremStation {
         if(level != this.level){
             this.shindo = getShindoFromInstShindo(intensity)
             this.level = level
-            render && this.render()
+            render && !this.useCanvasLayer && this.render()
         }
         this.isActive = isActive
     }
     render(){
+        if(this.useCanvasLayer) return
         const oldMarkerType = this.markerType
         const oldColor = this.color
         const oldRadius = this.radius
         this.setColorRadius()
         const zoom = this.map.getZoom()
-        if(settingsStore.mainSettings.displaySeisNet.displayTremShindo && this.level >= (settingsStore.mainSettings.displaySeisNet.displayShindo0 ? 6 : 8) && zoom >= 4){
-            this.markerType = simpleIcon.value ? 1 : 2
-        }
-        else{
-            this.markerType = 0
-        }
+        this.markerType = getTremMarkerType(this.level, zoom)
         if(this.markerType == oldMarkerType && this.color == oldColor && this.radius == oldRadius) return
         if((this.markerType == 2) != (oldMarkerType == 2) || this.color != oldColor) {
             if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
@@ -581,35 +623,23 @@ export class TremStation {
     }
     setColorRadius(){
         const zoom = this.map.getZoom()
-        switch(settingsStore.mainSettings.displaySeisNet.style) {
-            case 'nied':
-                if(this.level < 0 || this.level >= colorBand.nied.length){
-                    if(settingsStore.mainSettings.displaySeisNet.hideNoData) this.color = '#cfcfcf00'
-                    else this.color = '#cfcfcf'
-                }
-                else{
-                    this.color = colorBand.nied[this.level]
-                }
-                this.radius = (this.level <= 5 ? 2 : 2.5) * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
-                break
-            case 'srev':
-                if(this.level < 0 || this.level >= colorBand.srev.length){
-                    this.color = colorBand.srev[0]
-                }
-                else{
-                    this.color = colorBand.srev[this.level]
-                }
-                this.radius = 2.5 * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
-                break
-            case 'mix':
-                if(this.level < 0 || this.level >= colorBand.mix.length){
-                    this.color = colorBand.mix[0]
-                }
-                else{
-                    this.color = colorBand.mix[this.level]
-                }
-                this.radius = 2.5 * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
-                break
+        const { color, radius } = getNiedColorRadius(this.level, zoom)
+        this.color = color
+        this.radius = radius
+    }
+    getCanvasDrawInfo(zoom = this.map.getZoom()){
+        if(!settingsStore) settingsStore = useSettingsStore()
+        const { color, radius } = getNiedColorRadius(this.level, zoom)
+        return {
+            latLng: this.latLng,
+            level: this.level,
+            paneLevel: this.level,
+            simpleColorLevel: this.level,
+            shindo: this.shindo,
+            iconKey: this.shindo,
+            color,
+            radius,
+            markerType: getTremMarkerType(this.level, zoom)
         }
     }
     terminate(){
@@ -619,11 +649,12 @@ export class TremStation {
     }
 }
 export class KmaStation {
-    constructor(map, id, latLng, intensity, isActive){
+    constructor(map, id, latLng, intensity, isActive, useCanvasLayer = false){
         if(!settingsStore) settingsStore = useSettingsStore()
         this.map = map
         this.id = id
         this.latLng = latLng
+        this.useCanvasLayer = useCanvasLayer
         this.level = intensity + 2
         this.recentLevel = []
         this.recentSeconds = 60
@@ -633,7 +664,8 @@ export class KmaStation {
         this.ascend = false
         this.intensity = getMmiFromKmaLevel(this.holdLevel)
         this.isActive = isActive
-        this.render()
+        this.markerType = null
+        if(!this.useCanvasLayer) this.render()
     }
     update(intensity, render = true){
         this.level = intensity + 2
@@ -648,21 +680,17 @@ export class KmaStation {
         if(holdLevel != this.holdLevel) {
             this.holdLevel = holdLevel
             this.intensity = getMmiFromKmaLevel(this.holdLevel)
-            render && this.render()
+            render && !this.useCanvasLayer && this.render()
         }
     }
     render(){
+        if(this.useCanvasLayer) return
         const oldMarkerType = this.markerType
         const oldColor = this.color
         const oldRadius = this.radius
         this.setColorRadius()
         const zoom = this.map.getZoom()
-        if(settingsStore.mainSettings.displaySeisNet.displayKmaInt && this.holdLevel >= (settingsStore.mainSettings.displaySeisNet.displayShindo0 ? 3 : 4) && zoom >= 4){
-            this.markerType = simpleIcon.value ? 1 : 2
-        }
-        else{
-            this.markerType = 0
-        }
+        this.markerType = getKmaMarkerType(this.holdLevel, zoom)
         if(this.markerType == oldMarkerType && this.color == oldColor && this.radius == oldRadius) return
         if((this.markerType == 2) != (oldMarkerType == 2) || this.color != oldColor) {
             if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
@@ -731,38 +759,25 @@ export class KmaStation {
             }
         }
     }
+    getCanvasDrawInfo(zoom = this.map.getZoom()){
+        if(!settingsStore) settingsStore = useSettingsStore()
+        const { color, radius } = getKmaColorRadius(this.holdLevel, zoom)
+        return {
+            latLng: this.latLng,
+            level: this.holdLevel,
+            paneLevel: this.holdLevel,
+            simpleColorLevel: this.holdLevel,
+            iconKey: this.intensity,
+            color,
+            radius,
+            markerType: getKmaMarkerType(this.holdLevel, zoom)
+        }
+    }
     setColorRadius(){
         const zoom = this.map.getZoom()
-        switch(settingsStore.mainSettings.displaySeisNet.style) {
-            case 'nied':
-                if(this.holdLevel < 0 || this.holdLevel >= kmaColorBand.nied.length){
-                    if(settingsStore.mainSettings.displaySeisNet.hideNoData) this.color = '#cfcfcf00'
-                    else this.color = '#cfcfcf'
-                }
-                else{
-                    this.color = kmaColorBand.nied[this.holdLevel]
-                }
-                this.radius = (this.holdLevel <= 2 ? 2 : 2.5) * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
-                break
-            case 'srev':
-                if(this.holdLevel < 0 || this.holdLevel >= kmaColorBand.srev.length){
-                    this.color = kmaColorBand.srev[0]
-                }
-                else{
-                    this.color = kmaColorBand.srev[this.holdLevel]
-                }
-                this.radius = 2.5 * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
-                break
-            case 'mix':
-                if(this.holdLevel < 0 || this.holdLevel >= kmaColorBand.mix.length){
-                    this.color = kmaColorBand.mix[0]
-                }
-                else{
-                    this.color = kmaColorBand.mix[this.holdLevel]
-                }
-                this.radius = 2.5 * 1.8 ** (Math.min(Math.max(zoom, 4), 10) / 2 - 3)
-                break
-        }
+        const { color, radius } = getKmaColorRadius(this.holdLevel, zoom)
+        this.color = color
+        this.radius = radius
     }
     setActive(){
         this.isActive = true

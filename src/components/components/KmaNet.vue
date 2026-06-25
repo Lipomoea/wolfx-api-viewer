@@ -13,6 +13,7 @@ import { playSound, sendMyNotification, calcTimeDiff, focusWindow, getMmiFromKma
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { KmaStation, simpleIcon } from '@/classes/StationClasses';
+import { KmaStationCanvasLayer } from '@/classes/StationCanvasLayer';
 import WebSocketObj from '@/classes/WebSocket';
 
 const statusStore = useStatusStore()
@@ -27,6 +28,7 @@ const smartSetView = inject('smartSetView')
 let periodMaxLevel = -1
 const stationList = reactive([])
 const stations = reactive([])
+let stationCanvasLayer = null
 let distMatrix = [[]]
 let adjStationIds = {}
 let map
@@ -72,6 +74,7 @@ const update = (intensities) => {
         station.update(intensities[index], render)
         if(station.holdLevel > maxLevel) maxLevel = station.holdLevel
     })
+    if(render && settingsStore.mainSettings.useCanvasRenderer) renderAll()
     kmaMaxInt.value = getMmiFromKmaLevel(maxLevel)
     const activeStations = new Set()
     let first = null
@@ -118,9 +121,18 @@ const update = (intensities) => {
     if(first) decimal = first.latLng.map(val => exactRound((val + 180) % 1, 2))
 }
 const renderAll = ()=>{
+    if(settingsStore.mainSettings.useCanvasRenderer) {
+        stationCanvasLayer?.redraw()
+        return
+    }
     stations.forEach(station=>{
         station.render()
     })
+}
+const initStationCanvasLayer = () => {
+    if(!settingsStore.mainSettings.useCanvasRenderer) return
+    if(!map || stationCanvasLayer || stations.length === 0) return
+    stationCanvasLayer = new KmaStationCanvasLayer(stations).addTo(map)
 }
 let kmaSocket = null
 onMounted(()=>{
@@ -172,6 +184,7 @@ let unwatchGrids, unwatchStationList, unwatchRender
 watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
+        initStationCanvasLayer()
         map.on('zoomend', renderAll)
         unwatchStationList = watch(stationList, newVal=>{
             if(newVal.length > 0){
@@ -180,7 +193,7 @@ watch(()=>statusStore.map, newVal=>{
                 })
                 stations.length = 0
                 map.eachLayer(layer=>{
-                    if(layer.options.pane.includes('kmaStationPane')){
+                    if(layer.options.pane?.includes('kmaStationPane')){
                         map.removeLayer(layer)
                     }
                 })
@@ -207,9 +220,11 @@ watch(()=>statusStore.map, newVal=>{
                 }
                 newVal.forEach((item, index)=>{
                     const latLng = [item.latitude, item.longitude]
-                    const station = reactive(new KmaStation(map, index, latLng, -3, false))
+                    const station = reactive(new KmaStation(map, index, latLng, -3, false, settingsStore.mainSettings.useCanvasRenderer))
                     stations.push(station)
                 })
+                initStationCanvasLayer()
+                renderAll()
             }
         }, { immediate: true })
         unwatchGrids = watch(grids, (newVal)=>{
@@ -320,13 +335,15 @@ onBeforeUnmount(()=>{
     if(unwatchGrids) unwatchGrids()
     if(unwatchStationList) unwatchStationList()
     if(unwatchRender) unwatchRender()
+    if(stationCanvasLayer && map?.hasLayer(stationCanvasLayer)) map.removeLayer(stationCanvasLayer)
+    stationCanvasLayer = null
     stations.forEach((station, index)=>{
         station.terminate()
         stations[index] = null
     })
     stations.length = 0
     map.eachLayer(layer=>{
-        if(layer.options.pane == 'kmaGridPane' || layer.options.pane.includes('kmaStationPane')){
+        if(layer.options.pane == 'kmaGridPane' || layer.options.pane?.includes('kmaStationPane')){
             map.removeLayer(layer)
         }
     })

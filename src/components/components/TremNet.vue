@@ -14,6 +14,7 @@ import { playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFrom
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { simpleIcon, TremStation } from '@/classes/StationClasses';
+import { TremStationCanvasLayer } from '@/classes/StationCanvasLayer';
 import { useTimeStore } from '@/stores/time';
 
 const statusStore = useStatusStore()
@@ -24,6 +25,7 @@ Object.assign(seisNetUrls, JSON.parse(localStorage.getItem('tremUrl'))?.seisNetU
 const stationList = reactive({})
 let stationData
 const stations = reactive({})
+let stationCanvasLayer = null
 let map
 const delay = computed(()=>settingsStore.mainSettings.displaySeisNet.delay * 60000)
 const tremMaxShindo = inject('tremMaxShindo')
@@ -84,13 +86,23 @@ const update = ()=>{
         }
         else stations[id].update(-3.1, false)
     })
+    if(render && settingsStore.mainSettings.useCanvasRenderer) renderAll()
     if(first) decimal = first.latLng.map(val => exactRound((val + 180) % 1, 2))
     tremMaxShindo.value = getShindoFromInstShindo(maxInst)
 }
 const renderAll = ()=>{
+    if(settingsStore.mainSettings.useCanvasRenderer) {
+        stationCanvasLayer?.redraw()
+        return
+    }
     Object.keys(stations).forEach(id=>{
         stations[id].render()
     })
+}
+const initStationCanvasLayer = () => {
+    if(!settingsStore.mainSettings.useCanvasRenderer) return
+    if(!map || stationCanvasLayer || Object.keys(stations).length === 0) return
+    stationCanvasLayer = new TremStationCanvasLayer(stations).addTo(map)
 }
 const clearReactiveObject = (obj) => {
     if(obj) for(let key in obj) delete obj[key]
@@ -138,6 +150,7 @@ let unwatchStationList, unwatchGrids, unwatchRender
 watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
+        initStationCanvasLayer()
         map.on('zoomend', renderAll)
         unwatchStationList = watch(stationList, newVal=>{
             if(Object.keys(newVal).length > 0){
@@ -146,16 +159,18 @@ watch(()=>statusStore.map, newVal=>{
                     delete stations[id]
                 })
                 map.eachLayer(layer=>{
-                    if(layer.options.pane.includes('tremStationPane')){
+                    if(layer.options.pane?.includes('tremStationPane')){
                         map.removeLayer(layer)
                     }
                 })
                 Object.keys(newVal).forEach(id=>{
                     const info = newVal[id].info.slice(-1)[0]
                     const latLng = [info.lat, info.lon]
-                    const station = reactive(new TremStation(map, id, latLng, -3.1, false))
+                    const station = reactive(new TremStation(map, id, latLng, -3.1, false, settingsStore.mainSettings.useCanvasRenderer))
                     stations[id] = station
                 })
+                initStationCanvasLayer()
+                renderAll()
             }
         }, { immediate: true })
         unwatchGrids = watch(grids, (newVal)=>{
@@ -268,12 +283,14 @@ onBeforeUnmount(()=>{
     if(unwatchStationList) unwatchStationList()
     if(unwatchGrids) unwatchGrids()
     if(unwatchRender) unwatchRender()
+    if(stationCanvasLayer && map?.hasLayer(stationCanvasLayer)) map.removeLayer(stationCanvasLayer)
+    stationCanvasLayer = null
     Object.keys(stations).forEach(id=>{
         stations[id].terminate()
         delete stations[id]
     })
     map.eachLayer(layer=>{
-        if(layer.options.pane == 'tremGridPane' || layer.options.pane.includes('tremStationPane')){
+        if(layer.options.pane == 'tremGridPane' || layer.options.pane?.includes('tremStationPane')){
             map.removeLayer(layer)
         }
     })
