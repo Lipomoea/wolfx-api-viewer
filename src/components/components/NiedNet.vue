@@ -365,9 +365,9 @@ const createInferredHypocenterLabelLayer = (result, latLng, labelInfo) => {
                     <div style="display: ${textInfoMode === 2 ? 'block' : 'none'};">
                     latlng: ${labelInfo.lat.toFixed(1)}, ${labelInfo.lng.toFixed(1)}<br>
                     clusterId: ${result.clusterId ?? '-'}<br>
-                    effective: ${result.effectiveStationCount} / qualityScore: ${result.qualityScore.toFixed(2)}<br>
+                    effective: ${result.effectiveStationCount} / qualityScore: ${result.qualityScore.toFixed(2)} / filter: ${result.filterStageLevel ?? 0}<br>
                     loss: ${result.score.toFixed(2)} / rmse: ${result.rmse.toFixed(2)} / penalty: ${result.inactivePenalty.toFixed(2)}<br>
-                    scenario: ${result.scenario ?? '-'} / P: ${labelInfo.waveCounts.P || 0} S: ${labelInfo.waveCounts.S || 0} N: ${labelInfo.waveCounts.N || 0}
+                    scenario: ${result.scenario ?? '-'} / P: ${labelInfo.waveCounts.P || 0} S: ${labelInfo.waveCounts.S || 0} L: ${labelInfo.waveCounts.L || 0} O: ${labelInfo.waveCounts.O || 0}
                     </div>
                 </div>
             `
