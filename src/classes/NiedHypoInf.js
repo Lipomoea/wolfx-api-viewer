@@ -17,7 +17,7 @@ const clusterMergeThreshold = {
 }
 const minInferenceClusterSize = 5
 const penaltyFullWeightClusterSize = 0
-const penaltyZeroWeightClusterSize = 30
+const penaltyZeroWeightClusterSize = 50
 const penaltyFullWeight = 10
 const maxEmptyActiveUpdatesBeforeFinal = 15
 const maxInactiveUpdatesBeforeRemove = 10
