@@ -4,6 +4,7 @@ name: 'Tauri Publish'
 on:
   push:
     branches: [ "dev" ]
+  workflow_dispatch:
 
 # This workflow will trigger on each push to the `dev` branch to create or update a GitHub release, build your app, and upload the artifacts to the release.
 
