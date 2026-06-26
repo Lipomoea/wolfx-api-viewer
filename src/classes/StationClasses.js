@@ -352,7 +352,9 @@ export class NiedStation {
             }
         }
         const ascend = this.level - latestMinVal;
-        const triggerStamp = ascend > 0 ? this.updateStamp - latestMinIndex * 1000 : 0;
+        const triggerStamp = ascend > 0 && this.recentLevel[latestMinIndex] !== -1
+            ? this.updateStamp - latestMinIndex * 1000
+            : 0;
         return { ascend, triggerStamp };
     }
     isAbnormalStation() {

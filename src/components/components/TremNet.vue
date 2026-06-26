@@ -125,7 +125,7 @@ onMounted(()=>{
     requestInterval = setInterval(async () => {
         try {
             const time = timeStore.getTimeStamp() - delay.value
-            const res = await Http.get(stationDataUrl.value + (delay.value > 0 ? `/${Math.round(time / 1000)}` : `?time=${time}`), { timeout: 10000 })
+            const res = await Http.get(stationDataUrl.value + (delay.value > 0 ? `/${Math.round(time / 1000)}` : `?time=${time}`), { timeout: 3000 })
             if(res && Object.keys(res).length > 0){
                 stationData = res.station
                 const timeString = stampToTime(res.time, 8)

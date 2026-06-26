@@ -82,7 +82,7 @@ const grids = computed(()=>{
 })
 const getData = async (url)=>{
     try {
-        const res = await axios.get(url, { timeout: 10000 })
+        const res = await axios.get(url, { timeout: 3000 })
         return res
     }
     catch (e) {

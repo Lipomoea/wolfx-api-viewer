@@ -74,6 +74,7 @@ export class FindNiedHypocenter {
     }
 
     addActiveStation(station) {
+        if(!this.hasValidTriggerStamp(station)) return
         if(this.activeStations.has(station.id)) return
         const stationSnapshot = this.createStationSnapshot(station)
         this.activeStations.set(stationSnapshot.id, stationSnapshot)
@@ -126,8 +127,13 @@ export class FindNiedHypocenter {
     updateActiveStationSources(stations) {
         stations.forEach(station => {
             const activeStation = this.activeStations.get(station.id)
-            if(activeStation) activeStation.source = station
+            if(activeStation) this.updateStationSnapshot(activeStation, station)
         })
+    }
+
+    updateStationSnapshot(stationSnapshot, station) {
+        stationSnapshot.source = station
+        stationSnapshot.updateStamp = station.updateStamp
     }
 
     refreshActiveStationMaxAscends() {
