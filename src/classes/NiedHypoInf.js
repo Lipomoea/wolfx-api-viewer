@@ -24,7 +24,9 @@ const stableHypocenterUpdateThreshold = 15
 const floatPrecisionEpsilon = 1e-9
 const minResidualThreshold = 5000
 const residualOutlierToleranceRatio = 3
-const maxClusterMatchResidual = minResidualThreshold
+const defaultClusterMatchResidual = minResidualThreshold
+const largeClusterMatchResidual = 10000
+const largeClusterMatchSize = 50
 const inheritedOutlierFilterStages = [
     { level: 3, minCount: 100, minRemainingInheritedRatio: 0.9, ratio: 2, minResidual: 3000, pWaveBiasRatio: 1 },
     { level: 2, minCount: 30, minRemainingInheritedRatio: 0.8, ratio: 2.5, minResidual: 4000, pWaveBiasRatio: 1.5 },
@@ -164,11 +166,17 @@ export class FindNiedHypocenter {
         if(!this.hasValidTriggerStamp(station)) return null
         const bestMatch = this.clusters.reduce((best, cluster) => {
             const residual = this.calcClusterStationResidual(station, cluster)
-            if(residual === null || residual > maxClusterMatchResidual) return best
+            if(residual === null || residual > this.getClusterMatchResidualThreshold(cluster)) return best
             if(!best || residual < best.residual) return { cluster, residual }
             return best
         }, null)
         return bestMatch?.cluster || null
+    }
+
+    getClusterMatchResidualThreshold(cluster) {
+        return cluster.stations.length >= largeClusterMatchSize
+            ? largeClusterMatchResidual
+            : defaultClusterMatchResidual
     }
 
     calcClusterStationResidual(station, cluster) {
