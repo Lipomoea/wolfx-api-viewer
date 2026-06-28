@@ -28,8 +28,8 @@ const defaultClusterMatchResidual = minResidualThreshold
 const largeClusterMatchResidual = 10000
 const largeClusterMatchSize = 50
 const inheritedOutlierFilterStages = [
-    { level: 3, minCount: 100, minRemainingInheritedRatio: 0.9, ratio: 2, minResidual: 3000, pWaveBiasRatio: 1 },
-    { level: 2, minCount: 30, minRemainingInheritedRatio: 0.8, ratio: 2.5, minResidual: 4000, pWaveBiasRatio: 1.5 },
+    { level: 3, minCount: 100, minRemainingInheritedRatio: 0.9, ratio: 2, minResidual: 3000, maxMeanResidual: 1500, pWaveBiasRatio: 1 },
+    { level: 2, minCount: 30, minRemainingInheritedRatio: 0.8, ratio: 2.5, minResidual: 4000, maxMeanResidual: 2000, pWaveBiasRatio: 1.5 },
     { level: 1, minCount: 10, minRemainingInheritedRatio: 0.5, ratio: 3, minResidual: 5000, pWaveBiasRatio: 2 }
 ]
 const minReliableStationCount = 100
@@ -799,6 +799,7 @@ export class FindNiedHypocenter {
             return { outlierIndexes: new Set(), filterStage: null }
         }
         for(const stage of stages) {
+            if(Number.isFinite(stage.maxMeanResidual) && meanResidual > stage.maxMeanResidual) continue
             const threshold = Math.max(meanResidual * stage.ratio, stage.minResidual)
             const outlierIndexes = inheritedItems
                 .filter(item => item.index > 0 && Math.abs(item.originStamp - originStamp) > threshold)
