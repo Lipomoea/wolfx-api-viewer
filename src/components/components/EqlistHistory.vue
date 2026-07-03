@@ -42,7 +42,7 @@
 
 <script setup>
 import '@/assets/background.css';
-import { reactive, computed, inject, nextTick, onBeforeUnmount } from 'vue';
+import { reactive, computed, inject, nextTick, onBeforeUnmount, watch } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
 import { defaultEqMessage, useStatusStore } from '@/stores/status';
 import { openUrl, formatTimeZone, formatCsis, calcTimeDiff, formatShindo, calcPassedTime, stampToTime, exactRound } from '@/utils/Utils';
@@ -79,6 +79,11 @@ const sorted = computed(() => flatted.value.sort((a, b) => calcTimeDiff(b.origin
 const eqlists = computed(() => sorted.value.filter(item => (settingsStore.mainSettings.historyMagThres == 0 || item.magnitude >= settingsStore.mainSettings.historyMagThres) && settingsStore.mainSettings.historySources.includes(item.source)).slice(0, maxHistoryNumber))
 onBeforeUnmount(() => {
     stopReplay()
+})
+watch(() => settingsStore.mainSettings.displaySeisNet.delay, newVal => {
+    if(replayState.itemId != null && Number(newVal) == 0) {
+        stopReplay()
+    }
 })
 const isReplaying = (item) => replayState.itemId == item.id
 const toggleReplay = (item) => {
