@@ -21,6 +21,7 @@ let settingsStore;
 
 const EARTH_RADIUS_KM = 6371.0088;
 const toRadians = degrees => (degrees * Math.PI) / 180;
+const toDegrees = radians => (radians * 180) / Math.PI;
 
 export const calcDistanceKm = ([lat1, lng1], [lat2, lng2]) => {
   const dLat = toRadians(lat2 - lat1);
@@ -36,6 +37,17 @@ export const calcDistanceKm = ([lat1, lng1], [lat2, lng2]) => {
 export const calcLngDiff = (lng1, lng2) => {
   const diff = Math.abs(lng1 - lng2) % 360;
   return Math.min(diff, 360 - diff);
+};
+
+export const calcBearingDeg = ([lat1, lng1], [lat2, lng2]) => {
+  const lat1Rad = toRadians(lat1);
+  const lat2Rad = toRadians(lat2);
+  const dLng = toRadians(lng2 - lng1);
+  const y = Math.sin(dLng) * Math.cos(lat2Rad);
+  const x =
+    Math.cos(lat1Rad) * Math.sin(lat2Rad) -
+    Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLng);
+  return (toDegrees(Math.atan2(y, x)) + 360) % 360;
 };
 
 export const formatNumber = (value, digit) => {

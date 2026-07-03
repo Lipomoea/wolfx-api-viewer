@@ -1,115 +1,30 @@
-import L from 'leaflet'
+import { CanvasLayer } from './CanvasLayer'
 import { intIconUrls, kmaIntColorBand, shindoColorBand, shindoIconUrls } from './StationClasses'
 
 const defaultStationLevels = Array.from({ length: 22 }, (_, index) => index - 1)
 const getIconRadius = zoom => 8 * 1.5 ** (Math.min(Math.max(zoom, 6), 10) / 2 - 3)
-const resolveCssColor = color => {
-    if(typeof color !== 'string') return color
-    const match = color.match(/^var\((--[^)]+)\)$/)
-    if(!match || typeof window === 'undefined') return color
-    return getComputedStyle(document.documentElement).getPropertyValue(match[1]).trim() || color
-}
 
-export class StationCanvasLayer extends L.Layer {
+export class StationCanvasLayer extends CanvasLayer {
     constructor(stations, options = {}) {
-        super()
-        this.stations = stations
-        this.options = {
+        const layerOptions = {
             className: 'leaflet-station-canvas',
-            panePrefix: 'niedStationPane',
+            pane: 'stationPane',
             levels: defaultStationLevels,
             iconUrls: shindoIconUrls,
             simpleColorBand: shindoColorBand,
             ...options
         }
+        super(layerOptions)
+        this.stations = stations
         this.levelSet = new Set(this.options.levels)
-        this.canvas = null
-        this.context = null
         this.images = {}
-        this.redrawFrame = null
-        this.zoomAnimating = false
-        this.topLeft = L.point(0, 0)
-    }
-
-    onAdd(map) {
-        this.map = map
-        this.createCanvas()
-        map.on('zoomstart', this.handleZoomStart, this)
-        map.on('moveend zoomend resize viewreset', this.reset, this)
-        map.on('zoomanim', this.animateZoom, this)
-        this.reset()
-    }
-
-    onRemove() {
-        if(this.map) this.map.off('zoomstart', this.handleZoomStart, this)
-        if(this.map) this.map.off('moveend zoomend resize viewreset', this.reset, this)
-        if(this.map) this.map.off('zoomanim', this.animateZoom, this)
-        if(this.redrawFrame) cancelAnimationFrame(this.redrawFrame)
-        this.redrawFrame = null
-        this.canvas?.remove()
-        this.canvas = null
-        this.context = null
-        this.map = null
-    }
-
-    createCanvas() {
-        const pane = this.map.getPane(`${this.options.panePrefix}0`)
-        if(!pane) return
-        const canvas = L.DomUtil.create('canvas', this.options.className, pane)
-        if(this.map.options.zoomAnimation && L.Browser.any3d) L.DomUtil.addClass(canvas, 'leaflet-zoom-animated')
-        canvas.style.position = 'absolute'
-        canvas.style.pointerEvents = 'none'
-        this.canvas = canvas
-        this.context = canvas.getContext('2d')
-    }
-
-    reset() {
-        if(!this.map || !this.canvas) return
-        this.zoomAnimating = false
-        const size = this.map.getSize()
-        const ratio = window.devicePixelRatio || 1
-        this.updateCanvasPosition()
-        this.canvas.width = Math.ceil(size.x * ratio)
-        this.canvas.height = Math.ceil(size.y * ratio)
-        this.canvas.style.width = `${size.x}px`
-        this.canvas.style.height = `${size.y}px`
-        this.redraw()
-    }
-
-    handleZoomStart() {
-        this.zoomAnimating = true
-    }
-
-    updateCanvasPosition() {
-        this.topLeft = this.map.containerPointToLayerPoint([0, 0])
-        if(this.canvas) L.DomUtil.setPosition(this.canvas, this.topLeft)
-    }
-
-    animateZoom(event) {
-        if(!this.map || !this.canvas) return
-        const scale = this.map.getZoomScale(event.zoom)
-        const offset = this.map._latLngToNewLayerPoint(this.map.containerPointToLatLng([0, 0]), event.zoom, event.center)
-        L.DomUtil.setTransform(this.canvas, offset, scale)
-    }
-
-    redraw() {
-        if(!this.map) return this
-        if(this.zoomAnimating) return this
-        if(this.redrawFrame) return this
-        this.redrawFrame = requestAnimationFrame(() => {
-            this.redrawFrame = null
-            this.draw()
-        })
-        return this
     }
 
     draw() {
         if(!this.map || !this.context) return
         if(this.zoomAnimating) return
-        const ratio = window.devicePixelRatio || 1
-        const size = this.map.getSize()
-        this.context.setTransform(ratio, 0, 0, ratio, 0, 0)
-        this.context.clearRect(0, 0, size.x, size.y)
+        const size = this.prepareDraw()
+        if(!size) return
         const zoom = this.map.getZoom()
         this.getStations()
             .map(station => station?.getCanvasDrawInfo?.(zoom))
@@ -148,7 +63,7 @@ export class StationCanvasLayer extends L.Layer {
     drawCircle(ctx, info, point) {
         ctx.beginPath()
         ctx.arc(point.x, point.y, info.radius, 0, Math.PI * 2)
-        ctx.fillStyle = resolveCssColor(info.color)
+        ctx.fillStyle = this.resolveCssColor(info.color)
         ctx.fill()
     }
 
@@ -156,7 +71,7 @@ export class StationCanvasLayer extends L.Layer {
         const radius = Math.max(info.radius, 2) * 1.8
         ctx.beginPath()
         ctx.arc(point.x, point.y, radius, 0, Math.PI * 2)
-        ctx.fillStyle = resolveCssColor(this.options.simpleColorBand[info.simpleColorLevel ?? info.level])
+        ctx.fillStyle = this.resolveCssColor(this.options.simpleColorBand[info.simpleColorLevel ?? info.level])
         ctx.fill()
         ctx.lineWidth = Math.max(info.radius, 2) * 0.4
         ctx.strokeStyle = '#ffffff'
@@ -185,7 +100,7 @@ export class StationCanvasLayer extends L.Layer {
 export class NiedStationCanvasLayer extends StationCanvasLayer {
     constructor(stations, options = {}) {
         super(stations, {
-            panePrefix: 'niedStationPane',
+            pane: 'niedStationPane0',
             levels: defaultStationLevels,
             ...options
         })
@@ -195,7 +110,7 @@ export class NiedStationCanvasLayer extends StationCanvasLayer {
 export class TremStationCanvasLayer extends StationCanvasLayer {
     constructor(stations, options = {}) {
         super(stations, {
-            panePrefix: 'tremStationPane',
+            pane: 'tremStationPane0',
             levels: defaultStationLevels,
             ...options
         })
@@ -205,7 +120,7 @@ export class TremStationCanvasLayer extends StationCanvasLayer {
 export class KmaStationCanvasLayer extends StationCanvasLayer {
     constructor(stations, options = {}) {
         super(stations, {
-            panePrefix: 'kmaStationPane',
+            pane: 'kmaStationPane0',
             levels: Array.from({ length: 15 }, (_, index) => index - 1),
             iconUrls: intIconUrls,
             simpleColorBand: kmaIntColorBand,

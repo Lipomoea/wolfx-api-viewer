@@ -11,7 +11,7 @@ import axios from 'axios';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { seisNetUrls, iconUrls } from '@/utils/Urls';
-import { getTimeNumberString, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromLevel, exactRound, timeToStamp, calcDistanceKm, calcLngDiff, stampToTime, calcWaveDistance } from '@/utils/Utils';
+import { getTimeNumberString, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromLevel, exactRound, timeToStamp, calcDistanceKm, calcBearingDeg, calcLngDiff, stampToTime, calcWaveDistance } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { abnormalNiedStations, NiedStation, simpleIcon } from '@/classes/StationClasses';
@@ -59,6 +59,7 @@ const adjStationIds = {}
 const adjStationIds4Hypo = {}
 const expireSeconds = {}
 const distMatrix = [[]]
+const bearingDirections = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
 let decimal = [0, 0]
 const gridRects = {}
 const activeStations = computed(() => stations.filter(station => station.isActive))
@@ -90,6 +91,12 @@ const getData = async (url)=>{
             delay.value += 100
         }
     }
+}
+const calcBearingDirection = ([fromLat, fromLng], [toLat, toLng]) => {
+    const bearing = calcBearingDeg([fromLat, fromLng], [toLat, toLng])
+    return Number.isFinite(bearing)
+        ? bearingDirections[Math.floor(((bearing + 22.5) % 360) / 45)]
+        : null
 }
 let pendingRender = false
 const nearbyLength = 6
@@ -524,27 +531,49 @@ const fetchStationList = async () => {
             }
             for(let i = 0; i < stationList.length; i++){
                 const distances = []
-                let candidate = {
-                    id: null,
-                    distance: 40
-                }
                 distMatrix[i] = []
                 for(let j = 0; j < stationList.length; j++){
                     let distance
-                    if(j < i) distance = distMatrix[j][i]
-                    else if(j == i) distance = 0
-                    else distance = calcDistanceKm(latLngs[i], latLngs[j])
+                    if(j < i) {
+                        distance = distMatrix[j][i]
+                    }
+                    else if(j == i) {
+                        distance = 0
+                    }
+                    else {
+                        distance = calcDistanceKm(latLngs[i], latLngs[j])
+                    }
                     distMatrix[i][j] = distance
-                    if(distance <= 30) distances.push({ id: j, distance })
-                    else if(distance <= candidate.distance) candidate = { id: j, distance }
+                    distances.push({ id: j, distance })
                 }
-                if(distances.length <= 1 && candidate.id !== null) {
-                    distances.push(candidate)
+                const sortedDistances = distances.sort((a, b) => a.distance - b.distance)
+                const nearbyDistances = sortedDistances.filter(obj => obj.distance <= 30)
+                if(nearbyDistances.length <= 1) {
+                    const candidate = sortedDistances.find(obj => obj.distance > 30 && obj.distance <= 40)
+                    if(candidate) nearbyDistances.push(candidate)
                 }
-                adjStationIds4Hypo[i] = distances.map(obj => obj.id)
-                distances.sort((a, b) => a.distance - b.distance).splice(nearbyLength)
-                adjStationIds[i] = distances.map(obj => obj.id)
-                const maxDist = distances[distances.length - 1].distance
+                nearbyDistances.splice(nearbyLength)
+                adjStationIds[i] = nearbyDistances.map(obj => obj.id)
+                const hypoDirectionSet = new Set()
+                const hypoDistances = sortedDistances.filter(obj => {
+                    if(obj.distance > 30) return false
+                    if(obj.id === i) return true
+                    const direction = calcBearingDirection(latLngs[i], latLngs[obj.id])
+                    if(direction) hypoDirectionSet.add(direction)
+                    return true
+                })
+                sortedDistances
+                    .filter(obj => obj.distance > 30 && obj.distance <= 300)
+                    .some(obj => {
+                        if(hypoDirectionSet.size >= bearingDirections.length) return true
+                        const direction = calcBearingDirection(latLngs[i], latLngs[obj.id])
+                        if(!direction || hypoDirectionSet.has(direction)) return false
+                        hypoDistances.push(obj)
+                        hypoDirectionSet.add(direction)
+                        return hypoDirectionSet.size >= bearingDirections.length
+                    })
+                adjStationIds4Hypo[i] = hypoDistances.map(obj => obj.id)
+                // const maxDist = distances[distances.length - 1].distance
                 // expireSeconds[i] = Math.max(Math.ceil(maxDist / 3.5), 5)
                 expireSeconds[i] = 10
             }
