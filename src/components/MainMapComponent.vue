@@ -1227,8 +1227,7 @@ const setView = (force = false) => {
                         case 'niedGridPane':
                         case 'tremGridPane':
                         case 'kmaGridPane':
-                            // 密码的，SVG渲染器残留不要触发stableMode
-                            if(layer.options.color) {
+                            if(layer.options.isGridCanvasLayer && layer.hasGrid?.()) {
                                 shouldExtend = true
                                 stableMode = true
                             }

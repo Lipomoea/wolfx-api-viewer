@@ -10,14 +10,15 @@ import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { iconUrls, seisNetUrls } from '@/utils/Urls';
 import { playSound, sendMyNotification, calcTimeDiff, focusWindow, getMmiFromKmaLevel, exactRound, calcDistanceKm } from '@/utils/Utils';
-import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { KmaStation, simpleIcon } from '@/classes/StationClasses';
 import { KmaStationCanvasLayer } from '@/classes/StationCanvasLayer';
+import { KmaGridCanvasLayer } from '@/classes/GridCanvasLayer';
 import WebSocketObj from '@/classes/WebSocket';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
+const useStationCanvasRenderer = computed(() => !settingsStore.advancedSettings.fallbackSvgStationRender)
 
 const kmaUpdateTime = inject('kmaUpdateTime')
 const kmaMaxInt = inject('kmaMaxInt')
@@ -29,33 +30,33 @@ let periodMaxLevel = -1
 const stationList = reactive([])
 const stations = reactive([])
 let stationCanvasLayer = null
+let gridCanvasLayer = null
 let distMatrix = [[]]
 let adjStationIds = {}
 let map
 let pendingRender = false
 let decimal = [0, 0]
-const gridRects = {}
 const activeStations = computed(() => stations.filter(station => station.isActive))
 const grids = computed(()=>{
-    let grids = {}
+    const gridMap = {}
     activeStations.value.forEach(station=>{
         const latLng = station.latLng.map((l, index) => Math.round(l - decimal[index]) + decimal[index])
         const level = station.activityLevel
         const key = JSON.stringify(latLng)
-        if(key in grids){
-            if(level > grids[key].level) grids[key].level = level
+        if(key in gridMap){
+            if(level > gridMap[key].level) gridMap[key].level = level
         }
         else {
-            grids[key] = {
+            gridMap[key] = {
                 latLng,
                 level
             }
         }
     })
-    return grids
+    return Object.values(gridMap)
 })
 const currentMaxShindo = computed(()=>{
-    const currentMaxLevel = Math.max(...Object.keys(grids.value).map(key=>grids.value[key].level), -1)
+    const currentMaxLevel = Math.max(...grids.value.map(grid => grid.level), -1)
     if(currentMaxLevel == -1) return -1
     else if(currentMaxLevel <= 3) return 0
     else if(currentMaxLevel <= 4) return 1
@@ -74,7 +75,7 @@ const update = (intensities) => {
         station.update(intensities[index], render)
         if(station.holdLevel > maxLevel) maxLevel = station.holdLevel
     })
-    if(render && settingsStore.mainSettings.useCanvasRenderer) renderAll()
+    if(render && useStationCanvasRenderer.value) renderAll()
     kmaMaxInt.value = getMmiFromKmaLevel(maxLevel)
     const activeStations = new Set()
     let first = null
@@ -121,7 +122,7 @@ const update = (intensities) => {
     if(first) decimal = first.latLng.map(val => exactRound((val + 180) % 1, 2))
 }
 const renderAll = ()=>{
-    if(settingsStore.mainSettings.useCanvasRenderer) {
+    if(useStationCanvasRenderer.value) {
         stationCanvasLayer?.redraw()
         return
     }
@@ -130,9 +131,13 @@ const renderAll = ()=>{
     })
 }
 const initStationCanvasLayer = () => {
-    if(!settingsStore.mainSettings.useCanvasRenderer) return
+    if(!useStationCanvasRenderer.value) return
     if(!map || stationCanvasLayer || stations.length === 0) return
     stationCanvasLayer = new KmaStationCanvasLayer(stations).addTo(map)
+}
+const initGridCanvasLayer = () => {
+    if(!map || gridCanvasLayer) return
+    gridCanvasLayer = new KmaGridCanvasLayer(grids.value).addTo(map)
 }
 let kmaSocket = null
 onMounted(()=>{
@@ -185,6 +190,7 @@ watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
         initStationCanvasLayer()
+        initGridCanvasLayer()
         map.on('zoomend', renderAll)
         unwatchStationList = watch(stationList, newVal=>{
             if(newVal.length > 0){
@@ -220,7 +226,7 @@ watch(()=>statusStore.map, newVal=>{
                 }
                 newVal.forEach((item, index)=>{
                     const latLng = [item.latitude, item.longitude]
-                    const station = reactive(new KmaStation(map, index, latLng, -3, false, settingsStore.mainSettings.useCanvasRenderer))
+                    const station = reactive(new KmaStation(map, index, latLng, -3, false, useStationCanvasRenderer.value))
                     stations.push(station)
                 })
                 initStationCanvasLayer()
@@ -228,44 +234,15 @@ watch(()=>statusStore.map, newVal=>{
             }
         }, { immediate: true })
         unwatchGrids = watch(grids, (newVal)=>{
-            let maxLevel = -1, maxColor = 'gray'
-            for(let key in newVal) {
-                const item = newVal[key]
-                const color = item.level <= 3 ? 'green' : item.level <= 7 ? 'yellow' : 'red'
-                if(item.level > maxLevel) {
-                    maxLevel = item.level
-                    maxColor = color
-                }
-                if(!(key in gridRects)) {
-                    const layer = L.rectangle([item.latLng.map(l => l - 0.495), item.latLng.map(l => l + 0.495)], {
-                        color,
-                        weight: 2,
-                        fill: false,
-                        pane: 'kmaGridPane',
-                        interactive: false
-                    }).addTo(map)
-                    gridRects[key] = {
-                        color,
-                        layer
-                    }
-                }
-                else if(gridRects[key].color != color) {
-                    gridRects[key].color = color
-                    gridRects[key].layer.setStyle({
-                        color
-                    })
-                }
+            let maxLevel = -1
+            gridCanvasLayer?.setGrids(newVal)
+            newVal.forEach(item => {
+                if(item.level > maxLevel) maxLevel = item.level
                 if(item.level > periodMaxLevel) periodMaxLevel = item.level
-            }
-            for(let key in gridRects) {
-                if(!(key in newVal)) {
-                    if(map.hasLayer(gridRects[key].layer)) map.removeLayer(gridRects[key].layer)
-                    delete gridRects[key]
-                }
-            }
+            })
             kmaPeriodMaxInt.value = getMmiFromKmaLevel(periodMaxLevel)
-            kmaPeriodBarClass.value = maxColor
-            statusStore.isActive.kmaNet = Object.keys(newVal).length > 0
+            kmaPeriodBarClass.value = maxLevel >= 0 ? KmaGridCanvasLayer.getGridColorByLevel(maxLevel) : 'gray'
+            statusStore.isActive.kmaNet = newVal.length > 0
         }, { immediate: true })
         unwatchRender = watch(
             ()=>`${settingsStore.mainSettings.displaySeisNet.style}
@@ -289,7 +266,7 @@ watch(()=>(statusStore.isActive.kmaEew || statusStore.isActive.kmaNet), newVal=>
         kmaPeriodMaxInt.value = getMmiFromKmaLevel(periodMaxLevel)
     }
 }, { immediate: true })
-watch(() => Object.keys(grids.value).length, () => smartSetView())
+watch(() => grids.value.length, () => smartSetView())
 let shake1Notified = false, shake2Notified = false
 let focused = false
 watch(currentMaxShindo, (newVal, oldVal)=>{
@@ -337,6 +314,8 @@ onBeforeUnmount(()=>{
     if(unwatchRender) unwatchRender()
     if(stationCanvasLayer && map?.hasLayer(stationCanvasLayer)) map.removeLayer(stationCanvasLayer)
     stationCanvasLayer = null
+    if(gridCanvasLayer && map?.hasLayer(gridCanvasLayer)) map.removeLayer(gridCanvasLayer)
+    gridCanvasLayer = null
     stations.forEach((station, index)=>{
         station.terminate()
         stations[index] = null

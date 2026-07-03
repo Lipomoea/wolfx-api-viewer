@@ -1,7 +1,6 @@
 import { CanvasLayer } from './CanvasLayer'
 import { intIconUrls, kmaIntColorBand, shindoColorBand, shindoIconUrls } from './StationClasses'
 
-const defaultStationLevels = Array.from({ length: 22 }, (_, index) => index - 1)
 const getIconRadius = zoom => 8 * 1.5 ** (Math.min(Math.max(zoom, 6), 10) / 2 - 3)
 
 export class StationCanvasLayer extends CanvasLayer {
@@ -9,14 +8,12 @@ export class StationCanvasLayer extends CanvasLayer {
         const layerOptions = {
             className: 'leaflet-station-canvas',
             pane: 'stationPane',
-            levels: defaultStationLevels,
             iconUrls: shindoIconUrls,
             simpleColorBand: shindoColorBand,
             ...options
         }
         super(layerOptions)
         this.stations = stations
-        this.levelSet = new Set(this.options.levels)
         this.images = {}
     }
 
@@ -29,7 +26,7 @@ export class StationCanvasLayer extends CanvasLayer {
         this.getStations()
             .map(station => station?.getCanvasDrawInfo?.(zoom))
             .filter(Boolean)
-            .sort((a, b) => this.getPaneLevel(a.paneLevel ?? a.level) - this.getPaneLevel(b.paneLevel ?? b.level))
+            .sort((a, b) => this.getDrawOrder(a) - this.getDrawOrder(b))
             .forEach(info => this.drawStation(info, zoom, size))
     }
 
@@ -37,8 +34,8 @@ export class StationCanvasLayer extends CanvasLayer {
         return Array.isArray(this.stations) ? this.stations : Object.values(this.stations || {})
     }
 
-    getPaneLevel(level) {
-        return this.levelSet.has(level) ? level : this.options.levels[0]
+    getDrawOrder(info) {
+        return Number.isFinite(info.drawOrder) ? info.drawOrder : 0
     }
 
     drawStation(info, zoom, size) {
@@ -101,7 +98,6 @@ export class NiedStationCanvasLayer extends StationCanvasLayer {
     constructor(stations, options = {}) {
         super(stations, {
             pane: 'niedStationPane0',
-            levels: defaultStationLevels,
             ...options
         })
     }
@@ -111,7 +107,6 @@ export class TremStationCanvasLayer extends StationCanvasLayer {
     constructor(stations, options = {}) {
         super(stations, {
             pane: 'tremStationPane0',
-            levels: defaultStationLevels,
             ...options
         })
     }
@@ -121,7 +116,6 @@ export class KmaStationCanvasLayer extends StationCanvasLayer {
     constructor(stations, options = {}) {
         super(stations, {
             pane: 'kmaStationPane0',
-            levels: Array.from({ length: 15 }, (_, index) => index - 1),
             iconUrls: intIconUrls,
             simpleColorBand: kmaIntColorBand,
             ...options

@@ -16,12 +16,14 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { abnormalNiedStations, NiedStation, simpleIcon } from '@/classes/StationClasses';
 import { NiedStationCanvasLayer } from '@/classes/StationCanvasLayer';
+import { NiedGridCanvasLayer } from '@/classes/GridCanvasLayer';
 import { niedSitePub } from '@/utils/NiedSitePub';
 import travelTimes from '@/utils/TravelTimes';
 import infHypoIconUrl from '@/assets/icon/hypocenter/infHypo.svg';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
+const useStationCanvasRenderer = computed(() => !settingsStore.advancedSettings.fallbackSvgStationRender)
 const infHypoIcon = L.icon({
     iconUrl: infHypoIconUrl,
     iconSize: [40, 40],
@@ -44,7 +46,7 @@ const smartSetView = inject('smartSetView')
 const activeEewList = inject('activeEewList')
 let periodMaxLevel = -1
 const currentMaxShindo = computed(()=>{
-    const currentMaxLevel = Math.max(...Object.keys(grids.value).map(key=>grids.value[key].level), -1)
+    const currentMaxLevel = Math.max(...grids.value.map(grid => grid.level), -1)
     if(currentMaxLevel == -1) return -1
     else if(currentMaxLevel <= 7) return 0
     else if(currentMaxLevel <= 9) return 1
@@ -61,25 +63,24 @@ const expireSeconds = {}
 const distMatrix = [[]]
 const bearingDirections = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
 let decimal = [0, 0]
-const gridRects = {}
 const activeStations = computed(() => stations.filter(station => station.isActive))
 const grids = computed(()=>{
-    let grids = {}
+    const gridMap = {}
     activeStations.value.forEach(station=>{
         const latLng = station.latLng.map((l, index) => Math.round(l - decimal[index]) + decimal[index])
         const level = station.level
         const key = JSON.stringify(latLng)
-        if(key in grids){
-            if(level > grids[key].level) grids[key].level = level
+        if(key in gridMap){
+            if(level > gridMap[key].level) gridMap[key].level = level
         }
         else {
-            grids[key] = {
+            gridMap[key] = {
                 latLng,
                 level
             }
         }
     })
-    return grids
+    return Object.values(gridMap)
 })
 const getData = async (url)=>{
     try {
@@ -105,6 +106,7 @@ const activityThresArr2 = [Infinity, 8, 11, 13, 14, 15, 16]
 const activityThresArr3 = [Infinity, 6, 9, 11, 12, 13, 14]
 let inferredHypocenterLayers = []
 let stationCanvasLayer = null
+let gridCanvasLayer = null
 let hypocenterWorker = null
 let hypocenterRequestId = 0
 let latestHypocenterRequestId = 0
@@ -209,7 +211,7 @@ const update = ()=>{
             }
         })
         const currentActiveStations = stations.filter(station => station.isActive)
-        if(render && settingsStore.mainSettings.useCanvasRenderer) renderAll()
+        if(render && useStationCanvasRenderer.value) renderAll()
         if(!isNiedHypoInfEnabled()) {
             terminateHypocenterWorker()
             clearInferredHypocenters()
@@ -473,7 +475,7 @@ const chainActivate = (station, activeStations, checkedStations, clusters)=>{
     clusters.push(cluster);
 }
 const renderAll = ()=>{
-    if(settingsStore.mainSettings.useCanvasRenderer) {
+    if(useStationCanvasRenderer.value) {
         stationCanvasLayer?.redraw()
         return
     }
@@ -482,9 +484,13 @@ const renderAll = ()=>{
     })
 }
 const initStationCanvasLayer = () => {
-    if(!settingsStore.mainSettings.useCanvasRenderer) return
+    if(!useStationCanvasRenderer.value) return
     if(!map || stationCanvasLayer || stations.length === 0) return
     stationCanvasLayer = new NiedStationCanvasLayer(stations).addTo(map)
+}
+const initGridCanvasLayer = () => {
+    if(!map || gridCanvasLayer) return
+    gridCanvasLayer = new NiedGridCanvasLayer(grids.value).addTo(map)
 }
 let fetchStationInterval, requestInterval, delayInterval
 const fetchStationList = async () => {
@@ -578,7 +584,7 @@ const fetchStationList = async () => {
                 expireSeconds[i] = 10
             }
             stationList.forEach((latLng, index)=>{
-                const station = reactive(new NiedStation(map, index, latLng, 'c', expireSeconds[index], settingsStore.mainSettings.useCanvasRenderer))
+                const station = reactive(new NiedStation(map, index, latLng, 'c', expireSeconds[index], useStationCanvasRenderer.value))
                 stations.push(station)
             })
             initStationCanvasLayer()
@@ -663,46 +669,20 @@ watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
         initStationCanvasLayer()
+        initGridCanvasLayer()
         map.on('zoomend', renderAll)
         unwatchGrids = watch(grids, (newVal)=>{
-            let maxLevel = -1, maxColor = 'gray'
-            for(let key in newVal) {
-                const item = newVal[key]
-                const color = item.level <= 7 ? 'green' : item.level <= 13 ? 'yellow' : 'red'
+            let maxLevel = -1
+            gridCanvasLayer?.setGrids(newVal)
+            newVal.forEach(item => {
                 if(item.level > maxLevel) {
                     maxLevel = item.level
-                    maxColor = color
-                }
-                if(!(key in gridRects)) {
-                    const layer = L.rectangle([item.latLng.map(l => l - 0.495), item.latLng.map(l => l + 0.495)], {
-                        color,
-                        weight: 2,
-                        fill: false,
-                        pane: 'niedGridPane',
-                        interactive: false
-                    }).addTo(map)
-                    gridRects[key] = {
-                        color,
-                        layer
-                    }
-                }
-                else if(gridRects[key].color != color) {
-                    gridRects[key].color = color
-                    gridRects[key].layer.setStyle({
-                        color
-                    })
                 }
                 if(item.level > periodMaxLevel) periodMaxLevel = item.level
-            }
-            for(let key in gridRects) {
-                if(!(key in newVal)) {
-                    if(map.hasLayer(gridRects[key].layer)) map.removeLayer(gridRects[key].layer)
-                    delete gridRects[key]
-                }
-            }
+            })
             niedPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel)
-            niedPeriodBarClass.value = maxColor
-            statusStore.isActive.niedNet = Object.keys(newVal).length > 0
+            niedPeriodBarClass.value = maxLevel >= 0 ? NiedGridCanvasLayer.getGridColorByLevel(maxLevel) : 'gray'
+            statusStore.isActive.niedNet = newVal.length > 0
         }, { immediate: true })
         unwatchRender = watch(
             ()=>`${settingsStore.mainSettings.displaySeisNet.style}
@@ -726,7 +706,7 @@ watch(()=>(statusStore.isActive.jmaEew || statusStore.isActive.niedNet), newVal=
         niedPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel)
     }
 }, { immediate: true })
-watch(() => Object.keys(grids.value).length, () => smartSetView())
+watch(() => grids.value.length, () => smartSetView())
 watch(
     () => isNiedHypoInfEnabled(),
     enabled => {
@@ -797,6 +777,8 @@ onBeforeUnmount(()=>{
     if(unwatchRender) unwatchRender()
     if(stationCanvasLayer && map?.hasLayer(stationCanvasLayer)) map.removeLayer(stationCanvasLayer)
     stationCanvasLayer = null
+    if(gridCanvasLayer && map?.hasLayer(gridCanvasLayer)) map.removeLayer(gridCanvasLayer)
+    gridCanvasLayer = null
     stations.forEach((station, index)=>{
         station.terminate()
         stations[index] = null

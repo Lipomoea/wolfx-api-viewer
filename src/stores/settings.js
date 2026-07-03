@@ -143,7 +143,8 @@ export const useSettingsStore = defineStore('settingsStore', {
             preventFlickerMode: false,
             mockEew: false,
             mockOnReplay: false,
-            advancedHypoInf: false
+            advancedHypoInf: false,
+            fallbackSvgStationRender: false
         }
     }),
     getters: {

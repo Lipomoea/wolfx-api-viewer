@@ -1047,7 +1047,7 @@
                                         <question-filled width="1em" height="1em" />
                                     </template>
                                     <p>部分图层使用Canvas渲染器加载。</p>
-                                    <p>可较大幅度提升性能，但少部分情况下图形边缘可能模糊。</p>
+                                    <p>可轻微提升性能，但少部分情况下图形边缘可能模糊。</p>
                                     <p>开启后无法使用“鼠标悬浮地图时显示地名”功能。</p>
                                     <p><strong>需重新加载页面后生效。</strong></p>
                                 </el-popover>

@@ -500,7 +500,7 @@ export class NiedStation {
         return {
             latLng: this.latLng,
             level: this.level,
-            paneLevel: this.level,
+            drawOrder: this.level,
             simpleColorLevel: this.level,
             shindo: this.shindo,
             iconKey: this.shindo,
@@ -635,8 +635,9 @@ export class TremStation {
         return {
             latLng: this.latLng,
             level: this.level,
-            paneLevel: this.level,
+            drawOrder: this.intensity,
             simpleColorLevel: this.level,
+            intensity: this.intensity,
             shindo: this.shindo,
             iconKey: this.shindo,
             color,
@@ -767,7 +768,7 @@ export class KmaStation {
         return {
             latLng: this.latLng,
             level: this.holdLevel,
-            paneLevel: this.holdLevel,
+            drawOrder: this.holdLevel,
             simpleColorLevel: this.holdLevel,
             iconKey: this.intensity,
             color,
