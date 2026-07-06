@@ -61,7 +61,7 @@ const adjStationIds = {}
 const adjStationIds4Hypo = {}
 const expireSeconds = {}
 const distMatrix = [[]]
-const bearingDirections = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
+const bearingDirections = ['N', 'E', 'S', 'W']
 let decimal = [0, 0]
 const activeStations = computed(() => stations.filter(station => station.isActive))
 const grids = computed(()=>{
@@ -96,7 +96,7 @@ const getData = async (url)=>{
 const calcBearingDirection = ([fromLat, fromLng], [toLat, toLng]) => {
     const bearing = calcBearingDeg([fromLat, fromLng], [toLat, toLng])
     return Number.isFinite(bearing)
-        ? bearingDirections[Math.floor(((bearing + 22.5) % 360) / 45)]
+        ? bearingDirections[Math.floor(((bearing + 45) % 360) / 90)]
         : null
 }
 let pendingRender = false
