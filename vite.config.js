@@ -1,4 +1,5 @@
 import { fileURLToPath, URL } from 'node:url'
+import { createRequire } from 'node:module'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
@@ -6,8 +7,14 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
+const require = createRequire(import.meta.url)
+const { version } = require('./package.json')
+
 // https://vitejs.dev/config/
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(version),
+  },
   // 防止 Vite 清除 Rust 显示的错误
   clearScreen: false,
   server: {

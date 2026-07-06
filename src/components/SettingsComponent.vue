@@ -1367,7 +1367,7 @@
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false" append-to-body>
-            <div class="header">要石 v2.7.0</div>
+            <div class="header">{{ APP_TITLE }}</div>
             <div class="title">注意事项</div>
             <div class="about">
                 <p>本应用程序仅作为学习使用。</p>
@@ -1425,6 +1425,7 @@
 import { useSettingsStore } from '@/stores/settings';
 import { useStatusStore } from '@/stores/status';
 import { chimeUrls, utilUrls } from '@/utils/Urls';
+import { APP_TITLE, APP_VERSION } from '@/utils/AppInfo';
 import Http from '@/classes/Http';
 import { h, ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { QuestionFilled } from '@element-plus/icons-vue';
@@ -1834,7 +1835,7 @@ const handleNeedReload = () => {
 const showAbout = ref(false)
 let hasNewVersion = false
 const checkNewVersion = async (silent = false) => {
-    const currentVersion = document.title.split('v')[1]
+    const currentVersion = APP_VERSION
     try {
         const versionInfo = await Http.get('https://api.github.com/repos/Lipomoea/kanameishi/releases')
         let checkedVersion, downloadUrl, detail

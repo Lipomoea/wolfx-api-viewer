@@ -56,12 +56,12 @@ export class CanvasLayer extends L.Layer {
         if(!this.map || !this.canvas) return
         this.zoomAnimating = false
         const size = this.map.getSize()
-        const ratio = window.devicePixelRatio || 1
         this.updateCanvasPosition()
-        this.canvas.width = Math.ceil(size.x * ratio)
-        this.canvas.height = Math.ceil(size.y * ratio)
         this.canvas.style.width = `${size.x}px`
         this.canvas.style.height = `${size.y}px`
+        const ratio = this.getRenderRatio()
+        this.canvas.width = Math.ceil(size.x * ratio)
+        this.canvas.height = Math.ceil(size.y * ratio)
         this.redraw()
     }
 
@@ -95,11 +95,19 @@ export class CanvasLayer extends L.Layer {
     prepareDraw() {
         if(!this.map || !this.context) return null
         if(this.zoomAnimating) return null
-        const ratio = window.devicePixelRatio || 1
+        const ratio = this.getRenderRatio()
         const size = this.map.getSize()
         this.context.setTransform(ratio, 0, 0, ratio, 0, 0)
         this.context.clearRect(0, 0, size.x, size.y)
         return size
+    }
+
+    getRenderRatio() {
+        const devicePixelRatio = window.devicePixelRatio || 1
+        const cssWidth = this.canvas?.clientWidth || this.map?.getSize()?.x || 1
+        const renderedWidth = this.canvas?.getBoundingClientRect?.().width || cssWidth
+        const transformScale = renderedWidth > 0 && cssWidth > 0 ? renderedWidth / cssWidth : 1
+        return Math.max(devicePixelRatio * transformScale, 1)
     }
 
     resolveCssColor(color) {

@@ -20,6 +20,7 @@ import { platform } from '@tauri-apps/plugin-os';
 import { invoke, isTauri } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import Http from './classes/Http';
+import { APP_TITLE } from '@/utils/AppInfo';
 
 const timeStore = useTimeStore()
 const statusStore = useStatusStore()
@@ -77,6 +78,7 @@ const history2Eqlist = {
 }
 
 onBeforeMount(async () => {
+  document.title = APP_TITLE
   settingsStore.setMainSettings(localStorage.getItem('mainSettings'))
   settingsStore.setAdvancedSettings(localStorage.getItem('advancedSettings'))
   settingsStore.mainSettings.displaySeisNet.delay = 0

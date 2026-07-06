@@ -64,6 +64,12 @@ pub fn run() {
         .plugin(tauri_plugin_window_state::Builder::new().build())
         .invoke_handler(tauri::generate_handler![set_tray_game_mode])
         .setup(|app| {
+            let app_version = app.package_info().version.to_string();
+            let window_title = format!("要石 kanameishi v{}", app_version);
+            let tray_tooltip = format!("要石 v{}", app_version);
+            if let Some(webview_window) = app.get_webview_window("main") {
+                let _ = webview_window.set_title(&window_title);
+            }
             if cfg!(debug_assertions) {
                 app.handle().plugin(
                     tauri_plugin_log::Builder::default()
@@ -92,7 +98,7 @@ pub fn run() {
             let _ = TrayIconBuilder::new()
                 .menu(&menu)
                 .icon(icon)
-                .tooltip("要石 v2.7.0")
+                .tooltip(tray_tooltip)
                 .on_menu_event(move |tray, event| match event.id().as_ref() {
                     TRAY_SHOW_WINDOW_ID => {
                         show_main_window(tray.app_handle());
