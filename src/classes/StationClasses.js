@@ -2,7 +2,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getCsisLevelFromCsis, getLevelFromInstShindo, getMmiFromKmaLevel, getShindoFromChar, getShindoFromInstShindo, intScale, shindoScale } from '@/utils/Utils';
 import { useSettingsStore } from '@/stores/settings';
-import { ref } from 'vue';
+import { markRaw, ref } from 'vue';
 import '@/assets/background.css';
 import shindo0 from '@/assets/icon/shindo/0.svg';
 import shindo1 from '@/assets/icon/shindo/1.svg';
@@ -247,7 +247,7 @@ const getKmaMarkerType = (holdLevel, zoom) => {
 export class NiedStation {
     constructor(map, id, latLng, intensity, expireSeconds, useCanvasLayer = false){
         if(!settingsStore) settingsStore = useSettingsStore()
-        this.map = map
+        this.map = markRaw(map)
         this.id = id
         this.latLng = latLng
         this.expireSeconds = expireSeconds
@@ -427,16 +427,16 @@ export class NiedStation {
                 case 2:
                     const iconZoom = Math.min(Math.max(zoom, 6), 10)
                     const shindoIcon = shindoIcons[iconZoom][this.shindo]
-                    this.marker = L.marker(this.latLng, {
+                    this.marker = markRaw(L.marker(this.latLng, {
                         icon: shindoIcon,
                         pane: `niedStationPane${this.level}`,
                         interactive: false
-                    })
+                    }))
                     break
                 case 1:
                     const color = shindoColorBand[this.level]
                     const radius = Math.max(this.radius, 2)
-                    this.marker = L.circleMarker(this.latLng, {
+                    this.marker = markRaw(L.circleMarker(this.latLng, {
                         radius: radius * 1.8,
                         opacity: 1,
                         fillOpacity: 1,
@@ -445,10 +445,10 @@ export class NiedStation {
                         weight: radius * 0.4,
                         pane: `niedStationPane${this.level}`,
                         interactive: false
-                    })
+                    }))
                     break
                 case 0:
-                    this.marker = L.circleMarker(this.latLng, {
+                    this.marker = markRaw(L.circleMarker(this.latLng, {
                         radius: this.radius,
                         opacity: 1,
                         fillOpacity: 1,
@@ -457,7 +457,7 @@ export class NiedStation {
                         weight: 0,
                         pane: `niedStationPane${this.level}`,
                         interactive: false
-                    })
+                    }))
                     break
             }
             this.marker.addTo(this.map)
@@ -526,7 +526,7 @@ export class NiedStation {
 export class TremStation {
     constructor(map, id, latLng, intensity, isActive, useCanvasLayer = false){
         if(!settingsStore) settingsStore = useSettingsStore()
-        this.map = map
+        this.map = markRaw(map)
         this.id = id
         this.latLng = latLng
         this.useCanvasLayer = useCanvasLayer
@@ -562,16 +562,16 @@ export class TremStation {
                 case 2:
                     const iconZoom = Math.min(Math.max(zoom, 6), 10)
                     const shindoIcon = shindoIcons[iconZoom][this.shindo]
-                    this.marker = L.marker(this.latLng, {
+                    this.marker = markRaw(L.marker(this.latLng, {
                         icon: shindoIcon,
                         pane: `tremStationPane${this.level}`,
                         interactive: false
-                    })
+                    }))
                     break
                 case 1:
                     const color = shindoColorBand[this.level]
                     const radius = Math.max(this.radius, 2)
-                    this.marker = L.circleMarker(this.latLng, {
+                    this.marker = markRaw(L.circleMarker(this.latLng, {
                         radius: radius * 1.8,
                         opacity: 1,
                         fillOpacity: 1,
@@ -580,10 +580,10 @@ export class TremStation {
                         weight: radius * 0.4,
                         pane: `tremStationPane${this.level}`,
                         interactive: false
-                    })
+                    }))
                     break
                 case 0:
-                    this.marker = L.circleMarker(this.latLng, {
+                    this.marker = markRaw(L.circleMarker(this.latLng, {
                         radius: this.radius,
                         opacity: 1,
                         fillOpacity: 1,
@@ -592,7 +592,7 @@ export class TremStation {
                         weight: 0,
                         pane: `tremStationPane${this.level}`,
                         interactive: false
-                    })
+                    }))
                     break
             }
             this.marker.addTo(this.map)
@@ -654,7 +654,7 @@ export class TremStation {
 export class KmaStation {
     constructor(map, id, latLng, intensity, isActive, useCanvasLayer = false){
         if(!settingsStore) settingsStore = useSettingsStore()
-        this.map = map
+        this.map = markRaw(map)
         this.id = id
         this.latLng = latLng
         this.useCanvasLayer = useCanvasLayer
@@ -701,16 +701,16 @@ export class KmaStation {
                 case 2:
                     const iconZoom = Math.min(Math.max(zoom, 6), 10)
                     const intIcon = intIcons[iconZoom][this.intensity]
-                    this.marker = L.marker(this.latLng, {
+                    this.marker = markRaw(L.marker(this.latLng, {
                         icon: intIcon,
                         pane: `kmaStationPane${this.holdLevel}`,
                         interactive: false
-                    })
+                    }))
                     break
                 case 1:
                     const color = kmaIntColorBand[this.holdLevel]
                     const radius = Math.max(this.radius, 2)
-                    this.marker = L.circleMarker(this.latLng, {
+                    this.marker = markRaw(L.circleMarker(this.latLng, {
                         radius: radius * 1.8,
                         opacity: 1,
                         fillOpacity: 1,
@@ -719,10 +719,10 @@ export class KmaStation {
                         weight: radius * 0.4,
                         pane: `kmaStationPane${this.holdLevel}`,
                         interactive: false
-                    })
+                    }))
                     break
                 case 0:
-                    this.marker = L.circleMarker(this.latLng, {
+                    this.marker = markRaw(L.circleMarker(this.latLng, {
                         radius: this.radius,
                         opacity: 1,
                         fillOpacity: 1,
@@ -731,7 +731,7 @@ export class KmaStation {
                         weight: 0,
                         pane: `kmaStationPane${this.holdLevel}`,
                         interactive: false
-                    })
+                    }))
                     break
             }
             this.marker.addTo(this.map)
@@ -799,7 +799,7 @@ export class KmaStation {
 export class intReportStation {
     constructor(map, id, latLng, detail){
         if(!settingsStore) settingsStore = useSettingsStore()
-        this.map = map
+        this.map = markRaw(map)
         this.id = id
         this.latLng = latLng
         this.detail = detail
@@ -814,11 +814,11 @@ export class intReportStation {
             this.marker.setIcon(intIcon)
         }
         else {
-            this.marker = L.marker(this.latLng, {
+            this.marker = markRaw(L.marker(this.latLng, {
                 icon: intIcon,
                 pane: `intReportStationPane${this.intensity}`,
                 interactive: true
-            })
+            }))
             this.marker.bindTooltip(`
                 <strong>${this.detail.stName} (${this.detail.stID})</strong>
                 <br>

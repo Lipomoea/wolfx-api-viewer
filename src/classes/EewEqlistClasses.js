@@ -12,6 +12,7 @@ import eewCircle from '@/assets/icon/hypocenter/eewCircle.svg';
 import cancelCircle from '@/assets/icon/hypocenter/cancelCircle.svg';
 import { intReportStation } from './StationClasses';
 import { useStatusStore } from '@/stores/status';
+import { markRaw } from 'vue';
 
 const iconRadius = 20
 
@@ -50,7 +51,7 @@ export const ignoredIds = {}
 
 export class EewEvent {
     constructor(map, eqMessage, activeEewList, handleTempEqlists, smartSetView){
-        this.map = map
+        this.map = markRaw(map)
         if(!settingsStore) settingsStore = useSettingsStore()
         this.eqMessage = eqMessage
         this.activeEewList = activeEewList
@@ -90,10 +91,10 @@ export class EewEvent {
         this.removeMark()
         if(this.hypoLatLng) {
             if(this.eqMessage.isCanceled){
-                this.hypoMarker = L.marker(this.hypoLatLng, { icon: this.eqMessage.isAssumption?cancelCircleIcon:cancelCrossIcon, pane: 'eewMarkerPane' })
+                this.hypoMarker = markRaw(L.marker(this.hypoLatLng, { icon: this.eqMessage.isAssumption?cancelCircleIcon:cancelCrossIcon, pane: 'eewMarkerPane' }))
             }
             else{
-                this.hypoMarker = L.marker(this.hypoLatLng, { icon: this.eqMessage.isAssumption?eewCircleIcon:eewCrossIcon, pane: 'eewMarkerPane' })
+                this.hypoMarker = markRaw(L.marker(this.hypoLatLng, { icon: this.eqMessage.isAssumption?eewCircleIcon:eewCrossIcon, pane: 'eewMarkerPane' }))
             }
             this.hypoMarker.bindTooltip(`
                 <strong>${this.eqMessage.titleText}</strong><br>
@@ -155,7 +156,7 @@ export class EewEvent {
                     />
                     </svg>
                 `
-                this.reachBarMarker = L.marker(this.hypoLatLng, {
+                this.reachBarMarker = markRaw(L.marker(this.hypoLatLng, {
                     icon: L.divIcon({
                         html,
                         className: '',
@@ -164,7 +165,7 @@ export class EewEvent {
                     }),
                     pane: 'eewReachPane',
                     interactive: false
-                }).addTo(this.map)
+                })).addTo(this.map)
             }
             const el = this.reachBarMarker.getElement()
             el.style.setProperty('--dasharray1', dasharray1)
@@ -219,7 +220,7 @@ export class EewEvent {
         if(p_radius > 0 && p_radius <= this.maxRadius2) {
             const opacity = p_radius <= this.maxWaveRadius ? this.calcOpacity(p_radius, 0, this.maxWaveRadius, 0.25, 1) : this.calcOpacity(p_radius, this.maxWaveRadius, this.maxRadius2, 0, 0.25)
             if(!this.pWave) {
-                this.pWave = L.circle(this.hypoLatLng, {
+                this.pWave = markRaw(L.circle(this.hypoLatLng, {
                     color: 'white',
                     opacity,
                     weight: 2,
@@ -227,7 +228,7 @@ export class EewEvent {
                     radius: p_radius * 1000,
                     pane: 'wavePane',
                     interactive: false
-                }).addTo(this.map)
+                })).addTo(this.map)
             }
             else {
                 this.pWave.setRadius(p_radius * 1000)
@@ -292,7 +293,7 @@ export class EewEvent {
         if(s_radius > 0 && s_radius <= this.maxRadius2) {
             const opacity = s_radius <= this.maxWaveRadius ? this.calcOpacity(s_radius, 0, this.maxWaveRadius, 0.25, 1) : this.calcOpacity(s_radius, this.maxWaveRadius, this.maxRadius2, 0, 0.25)
             if(!this.sWave) {
-                this.sWave = L.circle(this.hypoLatLng, {
+                this.sWave = markRaw(L.circle(this.hypoLatLng, {
                     color,
                     opacity,
                     weight: 2,
@@ -300,7 +301,7 @@ export class EewEvent {
                     radius: s_radius * 1000,
                     pane: 'wavePane',
                     interactive: false
-                }).addTo(this.map)
+                })).addTo(this.map)
             }
             else {
                 this.sWave.setRadius(s_radius * 1000)
@@ -335,14 +336,14 @@ export class EewEvent {
                 `;
                 defs.appendChild(grad);
 
-                this.sWaveFill = L.circle(this.hypoLatLng, {
+                this.sWaveFill = markRaw(L.circle(this.hypoLatLng, {
                     fillColor: `url(#${this.gradId})`,
                     fillOpacity,
                     stroke: false,
                     radius: s_radius * 1000,
                     pane: 'waveFillPane',
                     interactive: false
-                }).addTo(this.map)
+                })).addTo(this.map)
             }
             else {
                 this.sWaveFill.setRadius(s_radius * 1000)
@@ -580,7 +581,7 @@ export class EewEvent {
 }
 export class EqlistEvent {
     constructor(map, eqMessage, handleTempEqlists, smartSetView){
-        this.map = map
+        this.map = markRaw(map)
         if(!settingsStore) settingsStore = useSettingsStore()
         this.eqMessage = eqMessage
         this.isActive = false
@@ -611,7 +612,7 @@ export class EqlistEvent {
     setMark(){
         this.removeMark()
         if(this.isValidHypo){
-            this.hypoMarker = L.marker(this.hypoLatLng, { icon: this.eqMessage.isCanceled ? cancelCrossIcon : eqlistCrossIcon, pane: 'eqlistMarkerPane' })
+            this.hypoMarker = markRaw(L.marker(this.hypoLatLng, { icon: this.eqMessage.isCanceled ? cancelCrossIcon : eqlistCrossIcon, pane: 'eqlistMarkerPane' }))
             this.hypoMarker.bindTooltip(`
                 <strong>${this.eqMessage.titleText}</strong><br>
                 ${this.eqMessage.hypocenter}(${this.eqMessage.lat},${this.eqMessage.lng})<br>
@@ -725,7 +726,7 @@ export class HistoryEvent extends EqlistEvent {
     setMark(){
         this.removeMark()
         if(this.isValidHypo){
-            this.hypoMarker = L.marker(this.hypoLatLng, { icon: this.eqMessage.isCanceled ? cancelCrossIcon : eqlistCrossIcon, pane: 'historyMarkerPane' })
+            this.hypoMarker = markRaw(L.marker(this.hypoLatLng, { icon: this.eqMessage.isCanceled ? cancelCrossIcon : eqlistCrossIcon, pane: 'historyMarkerPane' }))
             this.hypoMarker.bindTooltip(`
                 <strong>${this.eqMessage.titleText}</strong><br>
                 ${this.eqMessage.hypocenter}(${this.eqMessage.lat},${this.eqMessage.lng})<br>
@@ -751,10 +752,10 @@ export class HistoryEvent extends EqlistEvent {
     }
     createStations(data) {
         this.terminateStations()
-        this.stations = []
+        this.stations = markRaw([])
         const stationData = data.instrument_intensity_json
         stationData.forEach(item => {
-            const station = new intReportStation(this.map, item.stID, [item.stla, item.stlo], item)
+            const station = markRaw(new intReportStation(this.map, item.stID, [item.stla, item.stlo], item))
             this.stations.push(station)
         })
         this.map.on('zoomend', this.renderAllStations)
