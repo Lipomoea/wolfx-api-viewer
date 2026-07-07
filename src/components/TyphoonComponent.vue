@@ -138,7 +138,7 @@ const createTyphoonWindCircles = (centerLat, centerLng, radius7, radius10, radiu
     const points10 = generateWindCirclePoints(centerLat, centerLng, radius10);
     const points12 = generateWindCirclePoints(centerLat, centerLng, radius12);
     const baseOptions = {
-        fillOpacity: 0.25,
+        fillOpacity: 0.15,
         opacity: 0.75,
         weight: 1,
         pane: 'typhoonWindCirclePane',
