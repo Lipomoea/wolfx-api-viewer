@@ -291,27 +291,14 @@ export class FindNiedHypocenter {
     }
 
     mergeAdjacentClusters(station, clusters) {
-        const sameStationCluster = clusters.find(cluster => this.findClusterStation(cluster, station.id))
-        if(sameStationCluster) {
-            this.addStationToCluster(station, sameStationCluster)
-            return sameStationCluster
-        }
-        const sharedStationCluster = this.selectLatestSharedStationCluster(clusters)
-        if(sharedStationCluster) {
-            this.addStationToCluster(station, sharedStationCluster)
-            return sharedStationCluster
-        }
         const initialHypocenter = clusters.find(cluster => cluster.result?.hypocenter)?.result.hypocenter ||
             clusters.find(cluster => cluster.initialHypocenter)?.initialHypocenter ||
             null
         const baseCluster = clusters.reduce((best, cluster) => 
             this.selectMergeBaseCluster(best, cluster)
         )
-        const stations = [station]
-        clusters.forEach(cluster => {
-            stations.push(...cluster.stations)
-            this.removeCluster(cluster)
-        })
+        const stations = this.createMergedClusterStations(clusters, baseCluster, station)
+        clusters.forEach(cluster => this.removeCluster(cluster))
         const mergedCluster = this.createCluster(stations, initialHypocenter, false)
         mergedCluster.updates = baseCluster.updates
         mergedCluster.reportNum = baseCluster.reportNum
@@ -443,10 +430,10 @@ export class FindNiedHypocenter {
                 for(let j = i + 1; j < this.clusters.length; j++) {
                     const cluster1 = this.clusters[i]
                     const cluster2 = this.clusters[j]
-                    if(!this.hasSharedStation(cluster1, cluster2) && this.canMergeClusterResults(cluster1.result, cluster2.result)) {
+                    if(this.canMergeClusterResults(cluster1.result, cluster2.result)) {
                         const initialHypocenter = cluster1.result?.hypocenter || cluster2.result?.hypocenter || null
-                        const stations = [...cluster1.stations, ...cluster2.stations]
                         const baseCluster = this.selectMergeBaseCluster(cluster1, cluster2)
+                        const stations = this.createMergedClusterStations([cluster1, cluster2], baseCluster)
                         this.removeCluster(cluster1)
                         this.removeCluster(cluster2)
                         const mergedCluster = this.createCluster(stations, initialHypocenter, false)
@@ -476,30 +463,17 @@ export class FindNiedHypocenter {
         return cluster1.updates >= cluster2.updates ? cluster1 : cluster2
     }
 
-    selectLatestSharedStationCluster(clusters) {
-        const stationClusterCounts = new Map()
-        clusters.forEach(cluster => {
-            const stationIds = new Set(cluster.stations.map(station => station.id))
-            stationIds.forEach(id => {
-                stationClusterCounts.set(id, (stationClusterCounts.get(id) || 0) + 1)
-            })
-        })
-
-        let selected = null
-        clusters.forEach(cluster => {
-            cluster.stations.forEach(station => {
-                if(stationClusterCounts.get(station.id) <= 1) return
-                if(!selected || station.triggerStamp > selected.triggerStamp) {
-                    selected = { cluster, triggerStamp: station.triggerStamp }
-                }
-            })
-        })
-        return selected?.cluster || null
-    }
-
-    hasSharedStation(cluster1, cluster2) {
-        const stationIds = new Set(cluster1.stations.map(station => station.id))
-        return cluster2.stations.some(station => stationIds.has(station.id))
+    createMergedClusterStations(clusters, baseCluster, station = null) {
+        const otherClusters = clusters.filter(cluster => cluster !== baseCluster)
+        const otherStations = otherClusters
+            .flatMap(cluster => cluster.stations)
+            .sort((station1, station2) => station1.triggerStamp - station2.triggerStamp)
+        const stations = [
+            ...baseCluster.stations,
+            ...otherStations
+        ]
+        if(station) stations.push(station)
+        return stations
     }
 
     findClusterStation(cluster, stationId) {

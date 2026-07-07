@@ -81,9 +81,12 @@ onBeforeUnmount(() => {
     stopReplay()
 })
 watch(() => settingsStore.mainSettings.displaySeisNet.delay, newVal => {
-    if(replayState.itemId != null && Number(newVal) == 0) {
-        stopReplay()
+    if(replayState.itemId == null) return
+    if(Number(newVal) == 0) {
+        stopReplay(false)
+        return
     }
+    resetAutoStopTimer()
 })
 const isReplaying = (item) => replayState.itemId == item.id
 const toggleReplay = (item) => {
@@ -103,6 +106,12 @@ const startReplay = (item) => {
     if (settingsStore.advancedSettings.mockOnReplay && settingsStore.advancedSettings.mockEew) {
         createMockEew(item)
     }
+    resetAutoStopTimer()
+}
+const resetAutoStopTimer = () => {
+    if(replayState.autoStopTimer) {
+        clearTimeout(replayState.autoStopTimer)
+    }
     replayState.autoStopTimer = setTimeout(() => {
         stopReplay()
     }, maxReplayDuration)
@@ -118,7 +127,7 @@ const terminateActiveMockEew = (mockEewId = replayState.mockEewId) => {
     const event = activeEewList?.find(event => event.eqMessage?.source == 'mockEew' && event.eqMessage?.id == mockEewId)
     event?.terminate()
 }
-const stopReplay = () => {
+const stopReplay = (resetDelay = true) => {
     if(replayState.itemId == null) return
     const mockEewId = replayState.mockEewId
     if(replayState.mockTimer) {
@@ -133,8 +142,10 @@ const stopReplay = () => {
             terminateActiveMockEew(mockEewId)
         })
     }
-    settingsStore.mainSettings.displaySeisNet.delay = 0
     resetReplayState()
+    if(resetDelay) {
+        settingsStore.mainSettings.displaySeisNet.delay = 0
+    }
 }
 const handleCopy = async (item) => {
     const content = `${item.hypocenter} ${item.originTime} (UTC${formatTimeZone(item.timeZone)}) M${item.magnitude ? item.magnitude.toFixed(1) : '不明'} ${item.depth.toFixed(0)}km ${item.useShindo ? ('最大震度' + formatShindo(item.maxIntensity, false)) : ('预估最大烈度' + item.maxIntensity)}`
