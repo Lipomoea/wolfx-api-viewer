@@ -83,15 +83,15 @@ export class FindNiedHypocenter {
         const stationSnapshot = this.createStationSnapshot(station)
         this.activeStations.set(stationSnapshot.id, stationSnapshot)
 
-        const matchingCluster = this.findBestMatchingCluster(stationSnapshot)
-        if(matchingCluster) {
-            this.addStationToCluster(stationSnapshot, matchingCluster)
-            return
-        }
-
         const neighborClusters = this.findNeighborClusters(stationSnapshot)
         if(neighborClusters.length === 0) {
-            this.createCluster([stationSnapshot], null, true)
+            const matchingCluster = this.findBestMatchingCluster(stationSnapshot)
+            if(matchingCluster) {
+                this.addStationToCluster(stationSnapshot, matchingCluster)
+            }
+            else {
+                this.createCluster([stationSnapshot], null, true)
+            }
         }
         else if(neighborClusters.length === 1) {
             this.addStationToCluster(stationSnapshot, neighborClusters[0])
