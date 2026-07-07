@@ -27,6 +27,7 @@ const residualOutlierToleranceRatio = 3
 const defaultClusterMatchResidual = minResidualThreshold
 const largeClusterMatchResidual = 10000
 const largeClusterMatchSize = 50
+const neighborTriggerStampThreshold = 30000
 const inheritedOutlierFilterStages = [
     { level: 3, minCount: 100, minRemainingInheritedRatio: 0.9, ratio: 2, minResidual: 3000, maxMeanResidual: 1500, pWaveBiasRatio: 1 },
     { level: 2, minCount: 30, minRemainingInheritedRatio: 0.8, ratio: 2.5, minResidual: 4000, maxMeanResidual: 2000, pWaveBiasRatio: 1.5 },
@@ -63,11 +64,12 @@ export class FindNiedHypocenter {
         this.setInactiveStations(inactiveStations)
     }
 
-    update(newActiveStations = [], inactiveStations = this.inactiveStations, stationUpdates = newActiveStations) {
+    update(newActiveStations = [], inactiveStations = this.inactiveStations, stationUpdates = null) {
         this.updateVersion++
         this.setInactiveStations(inactiveStations)
+        this.releaseInactiveClusterStations(stationUpdates)
         newActiveStations.forEach(station => this.addActiveStation(station))
-        this.updateActiveStationSources(stationUpdates)
+        this.updateActiveStationSources(stationUpdates || newActiveStations)
         this.refreshActiveStationMaxAscends()
         this.refreshClusterResults()
         this.mergeCloseClusters()
@@ -109,6 +111,7 @@ export class FindNiedHypocenter {
             maxLevel: station.level,
             densityWeight: this.getStationDensityWeight(station.id),
             activeForPenalty: false,
+            frozen: false,
             source: station
         }
     }
@@ -129,8 +132,29 @@ export class FindNiedHypocenter {
     updateActiveStationSources(stations) {
         stations.forEach(station => {
             const activeStation = this.activeStations.get(station.id)
-            if(activeStation) this.updateStationSnapshot(activeStation, station)
+            if(activeStation && !activeStation.frozen) this.updateStationSnapshot(activeStation, station)
         })
+    }
+
+    releaseInactiveClusterStations(stations) {
+        if(!Array.isArray(stations)) return
+        const currentActiveStationIds = new Set(stations.map(station => station.id))
+        const releaseStationIds = []
+        this.activeStations.forEach((station, id) => {
+            if(!currentActiveStationIds.has(id)) releaseStationIds.push(id)
+        })
+        releaseStationIds.forEach(id => this.releaseClusterStation(id))
+    }
+
+    releaseClusterStation(stationId) {
+        const cluster = this.stationClusterMap.get(stationId)
+        if(cluster && this.stationClusterMap.get(stationId) === cluster) {
+            const station = this.activeStations.get(stationId)
+            if(station) station.frozen = true
+            this.stationClusterMap.delete(stationId)
+            this.markClusterUpdated(cluster)
+        }
+        this.activeStations.delete(stationId)
     }
 
     updateStationSnapshot(stationSnapshot, station) {
@@ -140,6 +164,7 @@ export class FindNiedHypocenter {
 
     refreshActiveStationMaxAscends() {
         this.activeStations.forEach(station => {
+            if(station.frozen) return
             const oldWeight = this.getStationWeight(station)
             const oldActiveForPenalty = station.activeForPenalty
             station.maxAscend = Math.max(station.maxAscend || 0, station.source?.ascend || 0)
@@ -157,9 +182,15 @@ export class FindNiedHypocenter {
         const neighborIds = this.adjStationIds?.[station.id] || []
         neighborIds.forEach(id => {
             const cluster = this.stationClusterMap.get(id)
-            if(cluster) clusterSet.add(cluster)
+            if(cluster && this.isNeighborTrigger(station, cluster, id)) clusterSet.add(cluster)
         })
         return [...clusterSet]
+    }
+
+    isNeighborTrigger(station, cluster, neighborStationId) {
+        const neighborStation = this.findClusterStation(cluster, neighborStationId)
+        return neighborStation &&
+            Math.abs(station.triggerStamp - neighborStation.triggerStamp) < neighborTriggerStampThreshold
     }
 
     findBestMatchingCluster(station) {
@@ -216,9 +247,21 @@ export class FindNiedHypocenter {
     }
 
     addStationToCluster(station, cluster, markUpdated = true) {
-        if(cluster.stations.some(item => item.id === station.id)) return
+        const existingStation = this.findClusterStation(cluster, station.id)
+        if(existingStation) {
+            this.rebindClusterStation(existingStation, station, cluster, markUpdated)
+            return
+        }
         this.insertStationToCluster(station, cluster)
         this.stationClusterMap.set(station.id, cluster)
+        if(markUpdated) this.markClusterUpdated(cluster)
+        else cluster.dirty = true
+        cluster.inactiveUpdateCount = 0
+    }
+
+    rebindClusterStation(stationSnapshot, station, cluster, markUpdated = true) {
+        this.activeStations.set(stationSnapshot.id, stationSnapshot)
+        this.stationClusterMap.set(stationSnapshot.id, cluster)
         if(markUpdated) this.markClusterUpdated(cluster)
         else cluster.dirty = true
         cluster.inactiveUpdateCount = 0
@@ -248,6 +291,16 @@ export class FindNiedHypocenter {
     }
 
     mergeAdjacentClusters(station, clusters) {
+        const sameStationCluster = clusters.find(cluster => this.findClusterStation(cluster, station.id))
+        if(sameStationCluster) {
+            this.addStationToCluster(station, sameStationCluster)
+            return sameStationCluster
+        }
+        const sharedStationCluster = this.selectLatestSharedStationCluster(clusters)
+        if(sharedStationCluster) {
+            this.addStationToCluster(station, sharedStationCluster)
+            return sharedStationCluster
+        }
         const initialHypocenter = clusters.find(cluster => cluster.result?.hypocenter)?.result.hypocenter ||
             clusters.find(cluster => cluster.initialHypocenter)?.initialHypocenter ||
             null
@@ -297,7 +350,7 @@ export class FindNiedHypocenter {
 
     isClusterFullyInactive(cluster) {
         return cluster.stations.length > 0 &&
-            cluster.stations.every(station => this.inactiveStationMap.has(station.id))
+            cluster.stations.every(station => this.stationClusterMap.get(station.id) !== cluster)
     }
 
     setInactiveStations(inactiveStations) {
@@ -390,7 +443,7 @@ export class FindNiedHypocenter {
                 for(let j = i + 1; j < this.clusters.length; j++) {
                     const cluster1 = this.clusters[i]
                     const cluster2 = this.clusters[j]
-                    if(this.canMergeClusterResults(cluster1.result, cluster2.result)) {
+                    if(!this.hasSharedStation(cluster1, cluster2) && this.canMergeClusterResults(cluster1.result, cluster2.result)) {
                         const initialHypocenter = cluster1.result?.hypocenter || cluster2.result?.hypocenter || null
                         const stations = [...cluster1.stations, ...cluster2.stations]
                         const baseCluster = this.selectMergeBaseCluster(cluster1, cluster2)
@@ -421,6 +474,36 @@ export class FindNiedHypocenter {
             return cluster1.stations.length > cluster2.stations.length ? cluster1 : cluster2
         }
         return cluster1.updates >= cluster2.updates ? cluster1 : cluster2
+    }
+
+    selectLatestSharedStationCluster(clusters) {
+        const stationClusterCounts = new Map()
+        clusters.forEach(cluster => {
+            const stationIds = new Set(cluster.stations.map(station => station.id))
+            stationIds.forEach(id => {
+                stationClusterCounts.set(id, (stationClusterCounts.get(id) || 0) + 1)
+            })
+        })
+
+        let selected = null
+        clusters.forEach(cluster => {
+            cluster.stations.forEach(station => {
+                if(stationClusterCounts.get(station.id) <= 1) return
+                if(!selected || station.triggerStamp > selected.triggerStamp) {
+                    selected = { cluster, triggerStamp: station.triggerStamp }
+                }
+            })
+        })
+        return selected?.cluster || null
+    }
+
+    hasSharedStation(cluster1, cluster2) {
+        const stationIds = new Set(cluster1.stations.map(station => station.id))
+        return cluster2.stations.some(station => stationIds.has(station.id))
+    }
+
+    findClusterStation(cluster, stationId) {
+        return cluster.stations.find(station => station.id === stationId) || null
     }
 
     copyClusterStableState(targetCluster, sourceCluster) {
