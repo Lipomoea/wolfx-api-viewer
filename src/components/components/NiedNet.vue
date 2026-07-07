@@ -217,8 +217,8 @@ const update = ()=>{
             clearInferredHypocenters()
         }
         else if(currentActiveStations.length > 0) {
-            const initialActiveStations = hypocenterWorker ? newActiveStations : currentActiveStations
-            updateInferredHypocentersInWorker(initialActiveStations, inactiveStations)
+            const newTriggerStations = hypocenterWorker ? newActiveStations : currentActiveStations
+            updateInferredHypocentersInWorker(newTriggerStations, inactiveStations)
         }
         else {
             resetHypocenterWorker()
@@ -291,14 +291,14 @@ const stationToInferredHypocenterSnapshot = station => ({
     level: station.level,
     isActive: station.isActive
 })
-const updateInferredHypocentersInWorker = (newActiveStations, inactiveStations) => {
+const updateInferredHypocentersInWorker = (newTriggerStations, inactiveStations) => {
     if(!isNiedHypoInfEnabled()) return
     const requestId = ++hypocenterRequestId
     latestHypocenterRequestId = requestId
     getHypocenterWorker().postMessage({
         type: 'update',
         requestId,
-        newActiveStations: newActiveStations.map(stationToInferredHypocenterSnapshot),
+        newActiveStations: newTriggerStations.map(stationToInferredHypocenterSnapshot),
         activeStations: stations.filter(station => station.isActive).map(stationToInferredHypocenterSnapshot),
         inactiveStations: [...inactiveStations].map(stationToInferredHypocenterSnapshot),
         adjStationIds: adjStationIds4Hypo

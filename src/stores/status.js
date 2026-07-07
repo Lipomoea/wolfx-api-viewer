@@ -1260,7 +1260,7 @@ export const useStatusStore = defineStore('statusStore', {
                         const maxIntensity = magnitude ? calcCsisLevel(magnitude, depth) : '不明'
                         list[i] = {
                             source: 'FSSN',
-                            id: data[i].ID,
+                            id: data[i].id,
                             timeZone: 8,
                             useShindo: false,
                             originTime: data[i].shockTime,
