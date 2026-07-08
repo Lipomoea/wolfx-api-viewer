@@ -288,12 +288,10 @@ export class FindNiedHypocenter {
     }
 
     mergeAdjacentClusters(station, clusters) {
-        const initialHypocenter = clusters.find(cluster => cluster.result?.hypocenter)?.result.hypocenter ||
-            clusters.find(cluster => cluster.initialHypocenter)?.initialHypocenter ||
-            null
         const baseCluster = clusters.reduce((best, cluster) => 
             this.selectMergeBaseCluster(best, cluster)
         )
+        const initialHypocenter = this.getClusterInitialHypocenter(baseCluster)
         const stations = this.createMergedClusterStations(clusters, baseCluster, station)
         clusters.forEach(cluster => this.removeCluster(cluster))
         const mergedCluster = this.createCluster(stations, initialHypocenter, false)
@@ -428,8 +426,8 @@ export class FindNiedHypocenter {
                     const cluster1 = this.clusters[i]
                     const cluster2 = this.clusters[j]
                     if(this.canMergeClusterResults(cluster1.result, cluster2.result)) {
-                        const initialHypocenter = cluster1.result?.hypocenter || cluster2.result?.hypocenter || null
                         const baseCluster = this.selectMergeBaseCluster(cluster1, cluster2)
+                        const initialHypocenter = this.getClusterInitialHypocenter(baseCluster)
                         const stations = this.createMergedClusterStations([cluster1, cluster2], baseCluster)
                         this.removeCluster(cluster1)
                         this.removeCluster(cluster2)
@@ -458,6 +456,10 @@ export class FindNiedHypocenter {
             return cluster1.stations.length > cluster2.stations.length ? cluster1 : cluster2
         }
         return cluster1.updates >= cluster2.updates ? cluster1 : cluster2
+    }
+
+    getClusterInitialHypocenter(cluster) {
+        return cluster.result?.hypocenter || cluster.initialHypocenter || null
     }
 
     createMergedClusterStations(clusters, baseCluster, station = null) {
