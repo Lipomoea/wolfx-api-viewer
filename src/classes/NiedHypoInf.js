@@ -25,7 +25,7 @@ const floatPrecisionEpsilon = 1e-9
 const minResidualThreshold = 5000
 const residualOutlierToleranceRatio = 3
 const defaultClusterMatchResidual = minResidualThreshold
-const largeClusterMatchResidual = 10000
+const largeClusterMatchResidual = 7500
 const largeClusterMatchSize = 50
 const neighborTriggerStampThreshold = 30000
 const inheritedOutlierFilterStages = [
@@ -83,15 +83,12 @@ export class FindNiedHypocenter {
         const stationSnapshot = this.createStationSnapshot(station)
         this.activeStations.set(stationSnapshot.id, stationSnapshot)
 
-        const neighborClusters = this.findNeighborClusters(stationSnapshot)
+        const neighborClusterSet = new Set(this.findNeighborClusters(stationSnapshot))
+        const matchingCluster = this.findBestMatchingCluster(stationSnapshot)
+        if(matchingCluster) neighborClusterSet.add(matchingCluster)
+        const neighborClusters = [...neighborClusterSet]
         if(neighborClusters.length === 0) {
-            const matchingCluster = this.findBestMatchingCluster(stationSnapshot)
-            if(matchingCluster) {
-                this.addStationToCluster(stationSnapshot, matchingCluster)
-            }
-            else {
-                this.createCluster([stationSnapshot], null, true)
-            }
+            this.createCluster([stationSnapshot], null, true)
         }
         else if(neighborClusters.length === 1) {
             this.addStationToCluster(stationSnapshot, neighborClusters[0])
