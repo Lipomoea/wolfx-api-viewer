@@ -11,7 +11,8 @@ export class CanvasLayer extends L.Layer {
         }
         this.canvas = null
         this.context = null
-        this.redrawFrame = null
+        this.pendingRedrawFrame = null
+        this.resetFrame = null
         this.zoomAnimating = false
         this.topLeft = L.point(0, 0)
     }
@@ -29,8 +30,10 @@ export class CanvasLayer extends L.Layer {
         if(this.map) this.map.off('zoomstart', this.handleZoomStart, this)
         if(this.map) this.map.off('moveend zoomend resize viewreset', this.reset, this)
         if(this.map) this.map.off('zoomanim', this.animateZoom, this)
-        if(this.redrawFrame) cancelAnimationFrame(this.redrawFrame)
-        this.redrawFrame = null
+        if(this.resetFrame) cancelAnimationFrame(this.resetFrame)
+        if(this.pendingRedrawFrame) cancelAnimationFrame(this.pendingRedrawFrame)
+        this.resetFrame = null
+        this.pendingRedrawFrame = null
         this.canvas?.remove()
         this.canvas = null
         this.context = null
@@ -53,6 +56,16 @@ export class CanvasLayer extends L.Layer {
     }
 
     reset() {
+        if(!this.map || !this.canvas) return this
+        if(this.resetFrame) return this
+        this.resetFrame = requestAnimationFrame(() => {
+            this.resetFrame = null
+            this.performReset()
+        })
+        return this
+    }
+
+    performReset() {
         if(!this.map || !this.canvas) return
         this.zoomAnimating = false
         const size = this.map.getSize()
@@ -62,7 +75,7 @@ export class CanvasLayer extends L.Layer {
         const ratio = this.getRenderRatio()
         this.canvas.width = Math.ceil(size.x * ratio)
         this.canvas.height = Math.ceil(size.y * ratio)
-        this.redraw()
+        this.redraw(true)
     }
 
     handleZoomStart() {
@@ -81,12 +94,20 @@ export class CanvasLayer extends L.Layer {
         L.DomUtil.setTransform(this.canvas, offset, scale)
     }
 
-    redraw() {
+    redraw(immediate = false) {
         if(!this.map) return this
         if(this.zoomAnimating) return this
-        if(this.redrawFrame) return this
-        this.redrawFrame = requestAnimationFrame(() => {
-            this.redrawFrame = null
+        if(immediate) {
+            if(this.pendingRedrawFrame) {
+                cancelAnimationFrame(this.pendingRedrawFrame)
+                this.pendingRedrawFrame = null
+            }
+            this.draw()
+            return this
+        }
+        if(this.pendingRedrawFrame) return this
+        this.pendingRedrawFrame = requestAnimationFrame(() => {
+            this.pendingRedrawFrame = null
             this.draw()
         })
         return this
