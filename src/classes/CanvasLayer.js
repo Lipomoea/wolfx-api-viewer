@@ -21,14 +21,16 @@ export class CanvasLayer extends L.Layer {
         this.map = map
         this.createCanvas()
         map.on('zoomstart', this.handleZoomStart, this)
-        map.on('moveend zoomend resize viewreset', this.reset, this)
+        map.on('zoomend', this.handleZoomEnd, this)
+        map.on('moveend resize viewreset', this.reset, this)
         map.on('zoomanim', this.animateZoom, this)
         this.reset()
     }
 
     onRemove() {
         if(this.map) this.map.off('zoomstart', this.handleZoomStart, this)
-        if(this.map) this.map.off('moveend zoomend resize viewreset', this.reset, this)
+        if(this.map) this.map.off('zoomend', this.handleZoomEnd, this)
+        if(this.map) this.map.off('moveend resize viewreset', this.reset, this)
         if(this.map) this.map.off('zoomanim', this.animateZoom, this)
         if(this.resetFrame) cancelAnimationFrame(this.resetFrame)
         if(this.pendingRedrawFrame) cancelAnimationFrame(this.pendingRedrawFrame)
@@ -67,7 +69,7 @@ export class CanvasLayer extends L.Layer {
 
     performReset() {
         if(!this.map || !this.canvas) return
-        this.zoomAnimating = false
+        if(this.zoomAnimating) return
         const size = this.map.getSize()
         this.updateCanvasPosition()
         this.canvas.style.width = `${size.x}px`
@@ -80,6 +82,11 @@ export class CanvasLayer extends L.Layer {
 
     handleZoomStart() {
         this.zoomAnimating = true
+    }
+
+    handleZoomEnd() {
+        this.zoomAnimating = false
+        this.reset()
     }
 
     updateCanvasPosition() {
