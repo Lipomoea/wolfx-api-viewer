@@ -1647,12 +1647,20 @@ const handleAdvance = (val)=>{
         }
         case 'enableAdvancedHypoInf': {
             settingsStore.advancedSettings.advancedHypoInf = true
+            ElMessage({
+                message: '功能已开启',
+                type: 'success'
+            })
             break
         }
         case 'disableAdvancedHypoInf': {
             settingsStore.advancedSettings.advancedHypoInf = false
             if (settingsStore.mainSettings.displaySeisNet.niedHypoInfTextInfo == 2)
                 settingsStore.mainSettings.displaySeisNet.niedHypoInfTextInfo = 1
+            ElMessage({
+                message: '功能已关闭',
+                type: 'success'
+            })
             break
         }
         case 'disableIclEew': {
