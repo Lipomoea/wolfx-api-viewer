@@ -8,7 +8,7 @@
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, inject } from 'vue';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
-import { iconUrls, seisNetUrls } from '@/utils/Urls';
+import { FAN_API_APP_ID, iconUrls, seisNetUrls } from '@/utils/Urls';
 import { playSound, sendMyNotification, calcTimeDiff, focusWindow, getMmiFromKmaLevel, exactRound, calcDistanceKm } from '@/utils/Utils';
 import 'leaflet/dist/leaflet.css';
 import { KmaStation, simpleIcon } from '@/classes/StationClasses';
@@ -141,10 +141,17 @@ const initGridCanvasLayer = () => {
 }
 let kmaSocket = null
 onMounted(()=>{
+    const apiKey = settingsStore.advancedSettings.tokens.fanApiKey
+    if(!apiKey) return
+    const authMessage = JSON.stringify({
+        type: 'auth',
+        appId: FAN_API_APP_ID,
+        key: apiKey
+    })
     const url = [...seisNetUrls.kma]
     const defaultId = settingsStore.advancedSettings.defaultFanServer
     url.unshift(...url.splice(defaultId, 1))
-    kmaSocket = new WebSocketObj(url, ['ping'])
+    kmaSocket = new WebSocketObj(url, ['ping'], [authMessage])
     kmaSocket.setMessageHandler(e => {
         const data = JSON.parse(e.data)
         const type = data?.type

@@ -1124,8 +1124,8 @@
                             <el-switch v-model="settingsStore.advancedSettings.provinceCeaEew"
                             @change="handleNeedReload" />
                         </div>
-                        <div class="switch-full" v-if="settingsStore.displayTokenButton">
-                            <span>管理Token</span>
+                        <div class="switch-full">
+                            <span>管理API Key</span>
                             <el-button size="small" @click="showTokenManager = true">管理</el-button>
                         </div>
                         <div class="switch-full" v-if="settingsStore.advancedSettings.enableMultiApi">
@@ -1358,8 +1358,8 @@
         </el-dialog>
         <el-dialog v-model="showTokenManager" width="300px" top="20vh" :show-close="false" append-to-body>
             <el-form :model="idForm">
-                <el-form-item v-if="settingsStore.advancedSettings.enableIclEew" label="FAN:DEV" label-width="60px">
-                    <el-input v-model="settingsStore.advancedSettings.tokens.fan_dev" @change="handleNeedReload" />
+                <el-form-item label="FAN Studio API" label-width="110px">
+                    <el-input v-model="settingsStore.advancedSettings.tokens.fanApiKey" @change="handleNeedReload" />
                 </el-form-item>
             </el-form>
             <template #footer>

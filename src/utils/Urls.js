@@ -1,5 +1,7 @@
 const fanWsBaseUrl = ["wss://ws.fanstudio.tech", "wss://ws.fanstudio.hk"];
 
+export const FAN_API_APP_ID = "76d92e4b-a1d2-46be-93c8-75fc2d3286b8";
+
 export const eqUrls = {
   niedLatest: "http://www.kmoni.bosai.go.jp/webservice/server/pros/latest.json",
   jmaEew2_http: "http://www.kmoni.bosai.go.jp/webservice/hypo/eew",

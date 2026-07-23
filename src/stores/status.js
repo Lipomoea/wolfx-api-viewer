@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import Http from '@/classes/Http';
 import WebSocketObj from '@/classes/WebSocket';
-import { eqUrls, iconUrls, tsunamiUrls } from '@/utils/Urls';
+import { eqUrls, FAN_API_APP_ID, iconUrls, tsunamiUrls } from '@/utils/Urls';
 import { setClassName, calcCsisLevel, stampToTime, getShindoFromInstShindo, shindoScaleKanji, calcTimeDiff, playSound, sendMyNotification, focusWindow, formatShindo } from '@/utils/Utils';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { useSettingsStore } from './settings';
@@ -1363,8 +1363,14 @@ export const useStatusStore = defineStore('statusStore', {
                         delete fan2Source['cea-pr']
                     }
                     const initMsg = []
-                    const token = settingsStore.advancedSettings.tokens.fan_dev
-                    if(token) initMsg.push(`{"type":"auth","key":"${token}"}`)
+                    const apiKey = settingsStore.advancedSettings.tokens.fanApiKey
+                    if(apiKey) {
+                        initMsg.push(JSON.stringify({
+                            type: 'auth',
+                            appId: FAN_API_APP_ID,
+                            key: apiKey
+                        }))
+                    }
                     const autoMsg = ['query']
                     if(this.activeFanSources.includes('cwaEqlist')) {
                         autoMsg.push('cwalist')
@@ -1385,6 +1391,20 @@ export const useStatusStore = defineStore('statusStore', {
                     this.fanSocket.setMessageHandler((e)=>{
                         const data = JSON.parse(e.data)
                         switch(data.type) {
+                            case 'auth_success': {
+                                ElMessage({
+                                    message: 'FAN Studio API认证成功',
+                                    type: 'success'
+                                })
+                                break
+                            }
+                            case 'auth_fail': {
+                                ElMessage({
+                                    message: 'FAN Studio API认证失败',
+                                    type: 'error'
+                                })
+                                break
+                            }
                             case 'initial_all': case 'query_response': {
                                 this.activeFanSources.forEach(source => {
                                     const Data = data[source2Fan[source]]?.Data
