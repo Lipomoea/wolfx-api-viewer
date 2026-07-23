@@ -1,3 +1,5 @@
+const fanWsBaseUrl = ["wss://ws.fanstudio.tech", "wss://ws.fanstudio.hk"];
+
 export const eqUrls = {
   niedLatest: "http://www.kmoni.bosai.go.jp/webservice/server/pros/latest.json",
   jmaEew2_http: "http://www.kmoni.bosai.go.jp/webservice/hypo/eew",
@@ -5,7 +7,7 @@ export const eqUrls = {
   usgsEqlist_http:
     "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson",
   wolfx_ws: ["wss://ws-api.wolfx.jp/all_eew"],
-  fan_ws: ["wss://ws.fanstudio.tech/all", "wss://ws.fanstudio.hk/all"],
+  fan_ws: fanWsBaseUrl.map(baseUrl => baseUrl + "/all"),
   p2pquake_ws: ["wss://api.p2pquake.net/v2/ws"],
 };
 export const tsunamiUrls = {
@@ -18,10 +20,7 @@ export const seisNetUrls = {
     stationData:
       "https://weather-kyoshin.east.edge.storage-yahoo.jp/RealTimeData",
   },
-  kma: [
-    "wss://ws.fanstudio.tech/kma-station",
-    "wss://ws.fanstudio.hk/kma-station",
-  ],
+  kma: fanWsBaseUrl.map(baseUrl => baseUrl + "/kma-station"),
 };
 export const iconUrls = {
   info: "/icon/info.png",
@@ -94,7 +93,16 @@ export const topojsonUrls = {
 };
 export const utilUrls = {
   geoIp: "https://api.wolfx.jp/geoip.php",
-  ntpTime: "https://api.fanstudio.tech/tool/ntp.php",
+  ntpTime: [
+    {
+      url: "https://api.fanstudio.tech/tool/ntp.php",
+      function: item => item.unixtime_ms,
+    },
+    {
+      url: "https://api.wolfx.jp/ntp.json",
+      function: item => item.timestamp,
+    },
+  ],
 };
 export const typhoonUrls = {
   typhoon_http: "https://api.fanstudio.tech/we/typhoon.php",

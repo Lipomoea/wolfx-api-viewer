@@ -1140,7 +1140,8 @@ export const useStatusStore = defineStore('statusStore', {
             let keys
             switch (source) {
                 case 'jmaEqlist':
-                    keys = Object.keys(data).filter(key => key.startsWith('No'))
+                case 'cencEqlist':
+                    keys = Object.keys(data).filter(key => /^No\d+$/.test(key))
                     break
                 default:
                     keys = Object.keys(data)
@@ -1149,20 +1150,21 @@ export const useStatusStore = defineStore('statusStore', {
             for (let i = 0; i < keys.length; i++) {
                 switch (source) {
                     case 'jmaEqlist': {
-                        const id = data[keys[i]].EventID
+                        const item = data[keys[i]]
+                        const id = item.EventID
                         list[i] = {
                             source: 'JMA',
                             id,
                             timeZone: 9,
                             useShindo: true,
-                            originTime: data[keys[i]].time_full.replace(/\//g, '-'),
-                            lat: Number(data[keys[i]].latitude),
-                            lng: Number(data[keys[i]].longitude),
-                            hypocenter: data[keys[i]].location,
-                            depth: Number(data[keys[i]].depth.replace('km', '')),
-                            magnitude: Number(data[keys[i]].magnitude) || 0,
-                            maxIntensity: data[keys[i]].shindo,
-                            className: setClassName(data[keys[i]].shindo, true),
+                            originTime: item.time_full.replace(/\//g, '-'),
+                            lat: Number(item.latitude),
+                            lng: Number(item.longitude),
+                            hypocenter: item.location,
+                            depth: Number(item.depth.replace('km', '')),
+                            magnitude: Number(item.magnitude) || 0,
+                            maxIntensity: item.shindo,
+                            className: setClassName(item.shindo, true),
                             url: `https://typhoon.yahoo.co.jp/weather/jp/earthquake/${id}.html`
                         }
                         break
@@ -1191,19 +1193,20 @@ export const useStatusStore = defineStore('statusStore', {
                         break
                     }
                     case 'cencEqlist': {
-                        const depth = Number(data[i].depth)
-                        const magnitude = Number(data[i].magnitude)
+                        const item = data[keys[i]]
+                        const depth = Number(item.depth)
+                        const magnitude = Number(item.magnitude)
                         const maxIntensity = calcCsisLevel(magnitude, depth)
-                        const intReportId = data[i].shockTime.replace(/[^\d]/g, '')
+                        const intReportId = item.time.replace(/[^\d]/g, '')
                         list[i] = {
                             source: 'CENC',
-                            id: data[i].id,
+                            id: item.EventID,
                             timeZone: 8,
                             useShindo: false,
-                            originTime: data[i].shockTime,
-                            lat: Number(data[i].latitude),
-                            lng: Number(data[i].longitude),
-                            hypocenter: (data[i].infoTypeName.includes('正式') ? '' : '(A)') + data[i].placeName,
+                            originTime: item.time,
+                            lat: Number(item.latitude),
+                            lng: Number(item.longitude),
+                            hypocenter: (item.type == 'reviewed' ? '' : '(A)') + item.placeName,
                             depth,
                             magnitude,
                             maxIntensity,
@@ -1335,6 +1338,10 @@ export const useStatusStore = defineStore('statusStore', {
                                 case 'jmaEqlist':
                                     this.setHistory(source, data)
                                     break
+                                case 'cencEqlist':
+                                    this.setEqMessage(source, data)
+                                    this.setHistory(source, data)
+                                    break
                                 default:
                                     this.setEqMessage(source, data)
                                     break
@@ -1364,8 +1371,8 @@ export const useStatusStore = defineStore('statusStore', {
                         initMsg.push('cwalist')
                     }
                     if(this.activeFanSources.includes('cencEqlist')) {
-                        autoMsg.push('cencirlist', 'cenclist')
-                        initMsg.push('cencirlist', 'cenclist')
+                        autoMsg.push('cencirlist')
+                        initMsg.push('cencirlist')
                     }
                     if(this.activeFanSources.includes('fssnEqlist')) {
                         autoMsg.push('fssnlist')
@@ -1407,12 +1414,14 @@ export const useStatusStore = defineStore('statusStore', {
                                 this.setHistory(source, Data)
                                 break
                             }
+                            /*
                             case 'cenclist_response': {
                                 const source = 'cencEqlist'
                                 const Data = data?.Data
                                 this.setHistory(source, Data)
                                 break
                             }
+                            */
                             case 'fssnlist_response': {
                                 const source = 'fssnEqlist'
                                 const Data = data?.Data
