@@ -195,6 +195,7 @@ export const useStatusStore = defineStore('statusStore', {
         showMockDialog: false,
         showStatusPanel: false,
         httpRequest: null,
+        wsConnectTimer: null,
         wolfxSocket: null,
         fanSocket: null,
         p2pquakeSocket: null,
@@ -1523,6 +1524,8 @@ export const useStatusStore = defineStore('statusStore', {
         },
         disconnect(){
             clearInterval(this.httpRequest)
+            clearTimeout(this.wsConnectTimer)
+            this.wsConnectTimer = null
             if(this.wolfxSocket) this.wolfxSocket.close()
             if(this.fanSocket) this.fanSocket.close()
             if(this.p2pquakeSocket) this.p2pquakeSocket.close()
@@ -1530,7 +1533,11 @@ export const useStatusStore = defineStore('statusStore', {
         },
         startUpdatingEqMessage(){
             this.connect('http')
-            this.connect('ws')
+            clearTimeout(this.wsConnectTimer)
+            this.wsConnectTimer = setTimeout(() => {
+                this.wsConnectTimer = null
+                this.connect('ws')
+            }, 500)
         },
         setActive(source, isActive){
             this.isActive[source] = isActive

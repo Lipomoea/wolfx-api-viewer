@@ -25,15 +25,11 @@ import EqGrid from "@/components/components/EqGrid.vue";
 import MockEew from "./components/MockEew.vue";
 import { useSettingsStore } from "@/stores/settings";
 import { eewSources, eqlistSources, useStatusStore } from "@/stores/status";
-import { eqUrls } from "@/utils/Urls";
 import SeisNetComponent from "./SeisNetComponent.vue";
 import TyphoonComponent from "./TyphoonComponent.vue";
 
 const settingsStore = useSettingsStore();
 const statusStore = useStatusStore();
-
-if (settingsStore.advancedSettings.enableGqEew)
-    Object.assign(eqUrls, JSON.parse(localStorage.getItem("gqUrl")));
 
 const eewList = eewSources.filter(
     source => settingsStore.isDataSourceEnabled(source)

@@ -14,7 +14,7 @@ import { computed, onBeforeMount, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useTimeStore } from './stores/time';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from './stores/settings';
-import { topojsonUrls } from './utils/Urls';
+import { eqUrls, topojsonUrls } from './utils/Urls';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { platform } from '@tauri-apps/plugin-os';
 import { invoke, isTauri } from '@tauri-apps/api/core';
@@ -82,6 +82,7 @@ onBeforeMount(async () => {
   settingsStore.setMainSettings(localStorage.getItem('mainSettings'))
   settingsStore.setAdvancedSettings(localStorage.getItem('advancedSettings'))
   settingsStore.mainSettings.displaySeisNet.delay = 0
+  if(settingsStore.advancedSettings.enableGqEew) Object.assign(eqUrls, JSON.parse(localStorage.getItem('gqUrl')))
   if(settingsStore.advancedSettings.enableNmefcTsunami) Object.assign(topojsonUrls, JSON.parse(localStorage.getItem('nmefcTsunami')))
   timeStore.startUpdatingTime()
   statusStore.configureDataSources(settingsStore.mainSettings.dataSources)
