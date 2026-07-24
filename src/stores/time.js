@@ -17,7 +17,7 @@ export const useTimeStore = defineStore('timeStore', {
             this.stopUpdatingTime()
             this.calibrateOffset()
             this.updateTime()
-            setTimeout(() => {
+            this.calibrateTimeout = setTimeout(() => {
                 this.calibrateOffset()
                 this.updateTime()
             }, 5000);
@@ -27,6 +27,7 @@ export const useTimeStore = defineStore('timeStore', {
         stopUpdatingTime() {
             clearInterval(this.updateInterval);
             clearInterval(this.calibrateInterval);
+            clearTimeout(this.calibrateTimeout);
         },
         async calibrateOffset() {
             for(const source of utilUrls.ntpTime){

@@ -2,27 +2,15 @@ import { defineStore } from 'pinia';
 import merge from 'lodash/merge';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { calcDistanceKm } from '@/utils/Utils';
+import { createDefaultDataSources, migrateLegacyDataSources } from '@/utils/DataSources';
 
 export const useSettingsStore = defineStore('settingsStore', {
     state: ()=>({
         mainSettings: {
-            source: {
-                jmaEew: false,
-                cwaEew: true,
-                ceaEew: true,
-                iclEew: false,
-                scEew: true,
-                fjEew: true,
-                kmaEew: false,
-                gqEew: false,
-                jmaEqlist: false,
-                cwaEqlist: true,
-                cencEqlist: true,
-                kmaEqlist: false,
-                usgsEqlist: false,
-                fssnEqlist: false,
-                jmaTsunami: false,
-                nmefcTsunami: true,
+            dataSources: createDefaultDataSources(),
+            provinceCeaEew: false,
+            apiKeys: {
+                fanApiKey: ''
             },
             displaySeisNet: {
                 style: 'nied',
@@ -130,13 +118,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             enableTremFunctions: false,
             enableGqEew: false,
             enableNmefcTsunami: false,
-            enableMultiApi: false,
-            provinceCeaEew: false,
             defaultFanServer: 0,
-            tokens: {
-                fanApiKey: ''
-            },
-            multiApi: false,
             displayApiType: false,
             forceCalcInt: false,
             useClassicMapLoader: false,
@@ -169,19 +151,62 @@ export const useSettingsStore = defineStore('settingsStore', {
             }
             return nearestLoc
         },
-        actionWhiteListArr: (state) => state.mainSettings.actionWhiteList.split('|').filter(key => key)
+        actionWhiteListArr: (state) => state.mainSettings.actionWhiteList.split('|').filter(key => key),
+        isDataSourceEnabled: state => source => Object.values(state.mainSettings.dataSources[source] || {}).some(Boolean),
+        isDataSourceFullyEnabled: state => source => {
+            const apis = Object.values(state.mainSettings.dataSources[source] || {})
+            return apis.length > 0 && apis.every(Boolean)
+        },
+        isDataSourcePartiallyEnabled: state => source => {
+            const apis = Object.values(state.mainSettings.dataSources[source] || {})
+            return apis.some(Boolean) && !apis.every(Boolean)
+        },
+        enabledDataSources: state => Object.entries(state.mainSettings.dataSources)
+            .filter(([, apis]) => Object.values(apis).some(Boolean))
+            .map(([source]) => source),
     },
     actions: {
+        setDataSourceEnabled(source, enabled) {
+            const apis = this.mainSettings.dataSources[source]
+            if(!apis) return
+            Object.keys(apis).forEach(api => {
+                apis[api] = enabled
+            })
+        },
         setMainSettings(jsonString){
             if(jsonString){
                 const json = JSON.parse(jsonString)
+                if(!json.dataSources && json.source) {
+                    json.dataSources = migrateLegacyDataSources(json.source)
+                }
+                delete json.dataSources?.cwaEqlist?.trem
+                delete json.dataSources?.iclEew?.lipo
+                delete json.source
                 if(json.historySources) this.mainSettings.historySources = []
                 merge(this.mainSettings, json)
             }
         },
         setAdvancedSettings(jsonString){
             if(jsonString){
-                merge(this.advancedSettings, JSON.parse(jsonString))
+                const json = JSON.parse(jsonString)
+                let migrated = false
+                if('provinceCeaEew' in json) {
+                    this.mainSettings.provinceCeaEew = Boolean(json.provinceCeaEew)
+                    delete json.provinceCeaEew
+                    migrated = true
+                }
+                if('tokens' in json) {
+                    delete json.tokens
+                    migrated = true
+                }
+                if('enableMultiApi' in json || 'multiApi' in json) {
+                    delete json.enableMultiApi
+                    delete json.multiApi
+                    localStorage.removeItem('multiApi')
+                    migrated = true
+                }
+                if(migrated) localStorage.setItem('advancedSettings', JSON.stringify(json))
+                merge(this.advancedSettings, json)
             }
         },
     }

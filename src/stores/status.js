@@ -2,13 +2,21 @@ import { defineStore } from 'pinia';
 import Http from '@/classes/Http';
 import WebSocketObj from '@/classes/WebSocket';
 import { eqUrls, FAN_API_APP_ID, iconUrls, tsunamiUrls } from '@/utils/Urls';
-import { setClassName, calcCsisLevel, stampToTime, getShindoFromInstShindo, shindoScaleKanji, calcTimeDiff, playSound, sendMyNotification, focusWindow, formatShindo } from '@/utils/Utils';
+import { setClassName, calcCsisLevel, stampToTime, getShindoFromInstShindo, shindoScaleKanji, calcTimeDiff, playSound, sendMyNotification, focusWindow, formatShindo, timeToStamp } from '@/utils/Utils';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { useSettingsStore } from './settings';
 import { isTauri } from '@tauri-apps/api/core';
 import { getFEName } from '@/utils/FERegions';
 import isEqual from 'lodash/isEqual';
 import dayjs from "dayjs";
+import {
+    eewSources,
+    eqlistSources,
+    tsunamiSources,
+    wolfxSocketSources,
+    fanSocketSources,
+    p2pquakeSocketSources,
+} from '@/utils/DataSources';
 // import utc from "dayjs/plugin/utc";
 // import timezone from "dayjs/plugin/timezone";
 // dayjs.extend(utc);
@@ -58,14 +66,8 @@ export const defaultTsunamiMessage = {
     className: ''
 }
 
-export const eewSources = ['jmaEew', 'cwaEew', 'ceaEew', 'iclEew', 'scEew', 'fjEew', 'kmaEew', 'gqEew']
-export const eqlistSources = ['jmaEqlist', 'cwaEqlist', 'cencEqlist', 'kmaEqlist', 'usgsEqlist', 'fssnEqlist']
-export const tsunamiSources = ['jmaTsunami', 'nmefcTsunami']
+export { eewSources, eqlistSources, tsunamiSources }
 export const seisNetSources = ['niedNet', 'tremNet', 'kmaNet']
-
-const useWolfxSocket = ['jmaEew', 'cwaEew', 'ceaEew', 'scEew', 'fjEew', 'jmaEqlist', 'cencEqlist']
-const useFanSocket = ['jmaEew', 'cwaEew', 'ceaEew', 'iclEew', 'scEew', 'fjEew', 'kmaEew', 'cwaEqlist', 'cencEqlist', 'kmaEqlist', 'usgsEqlist', 'fssnEqlist', 'nmefcTsunami']
-const useP2pquakeSocket = ['jmaEqlist', 'jmaTsunami']
 
 const wolfx2Source = {
     'jma_eew': 'jmaEew',
@@ -120,7 +122,6 @@ export const sourceTypes = {
         1: 'FAN'
     },
     iclEew: {
-        0: 'Lipo',
         1: 'FAN'
     },
     scEew: {
@@ -150,7 +151,6 @@ export const sourceTypes = {
         0: 'P2PQ'
     },
     cwaEqlist: {
-        0: 'TREM',
         1: 'FAN'
     },
     cencEqlist: {
@@ -175,6 +175,18 @@ export const sourceTypes = {
 let usgsCache = null
 
 const maxIntReportNum = 50
+const cencHistoryTolerance = 1e-9
+
+const isSameCencHistoryEvent = (event1, event2) => {
+    const stamp1 = timeToStamp(event1.originTime, event1.timeZone)
+    const stamp2 = timeToStamp(event2.originTime, event2.timeZone)
+    return Number.isFinite(stamp1)
+        && stamp1 === stamp2
+        && Math.abs(event1.lat - event2.lat) <= cencHistoryTolerance
+        && Math.abs(event1.lng - event2.lng) <= cencHistoryTolerance
+        && Math.abs(event1.depth - event2.depth) <= cencHistoryTolerance
+        && Math.abs(event1.magnitude - event2.magnitude) <= cencHistoryTolerance
+}
 
 export const useStatusStore = defineStore('statusStore', {
     state: ()=>({
@@ -187,8 +199,8 @@ export const useStatusStore = defineStore('statusStore', {
         fanSocket: null,
         p2pquakeSocket: null,
         gqSocket: null,
+        sourceRoutes: {},
         enabledSource: [],
-        multiApi: false,
         isNiedUpdating: false,
         eqMessage: {
             jmaEew: Object.assign({}, defaultEqMessage),
@@ -241,16 +253,31 @@ export const useStatusStore = defineStore('statusStore', {
             usgsEqlist: [],
             fssnEqlist: [],
         },
+        cencHistoryCache: {
+            wolfx: [],
+            fan: [],
+        },
         intReportIds: new Set(),
         historyList: null,
     }),
     getters: {
-        activeWolfxSources: state => useWolfxSocket.filter(source => state.enabledSource.includes(source)),
-        activeFanSources: state => useFanSocket.filter(source => state.enabledSource.includes(source)),
-        activeP2pquakeSources: state => useP2pquakeSocket.filter(source => state.enabledSource.includes(source)),
+        activeWolfxSources: state => wolfxSocketSources.filter(source => state.sourceRoutes[source]?.wolfx),
+        activeFanSources: state => fanSocketSources.filter(source => state.sourceRoutes[source]?.fan),
+        activeP2pquakeSources: state => p2pquakeSocketSources.filter(source => state.sourceRoutes[source]?.p2pquake),
         activeEqlistSources: state => eqlistSources.filter(source => state.enabledSource.includes(source)),
     },
     actions: {
+        configureDataSources(routes) {
+            this.sourceRoutes = Object.fromEntries(
+                Object.entries(routes).map(([source, apis]) => [source, { ...apis }])
+            )
+            this.enabledSource = Object.entries(this.sourceRoutes)
+                .filter(([, apis]) => Object.values(apis).some(Boolean))
+                .map(([source]) => source)
+        },
+        isApiEnabled(source, api) {
+            return Boolean(this.sourceRoutes[source]?.[api])
+        },
         setEqMessage(source, data, type = 0) {
             try{
                 const eqMessage = this.eqMessage[source]
@@ -485,27 +512,6 @@ export const useStatusStore = defineStore('statusStore', {
                     }
                     case 'iclEew':{
                         switch(type) {
-                            case 0: 
-                                eqMessage.id = data.eventId
-                                eqMessage.isEew = true
-                                eqMessage.reportNum = data.updates
-                                eqMessage.reportNumText = '第' + data.updates + '报'
-                                eqMessage.reportTime = stampToTime(data.updateAt, 8)
-                                eqMessage.titleText = '成都高新减灾研究所地震预警'
-                                eqMessage.hypocenter = data.epicenter
-                                eqMessage.hypocenterText = '震中: ' + data.epicenter
-                                eqMessage.lat = data.latitude
-                                eqMessage.lng = data.longitude
-                                eqMessage.depth = data.depth || 10
-                                eqMessage.depthText = '深度: ' + (data.depth ? data.depth.toFixed(0) + 'km' : '不明')
-                                eqMessage.originTime = stampToTime(data.startAt, 8)
-                                eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
-                                eqMessage.magnitude = data.magnitude
-                                eqMessage.magnitudeText = '震级: ' + data.magnitude.toFixed(1)
-                                eqMessage.maxIntensity = data.epiIntensity ? data.epiIntensity.toFixed(0) : calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
-                                eqMessage.maxIntensityText = '预估最大烈度: ' + eqMessage.maxIntensity
-                                eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 6.5
-                                break
                             case 1:
                                 eqMessage.id = data.eventId
                                 eqMessage.isEew = true
@@ -801,25 +807,6 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.useShindo = true
                         eqMessage.titleText = '中央氣象署地震報告'
                         switch(type) {
-                            case 0: {
-                                eqMessage.id = data.id
-                                eqMessage.reportTime = stampToTime(data.time + 300 * 1000, 8)
-                                const start = data.loc.indexOf('(位於')
-                                const end = data.loc.indexOf(')')
-                                eqMessage.hypocenter = start == -1 || end == -1 || start + 3 >= end ? data.loc : data.loc.slice(start + 3, end)
-                                eqMessage.hypocenterText = '震央: ' + eqMessage.hypocenter
-                                eqMessage.lat = data.lat
-                                eqMessage.lng = data.lon
-                                eqMessage.depth = data.depth
-                                eqMessage.depthText = '深度: ' + data.depth.toFixed(0) + 'km'
-                                eqMessage.originTime = stampToTime(data.time, 8)
-                                eqMessage.originTimeText = '時間: ' + eqMessage.originTime
-                                eqMessage.magnitude = data.mag
-                                eqMessage.magnitudeText = '規模: ' + data.mag.toFixed(1)
-                                eqMessage.maxIntensity = shindoScaleKanji[data.int] || '不明'
-                                eqMessage.maxIntensityText = '最大震度: ' + eqMessage.maxIntensity
-                                break
-                            }
                             case 1: {
                                 eqMessage.id = data.id
                                 eqMessage.reportTime = dayjs(data.shockTime, 'YYYY-MM-DD HH:mm:ss').add(5, 'minutes').format('YYYY-MM-DD HH:mm:ss')
@@ -1135,13 +1122,15 @@ export const useStatusStore = defineStore('statusStore', {
                 console.log(err);
             }
         },
-        setHistory(source, data) {
+        setHistory(source, data, api = '') {
             const list = []
             let keys
             switch (source) {
                 case 'jmaEqlist':
-                case 'cencEqlist':
                     keys = Object.keys(data).filter(key => /^No\d+$/.test(key))
+                    break
+                case 'cencEqlist':
+                    keys = api == 'fan' ? Object.keys(data) : Object.keys(data).filter(key => /^No\d+$/.test(key))
                     break
                 default:
                     keys = Object.keys(data)
@@ -1194,19 +1183,22 @@ export const useStatusStore = defineStore('statusStore', {
                     }
                     case 'cencEqlist': {
                         const item = data[keys[i]]
+                        const isFan = api == 'fan'
+                        const originTime = isFan ? item.shockTime : item.time
+                        const isReviewed = isFan ? item.infoTypeName.includes('正式') : item.type == 'reviewed'
                         const depth = Number(item.depth)
                         const magnitude = Number(item.magnitude)
                         const maxIntensity = calcCsisLevel(magnitude, depth)
-                        const intReportId = item.time.replace(/[^\d]/g, '')
+                        const intReportId = originTime.replace(/[^\d]/g, '')
                         list[i] = {
                             source: 'CENC',
-                            id: item.EventID,
+                            id: isFan ? item.id : item.EventID,
                             timeZone: 8,
                             useShindo: false,
-                            originTime: item.time,
+                            originTime,
                             lat: Number(item.latitude),
                             lng: Number(item.longitude),
-                            hypocenter: (item.type == 'reviewed' ? '' : '(A)') + item.placeName,
+                            hypocenter: (isReviewed ? '' : '(A)') + item.placeName,
                             depth,
                             magnitude,
                             maxIntensity,
@@ -1281,7 +1273,20 @@ export const useStatusStore = defineStore('statusStore', {
                     }
                 }
             }
-            if(list.length > 0)
+            if(source == 'cencEqlist') {
+                const cacheKey = api == 'fan' ? 'fan' : 'wolfx'
+                this.cencHistoryCache[cacheKey] = list
+                const fanList = this.cencHistoryCache.fan
+                const merged = [...fanList]
+                this.cencHistoryCache.wolfx.forEach(wolfxEvent => {
+                    if(!fanList.some(fanEvent => isSameCencHistoryEvent(fanEvent, wolfxEvent))) {
+                        merged.push(wolfxEvent)
+                    }
+                })
+                merged.sort((a, b) => timeToStamp(b.originTime, b.timeZone) - timeToStamp(a.originTime, a.timeZone))
+                this.history[source] = merged
+            }
+            else if(list.length > 0)
                 this.history[source] = list
         },        
         connect(protocol){
@@ -1292,31 +1297,19 @@ export const useStatusStore = defineStore('statusStore', {
                     const stamp = Date.now()
                     status = (status + 1) % 60
                     const promises = this.enabledSource.map(async source=>{
-                        if(source == 'jmaEqlist' && status % 2 == 0 && (!this.eqMessage[source].id || status % 10 == 0)) {
+                        if(source == 'jmaEqlist' && this.isApiEnabled(source, 'p2pquake') && status % 2 == 0 && (!this.eqMessage[source].id || status % 10 == 0)) {
                             const data = await Http.get(eqUrls.jmaEqlist_http)
                             if(data && data.length > 0) this.setEqMessage(source, data[0])
                         }
-                        if(source == 'jmaTsunami' && status % 2 == 1 && (!this.tsunamiMessage[source].id || status % 10 == 1)) {
+                        if(source == 'jmaTsunami' && this.isApiEnabled(source, 'p2pquake') && status % 2 == 1 && (!this.tsunamiMessage[source].id || status % 10 == 1)) {
                             const data = await Http.get(tsunamiUrls.jmaTsunami_http)
                             if(data && data.length > 0) this.setTsunamiMessage(source, data[0])
                         }
-                        if(source == 'cwaEqlist' && 'cwaEqlist_http' in eqUrls) {
-                            const data = await Http.get(eqUrls.cwaEqlist_http + `&time=${stamp}`)
-                            if(data && data.length > 0) {
-                                this.setEqMessage(source, data[0])
-                            }
-                        }
-                        if(source == 'usgsEqlist' && status % 10 == 0) {
+                        if(source == 'usgsEqlist' && this.isApiEnabled(source, 'usgs') && status % 10 == 0) {
                             const data = await Http.get(eqUrls.usgsEqlist_http + `?time=${stamp}`)
                             if(data) {
                                 this.setEqMessage(source, data.features[0])
                                 this.setHistory(source, data.features)
-                            }
-                        }
-                        if(this.multiApi) {
-                            if(source == 'iclEew' && 'iclEew_http' in eqUrls) {
-                                const data = await Http.get(eqUrls.iclEew_http + `?time=${stamp}`)
-                                if(data && Object.keys(data).length > 0) this.setEqMessage(source, data)
                             }
                         }
                     })
@@ -1340,7 +1333,7 @@ export const useStatusStore = defineStore('statusStore', {
                                     break
                                 case 'cencEqlist':
                                     this.setEqMessage(source, data)
-                                    this.setHistory(source, data)
+                                    this.setHistory(source, data, 'wolfx')
                                     break
                                 default:
                                     this.setEqMessage(source, data)
@@ -1352,7 +1345,7 @@ export const useStatusStore = defineStore('statusStore', {
                 if(this.fanSocket) this.fanSocket.close()
                 if(this.activeFanSources.length > 0) {
                     const settingsStore = useSettingsStore()
-                    if(settingsStore.advancedSettings.provinceCeaEew) {
+                    if(settingsStore.mainSettings.provinceCeaEew) {
                         source2Fan['ceaEew'] = 'cea-pr'
                         fan2Source['cea'] = 'ceaEew'
                         fan2Source['cea-pr'] = 'ceaEew'
@@ -1363,7 +1356,7 @@ export const useStatusStore = defineStore('statusStore', {
                         delete fan2Source['cea-pr']
                     }
                     const initMsg = []
-                    const apiKey = settingsStore.advancedSettings.tokens.fanApiKey
+                    const apiKey = settingsStore.mainSettings.apiKeys.fanApiKey
                     if(apiKey) {
                         initMsg.push(JSON.stringify({
                             type: 'auth',
@@ -1377,8 +1370,8 @@ export const useStatusStore = defineStore('statusStore', {
                         initMsg.push('cwalist')
                     }
                     if(this.activeFanSources.includes('cencEqlist')) {
-                        autoMsg.push('cencirlist')
-                        initMsg.push('cencirlist')
+                        autoMsg.push('cencirlist', 'cenclist')
+                        initMsg.push('cencirlist', 'cenclist')
                     }
                     if(this.activeFanSources.includes('fssnEqlist')) {
                         autoMsg.push('fssnlist')
@@ -1431,24 +1424,23 @@ export const useStatusStore = defineStore('statusStore', {
                             case 'cwalist_response': {
                                 const source = 'cwaEqlist'
                                 const Data = data?.Data
-                                this.setHistory(source, Data)
+                                if(this.isApiEnabled(source, 'fan')) this.setHistory(source, Data)
                                 break
                             }
-                            /*
                             case 'cenclist_response': {
                                 const source = 'cencEqlist'
                                 const Data = data?.Data
-                                this.setHistory(source, Data)
+                                if(this.isApiEnabled(source, 'fan')) this.setHistory(source, Data, 'fan')
                                 break
                             }
-                            */
                             case 'fssnlist_response': {
                                 const source = 'fssnEqlist'
                                 const Data = data?.Data
-                                this.setHistory(source, Data)
+                                if(this.isApiEnabled(source, 'fan')) this.setHistory(source, Data)
                                 break
                             }
                             case 'cencirlist_response': {
+                                if(!this.isApiEnabled('cencEqlist', 'fan')) break
                                 const isEmpty = this.intReportIds.size == 0
                                 const arr = data.Data?.map(item => ({
                                     id: String(item.id),
@@ -1508,7 +1500,7 @@ export const useStatusStore = defineStore('statusStore', {
                     })
                 }
                 if(this.gqSocket) this.gqSocket.close()
-                if(this.enabledSource.includes('gqEew') && 'gqEew_ws' in eqUrls) {
+                if(this.isApiEnabled('gqEew', 'globalquake') && 'gqEew_ws' in eqUrls) {
                     this.gqSocket = new WebSocketObj(eqUrls.gqEew_ws, ['ping'])
                     this.gqSocket.setMessageHandler((e)=>{
                         const data = JSON.parse(e.data)
@@ -1521,7 +1513,7 @@ export const useStatusStore = defineStore('statusStore', {
             }
         },
         getIrDetail(id) {
-            if(this.fanSocket && id) {
+            if(this.fanSocket && this.isApiEnabled('cencEqlist', 'fan') && id) {
                 const msg = {
                     type: 'cencirdetail',
                     id
@@ -1538,9 +1530,7 @@ export const useStatusStore = defineStore('statusStore', {
         },
         startUpdatingEqMessage(){
             this.connect('http')
-            setTimeout(() => {
-                this.connect('ws')
-            }, 500);
+            this.connect('ws')
         },
         setActive(source, isActive){
             this.isActive[source] = isActive

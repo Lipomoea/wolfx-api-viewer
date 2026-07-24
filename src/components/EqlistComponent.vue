@@ -48,8 +48,8 @@
       </div>
       <div class="content" ref="content">
         <div class="wrap">
-          <NmefcTsunami v-if="settingsStore.mainSettings.source.nmefcTsunami" v-show="statusStore.isActive.nmefcTsunami" />
-          <JmaTsunami v-if="settingsStore.mainSettings.source.jmaTsunami" v-show="statusStore.isActive.jmaTsunami" />
+          <NmefcTsunami v-if="settingsStore.isDataSourceEnabled('nmefcTsunami')" v-show="statusStore.isActive.nmefcTsunami" />
+          <JmaTsunami v-if="settingsStore.isDataSourceEnabled('jmaTsunami')" v-show="statusStore.isActive.jmaTsunami" />
           <EqlistHistoryComponent />
         </div>
       </div>

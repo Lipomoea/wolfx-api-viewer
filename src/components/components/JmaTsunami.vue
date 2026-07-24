@@ -49,7 +49,7 @@
 import '@/assets/background.css';
 import { defaultTsunamiMessage, useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
-import { computed, watch, inject } from 'vue';
+import { computed, watch, inject, onBeforeUnmount } from 'vue';
 import { focusWindow, openUrl, playSound, sendMyNotification } from '@/utils/Utils';
 import { iconUrls } from '@/utils/Urls';
 
@@ -91,9 +91,18 @@ const handleClick = ()=>{
 
 let oldMessage = Object.assign({}, defaultTsunamiMessage)
 let currentStatus = 'notsunami'
-watch(() => statusStore.map, newVal => {
-    if(newVal !== null) {
-        watch(() => statusStore.tsunamiMessage.jmaTsunami, newMessage => {
+const soundTimers = new Set()
+const scheduleSound = (sound, delay) => {
+    const timer = setTimeout(() => {
+        soundTimers.delete(timer)
+        playSound(sound)
+    }, delay)
+    soundTimers.add(timer)
+}
+watch(
+    [() => statusStore.map, () => statusStore.tsunamiMessage.jmaTsunami],
+    ([map, newMessage]) => {
+        if(map !== null) {
             let title, body, icon, speech, playEws = false, shouldFocus = true
             if(newMessage.status > oldMessage.status) {
                 currentStatus = `tsunami${newMessage.status}issue`
@@ -138,12 +147,8 @@ watch(() => statusStore.map, newVal => {
             }
             if(sound && speech) {
                 if(playEws) {
-                    setTimeout(() => {
-                        playSound("ews")
-                    }, 1500);
-                    setTimeout(() => {
-                        playSound(speech)
-                    }, 12000);
+                    scheduleSound('ews', 1500)
+                    scheduleSound(speech, 12000)
                 }
                 else {
                     playSound(speech)
@@ -154,9 +159,14 @@ watch(() => statusStore.map, newVal => {
             }
             if(shouldFocus) handleTempEqlists(settingsStore.mainSettings.tempTsunamiDuration * 1000, 'jmaTsunami')
             Object.assign(oldMessage, newMessage)
-        }, { immediate: true, deep: true })
-    }
-}, { immediate: true })
+        }
+    },
+    { immediate: true, deep: true }
+)
+onBeforeUnmount(() => {
+    soundTimers.forEach(timer => clearTimeout(timer))
+    soundTimers.clear()
+})
 </script>
 
 <style lang="scss" scoped>

@@ -29,6 +29,7 @@ const stations = reactive({})
 let stationCanvasLayer = null
 let gridCanvasLayer = null
 let map
+let stopped = false
 const delay = computed(()=>settingsStore.mainSettings.displaySeisNet.delay * 60000)
 const tremMaxShindo = inject('tremMaxShindo')
 const tremUpdateTime = inject('tremUpdateTime')
@@ -37,6 +38,12 @@ const tremPeriodBarClass = inject('tremPeriodBarClass')
 const handleTempEqlists = inject('handleTempEqlists')
 const smartSetView = inject('smartSetView')
 let periodMaxLevel = -1
+const handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible' && pendingRender) {
+        pendingRender = false
+        renderAll()
+    }
+}
 const currentMaxShindo = computed(()=>{
     const currentMaxLevel = Math.max(...grids.value.map(grid => grid.level), -1)
     if(currentMaxLevel == -1) return -1
@@ -114,8 +121,10 @@ const clearReactiveObject = (obj) => {
 }
 let fetchStationInterval, requestInterval
 const fetchStationList = async () => {
+    if(stopped) return
     try {
         const res = await Http.get(seisNetUrls?.trem.stationList + `?time=${Date.now()}`)
+        if(stopped) return
         if(res && JSON.stringify(res) != JSON.stringify(stationList)){
             clearReactiveObject(stationList)
             Object.assign(stationList, res)
@@ -128,9 +137,11 @@ onMounted(()=>{
     fetchStationInterval = setInterval(fetchStationList, 180 * 1000);
     fetchStationList()
     requestInterval = setInterval(async () => {
+        if(stopped) return
         try {
             const time = timeStore.getTimeStamp() - delay.value
             const res = await Http.get(stationDataUrl.value + (delay.value > 0 ? `/${Math.round(time / 1000)}` : `?time=${time}`), { timeout: 3000 })
+            if(stopped) return
             if(res && Object.keys(res).length > 0){
                 stationData = res.station
                 const timeString = stampToTime(res.time, 8)
@@ -144,12 +155,7 @@ onMounted(()=>{
             console.log(err);
         }
     }, 1000);
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible' && pendingRender) {
-            pendingRender = false
-            renderAll()
-        }
-    })
+    document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 let unwatchStationList, unwatchGrids, unwatchRender
 watch(()=>statusStore.map, newVal=>{
@@ -256,24 +262,28 @@ watch(currentMaxShindo, (newVal, oldVal)=>{
 })
 const stationDataUrl = computed(() => delay.value > 0 ? seisNetUrls?.trem.stationData : seisNetUrls?.trem.stationData.replace('api-2', settingsStore.mainSettings.displaySeisNet.tremApi))
 onBeforeUnmount(()=>{
+    stopped = true
     clearInterval(fetchStationInterval)
     clearInterval(requestInterval)
-    if(map !== null) map.off('zoomend', renderAll)
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
     if(unwatchStationList) unwatchStationList()
     if(unwatchGrids) unwatchGrids()
     if(unwatchRender) unwatchRender()
-    if(stationCanvasLayer && map?.hasLayer(stationCanvasLayer)) map.removeLayer(stationCanvasLayer)
+    if(map) {
+        map.off('zoomend', renderAll)
+        if(stationCanvasLayer && map.hasLayer(stationCanvasLayer)) map.removeLayer(stationCanvasLayer)
+        if(gridCanvasLayer && map.hasLayer(gridCanvasLayer)) map.removeLayer(gridCanvasLayer)
+        map.eachLayer(layer=>{
+            if(layer.options.pane == 'tremGridPane' || layer.options.pane?.includes('tremStationPane')){
+                map.removeLayer(layer)
+            }
+        })
+    }
     stationCanvasLayer = null
-    if(gridCanvasLayer && map?.hasLayer(gridCanvasLayer)) map.removeLayer(gridCanvasLayer)
     gridCanvasLayer = null
     Object.keys(stations).forEach(id=>{
         stations[id].terminate()
         delete stations[id]
-    })
-    map.eachLayer(layer=>{
-        if(layer.options.pane == 'tremGridPane' || layer.options.pane?.includes('tremStationPane')){
-            map.removeLayer(layer)
-        }
     })
     statusStore.isActive.tremNet = false
 })

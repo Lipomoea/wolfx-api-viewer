@@ -3,95 +3,16 @@
         <div class="container">
             <div class="title">设置</div>
             <div class="settings">
-                <span class="sub-title">
-                    预警/信息数据源
-                    <el-popover
-                        placement="top"
-                        :width="300"
-                        trigger="hover"
-                    >
-                        <template #reference>
-                            <question-filled width="1em" height="1em" />
-                        </template>
-                        <strong>
-                            <p>需重新加载页面后生效。</p>
-                        </strong>
-                    </el-popover>
-                </span>
-                <div class="group">
-                    <div class="switch-group">
-                        <span class="font-bold w-full">地震预警</span>
-                        <div class="switch-full">
-                            <div>中国地震局: 地震预警</div>
-                            <el-switch v-model="settingsStore.mainSettings.source.ceaEew" @change="handleNeedReload" />
-                        </div>
-                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableIclEew">
-                            <div>成都高新减灾研究所: 地震预警</div>
-                            <el-switch v-model="settingsStore.mainSettings.source.iclEew" @change="handleNeedReload" />
-                        </div>
-                        <div class="switch-full">
-                            <div>四川地震局: 地震预警</div>
-                            <el-switch v-model="settingsStore.mainSettings.source.scEew" @change="handleNeedReload" />
-                        </div>
-                        <div class="switch-full">
-                            <div>福建地震局: 地震预警</div>
-                            <el-switch v-model="settingsStore.mainSettings.source.fjEew" @change="handleNeedReload" />
-                        </div>
-                        <div class="switch-full">
-                            <div>臺灣中央氣象署: 強震即時警報</div>
-                            <el-switch v-model="settingsStore.mainSettings.source.cwaEew" @change="handleNeedReload" />
-                        </div>
-                        <div class="switch-full">
-                            <div>日本気象庁: 緊急地震速報</div>
-                            <el-switch v-model="settingsStore.mainSettings.source.jmaEew" @change="handleNeedReload" />
-                        </div>
-                        <div class="switch-full">
-                            <div>기상청: 지진 조기 경보</div>
-                            <el-switch v-model="settingsStore.mainSettings.source.kmaEew" @change="handleNeedReload" />
-                        </div>
-                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableGqEew">
-                            <div>GlobalQuake: 地震预警</div>
-                            <el-switch v-model="settingsStore.mainSettings.source.gqEew" @change="handleNeedReload" />
-                        </div>
-                    </div>
-                    <div class="switch-group">
-                        <span class="font-bold w-full">地震信息</span>
-                        <div class="switch-full">
-                            <div>中国地震台网: 地震测定</div>
-                            <el-switch v-model="settingsStore.mainSettings.source.cencEqlist" @change="handleNeedReload" />
-                        </div>
-                        <div class="switch-full">
-                            <div>臺灣中央氣象署: 地震報告</div>
-                            <el-switch v-model="settingsStore.mainSettings.source.cwaEqlist" @change="handleNeedReload" />
-                        </div>
-                        <div class="switch-full">
-                            <div>日本気象庁: 地震情報</div>
-                            <el-switch v-model="settingsStore.mainSettings.source.jmaEqlist" @change="handleNeedReload" />
-                        </div>
-                        <div class="switch-full">
-                            <div>기상청: 지진 정보</div>
-                            <el-switch v-model="settingsStore.mainSettings.source.kmaEqlist" @change="handleNeedReload" />
-                        </div>
-                        <div class="switch-full">
-                            <div>USGS: 地震测定</div>
-                            <el-switch v-model="settingsStore.mainSettings.source.usgsEqlist" @change="handleNeedReload" />
-                        </div>
-                        <div class="switch-full">
-                            <div>FSSN: 地震测定</div>
-                            <el-switch v-model="settingsStore.mainSettings.source.fssnEqlist" @change="handleFssnEqlist" />
-                        </div>
-                    </div>
-                    <div class="switch-group">
-                        <span class="font-bold w-full">海啸信息</span>
-                        <div class="switch-full">
-                            <div>自然资源部: 海啸预警</div>
-                            <el-switch v-model="settingsStore.mainSettings.source.nmefcTsunami" @change="handleNeedReload" />
-                        </div>
-                        <div class="switch-full">
-                            <div>日本気象庁: 津波情報</div>
-                            <el-switch v-model="settingsStore.mainSettings.source.jmaTsunami" @change="handleNeedReload" />
-                        </div>
-                    </div>
+                <span class="sub-title">预警/信息数据源</span>
+                <div class="group data-source-actions">
+                    <el-button type="primary" plain @click="showDataSourceManager = true">
+                        <el-icon><Setting /></el-icon>
+                        <span>数据源管理</span>
+                    </el-button>
+                    <el-button type="primary" plain @click="showApiKeyManager = true">
+                        <el-icon><Key /></el-icon>
+                        <span>管理 API Key</span>
+                    </el-button>
                 </div>
                 <span class="sub-title">地震监测网</span>
                 <div class="group">
@@ -1120,21 +1041,6 @@
                             </el-select>
                         </div>
                         <div class="switch-full">
-                            <span>中国地震局预警融合省级源</span>
-                            <el-switch v-model="settingsStore.advancedSettings.provinceCeaEew"
-                            @change="handleNeedReload" />
-                        </div>
-                        <div class="switch-full">
-                            <span>管理API Key</span>
-                            <el-button size="small" @click="showTokenManager = true">管理</el-button>
-                        </div>
-                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableMultiApi">
-                            <span>同时接入更多API</span>
-                            <el-switch 
-                            v-model="settingsStore.advancedSettings.multiApi"
-                            @change="handleNeedReload" />
-                        </div>
-                        <div class="switch-full">
                             <span>显示API名称</span>
                             <el-switch v-model="settingsStore.advancedSettings.displayApiType" />
                         </div>
@@ -1314,6 +1220,11 @@
                 </div>
             </div>
         </div>
+        <DataSourceManager
+            v-model="showDataSourceManager"
+            @change="handleNeedReload"
+            @manage-api-key="openApiKeyManager"
+        />
         <el-dialog v-model="verifyDialog" width="300px" top="20vh" :show-close="false" append-to-body>
             <el-form :model="idForm">
                 <el-form-item label="用户名" label-width="60px">
@@ -1356,14 +1267,20 @@
                 <el-button type="default" @click="customizeAudio = false">关闭</el-button>
             </template>
         </el-dialog>
-        <el-dialog v-model="showTokenManager" width="300px" top="20vh" :show-close="false" append-to-body>
-            <el-form :model="idForm">
+        <el-dialog v-model="showApiKeyManager" title="管理 API Key" width="min(460px, 92vw)" top="20vh" :show-close="false" append-to-body>
+            <el-form :model="settingsStore.mainSettings.apiKeys">
                 <el-form-item label="FAN Studio API" label-width="110px">
-                    <el-input v-model="settingsStore.advancedSettings.tokens.fanApiKey" @change="handleNeedReload" />
+                    <div class="api-key-field">
+                        <el-input v-model="settingsStore.mainSettings.apiKeys.fanApiKey" @change="handleNeedReload" />
+                        <el-button type="primary" @click="openUrl('https://api.fanstudio.tech/dev-platform/')">
+                            <el-icon><TopRight /></el-icon>
+                            <span>前往申请</span>
+                        </el-button>
+                    </div>
                 </el-form-item>
             </el-form>
             <template #footer>
-                <el-button type="primary" @click="showTokenManager = false">完成</el-button>
+                <el-button type="primary" @click="showApiKeyManager = false">完成</el-button>
             </template>
         </el-dialog>
         <el-dialog class="about-box" v-model="showAbout" width="60%" :show-close="false" append-to-body>
@@ -1428,7 +1345,7 @@ import { chimeUrls, utilUrls } from '@/utils/Urls';
 import { APP_TITLE, APP_VERSION } from '@/utils/AppInfo';
 import Http from '@/classes/Http';
 import { h, ref, reactive, onMounted, onBeforeUnmount } from 'vue'
-import { QuestionFilled } from '@element-plus/icons-vue';
+import { Key, QuestionFilled, Setting, TopRight } from '@element-plus/icons-vue';
 import { calcPassedTime, formatCsis, openUrl, playSound, setClassName, shindoScale, calcCsisLevel } from '@/utils/Utils';
 import { join, appDataDir } from "@tauri-apps/api/path";
 import { convertFileSrc } from "@tauri-apps/api/core";
@@ -1436,8 +1353,8 @@ import { exists, mkdir } from "@tauri-apps/plugin-fs";
 import { enable, disable, isEnabled } from '@tauri-apps/plugin-autostart';
 import { platform, arch } from '@tauri-apps/plugin-os';
 import { isTauri as getIsTauri } from '@tauri-apps/api/core';
-import { Setting } from '@element-plus/icons-vue';
 import MarkdownIt from 'markdown-it';
+import DataSourceManager from './components/DataSourceManager.vue';
 
 const SHOW_ABOUT_FLG = '20260313.00'
 
@@ -1454,6 +1371,7 @@ const simplifyMarks = {
 }
 const settingsStore = useSettingsStore()
 const statusStore = useStatusStore()
+const showDataSourceManager = ref(false)
 const replayDateTime = ref('')
 const setReplayDateTime = () => {
     const passedTime = Math.max(Math.round(calcPassedTime(replayDateTime.value, 8) / 600) / 100, 0)
@@ -1581,29 +1499,6 @@ const needReload = ref(false)
 const handleReload = () => {
     window.location.reload()
 }
-const handleFssnEqlist = (newVal) => {
-    if(newVal) {
-        ElMessageBox.confirm(
-            `FAN Studio Seismic Network (FSSN)是由FAN Studio提供支持，利用FDSN等地震仪网络进行全球地震测定的项目。
-            该项目由地震学爱好者组织维护，不属于任何官方机构，测定结果仅供参考。
-            请问您是否坚持使用？`,
-            '启用FSSN地震测定',
-            {
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
-                type: 'warning',
-                showClose: false,
-            }
-        ).then(()=>{
-            handleNeedReload()
-        }).catch(()=>{
-            settingsStore.mainSettings.source.fssnEqlist = false
-        })
-    }
-    else {
-        handleNeedReload()
-    }
-}
 const handleMockEew = newVal => {
     if(newVal) {
         ElMessageBox.confirm(
@@ -1625,7 +1520,11 @@ const handleMockEew = newVal => {
         handleNeedReload()
     }
 }
-const showTokenManager = ref(false)
+const showApiKeyManager = ref(false)
+const openApiKeyManager = () => {
+    showDataSourceManager.value = false
+    showApiKeyManager.value = true
+}
 const advancedInput = ref('')
 const verifyDialog = ref(false)
 let verifyType = ''
@@ -1638,7 +1537,6 @@ const handleAdvance = (val)=>{
         case 'enableIclEew':
         case 'enableTremFunctions':
         case 'enableGqEew':
-        case 'enableMultiApi':
         case 'enableNmefcTsunami':
         case 'verifyAdmin': {
             verifyType = val
@@ -1664,9 +1562,9 @@ const handleAdvance = (val)=>{
             break
         }
         case 'disableIclEew': {
-            if(settingsStore.mainSettings.source.iclEew) handleNeedReload()
+            if(settingsStore.isDataSourceEnabled('iclEew')) handleNeedReload()
             settingsStore.advancedSettings.enableIclEew = false
-            settingsStore.mainSettings.source.iclEew = false
+            settingsStore.setDataSourceEnabled('iclEew', false)
             localStorage.removeItem('iclUrl')
             ElMessage({
                 message: '功能已关闭',
@@ -1686,21 +1584,10 @@ const handleAdvance = (val)=>{
             break
         }
         case 'disableGqEew': {
-            if(settingsStore.mainSettings.source.gqEew) handleNeedReload()
+            if(settingsStore.isDataSourceEnabled('gqEew')) handleNeedReload()
             settingsStore.advancedSettings.enableGqEew = false
-            settingsStore.mainSettings.source.gqEew = false
+            settingsStore.setDataSourceEnabled('gqEew', false)
             localStorage.removeItem('gqUrl')
-            ElMessage({
-                message: '功能已关闭',
-                type: 'success'
-            })
-            break
-        }
-        case 'disableMultiApi': {
-            if(settingsStore.advancedSettings.multiApi) handleNeedReload()
-            settingsStore.advancedSettings.enableMultiApi = false
-            settingsStore.advancedSettings.multiApi = false
-            localStorage.removeItem('multiApi')
             ElMessage({
                 message: '功能已关闭',
                 type: 'success'
@@ -1780,25 +1667,6 @@ const postVerify = async (type = verifyType)=>{
             }
             break
         }
-        case 'enableMultiApi': {
-            const res = await Http.post('https://api.lipomoea.tech/multi_api', idForm)
-            if(res && res.success){
-                settingsStore.advancedSettings.enableMultiApi = true
-                localStorage.setItem('multiApi', JSON.stringify(res.data))
-                verifyDialog.value = false
-                ElMessage({
-                    message: '认证成功',
-                    type: 'success'
-                })
-            }
-            else{
-                ElMessage({
-                    message: '认证失败',
-                    type: 'error'
-                })
-            }
-            break
-        }
         case 'enableNmefcTsunami': {
             const res = await Http.post('https://api.lipomoea.tech/cn_tsunami_topo_json_url', idForm)
             if(res && res.success){
@@ -1823,7 +1691,6 @@ const postVerify = async (type = verifyType)=>{
             postVerify('enableIclEew')
             postVerify('enableTremFunctions')
             postVerify('enableGqEew')
-            postVerify('enableMultiApi')
             postVerify('enableNmefcTsunami')
         }
     }
@@ -2130,6 +1997,15 @@ onBeforeUnmount(() => {
                 align-items: flex-start;
                 row-gap: 4px;
             }
+            .data-source-actions{
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 8px;
+
+                .el-button + .el-button{
+                    margin-left: 0;
+                }
+            }
             .switch-group{
                 width: 100%;
                 display: flex;
@@ -2242,6 +2118,12 @@ ul {
 }
 .font-bold {
     font-weight: 700;
+}
+.api-key-field{
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    width: 100%;
 }
 .text-right {
     text-align: right;

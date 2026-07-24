@@ -310,9 +310,11 @@ const fetchTyphoonData = async () => {
 };
 
 let updateTimer;
+let stopped = false;
 const loopFetch = async () => {
     clearTimeout(updateTimer);
     const isSuccess = await fetchTyphoonData();
+    if (stopped) return;
     const interval = isSuccess ? 10 * 60000 : 10000;
     updateTimer = setTimeout(loopFetch, interval);
 };
@@ -380,6 +382,7 @@ watch(() => statusStore.map, newVal => {
 }, { immediate: true });
 
 onBeforeUnmount(() => {
+    stopped = true;
     clearTimeout(updateTimer);
     if (unwatchData) unwatchData();
     removeAllLayers();

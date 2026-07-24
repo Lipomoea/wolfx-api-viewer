@@ -34,7 +34,14 @@ let gridCanvasLayer = null
 let distMatrix = [[]]
 let adjStationIds = {}
 let map
+let stopped = false
 let pendingRender = false
+const handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible' && pendingRender) {
+        pendingRender = false
+        renderAll()
+    }
+}
 let decimal = [0, 0]
 const activeStations = computed(() => stations.filter(station => station.isActive))
 const grids = computed(()=>{
@@ -141,8 +148,15 @@ const initGridCanvasLayer = () => {
 }
 let kmaSocket = null
 onMounted(()=>{
-    const apiKey = settingsStore.advancedSettings.tokens.fanApiKey
-    if(!apiKey) return
+    const apiKey = settingsStore.mainSettings.apiKeys.fanApiKey
+    if(!apiKey) {
+        ElMessage({
+            message: '未填写FAN Studio API Key, KMA-PEWS不可用',
+            type: 'error'
+        })
+        settingsStore.mainSettings.displaySeisNet.kmaNet = false
+        return
+    }
     const authMessage = JSON.stringify({
         type: 'auth',
         appId: FAN_API_APP_ID,
@@ -153,9 +167,25 @@ onMounted(()=>{
     url.unshift(...url.splice(defaultId, 1))
     kmaSocket = new WebSocketObj(url, ['ping'], [authMessage])
     kmaSocket.setMessageHandler(e => {
+        if(stopped) return
         const data = JSON.parse(e.data)
         const type = data?.type
         switch(type) {
+            case 'auth_success': {
+                ElMessage({
+                    message: 'FAN Studio API: KMA-PEWS认证成功',
+                    type: 'success'
+                })
+                break
+            }
+            case 'auth_fail': {
+                ElMessage({
+                    message: 'FAN Studio API: KMA-PEWS认证失败',
+                    type: 'error'
+                })
+                settingsStore.mainSettings.displaySeisNet.kmaNet = false
+                break
+            }
             case 'initial_stations': case 'kma_stations_update': {
                 const list = data.stations
                 if(list && JSON.stringify(list) != JSON.stringify(stationList)) {
@@ -185,12 +215,7 @@ onMounted(()=>{
             }
         }
     })
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible' && pendingRender) {
-            pendingRender = false
-            renderAll()
-        }
-    })
+    document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 let unwatchGrids, unwatchStationList, unwatchRender
 watch(()=>statusStore.map, newVal=>{
@@ -314,25 +339,29 @@ watch(currentMaxShindo, (newVal, oldVal)=>{
     }
 })
 onBeforeUnmount(()=>{
+    stopped = true
     kmaSocket?.close()
-    if(map !== null) map.off('zoomend', renderAll)
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
     if(unwatchGrids) unwatchGrids()
     if(unwatchStationList) unwatchStationList()
     if(unwatchRender) unwatchRender()
-    if(stationCanvasLayer && map?.hasLayer(stationCanvasLayer)) map.removeLayer(stationCanvasLayer)
+    if(map) {
+        map.off('zoomend', renderAll)
+        if(stationCanvasLayer && map.hasLayer(stationCanvasLayer)) map.removeLayer(stationCanvasLayer)
+        if(gridCanvasLayer && map.hasLayer(gridCanvasLayer)) map.removeLayer(gridCanvasLayer)
+        map.eachLayer(layer=>{
+            if(layer.options.pane == 'kmaGridPane' || layer.options.pane?.includes('kmaStationPane')){
+                map.removeLayer(layer)
+            }
+        })
+    }
     stationCanvasLayer = null
-    if(gridCanvasLayer && map?.hasLayer(gridCanvasLayer)) map.removeLayer(gridCanvasLayer)
     gridCanvasLayer = null
     stations.forEach((station, index)=>{
         station.terminate()
         stations[index] = null
     })
     stations.length = 0
-    map.eachLayer(layer=>{
-        if(layer.options.pane == 'kmaGridPane' || layer.options.pane?.includes('kmaStationPane')){
-            map.removeLayer(layer)
-        }
-    })
     statusStore.isActive.kmaNet = false
 })
 </script>

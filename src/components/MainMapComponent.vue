@@ -130,7 +130,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="event" v-if="settingsStore.mainSettings.source.nmefcTsunami && statusStore.isActive.nmefcTsunami">
+                    <div class="event" v-if="settingsStore.isDataSourceEnabled('nmefcTsunami') && statusStore.isActive.nmefcTsunami">
                         <div class="eew" v-show="menuId != 'eews'" :class="{ 'midOpacity': tempEqlists && tempEqlists != 'nmefcTsunami' }">
                             <div class="bar" :class="statusStore.tsunamiMessage.nmefcTsunami.className">
                                 <div><WarnTriangleFilled style="width: 1em; height: 1em; margin-right: 0.25em;" />{{ statusStore.tsunamiMessage.nmefcTsunami.titleText }}</div>
@@ -151,7 +151,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="event" v-if="settingsStore.mainSettings.source.jmaTsunami && statusStore.isActive.jmaTsunami">
+                    <div class="event" v-if="settingsStore.isDataSourceEnabled('jmaTsunami') && statusStore.isActive.jmaTsunami">
                         <div class="eew" v-show="menuId != 'eews'" :class="{ 'midOpacity': tempEqlists && tempEqlists != 'jmaTsunami' }">
                             <div class="bar" :class="statusStore.tsunamiMessage.jmaTsunami.className">
                                 <div><WarnTriangleFilled style="width: 1em; height: 1em; margin-right: 0.25em;" />{{ statusStore.tsunamiMessage.jmaTsunami.titleText }}</div>
@@ -349,7 +349,7 @@ import L from 'leaflet';
 import 'leaflet.vectorgrid';
 import 'leaflet/dist/leaflet.css';
 import '@/assets/background.css';
-import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, watchEffect, provide } from 'vue';
+import { ref, reactive, computed, onMounted, onBeforeUnmount, onUnmounted, watch, watchEffect, provide } from 'vue';
 import { HomeFilled, FullScreen, WarnTriangleFilled, InfoFilled, Setting } from '@element-plus/icons-vue';
 import { eewSources, eqlistSources, seisNetSources, sourceTypes, tsunamiSources, useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
@@ -548,7 +548,17 @@ const getBarClass = (event)=>{
         else return 'dark-gray'
     }
 }
-let mainInterval, terminatorInterval
+let mainInterval, terminatorInterval, terminatorUpdateTimer
+let mapLoadMessageTimer, mapLoadRetryTimer
+let isDisposed = false
+const mapLoadWatchStops = new Set()
+const trackMapLoadWatch = stop => mapLoadWatchStops.add(stop)
+const handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible' && pendingSetView) {
+        pendingSetView = false
+        setView(true)
+    }
+}
 onMounted(()=>{
     map = L.map('mainMap', {
         attributionControl: false,
@@ -661,12 +671,7 @@ onMounted(()=>{
         map.on('zoomstart', ()=>{setMapHeight('calc(100% - 1px)');})
         map.on('zoomend', ()=>{setMapHeight('100%');})
     }
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible' && pendingSetView) {
-            pendingSetView = false
-            setView(true)
-        }
-    })
+    document.addEventListener('visibilitychange', handleVisibilityChange)
     watchEffect(()=>{
         if(userMarker && map.hasLayer(userMarker)) map.removeLayer(userMarker)
         if(isDisplayUser.value){
@@ -712,6 +717,7 @@ onMounted(()=>{
     watch(()=>settingsStore.mainSettings.displayTerminator, newVal => {
         if(terminatorLayer && map.hasLayer(terminatorLayer)) map.removeLayer(terminatorLayer)
         if(terminatorFillLayer && map.hasLayer(terminatorFillLayer)) map.removeLayer(terminatorFillLayer)
+        clearTimeout(terminatorUpdateTimer)
         clearInterval(terminatorInterval)
         if(newVal) {
             const update = () => {
@@ -737,7 +743,7 @@ onMounted(()=>{
                 interactive: false,
                 time
             }).addTo(map)
-            setTimeout(update, 6000);
+            terminatorUpdateTimer = setTimeout(update, 6000);
             terminatorInterval = setInterval(update, 30000);
         }
     }, { immediate: true })
@@ -874,9 +880,10 @@ const eewBaseMapActiveStroke = '#bbbbbb'
 const tsunamiBaseMapDefaultStroke = '#ffffff00'
 settingsStore.mainSettings.useCanvasRenderer && panes.forEach(pane => renderers[pane] = L.canvas({ pane }))
 const loadMaps = async (retries = 0) => {
-    let msgTimer
+    if(isDisposed) return
     if(!firstMsg){
-        msgTimer = setTimeout(() => {
+        clearTimeout(mapLoadMessageTimer)
+        mapLoadMessageTimer = setTimeout(() => {
             ElMessage({
                 message: '正在加载地图，请稍候…',
                 duration: 5000
@@ -893,9 +900,10 @@ const loadMaps = async (retries = 0) => {
         promises = Object.keys(topojsonUrls).map(key=>fetch(topojsonUrls[key]).then(res=>res?.json()))
     }
     const resps = await Promise.all(promises)
+    if(isDisposed) return
     const [global, cn, cn_eew, cn_fault, jp, jp_eew, jp_tsunami, kr_eew, cn_tsunami] = resps
     if(global && cn && cn_eew && cn_fault && jp && jp_eew && kr_eew && jp_tsunami){
-        clearTimeout(msgTimer)
+        clearTimeout(mapLoadMessageTimer)
         loadBaseMap(global, 'basePane')
         loadBaseMap(jp, 'basePane')
         loadBaseMap(cn, 'basePane')
@@ -923,7 +931,7 @@ const loadMaps = async (retries = 0) => {
             fillOpacity: 1,
             weight: 1,
         }, eewBaseGroup)
-        watch(()=>settingsStore.mainSettings.displayCnFault, newVal => {
+        trackMapLoadWatch(watch(()=>settingsStore.mainSettings.displayCnFault, newVal => {
             if(cnFaultBaseMap && map.hasLayer(cnFaultBaseMap)) map.removeLayer(cnFaultBaseMap)
             if(newVal) {
                 cnFaultBaseMap = loadBaseMap(cn_fault, 'faultBasePane', true, (item) => ({
@@ -932,7 +940,7 @@ const loadMaps = async (retries = 0) => {
                     weight: 1.5,
                 }))
             }
-        }, { immediate: true })
+        }, { immediate: true }))
         if(settingsStore.mainSettings.displayPlaceName) {
             const createTextIcon = (text, fontSize = 15) => {
                 const dpr = 2 * (window.devicePixelRatio || 1);
@@ -988,12 +996,12 @@ const loadMaps = async (retries = 0) => {
                 })
                 labelLayer2.addLayer(label)
             })
-            watchEffect(() => {
+            trackMapLoadWatch(watchEffect(() => {
                 labelPane1.style.display = zoomLevel.value >= 5 && zoomLevel.value < 8 ? 'block' : 'none'
                 labelPane2.style.display = zoomLevel.value >= 8 ? 'block' : 'none'
-            })
+            }))
         }
-        watch(jmaWarnArea, (newVal)=>{
+        trackMapLoadWatch(watch(jmaWarnArea, (newVal)=>{
             jpEewBaseMap?.setStyle(feature => {
                 const className = newVal[feature.properties.name]?.className
                 return ({
@@ -1001,9 +1009,9 @@ const loadMaps = async (retries = 0) => {
                     fillColor: classNameColors[className] || eewBaseMapDefaultFill
                 })
             })
-        }, { deep: true, immediate: true })
+        }, { deep: true, immediate: true }))
         if(settingsStore.advancedSettings.forceCalcInt){
-            watch(eewInfoList, newVal=>{
+            trackMapLoadWatch(watch(eewInfoList, newVal=>{
                 const newCsisList = {}
                 const cnAreaClass = {}, krAreaClass = {}
                 cnEewBaseMap?.eachLayer(layer=>{
@@ -1061,9 +1069,9 @@ const loadMaps = async (retries = 0) => {
                     })
                 }
                 csisList.value = newNewCsisList.slice(0, 50)
-            }, { deep: true, immediate: true })
+            }, { deep: true, immediate: true }))
         }
-        if(settingsStore.mainSettings.source.jmaTsunami) {
+        if(settingsStore.isDataSourceEnabled('jmaTsunami')) {
             jpTsunamiBaseMap = loadBaseMap(jp_tsunami, 'tsunamiBasePane', false, {
                 color: tsunamiBaseMapDefaultStroke,
                 opacity: 1,
@@ -1074,14 +1082,14 @@ const loadMaps = async (retries = 0) => {
                     weight: map.getZoom()
                 })
             })
-            watch(jmaTsunamiWarnArea, newVal => {
+            trackMapLoadWatch(watch(jmaTsunamiWarnArea, newVal => {
                 jpTsunamiBaseMap.setStyle(feature => ({
                     color: tsunamiColors[newVal[feature.properties.name]?.className] || tsunamiBaseMapDefaultStroke
                 }))
                 smartSetView()
-            }, { deep: true, immediate: true })
+            }, { deep: true, immediate: true }))
         }
-        if(settingsStore.mainSettings.source.nmefcTsunami && settingsStore.advancedSettings.enableNmefcTsunami && 'cn_tsunami' in topojsonUrls) {
+        if(settingsStore.isDataSourceEnabled('nmefcTsunami') && settingsStore.advancedSettings.enableNmefcTsunami && 'cn_tsunami' in topojsonUrls) {
             if(cn_tsunami) {
                 cnTsunamiBaseMap = loadBaseMap(cn_tsunami, 'tsunamiBasePane', false, {
                     color: tsunamiBaseMapDefaultStroke,
@@ -1093,12 +1101,12 @@ const loadMaps = async (retries = 0) => {
                         weight: map.getZoom()
                     })
                 })
-                watch(nmefcTsunamiWarnArea, newVal => {
+                trackMapLoadWatch(watch(nmefcTsunamiWarnArea, newVal => {
                     cnTsunamiBaseMap.setStyle(feature => ({
                         color: tsunamiColors[newVal[feature.properties.name]?.className] || tsunamiBaseMapDefaultStroke
                     }))
                     smartSetView()
-                }, { deep: true, immediate: true })
+                }, { deep: true, immediate: true }))
             }
             else {
                 shouldRetry = true
@@ -1110,7 +1118,8 @@ const loadMaps = async (retries = 0) => {
     }
     if(shouldRetry) {
         if(retries < 50) {
-            setTimeout(() => {
+            clearTimeout(mapLoadRetryTimer)
+            mapLoadRetryTimer = setTimeout(() => {
                 loadMaps(retries + 1)
             }, 2000);
         }
@@ -1591,17 +1600,30 @@ const eewInfoList = computed(()=>{
     return eewInfoList
 })
 onBeforeUnmount(()=>{
+    isDisposed = true
     clearInterval(mainInterval)
     clearInterval(terminatorInterval)
     clearInterval(autoZoomInterval)
+    clearTimeout(terminatorUpdateTimer)
+    clearTimeout(mapLoadMessageTimer)
+    clearTimeout(mapLoadRetryTimer)
     clearTimeout(autoZoomTimer)
     clearTimeout(defaultMenuTimer)
     clearTimeout(tempEqlistsTimer)
     clearTimeout(largeZoomingTimer)
+    mapLoadWatchStops.forEach(stop => stop())
+    mapLoadWatchStops.clear()
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
     document.removeEventListener('mousemove', resetDefaultMenuTimer)
     document.removeEventListener('keydown', handleKeydown)
     activeEewList.length = 0
     eqlistList.length = 0
+})
+onUnmounted(() => {
+    const mapToRemove = map
+    mapToRemove?.remove()
+    if(statusStore.map === mapToRemove) statusStore.map = null
+    map = null
 })
 </script>
 

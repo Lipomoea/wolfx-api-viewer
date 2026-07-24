@@ -45,6 +45,12 @@ const handleTempEqlists = inject('handleTempEqlists')
 const smartSetView = inject('smartSetView')
 const activeEewList = inject('activeEewList')
 let periodMaxLevel = -1
+const handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible' && pendingRender) {
+        pendingRender = false
+        renderAll()
+    }
+}
 const currentMaxShindo = computed(()=>{
     const currentMaxLevel = Math.max(...grids.value.map(grid => grid.level), -1)
     if(currentMaxLevel == -1) return -1
@@ -107,6 +113,7 @@ const activityThresArr3 = [Infinity, 6, 9, 11, 12, 13, 14]
 let inferredHypocenterLayers = []
 let stationCanvasLayer = null
 let gridCanvasLayer = null
+let stopped = false
 let hypocenterWorker = null
 let hypocenterRequestId = 0
 let latestHypocenterRequestId = 0
@@ -493,9 +500,13 @@ const initGridCanvasLayer = () => {
     gridCanvasLayer = new NiedGridCanvasLayer(grids.value).addTo(map)
 }
 let fetchStationInterval, requestInterval, delayInterval
+let disableReloadTimer, enableReloadTimer
+let reloadStarted = false
 const fetchStationList = async () => {
+    if(stopped) return
     try {
         const res = await Http.get(seisNetUrls.nied.stationList + `?time=${Date.now()}`)
+        if(stopped) return
         if(res && res.siteConfigId && res.items?.length > 0) {
             clearInterval(fetchStationInterval)
             siteConfigId.value = res.siteConfigId
@@ -601,11 +612,13 @@ onMounted(()=>{
     fetchStationInterval = setInterval(fetchStationList, 5000);
     fetchStationList()
     requestInterval = setInterval(async () => {
+        if(stopped) return
         try {
             const isRealtime = settingsStore.mainSettings.displaySeisNet.delay == 0
             const time = getTimeNumberString(9, -delay.value)
             const date = time.slice(0, 8)
             const res = await getData(`${seisNetUrls.nied.stationData}/${date}/${time}.json`)
+            if(stopped) return
             if(res?.status == 200) {
                 const data = res.data
                 if(data.realTimeData.siteConfigId == siteConfigId.value) {
@@ -643,13 +656,17 @@ onMounted(()=>{
                         message: 'NIED站点数据已更新，正在重新加载。此过程可能重复数次，请耐心等待。',
                         type: 'warning',
                     })
-                    setTimeout(() => {
+                    disableReloadTimer = setTimeout(() => {
+                        if(stopped) return
+                        reloadStarted = true
                         statusStore.isNiedUpdating = true
                         settingsStore.mainSettings.displaySeisNet.niedNet = false
                     }, 0);
-                    setTimeout(() => {
+                    enableReloadTimer = setTimeout(() => {
+                        if(!reloadStarted) return
                         settingsStore.mainSettings.displaySeisNet.niedNet = true
                         statusStore.isNiedUpdating = false
+                        reloadStarted = false
                     }, 5000);
                 }
             }
@@ -657,12 +674,7 @@ onMounted(()=>{
             console.log(err);
         }
     }, 500);
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible' && pendingRender) {
-            pendingRender = false
-            renderAll()
-        }
-    })
+    document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 let unwatchGrids, unwatchRender
 watch(()=>statusStore.map, newVal=>{
@@ -763,21 +775,32 @@ watch(()=>settingsStore.mainSettings.displaySeisNet.delay, newVal=>{
     else{
         delay.value = defaultDelay
         delayInterval = setInterval(() => {
-            if(delay.value <= maxDelay * 2/3) delay.value -= 20
+            if(delay.value <= maxDelay * 2/3) delay.value -= 10
             else delay.value -= 100
         }, 10000);
     }
 }, { immediate: true })
 onBeforeUnmount(()=>{
+    stopped = true
     clearInterval(fetchStationInterval)
     clearInterval(requestInterval)
     clearInterval(delayInterval)
-    if(map !== null) map.off('zoomend', renderAll)
+    clearTimeout(disableReloadTimer)
+    if(!reloadStarted) clearTimeout(enableReloadTimer)
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
     if(unwatchGrids) unwatchGrids()
     if(unwatchRender) unwatchRender()
-    if(stationCanvasLayer && map?.hasLayer(stationCanvasLayer)) map.removeLayer(stationCanvasLayer)
+    if(map) {
+        map.off('zoomend', renderAll)
+        if(stationCanvasLayer && map.hasLayer(stationCanvasLayer)) map.removeLayer(stationCanvasLayer)
+        if(gridCanvasLayer && map.hasLayer(gridCanvasLayer)) map.removeLayer(gridCanvasLayer)
+        map.eachLayer(layer=>{
+            if(layer.options.pane == 'niedGridPane' || layer.options.pane?.includes('niedStationPane')){
+                map.removeLayer(layer)
+            }
+        })
+    }
     stationCanvasLayer = null
-    if(gridCanvasLayer && map?.hasLayer(gridCanvasLayer)) map.removeLayer(gridCanvasLayer)
     gridCanvasLayer = null
     stations.forEach((station, index)=>{
         station.terminate()
@@ -787,11 +810,6 @@ onBeforeUnmount(()=>{
     clearAbnormalList()
     terminateHypocenterWorker()
     clearInferredHypocenters()
-    map.eachLayer(layer=>{
-        if(layer.options.pane == 'niedGridPane' || layer.options.pane?.includes('niedStationPane')){
-            map.removeLayer(layer)
-        }
-    })
     statusStore.isActive.niedNet = false
 })
 </script>

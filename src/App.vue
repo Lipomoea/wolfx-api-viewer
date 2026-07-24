@@ -14,7 +14,7 @@ import { computed, onBeforeMount, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useTimeStore } from './stores/time';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from './stores/settings';
-import { eqUrls, topojsonUrls } from './utils/Urls';
+import { topojsonUrls } from './utils/Urls';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { platform } from '@tauri-apps/plugin-os';
 import { invoke, isTauri } from '@tauri-apps/api/core';
@@ -82,12 +82,10 @@ onBeforeMount(async () => {
   settingsStore.setMainSettings(localStorage.getItem('mainSettings'))
   settingsStore.setAdvancedSettings(localStorage.getItem('advancedSettings'))
   settingsStore.mainSettings.displaySeisNet.delay = 0
-  if(settingsStore.advancedSettings.multiApi) Object.assign(eqUrls, JSON.parse(localStorage.getItem('multiApi')))
   if(settingsStore.advancedSettings.enableNmefcTsunami) Object.assign(topojsonUrls, JSON.parse(localStorage.getItem('nmefcTsunami')))
   timeStore.startUpdatingTime()
-  statusStore.enabledSource = Object.keys(settingsStore.mainSettings.source).filter(source => settingsStore.mainSettings.source[source])
+  statusStore.configureDataSources(settingsStore.mainSettings.dataSources)
   settingsStore.mainSettings.historySources = settingsStore.mainSettings.historySources.filter(source => statusStore.enabledSource.includes(history2Eqlist[source]))
-  statusStore.multiApi = settingsStore.advancedSettings.multiApi
   statusStore.startUpdatingEqMessage()
   autoScale.value = Math.min(window.innerWidth / 1800, window.innerHeight / 1100)
   getGeojson()

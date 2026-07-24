@@ -36,14 +36,11 @@ if (settingsStore.advancedSettings.enableGqEew)
     Object.assign(eqUrls, JSON.parse(localStorage.getItem("gqUrl")));
 
 const eewList = eewSources.filter(
-    source => settingsStore.mainSettings.source[source]
+    source => settingsStore.isDataSourceEnabled(source)
 );
 
-if (settingsStore.advancedSettings.enableTremFunctions)
-    Object.assign(eqUrls, JSON.parse(localStorage.getItem("tremUrl"))?.eqUrls);
-
 const eqlistList = eqlistSources.filter(
-    source => settingsStore.mainSettings.source[source]
+    source => settingsStore.isDataSourceEnabled(source)
 );
 </script>
 
