@@ -173,15 +173,19 @@ onMounted(()=>{
         switch(type) {
             case 'auth_success': {
                 ElMessage({
-                    message: 'FAN Studio API: KMA-PEWS认证成功',
+                    message: 'FAN Studio API (KMA-PEWS)认证成功',
                     type: 'success'
                 })
                 break
             }
             case 'auth_fail': {
                 ElMessage({
-                    message: 'FAN Studio API: KMA-PEWS认证失败',
-                    type: 'error'
+                    message: data.message
+                        ? `FAN Studio API (KMA-PEWS)认证失败：${data.message}`
+                        : 'FAN Studio API (KMA-PEWS)认证失败，请检查API Key',
+                    type: 'error',
+                    duration: 10000,
+                    showClose: true
                 })
                 settingsStore.mainSettings.displaySeisNet.kmaNet = false
                 break

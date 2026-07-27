@@ -198,6 +198,7 @@ export const useStatusStore = defineStore('statusStore', {
         wsConnectTimer: null,
         wolfxSocket: null,
         fanSocket: null,
+        fanAuthStatus: -1,
         p2pquakeSocket: null,
         gqSocket: null,
         sourceRoutes: {},
@@ -1357,13 +1358,21 @@ export const useStatusStore = defineStore('statusStore', {
                         delete fan2Source['cea-pr']
                     }
                     const initMsg = []
-                    const apiKey = settingsStore.mainSettings.apiKeys.fanApiKey
+                    const apiKey = settingsStore.mainSettings.apiKeys.fanApiKey?.trim()
                     if(apiKey) {
                         initMsg.push(JSON.stringify({
                             type: 'auth',
                             appId: FAN_API_APP_ID,
                             key: apiKey
                         }))
+                    }
+                    else {
+                        ElMessage({
+                            message: '尚未配置FAN Studio API Key，部分功能受限',
+                            type: 'warning',
+                            duration: 10000,
+                            showClose: true
+                        })
                     }
                     const autoMsg = ['query']
                     if(this.activeFanSources.includes('cwaEqlist')) {
@@ -1382,10 +1391,14 @@ export const useStatusStore = defineStore('statusStore', {
                     const defaultId = settingsStore.advancedSettings.defaultFanServer
                     fanUrls.unshift(...fanUrls.splice(defaultId, 1))
                     this.fanSocket = new WebSocketObj(fanUrls, autoMsg, initMsg)
+                    this.fanSocket.setCloseHandler(() => {
+                        this.fanAuthStatus = -1
+                    })
                     this.fanSocket.setMessageHandler((e)=>{
                         const data = JSON.parse(e.data)
                         switch(data.type) {
                             case 'auth_success': {
+                                this.fanAuthStatus = 1
                                 ElMessage({
                                     message: 'FAN Studio API认证成功',
                                     type: 'success'
@@ -1393,9 +1406,14 @@ export const useStatusStore = defineStore('statusStore', {
                                 break
                             }
                             case 'auth_fail': {
+                                this.fanAuthStatus = 0
                                 ElMessage({
-                                    message: 'FAN Studio API认证失败',
-                                    type: 'error'
+                                    message: data.message
+                                        ? `FAN Studio API认证失败：${data.message}`
+                                        : 'FAN Studio API认证失败，请检查API Key',
+                                    type: 'error',
+                                    duration: 10000,
+                                    showClose: true
                                 })
                                 break
                             }

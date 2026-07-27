@@ -36,6 +36,7 @@ class WebSocketObj {
             }
         }
         this.socket.onclose = () => {
+            if (this.closeHandler) this.closeHandler()
             clearTimeout(this.reconnectTimer)
             clearTimeout(this.connectTimer)
             if (this.retryInterval >= this.maxRetryInterval) {
@@ -52,6 +53,9 @@ class WebSocketObj {
     }
     setMessageHandler(handler) {
         this.messageHandler = this.socket.onmessage = handler
+    }
+    setCloseHandler(handler) {
+        this.closeHandler = handler
     }
     reconnect() {
         clearTimeout(this.reconnectTimer)
@@ -79,6 +83,7 @@ class WebSocketObj {
             this.socket.onmessage = null
             this.socket.close()
         }
+        if (this.closeHandler) this.closeHandler()
     }
     send(msg) {
         if (this.socket.readyState == 1) {

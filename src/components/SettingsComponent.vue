@@ -1699,7 +1699,7 @@ const handleNeedReload = () => {
     if(!needReload.value) {
         needReload.value = true
         ElMessage({
-            message: '需要重载页面后生效！点击右侧关闭按钮立即重载',
+            message: '需要重载应用后生效！点击右侧关闭按钮立即重载',
             type: 'warning',
             duration: 0,
             showClose: true,

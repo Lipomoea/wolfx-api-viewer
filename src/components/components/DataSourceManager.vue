@@ -16,7 +16,19 @@
             show-icon
         >
             <template #title>
-                <span>尚未配置FAN Studio API Key，部分功能不可用。</span>
+                <span>尚未配置FAN Studio API Key，部分功能受限。</span>
+                <el-button type="primary" link @click="emit('manage-api-key')">前往管理API Key</el-button>
+            </template>
+        </el-alert>
+        <el-alert
+            v-else-if="statusStore.fanAuthStatus == 0"
+            class="api-key-warning"
+            type="error"
+            :closable="false"
+            show-icon
+        >
+            <template #title>
+                <span>FAN Studio API认证失败，部分功能受限。请检查您的API Key是否正确。</span>
                 <el-button type="primary" link @click="emit('manage-api-key')">前往管理API Key</el-button>
             </template>
         </el-alert>
@@ -95,6 +107,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
+import { useStatusStore } from '@/stores/status';
 import {
     dataSourceCatalog,
     dataSourceCategories,
@@ -104,6 +117,7 @@ import {
 const visible = defineModel({ type: Boolean, default: false })
 const emit = defineEmits(['change', 'manage-api-key'])
 const settingsStore = useSettingsStore()
+const statusStore = useStatusStore()
 const activeCategory = ref(dataSourceCategories[0].key)
 const hasFanApiKey = computed(() => Boolean(settingsStore.mainSettings.apiKeys.fanApiKey?.trim()))
 
