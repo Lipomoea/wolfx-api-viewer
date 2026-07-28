@@ -261,7 +261,7 @@
                     <div class="ws-status">
                         <div>WebSocket状态: </div>
                         <div :class="'s' + wolfxRS">Wolfx{{ wolfxUrlIndex ? '(B)' : '' }}</div>
-                        <div :class="'s' + fanRS">FAN{{ fanUrlIndex ? '(B)' : '' }}</div>
+                        <div :class="fanStatusClass">FAN{{ fanUrlIndex ? '(B)' : '' }}</div>
                         <div :class="'s' + p2pquakeRS">P2PQ{{ p2pquakeUrlIndex ? '(B)' : '' }}</div>
                         <div v-if="settingsStore.advancedSettings.enableGqEew" :class="'s' + gqRS">GQ{{ gqUrlIndex ? '(B)' : '' }}</div>
                     </div>
@@ -465,6 +465,10 @@ const wolfxRS = ref(4)
 const fanRS = ref(4)
 const p2pquakeRS = ref(4)
 const gqRS = ref(4)
+const fanStatusClass = computed(() => fanRS.value == 1 && statusStore.fanAuthStatus != 1
+    ? 'incomplete'
+    : `s${fanRS.value}`
+)
 const wolfxUrlIndex = ref(0)
 const fanUrlIndex = ref(0)
 const p2pquakeUrlIndex = ref(0)
@@ -1926,6 +1930,9 @@ onUnmounted(() => {
                     }
                     .s1{
                         color: green;
+                    }
+                    .incomplete{
+                        color: deepskyblue;
                     }
                     .s2,.s3{
                         color: red;
