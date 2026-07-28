@@ -201,6 +201,12 @@ export const useStatusStore = defineStore('statusStore', {
         fanAuthStatus: -1,
         p2pquakeSocket: null,
         gqSocket: null,
+        webSocketStatus: {
+            wolfx: { readyState: 4, urlIndex: 0 },
+            fan: { readyState: 4, urlIndex: 0 },
+            p2pquake: { readyState: 4, urlIndex: 0 },
+            gq: { readyState: 4, urlIndex: 0 },
+        },
         sourceRoutes: {},
         enabledSource: [],
         isNiedUpdating: false,
@@ -279,6 +285,11 @@ export const useStatusStore = defineStore('statusStore', {
         },
         isApiEnabled(source, api) {
             return Boolean(this.sourceRoutes[source]?.[api])
+        },
+        trackWebSocketStatus(source, socket) {
+            socket.setStateHandler((readyState, urlIndex) => {
+                Object.assign(this.webSocketStatus[source], { readyState, urlIndex })
+            })
         },
         setEqMessage(source, data, type = 0) {
             try{
@@ -1325,6 +1336,7 @@ export const useStatusStore = defineStore('statusStore', {
                         if(source == 'ceaEew') return 'query_cenceew'
                         else return `query_${source.toLowerCase()}`
                     }))
+                    this.trackWebSocketStatus('wolfx', this.wolfxSocket)
                     this.wolfxSocket.setMessageHandler((e)=>{
                         const data = JSON.parse(e.data)
                         const source = wolfx2Source[data.type]
@@ -1391,6 +1403,7 @@ export const useStatusStore = defineStore('statusStore', {
                     const defaultId = settingsStore.advancedSettings.defaultFanServer
                     fanUrls.unshift(...fanUrls.splice(defaultId, 1))
                     this.fanSocket = new WebSocketObj(fanUrls, autoMsg, initMsg)
+                    this.trackWebSocketStatus('fan', this.fanSocket)
                     this.fanSocket.setCloseHandler(() => {
                         this.fanAuthStatus = -1
                     })
@@ -1506,6 +1519,7 @@ export const useStatusStore = defineStore('statusStore', {
                 if(this.p2pquakeSocket) this.p2pquakeSocket.close()
                 if(this.activeP2pquakeSources.length > 0) {
                     this.p2pquakeSocket = new WebSocketObj(eqUrls.p2pquake_ws, ['ping'])
+                    this.trackWebSocketStatus('p2pquake', this.p2pquakeSocket)
                     this.p2pquakeSocket.setMessageHandler((e)=>{
                         const data = JSON.parse(e.data)
                         switch(data.code) {
@@ -1521,6 +1535,7 @@ export const useStatusStore = defineStore('statusStore', {
                 if(this.gqSocket) this.gqSocket.close()
                 if(this.isApiEnabled('gqEew', 'globalquake') && 'gqEew_ws' in eqUrls) {
                     this.gqSocket = new WebSocketObj(eqUrls.gqEew_ws, ['ping'])
+                    this.trackWebSocketStatus('gq', this.gqSocket)
                     this.gqSocket.setMessageHandler((e)=>{
                         const data = JSON.parse(e.data)
                         if(data.RevisionId) this.setEqMessage('gqEew', data)

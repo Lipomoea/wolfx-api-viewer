@@ -260,10 +260,10 @@
                     </div>
                     <div class="ws-status">
                         <div>WebSocket状态: </div>
-                        <div :class="'s' + wolfxRS">Wolfx{{ wolfxUrlIndex ? '(B)' : '' }}</div>
-                        <div :class="fanStatusClass">FAN{{ fanUrlIndex ? '(B)' : '' }}</div>
-                        <div :class="'s' + p2pquakeRS">P2PQ{{ p2pquakeUrlIndex ? '(B)' : '' }}</div>
-                        <div v-if="settingsStore.advancedSettings.enableGqEew" :class="'s' + gqRS">GQ{{ gqUrlIndex ? '(B)' : '' }}</div>
+                        <div :class="'s' + webSocketStatus.wolfx.readyState">Wolfx{{ webSocketStatus.wolfx.urlIndex ? '(B)' : '' }}</div>
+                        <div :class="fanStatusClass">FAN{{ webSocketStatus.fan.urlIndex ? '(B)' : '' }}</div>
+                        <div :class="'s' + webSocketStatus.p2pquake.readyState">P2PQ{{ webSocketStatus.p2pquake.urlIndex ? '(B)' : '' }}</div>
+                        <div v-if="settingsStore.advancedSettings.enableGqEew" :class="'s' + webSocketStatus.gq.readyState">GQ{{ webSocketStatus.gq.urlIndex ? '(B)' : '' }}</div>
                     </div>
                     <div class="update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isNiedDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.niedNet" @dblclick="resetSeisNetDelay">
                         強震モニタ: {{ niedUpdateTime }} (UTC+9)
@@ -461,18 +461,11 @@ const handleMenu = (index)=>{
 }
 provide('handleHome', handleHome)
 const drawer = ref(null)
-const wolfxRS = ref(4)
-const fanRS = ref(4)
-const p2pquakeRS = ref(4)
-const gqRS = ref(4)
-const fanStatusClass = computed(() => fanRS.value == 1 && statusStore.fanAuthStatus != 1
+const webSocketStatus = computed(() => statusStore.webSocketStatus)
+const fanStatusClass = computed(() => webSocketStatus.value.fan.readyState == 1 && statusStore.fanAuthStatus != 1
     ? 'incomplete'
-    : `s${fanRS.value}`
+    : `s${webSocketStatus.value.fan.readyState}`
 )
-const wolfxUrlIndex = ref(0)
-const fanUrlIndex = ref(0)
-const p2pquakeUrlIndex = ref(0)
-const gqUrlIndex = ref(0)
 const niedUpdateTime = ref('1970-01-01 09:00:00')
 const niedMaxShindo = ref('?')
 const niedPeriodMaxShindo = ref('?')
@@ -1153,14 +1146,6 @@ const intervalEvents = ()=>{
     isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
     isTremDelayed.value = !verifyUpToDate(tremUpdateTime.value, 8, 10000)
     isKmaDelayed.value = !verifyUpToDate(kmaUpdateTime.value, 9, 10000)
-    wolfxRS.value = statusStore.wolfxSocket?.socket.readyState ?? 4
-    fanRS.value = statusStore.fanSocket?.socket.readyState ?? 4
-    p2pquakeRS.value = statusStore.p2pquakeSocket?.socket.readyState ?? 4
-    gqRS.value = statusStore.gqSocket?.socket.readyState ?? 4
-    wolfxUrlIndex.value = statusStore.wolfxSocket?.urlIndex
-    fanUrlIndex.value = statusStore.fanSocket?.urlIndex
-    p2pquakeUrlIndex.value = statusStore.p2pquakeSocket?.urlIndex
-    gqUrlIndex.value = statusStore.gqSocket?.urlIndex
 }
 const setMapHeight = (height) => {
     const mapElement = map.getContainer()
