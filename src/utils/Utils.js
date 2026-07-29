@@ -19,6 +19,8 @@ dayjs.extend(timezone);
 let timeStore;
 let settingsStore;
 
+export const systemTimeZone = -new Date().getTimezoneOffset() / 60;
+
 const EARTH_RADIUS_KM = 6371.0088;
 const toRadians = degrees => (degrees * Math.PI) / 180;
 const toDegrees = radians => (radians * 180) / Math.PI;
@@ -88,19 +90,30 @@ export const stampToTime = (timeStamp, timeZone) => {
     .replace("T", " ")
     .slice(0, -5);
 };
+export const convertTimeString = (
+  time,
+  sourceTimeZone,
+  targetTimeZone = systemTimeZone,
+) => stampToTime(timeToStamp(time, sourceTimeZone), targetTimeZone);
 export const calcPassedTime = (time, timeZone) => {
-  if (!time || !timeZone) return;
+  if (!time || !Number.isFinite(timeZone)) return;
   if (!timeStore) timeStore = useTimeStore();
   let stamp1 = timeStore.getTimeStamp();
   let stamp2 = timeToStamp(time, timeZone);
   return stamp1 - stamp2;
 };
 export const verifyUpToDate = (time, timeZone, interval) => {
-  if (!time || !timeZone || !interval) return;
+  if (!time || !Number.isFinite(timeZone) || !interval) return;
   return calcPassedTime(time, timeZone) <= interval;
 };
 export const calcTimeDiff = (time1, timeZone1, time2, timeZone2) => {
-  if (!time1 || !timeZone1 || !time2 || !timeZone2) return;
+  if (
+    !time1 ||
+    !Number.isFinite(timeZone1) ||
+    !time2 ||
+    !Number.isFinite(timeZone2)
+  )
+    return;
   let stamp1 = timeToStamp(time1, timeZone1);
   let stamp2 = timeToStamp(time2, timeZone2);
   return stamp1 - stamp2;

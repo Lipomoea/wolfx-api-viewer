@@ -265,6 +265,9 @@
                         <div :class="'s' + webSocketStatus.p2pquake.readyState">P2PQ{{ webSocketStatus.p2pquake.urlIndex ? '(B)' : '' }}</div>
                         <div v-if="settingsStore.advancedSettings.enableGqEew" :class="'s' + webSocketStatus.gq.readyState">GQ{{ webSocketStatus.gq.urlIndex ? '(B)' : '' }}</div>
                     </div>
+                    <div class="update-time" v-if="settingsStore.mainSettings.displayClock">
+                        当前时间: {{ currentTimeText }} (UTC{{ formatTimeZone(systemTimeZone) }})
+                    </div>
                     <div class="update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isNiedDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.niedNet" @dblclick="resetSeisNetDelay">
                         強震モニタ: {{ niedUpdateTime }} (UTC+9)
                     </div>
@@ -356,7 +359,7 @@ import { useSettingsStore } from '@/stores/settings';
 import { useTimeStore } from '@/stores/time';
 import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
-import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToCnArea, pointDistToKrArea, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone, simplifyTopoJson, formatCsis, csisRomanArray, formatShindo } from '@/utils/Utils';
+import { verifyUpToDate, setClassName, getClassLevel, classNameArray, pointDistToCnArea, pointDistToKrArea, csisArray, shindoArray, calcCsisLevel, calcJmaShindoLevel, formatTimeZone, simplifyTopoJson, formatCsis, csisRomanArray, formatShindo, stampToTime, systemTimeZone } from '@/utils/Utils';
 import { topojsonUrls } from '@/utils/Urls';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { isTauri } from '@tauri-apps/api/core';
@@ -374,6 +377,7 @@ classNameArray.forEach(color => tsunamiColors[color] = style.getPropertyValue(`-
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 const timeStore = useTimeStore()
+const currentTimeText = computed(() => stampToTime(timeStore.currentTimeStamp, systemTimeZone))
 let map, jpEewBaseMap, krEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap, cnTsunamiBaseMap, labelLayer1, labelLayer2, terminatorLayer, terminatorFillLayer, cnFaultBaseMap
 let eewBaseGroup, tsunamiBaseGroup
 let eewMarkerPane, eqlistMarkerPane, eewReachPane, historyMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, kmaGridPane, eewBasePane, tsunamiBasePane, labelPane1, labelPane2

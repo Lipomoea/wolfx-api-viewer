@@ -90,6 +90,7 @@ export const useSettingsStore = defineStore('settingsStore', {
             uiScale: 1,
             displayPlaceName: false,
             placeNameOnHover: false,
+            displayClock: false,
             displayCnFault: false,
             displayTerminator: false,
             useRomanCsis: true,

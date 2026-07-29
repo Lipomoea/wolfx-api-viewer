@@ -3,6 +3,12 @@ import { utilUrls } from '@/utils/Urls';
 import Http from '@/classes/Http';
 
 let consecutiveCalibrationFailures = 0
+let calibrationGeneration = 0
+
+const normalCalibrationInterval = 600 * 1000
+const fastCalibrationInterval = 60 * 1000
+const fastCalibrationOffsetThreshold = 3 * 1000
+const timeUpdateInterval = 500
 
 export const useTimeStore = defineStore('timeStore', {
     state: () => ({
@@ -11,23 +17,39 @@ export const useTimeStore = defineStore('timeStore', {
     }),
     actions: {
         updateTime() {
-            this.currentTimeStamp = this.getTimeStamp();
+            clearTimeout(this.updateTimeout)
+            const now = this.getTimeStamp()
+            this.currentTimeStamp = now
+            const delay = Math.ceil(timeUpdateInterval - now % timeUpdateInterval)
+            this.updateTimeout = setTimeout(() => this.updateTime(), delay)
         },
         startUpdatingTime() {
             this.stopUpdatingTime()
+            const generation = calibrationGeneration
             this.calibrateOffset()
             this.updateTime()
-            this.calibrateTimeout = setTimeout(() => {
-                this.calibrateOffset()
-                this.updateTime()
-            }, 5000);
-            this.calibrateInterval = setInterval(this.calibrateOffset, 600 * 1000)
-            this.updateInterval = setInterval(this.updateTime, 500)
+            this.scheduleCalibration(generation, 5000)
         },
         stopUpdatingTime() {
-            clearInterval(this.updateInterval);
-            clearInterval(this.calibrateInterval);
+            calibrationGeneration++
+            clearTimeout(this.updateTimeout);
             clearTimeout(this.calibrateTimeout);
+        },
+        scheduleCalibration(generation, interval) {
+            this.calibrateTimeout = setTimeout(async () => {
+                try {
+                    await this.calibrateOffset()
+                }
+                finally {
+                    if(generation === calibrationGeneration){
+                        this.updateTime()
+                        const nextInterval = Math.abs(this.offset) > fastCalibrationOffsetThreshold
+                            ? fastCalibrationInterval
+                            : normalCalibrationInterval
+                        this.scheduleCalibration(generation, nextInterval)
+                    }
+                }
+            }, interval)
         },
         async calibrateOffset() {
             for(const source of utilUrls.ntpTime){
@@ -41,7 +63,7 @@ export const useTimeStore = defineStore('timeStore', {
                 if(!Number.isFinite(serverTimeStamp)) continue
 
                 consecutiveCalibrationFailures = 0
-                this.offset = serverTimeStamp + requestDuration / 2 - systemTimeStamp
+                this.offset = Math.round(serverTimeStamp + requestDuration / 2 - systemTimeStamp)
                 return
             }
 

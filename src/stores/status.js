@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import Http from '@/classes/Http';
 import WebSocketObj from '@/classes/WebSocket';
 import { eqUrls, FAN_API_APP_ID, iconUrls, tsunamiUrls } from '@/utils/Urls';
-import { setClassName, calcCsisLevel, stampToTime, getShindoFromInstShindo, shindoScaleKanji, calcTimeDiff, playSound, sendMyNotification, focusWindow, formatShindo, timeToStamp } from '@/utils/Utils';
+import { setClassName, calcCsisLevel, stampToTime, getShindoFromInstShindo, shindoScaleKanji, calcTimeDiff, playSound, sendMyNotification, focusWindow, formatShindo, timeToStamp, systemTimeZone, convertTimeString } from '@/utils/Utils';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { useSettingsStore } from './settings';
 import { isTauri } from '@tauri-apps/api/core';
@@ -671,6 +671,7 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.id = data.Id
                         eqMessage.type = data.Quality?.QualityLevel ?? 9
                         eqMessage.isEew = true
+                        eqMessage.timeZone = systemTimeZone
                         eqMessage.isCanceled = data.RevisionId < 0
                         if(!eqMessage.isCanceled || isNewEvent) {
                             eqMessage.reportNum = eqMessage.isCanceled ? Infinity : data.RevisionId
@@ -679,9 +680,7 @@ export const useStatusStore = defineStore('statusStore', {
                             eqMessage.lng = data.Longitude
                             eqMessage.depth = data.Depth
                             eqMessage.depthText = '深度: ' + (eqMessage.depth == null ? '不明' : eqMessage.depth.toFixed(0) + 'km')
-                            let date = new Date(data.OriginTime)
-                            date.setHours(date.getHours() + 8)
-                            eqMessage.originTime = date.toISOString().replace('T', ' ').slice(0, -5)
+                            eqMessage.originTime = stampToTime(new Date(data.OriginTime).getTime(), systemTimeZone)
                             eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
                             eqMessage.magnitude = data.Magnitude
                             eqMessage.magnitudeText = '震级: ' + (eqMessage.magnitude == null ? '不明' : eqMessage.magnitude.toFixed(1))
@@ -689,18 +688,14 @@ export const useStatusStore = defineStore('statusStore', {
                             eqMessage.isWarn = Number(eqMessage.maxIntensity) >= 7.5
                         }
                         if(eqMessage.isCanceled) {
-                            let date = new Date()
-                            date.setHours(date.getHours() + 8)
-                            eqMessage.reportTime = date.toISOString().replace('T', ' ').slice(0, -5)
+                            eqMessage.reportTime = stampToTime(Date.now(), systemTimeZone)
                             eqMessage.reportNumText = '取消报'
                             eqMessage.hypocenter = '已取消'
                             eqMessage.hypocenterText = '震中: 已取消'
                             eqMessage.maxIntensityText = '预估最大烈度: 无'
                         }
                         else{
-                            let date = new Date(data.LastUpdatedTime)
-                            date.setHours(date.getHours() + 8)
-                            eqMessage.reportTime = date.toISOString().replace('T', ' ').slice(0, -5)
+                            eqMessage.reportTime = stampToTime(new Date(data.LastUpdatedTime).getTime(), systemTimeZone)
                             eqMessage.reportNumText = '第' + data.RevisionId + '报'
                             eqMessage.hypocenter = getFEName(data.Latitude, data.Longitude) || data.Region || '未知区域'
                             eqMessage.hypocenterText = '震中: ' + eqMessage.hypocenter
@@ -911,6 +906,7 @@ export const useStatusStore = defineStore('statusStore', {
                     }
                     case 'usgsEqlist': {
                         const tempMsg = {}
+                        eqMessage.timeZone = systemTimeZone
                         switch(type) {
                             case 0:
                                 const { geometry, properties } = data
@@ -924,7 +920,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 tempMsg.lng = lng
                                 tempMsg.depth = depth
                                 tempMsg.depthText = '深度: ' + tempMsg.depth.toFixed(0) + 'km'
-                                tempMsg.originTime = stampToTime(properties.time, 8)
+                                tempMsg.originTime = stampToTime(properties.time, systemTimeZone)
                                 tempMsg.originTimeText = '发震时间: ' + tempMsg.originTime
                                 tempMsg.magnitude = properties.mag
                                 tempMsg.magnitudeText = '震级: ' + tempMsg.magnitude.toFixed(1)
@@ -934,7 +930,7 @@ export const useStatusStore = defineStore('statusStore', {
                                     break
                                 usgsCache = tempMsg
                                 Object.assign(eqMessage, tempMsg)
-                                eqMessage.reportTime = stampToTime(properties.updated, 8)
+                                eqMessage.reportTime = stampToTime(properties.updated, systemTimeZone)
                                 break
                             case 1:
                                 tempMsg.id = data.id
@@ -946,7 +942,7 @@ export const useStatusStore = defineStore('statusStore', {
                                 tempMsg.lng = data.longitude
                                 tempMsg.depth = data.depth
                                 tempMsg.depthText = '深度: ' + tempMsg.depth.toFixed(0) + 'km'
-                                tempMsg.originTime = data.shockTime
+                                tempMsg.originTime = convertTimeString(data.shockTime, 8)
                                 tempMsg.originTimeText = '发震时间: ' + tempMsg.originTime
                                 tempMsg.magnitude = data.magnitude
                                 tempMsg.magnitudeText = '震级: ' + tempMsg.magnitude.toFixed(1)
@@ -956,14 +952,15 @@ export const useStatusStore = defineStore('statusStore', {
                                     break
                                 usgsCache = tempMsg
                                 Object.assign(eqMessage, tempMsg)
-                                eqMessage.reportTime = data.updateTime
+                                eqMessage.reportTime = convertTimeString(data.updateTime, 8)
                                 break
                         }
                         break
                     }
                     case 'fssnEqlist': {
                         eqMessage.id = data.id
-                        eqMessage.reportTime = data.createTime
+                        eqMessage.timeZone = systemTimeZone
+                        eqMessage.reportTime = convertTimeString(data.createTime, 8)
                         let infoType
                         switch(data.infoTypeName) {
                             case '已确认':
@@ -985,8 +982,8 @@ export const useStatusStore = defineStore('statusStore', {
                         eqMessage.lng = data.longitude
                         eqMessage.depth = data.depth
                         eqMessage.depthText = '深度: ' + eqMessage.depth.toFixed(0) + 'km'
-                        eqMessage.originTime = data.shockTime
-                        eqMessage.originTimeText = '发震时间: ' + data.shockTime
+                        eqMessage.originTime = convertTimeString(data.shockTime, 8)
+                        eqMessage.originTimeText = '发震时间: ' + eqMessage.originTime
                         eqMessage.magnitude = data.magnitude || -1
                         eqMessage.magnitudeText = '震级: ' + (eqMessage.magnitude == -1 ? '不明' : eqMessage.magnitude.toFixed(1))
                         eqMessage.maxIntensity = eqMessage.magnitude == -1 ? '不明' : calcCsisLevel(eqMessage.magnitude, eqMessage.depth, 0)
@@ -1230,9 +1227,9 @@ export const useStatusStore = defineStore('statusStore', {
                         list[i] = {
                             source: 'USGS',
                             id: feature.id,
-                            timeZone: 8,
+                            timeZone: systemTimeZone,
                             useShindo: false,
-                            originTime: stampToTime(properties.time, 8),
+                            originTime: stampToTime(properties.time, systemTimeZone),
                             lat,
                             lng,
                             hypocenter: (properties.status.toLowerCase() == 'reviewed' ? '' : '(A)') + (getFEName(lat, lng) || properties.place),
@@ -1269,9 +1266,9 @@ export const useStatusStore = defineStore('statusStore', {
                         list[i] = {
                             source: 'FSSN',
                             id: data[i].id,
-                            timeZone: 8,
+                            timeZone: systemTimeZone,
                             useShindo: false,
-                            originTime: data[i].shockTime,
+                            originTime: convertTimeString(data[i].shockTime, 8),
                             lat,
                             lng,
                             hypocenter: infoType + (getFEName(lat, lng) || data[i].placeName_zh || data[i].placeName),

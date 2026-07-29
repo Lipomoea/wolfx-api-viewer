@@ -931,6 +931,10 @@
                     <span class="font-bold w-full">附加功能</span>
                     <div class="switch-group">
                         <div class="switch-full">
+                            <span>显示时钟</span>
+                            <el-switch v-model="settingsStore.mainSettings.displayClock" />
+                        </div>
+                        <div class="switch-full">
                             <span>显示中国断层</span>
                             <el-switch v-model="settingsStore.mainSettings.displayCnFault" />
                         </div>
