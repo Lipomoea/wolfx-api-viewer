@@ -265,7 +265,7 @@
                         <div :class="'s' + webSocketStatus.p2pquake.readyState">P2PQ{{ webSocketStatus.p2pquake.urlIndex ? '(B)' : '' }}</div>
                         <div v-if="settingsStore.advancedSettings.enableGqEew" :class="'s' + webSocketStatus.gq.readyState">GQ{{ webSocketStatus.gq.urlIndex ? '(B)' : '' }}</div>
                     </div>
-                    <div class="update-time" v-if="settingsStore.mainSettings.displayClock">
+                    <div class="update-time" v-if="settingsStore.mainSettings.displayClock" @dblclick="resetSeisNetDelay">
                         当前时间: {{ currentTimeText }} (UTC{{ formatTimeZone(systemTimeZone) }})
                     </div>
                     <div class="update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isNiedDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.niedNet" @dblclick="resetSeisNetDelay">
