@@ -17,7 +17,7 @@ export const jmaSeisIntLoc = {
   石狩市浜益: {
     location: [43.6, 141.39],
     sect: "石狩地方北部",
-    arv: 0.67,
+    arv: 0.8,
   },
   石狩市花畔: {
     location: [43.17, 141.3],
@@ -32,7 +32,7 @@ export const jmaSeisIntLoc = {
   新篠津村第４７線: {
     location: [43.23, 141.65],
     sect: "石狩地方北部",
-    arv: 2.2,
+    arv: 1.79,
   },
   札幌中央区北２条: {
     location: [43.06, 141.33],
@@ -72,7 +72,7 @@ export const jmaSeisIntLoc = {
   札幌豊平区月寒東: {
     location: [43.03, 141.4],
     sect: "石狩地方中部",
-    arv: 1.38,
+    arv: 1.41,
   },
   札幌南区定山渓温泉: {
     location: [42.97, 141.18],
@@ -82,7 +82,7 @@ export const jmaSeisIntLoc = {
   札幌南区川沿: {
     location: [43.0, 141.33],
     sect: "石狩地方中部",
-    arv: 0.87,
+    arv: 1.2,
   },
   札幌南区石山: {
     location: [42.97, 141.33],
@@ -92,7 +92,7 @@ export const jmaSeisIntLoc = {
   札幌西区琴似: {
     location: [43.07, 141.3],
     sect: "石狩地方中部",
-    arv: 1.24,
+    arv: 1.26,
   },
   札幌厚別区もみじ台: {
     location: [43.03, 141.49],
@@ -112,7 +112,7 @@ export const jmaSeisIntLoc = {
   江別市高砂町: {
     location: [43.1, 141.54],
     sect: "石狩地方中部",
-    arv: 1.53,
+    arv: 1.54,
   },
   江別市緑町: {
     location: [43.12, 141.55],
@@ -132,7 +132,7 @@ export const jmaSeisIntLoc = {
   千歳市若草: {
     location: [42.79, 141.6],
     sect: "石狩地方南部",
-    arv: 1.4,
+    arv: 1.35,
   },
   千歳市支笏湖温泉: {
     location: [42.78, 141.4],
@@ -142,7 +142,7 @@ export const jmaSeisIntLoc = {
   恵庭市漁平: {
     location: [42.84, 141.45],
     sect: "石狩地方南部",
-    arv: 1.36,
+    arv: 1.33,
   },
   恵庭市京町: {
     location: [42.88, 141.58],
@@ -172,7 +172,7 @@ export const jmaSeisIntLoc = {
   長万部町平里: {
     location: [42.49, 140.35],
     sect: "渡島地方北部",
-    arv: 1.78,
+    arv: 1.81,
   },
   函館市尾札部町: {
     location: [41.89, 141.03],
@@ -182,7 +182,7 @@ export const jmaSeisIntLoc = {
   函館市美原: {
     location: [41.82, 140.75],
     sect: "渡島地方東部",
-    arv: 1.11,
+    arv: 1.09,
   },
   函館市大森町: {
     location: [41.77, 140.74],
@@ -227,7 +227,7 @@ export const jmaSeisIntLoc = {
   七飯町本町: {
     location: [41.9, 140.7],
     sect: "渡島地方東部",
-    arv: 0.85,
+    arv: 0.82,
   },
   鹿部町宮浜: {
     location: [42.04, 140.81],
@@ -242,7 +242,7 @@ export const jmaSeisIntLoc = {
   渡島森町上台町: {
     location: [42.1, 140.56],
     sect: "渡島地方東部",
-    arv: 0.89,
+    arv: 1.27,
   },
   渡島森町砂原: {
     location: [42.12, 140.67],
@@ -262,7 +262,7 @@ export const jmaSeisIntLoc = {
   福島町福島: {
     location: [41.49, 140.25],
     sect: "渡島地方西部",
-    arv: 1.48,
+    arv: 1.41,
   },
   知内町小谷石: {
     location: [41.53, 140.41],
@@ -282,7 +282,7 @@ export const jmaSeisIntLoc = {
   檜山江差町姥神: {
     location: [41.87, 140.12],
     sect: "檜山地方",
-    arv: 1.51,
+    arv: 1.5,
   },
   檜山江差町中歌町: {
     location: [41.87, 140.13],
@@ -292,17 +292,17 @@ export const jmaSeisIntLoc = {
   上ノ国町湯ノ岱: {
     location: [41.75, 140.25],
     sect: "檜山地方",
-    arv: 1.11,
+    arv: 0.67,
   },
   上ノ国町小砂子: {
     location: [41.65, 140.0],
     sect: "檜山地方",
-    arv: 0.9,
+    arv: 1.09,
   },
   上ノ国町大留: {
     location: [41.8, 140.12],
     sect: "檜山地方",
-    arv: 1.94,
+    arv: 1.75,
   },
   厚沢部町木間内: {
     location: [41.94, 140.37],
@@ -337,7 +337,7 @@ export const jmaSeisIntLoc = {
   せたな町瀬棚区本町: {
     location: [42.45, 139.85],
     sect: "檜山地方",
-    arv: 1.44,
+    arv: 1.85,
   },
   せたな町瀬棚区北島歌: {
     location: [42.59, 139.83],
@@ -367,7 +367,7 @@ export const jmaSeisIntLoc = {
   積丹町美国町: {
     location: [43.29, 140.6],
     sect: "後志地方北部",
-    arv: 1.41,
+    arv: 0.91,
   },
   積丹町余別町: {
     location: [43.32, 140.38],
@@ -382,17 +382,17 @@ export const jmaSeisIntLoc = {
   仁木町西町: {
     location: [43.15, 140.77],
     sect: "後志地方北部",
-    arv: 1.34,
+    arv: 1.38,
   },
   余市町朝日町: {
     location: [43.2, 140.78],
     sect: "後志地方北部",
-    arv: 1.85,
+    arv: 1.44,
   },
   余市町浜中町: {
     location: [43.2, 140.785],
     sect: "後志地方北部",
-    arv: 1.44,
+    arv: 1.38,
   },
   赤井川村赤井川: {
     location: [43.08, 140.82],
@@ -417,7 +417,7 @@ export const jmaSeisIntLoc = {
   喜茂別町喜茂別: {
     location: [42.8, 140.94],
     sect: "後志地方東部",
-    arv: 0.94,
+    arv: 0.99,
   },
   京極町京極: {
     location: [42.86, 140.88],
@@ -427,7 +427,7 @@ export const jmaSeisIntLoc = {
   倶知安町南１条: {
     location: [42.9, 140.76],
     sect: "後志地方東部",
-    arv: 1.98,
+    arv: 1.97,
   },
   倶知安町北４条: {
     location: [42.91, 140.77],
@@ -437,17 +437,17 @@ export const jmaSeisIntLoc = {
   島牧村江ノ島: {
     location: [42.65, 140.04],
     sect: "後志地方西部",
-    arv: 1.08,
+    arv: 1.0,
   },
   島牧村泊: {
     location: [42.7, 140.06],
     sect: "後志地方西部",
-    arv: 1.75,
+    arv: 1.44,
   },
   寿都町新栄: {
     location: [42.8, 140.22],
     sect: "後志地方西部",
-    arv: 0.89,
+    arv: 0.9,
   },
   寿都町渡島: {
     location: [42.79, 140.23],
@@ -457,7 +457,7 @@ export const jmaSeisIntLoc = {
   黒松内町黒松内: {
     location: [42.67, 140.3],
     sect: "後志地方西部",
-    arv: 0.94,
+    arv: 0.93,
   },
   蘭越町蘭越: {
     location: [42.81, 140.53],
@@ -482,7 +482,7 @@ export const jmaSeisIntLoc = {
   泊村茅沼村: {
     location: [43.06, 140.5],
     sect: "後志地方西部",
-    arv: 0.88,
+    arv: 0.86,
   },
   神恵内村神恵内: {
     location: [43.14, 140.44],
@@ -527,7 +527,7 @@ export const jmaSeisIntLoc = {
   沼田町沼田: {
     location: [43.8, 141.93],
     sect: "空知地方北部",
-    arv: 2.04,
+    arv: 2.03,
   },
   芦別市旭町: {
     location: [43.51, 142.22],
@@ -552,12 +552,12 @@ export const jmaSeisIntLoc = {
   滝川市新町: {
     location: [43.55, 141.92],
     sect: "空知地方中部",
-    arv: 1.32,
+    arv: 1.24,
   },
   砂川市西７条: {
     location: [43.49, 141.9],
     sect: "空知地方中部",
-    arv: 1.7,
+    arv: 1.94,
   },
   歌志内市本町: {
     location: [43.52, 142.03],
@@ -582,7 +582,7 @@ export const jmaSeisIntLoc = {
   新十津川町中央: {
     location: [43.55, 141.88],
     sect: "空知地方中部",
-    arv: 1.65,
+    arv: 1.94,
   },
   雨竜町フシコウリウ: {
     location: [43.64, 141.89],
@@ -602,22 +602,22 @@ export const jmaSeisIntLoc = {
   岩見沢市鳩が丘: {
     location: [43.2, 141.78],
     sect: "空知地方南部",
-    arv: 0.96,
+    arv: 0.97,
   },
   岩見沢市北村赤川: {
     location: [43.26, 141.7],
     sect: "空知地方南部",
-    arv: 2.24,
+    arv: 2.23,
   },
   岩見沢市栗沢町東本町: {
     location: [43.12, 141.75],
     sect: "空知地方南部",
-    arv: 1.34,
+    arv: 0.95,
   },
   美唄市西５条: {
     location: [43.33, 141.85],
     sect: "空知地方南部",
-    arv: 1.27,
+    arv: 1.28,
   },
   美唄市西３条: {
     location: [43.33, 141.86],
@@ -627,7 +627,7 @@ export const jmaSeisIntLoc = {
   三笠市幸町: {
     location: [43.25, 141.88],
     sect: "空知地方南部",
-    arv: 0.92,
+    arv: 0.9,
   },
   南幌町栄町: {
     location: [43.06, 141.65],
@@ -637,12 +637,12 @@ export const jmaSeisIntLoc = {
   由仁町新光: {
     location: [43.0, 141.79],
     sect: "空知地方南部",
-    arv: 1.99,
+    arv: 2.0,
   },
   長沼町中央: {
     location: [43.01, 141.7],
     sect: "空知地方南部",
-    arv: 2.14,
+    arv: 2.13,
   },
   栗山町松風: {
     location: [43.06, 141.78],
@@ -662,7 +662,7 @@ export const jmaSeisIntLoc = {
   士別市東６条: {
     location: [44.18, 142.4],
     sect: "上川地方北部",
-    arv: 1.92,
+    arv: 1.91,
   },
   士別市東３条: {
     location: [44.18, 142.39],
@@ -677,7 +677,7 @@ export const jmaSeisIntLoc = {
   名寄市西５条: {
     location: [44.36, 142.45],
     sect: "上川地方北部",
-    arv: 1.94,
+    arv: 1.16,
   },
   名寄市風連町: {
     location: [44.29, 142.41],
@@ -692,7 +692,7 @@ export const jmaSeisIntLoc = {
   剣淵町仲町: {
     location: [44.1, 142.36],
     sect: "上川地方北部",
-    arv: 1.02,
+    arv: 1.01,
   },
   下川町北町: {
     location: [44.31, 142.64],
@@ -772,12 +772,12 @@ export const jmaSeisIntLoc = {
   上川地方上川町花園町: {
     location: [43.85, 142.77],
     sect: "上川地方中部",
-    arv: 0.82,
+    arv: 0.93,
   },
   上川地方上川町清川: {
     location: [43.77, 142.9],
     sect: "上川地方中部",
-    arv: 1.08,
+    arv: 1.14,
   },
   東川町東町: {
     location: [43.7, 142.51],
@@ -797,7 +797,7 @@ export const jmaSeisIntLoc = {
   富良野市若松町: {
     location: [43.35, 142.38],
     sect: "上川地方南部",
-    arv: 1.41,
+    arv: 1.67,
   },
   富良野市末広町: {
     location: [43.34, 142.38],
@@ -827,17 +827,17 @@ export const jmaSeisIntLoc = {
   占冠村中央: {
     location: [42.98, 142.4],
     sect: "上川地方南部",
-    arv: 0.91,
+    arv: 0.81,
   },
   苫前町旭: {
     location: [44.31, 141.65],
     sect: "留萌地方中北部",
-    arv: 2.01,
+    arv: 1.13,
   },
   羽幌町南３条: {
     location: [44.36, 141.7],
     sect: "留萌地方中北部",
-    arv: 1.2,
+    arv: 1.21,
   },
   羽幌町焼尻: {
     location: [44.43, 141.42],
@@ -852,7 +852,7 @@ export const jmaSeisIntLoc = {
   初山別村有明: {
     location: [44.4, 141.85],
     sect: "留萌地方中北部",
-    arv: 1.06,
+    arv: 1.07,
   },
   初山別村初山別: {
     location: [44.53, 141.77],
@@ -872,7 +872,7 @@ export const jmaSeisIntLoc = {
   留萌市大町: {
     location: [43.95, 141.63],
     sect: "留萌地方南部",
-    arv: 1.24,
+    arv: 1.58,
   },
   留萌市幸町: {
     location: [43.94, 141.64],
@@ -882,7 +882,7 @@ export const jmaSeisIntLoc = {
   増毛町見晴町: {
     location: [43.85, 141.53],
     sect: "留萌地方南部",
-    arv: 0.9,
+    arv: 1.19,
   },
   増毛町岩尾: {
     location: [43.77, 141.37],
@@ -897,7 +897,7 @@ export const jmaSeisIntLoc = {
   小平町達布: {
     location: [44.05, 141.86],
     sect: "留萌地方南部",
-    arv: 0.89,
+    arv: 1.19,
   },
   稚内市恵北: {
     location: [45.32, 141.89],
@@ -917,12 +917,12 @@ export const jmaSeisIntLoc = {
   稚内市宗谷岬: {
     location: [45.51, 141.95],
     sect: "宗谷地方北部",
-    arv: 0.92,
+    arv: 0.95,
   },
   稚内市沼川: {
     location: [45.25, 141.85],
     sect: "宗谷地方北部",
-    arv: 2.11,
+    arv: 1.04,
   },
   猿払村浅茅野: {
     location: [45.21, 142.23],
@@ -937,17 +937,17 @@ export const jmaSeisIntLoc = {
   豊富町西６条: {
     location: [45.1, 141.77],
     sect: "宗谷地方北部",
-    arv: 1.39,
+    arv: 1.36,
   },
   幌延町宮園町: {
     location: [45.02, 141.85],
     sect: "宗谷地方北部",
-    arv: 1.02,
+    arv: 1.28,
   },
   浜頓別町クッチャロ: {
     location: [45.13, 142.35],
     sect: "宗谷地方南部",
-    arv: 1.22,
+    arv: 1.25,
   },
   中頓別町中頓別: {
     location: [44.97, 142.29],
@@ -982,12 +982,12 @@ export const jmaSeisIntLoc = {
   礼文町上泊埼: {
     location: [45.42, 141.07],
     sect: "北海道利尻礼文",
-    arv: 1.21,
+    arv: 1.48,
   },
   礼文町香深: {
     location: [45.3, 141.05],
     sect: "北海道利尻礼文",
-    arv: 1.48,
+    arv: 1.05,
   },
   礼文町船泊: {
     location: [45.44, 141.04],
@@ -1007,7 +1007,7 @@ export const jmaSeisIntLoc = {
   利尻富士町鴛泊: {
     location: [45.25, 141.22],
     sect: "北海道利尻礼文",
-    arv: 1.32,
+    arv: 1.31,
   },
   網走市台町: {
     location: [44.02, 144.28],
@@ -1022,7 +1022,7 @@ export const jmaSeisIntLoc = {
   美幌町東３条: {
     location: [43.82, 144.1],
     sect: "網走地方",
-    arv: 0.96,
+    arv: 0.98,
   },
   津別町幸町: {
     location: [43.71, 144.03],
@@ -1077,7 +1077,7 @@ export const jmaSeisIntLoc = {
   北見市南仲町: {
     location: [43.8, 143.9],
     sect: "北見地方",
-    arv: 0.93,
+    arv: 0.96,
   },
   北見市常呂町常呂: {
     location: [44.12, 144.07],
@@ -1097,7 +1097,7 @@ export const jmaSeisIntLoc = {
   北見市端野町二区: {
     location: [43.86, 143.95],
     sect: "北見地方",
-    arv: 1.04,
+    arv: 1.06,
   },
   訓子府町東町: {
     location: [43.73, 143.74],
@@ -1122,7 +1122,7 @@ export const jmaSeisIntLoc = {
   紋別市北浜町: {
     location: [44.37, 143.35],
     sect: "紋別地方",
-    arv: 1.17,
+    arv: 1.1,
   },
   遠軽町丸瀬布金湧山: {
     location: [44.01, 143.36],
@@ -1167,7 +1167,7 @@ export const jmaSeisIntLoc = {
   西興部村西興部: {
     location: [44.33, 142.95],
     sect: "紋別地方",
-    arv: 0.85,
+    arv: 0.84,
   },
   雄武町雄武: {
     location: [44.58, 142.96],
@@ -1197,17 +1197,17 @@ export const jmaSeisIntLoc = {
   壮瞥町滝之町: {
     location: [42.55, 140.89],
     sect: "胆振地方西部",
-    arv: 1.06,
+    arv: 1.07,
   },
   洞爺湖町栄町: {
     location: [42.55, 140.76],
     sect: "胆振地方西部",
-    arv: 1.44,
+    arv: 1.75,
   },
   洞爺湖町洞爺町: {
     location: [42.65, 140.83],
     sect: "胆振地方西部",
-    arv: 1.13,
+    arv: 1.11,
   },
   室蘭市山手町: {
     location: [42.31, 140.98],
@@ -1247,7 +1247,7 @@ export const jmaSeisIntLoc = {
   白老町緑丘: {
     location: [42.56, 141.35],
     sect: "胆振地方中東部",
-    arv: 2.29,
+    arv: 2.27,
   },
   厚真町鹿沼: {
     location: [42.62, 141.92],
@@ -1287,7 +1287,7 @@ export const jmaSeisIntLoc = {
   日高地方日高町門別: {
     location: [42.48, 142.05],
     sect: "日高地方西部",
-    arv: 1.42,
+    arv: 1.44,
   },
   平取町仁世宇: {
     location: [42.78, 142.36],
@@ -1332,12 +1332,12 @@ export const jmaSeisIntLoc = {
   新ひだか町静内農屋: {
     location: [42.42, 142.5],
     sect: "日高地方中部",
-    arv: 1.13,
+    arv: 1.15,
   },
   浦河町野深: {
     location: [42.28, 142.75],
     sect: "日高地方東部",
-    arv: 0.93,
+    arv: 0.87,
   },
   浦河町潮見: {
     location: [42.16, 142.78],
@@ -1357,7 +1357,7 @@ export const jmaSeisIntLoc = {
   えりも町本町: {
     location: [42.02, 143.15],
     sect: "日高地方東部",
-    arv: 0.95,
+    arv: 1.0,
   },
   えりも町目黒: {
     location: [42.13, 143.32],
@@ -1372,17 +1372,17 @@ export const jmaSeisIntLoc = {
   上士幌町清水谷: {
     location: [43.32, 143.3],
     sect: "十勝地方北部",
-    arv: 0.79,
+    arv: 0.81,
   },
   上士幌町上士幌: {
     location: [43.23, 143.3],
     sect: "十勝地方北部",
-    arv: 1.04,
+    arv: 1.17,
   },
   鹿追町東町: {
     location: [43.1, 142.99],
     sect: "十勝地方北部",
-    arv: 1.13,
+    arv: 1.12,
   },
   新得町２条: {
     location: [43.07, 142.84],
@@ -1407,7 +1407,7 @@ export const jmaSeisIntLoc = {
   陸別町陸別: {
     location: [43.47, 143.75],
     sect: "十勝地方北部",
-    arv: 0.8,
+    arv: 0.96,
   },
   帯広市東４条: {
     location: [42.92, 143.21],
@@ -1422,7 +1422,7 @@ export const jmaSeisIntLoc = {
   音更町元町: {
     location: [42.99, 143.2],
     sect: "十勝地方中部",
-    arv: 1.22,
+    arv: 1.18,
   },
   士幌町士幌: {
     location: [43.17, 143.24],
@@ -1437,7 +1437,7 @@ export const jmaSeisIntLoc = {
   芽室町東２条: {
     location: [42.91, 143.05],
     sect: "十勝地方中部",
-    arv: 1.2,
+    arv: 1.19,
   },
   幕別町忠類明和: {
     location: [42.62, 143.36],
@@ -1457,7 +1457,7 @@ export const jmaSeisIntLoc = {
   十勝池田町西１条: {
     location: [42.93, 143.45],
     sect: "十勝地方中部",
-    arv: 2.09,
+    arv: 1.02,
   },
   豊頃町茂岩本町: {
     location: [42.8, 143.51],
@@ -1492,7 +1492,7 @@ export const jmaSeisIntLoc = {
   十勝大樹町東本通: {
     location: [42.5, 143.28],
     sect: "十勝地方南部",
-    arv: 0.96,
+    arv: 0.95,
   },
   十勝大樹町生花: {
     location: [42.62, 143.42],
@@ -1507,7 +1507,7 @@ export const jmaSeisIntLoc = {
   広尾町白樺通: {
     location: [42.29, 143.3],
     sect: "十勝地方南部",
-    arv: 0.89,
+    arv: 1.0,
   },
   弟子屈町美里: {
     location: [43.48, 144.44],
@@ -1557,17 +1557,17 @@ export const jmaSeisIntLoc = {
   釧路町別保: {
     location: [43.0, 144.47],
     sect: "釧路地方中南部",
-    arv: 1.22,
+    arv: 1.26,
   },
   厚岸町尾幌: {
     location: [43.0, 144.69],
     sect: "釧路地方中南部",
-    arv: 1.31,
+    arv: 1.32,
   },
   厚岸町真栄: {
     location: [43.05, 144.85],
     sect: "釧路地方中南部",
-    arv: 1.48,
+    arv: 1.44,
   },
   浜中町湯沸: {
     location: [43.08, 145.16],
@@ -1582,12 +1582,12 @@ export const jmaSeisIntLoc = {
   標茶町川上: {
     location: [43.3, 144.6],
     sect: "釧路地方中南部",
-    arv: 1.41,
+    arv: 1.65,
   },
   標茶町塘路: {
     location: [43.15, 144.5],
     sect: "釧路地方中南部",
-    arv: 1.22,
+    arv: 1.31,
   },
   鶴居村鶴居東: {
     location: [43.23, 144.33],
@@ -1607,12 +1607,12 @@ export const jmaSeisIntLoc = {
   中標津町丸山: {
     location: [43.55, 144.97],
     sect: "根室地方北部",
-    arv: 1.56,
+    arv: 1.59,
   },
   標津町古多糠: {
     location: [43.78, 145.0],
     sect: "根室地方北部",
-    arv: 1.29,
+    arv: 1.3,
   },
   標津町北２条: {
     location: [43.66, 145.13],
@@ -1637,7 +1637,7 @@ export const jmaSeisIntLoc = {
   羅臼町岬町: {
     location: [44.11, 145.25],
     sect: "根室地方北部",
-    arv: 0.88,
+    arv: 1.44,
   },
   別海町常盤: {
     location: [43.39, 145.12],
@@ -1667,7 +1667,7 @@ export const jmaSeisIntLoc = {
   根室市牧の内: {
     location: [43.33, 145.6],
     sect: "根室地方南部",
-    arv: 1.33,
+    arv: 1.36,
   },
   根室市厚床: {
     location: [43.23, 145.26],
@@ -1682,7 +1682,7 @@ export const jmaSeisIntLoc = {
   根室市珸瑤瑁: {
     location: [43.37, 145.8],
     sect: "根室地方南部",
-    arv: 1.49,
+    arv: 1.51,
   },
   青森市花園: {
     location: [40.82, 140.77],
@@ -1697,12 +1697,12 @@ export const jmaSeisIntLoc = {
   青森市浪岡: {
     location: [40.71, 140.6],
     sect: "青森県津軽北部",
-    arv: 1.1,
+    arv: 1.08,
   },
   五所川原市栄町: {
     location: [40.8, 140.44],
     sect: "青森県津軽北部",
-    arv: 2.23,
+    arv: 1.85,
   },
   五所川原市太田: {
     location: [41.06, 140.41],
@@ -1712,12 +1712,12 @@ export const jmaSeisIntLoc = {
   五所川原市敷島町: {
     location: [40.82, 140.45],
     sect: "青森県津軽北部",
-    arv: 1.96,
+    arv: 1.95,
   },
   五所川原市相内: {
     location: [41.06, 140.35],
     sect: "青森県津軽北部",
-    arv: 1.07,
+    arv: 1.03,
   },
   五所川原市金木町: {
     location: [40.9, 140.46],
@@ -1767,12 +1767,12 @@ export const jmaSeisIntLoc = {
   蓬田村阿弥陀川: {
     location: [40.97, 140.65],
     sect: "青森県津軽北部",
-    arv: 1.13,
+    arv: 1.88,
   },
   外ヶ浜町平舘: {
     location: [41.15, 140.63],
     sect: "青森県津軽北部",
-    arv: 0.9,
+    arv: 1.2,
   },
   外ヶ浜町三厩: {
     location: [41.19, 140.43],
@@ -1787,7 +1787,7 @@ export const jmaSeisIntLoc = {
   板柳町板柳: {
     location: [40.7, 140.46],
     sect: "青森県津軽北部",
-    arv: 2.21,
+    arv: 1.73,
   },
   鶴田町鶴田: {
     location: [40.76, 140.43],
@@ -1817,7 +1817,7 @@ export const jmaSeisIntLoc = {
   弘前市城東中央: {
     location: [40.6, 140.5],
     sect: "青森県津軽南部",
-    arv: 1.22,
+    arv: 1.23,
   },
   弘前市賀田: {
     location: [40.62, 140.42],
@@ -1867,7 +1867,7 @@ export const jmaSeisIntLoc = {
   深浦町深浦岡町: {
     location: [40.65, 139.93],
     sect: "青森県津軽南部",
-    arv: 0.96,
+    arv: 1.44,
   },
   深浦町深浦中沢: {
     location: [40.64, 139.93],
@@ -1887,7 +1887,7 @@ export const jmaSeisIntLoc = {
   藤崎町西豊田: {
     location: [40.66, 140.5],
     sect: "青森県津軽南部",
-    arv: 1.69,
+    arv: 2.2,
   },
   藤崎町水木: {
     location: [40.67, 140.54],
@@ -1922,7 +1922,7 @@ export const jmaSeisIntLoc = {
   八戸市南郷: {
     location: [40.4, 141.44],
     sect: "青森県三八上北",
-    arv: 1.21,
+    arv: 1.03,
   },
   十和田市西二番町: {
     location: [40.62, 141.21],
@@ -1967,7 +1967,7 @@ export const jmaSeisIntLoc = {
   七戸町七戸: {
     location: [40.7, 141.15],
     sect: "青森県三八上北",
-    arv: 1.09,
+    arv: 1.08,
   },
   六戸町犬落瀬: {
     location: [40.61, 141.33],
@@ -1982,7 +1982,7 @@ export const jmaSeisIntLoc = {
   横浜町寺下: {
     location: [41.08, 141.25],
     sect: "青森県三八上北",
-    arv: 1.6,
+    arv: 1.54,
   },
   東北町上北南: {
     location: [40.73, 141.26],
@@ -2012,7 +2012,7 @@ export const jmaSeisIntLoc = {
   おいらせ町上明堂: {
     location: [40.6, 141.43],
     sect: "青森県三八上北",
-    arv: 1.87,
+    arv: 2.22,
   },
   三戸町在府小路町: {
     location: [40.38, 141.26],
@@ -2027,12 +2027,12 @@ export const jmaSeisIntLoc = {
   五戸町倉石中市: {
     location: [40.51, 141.25],
     sect: "青森県三八上北",
-    arv: 0.91,
+    arv: 0.94,
   },
   田子町田子: {
     location: [40.34, 141.15],
     sect: "青森県三八上北",
-    arv: 1.06,
+    arv: 0.87,
   },
   青森南部町沖田面: {
     location: [40.41, 141.28],
@@ -2052,7 +2052,7 @@ export const jmaSeisIntLoc = {
   階上町道仏: {
     location: [40.45, 141.62],
     sect: "青森県三八上北",
-    arv: 1.15,
+    arv: 1.51,
   },
   新郷村戸来: {
     location: [40.47, 141.17],
@@ -2082,12 +2082,12 @@ export const jmaSeisIntLoc = {
   むつ市川内町: {
     location: [41.2, 141.0],
     sect: "青森県下北",
-    arv: 1.44,
+    arv: 2.18,
   },
   むつ市脇野沢: {
     location: [41.15, 140.81],
     sect: "青森県下北",
-    arv: 0.92,
+    arv: 0.93,
   },
   大間町大間: {
     location: [41.52, 140.91],
@@ -2102,7 +2102,7 @@ export const jmaSeisIntLoc = {
   東通村尻屋: {
     location: [41.41, 141.45],
     sect: "青森県下北",
-    arv: 1.32,
+    arv: 1.43,
   },
   東通村白糠: {
     location: [41.17, 141.38],
@@ -2117,7 +2117,7 @@ export const jmaSeisIntLoc = {
   風間浦村易国間: {
     location: [41.49, 141.0],
     sect: "青森県下北",
-    arv: 1.15,
+    arv: 1.16,
   },
   佐井村長後: {
     location: [41.33, 140.81],
@@ -2132,7 +2132,7 @@ export const jmaSeisIntLoc = {
   宮古市鍬ヶ崎: {
     location: [39.65, 141.97],
     sect: "岩手県沿岸北部",
-    arv: 1.0,
+    arv: 1.07,
   },
   宮古市長沢: {
     location: [39.58, 141.82],
@@ -2142,12 +2142,12 @@ export const jmaSeisIntLoc = {
   宮古市五月町: {
     location: [39.65, 141.95],
     sect: "岩手県沿岸北部",
-    arv: 0.82,
+    arv: 1.01,
   },
   宮古市川井: {
     location: [39.6, 141.68],
     sect: "岩手県沿岸北部",
-    arv: 0.81,
+    arv: 0.57,
   },
   宮古市区界: {
     location: [39.63, 141.44],
@@ -2182,7 +2182,7 @@ export const jmaSeisIntLoc = {
   久慈市山形町: {
     location: [40.15, 141.57],
     sect: "岩手県沿岸北部",
-    arv: 0.94,
+    arv: 1.09,
   },
   山田町八幡町: {
     location: [39.47, 141.95],
@@ -2197,12 +2197,12 @@ export const jmaSeisIntLoc = {
   岩泉町大川: {
     location: [39.8, 141.66],
     sect: "岩手県沿岸北部",
-    arv: 0.57,
+    arv: 0.79,
   },
   岩泉町岩泉: {
     location: [39.84, 141.8],
     sect: "岩手県沿岸北部",
-    arv: 0.86,
+    arv: 0.57,
   },
   田野畑村田野畑: {
     location: [39.94, 141.86],
@@ -2282,7 +2282,7 @@ export const jmaSeisIntLoc = {
   盛岡市馬場町: {
     location: [39.7, 141.15],
     sect: "岩手県内陸北部",
-    arv: 1.94,
+    arv: 0.94,
   },
   盛岡市薮川: {
     location: [39.78, 141.33],
@@ -2292,12 +2292,12 @@ export const jmaSeisIntLoc = {
   盛岡市渋民: {
     location: [39.85, 141.17],
     sect: "岩手県内陸北部",
-    arv: 0.83,
+    arv: 0.84,
   },
   二戸市福岡: {
     location: [40.27, 141.3],
     sect: "岩手県内陸北部",
-    arv: 1.06,
+    arv: 0.85,
   },
   二戸市石切所: {
     location: [40.26, 141.29],
@@ -2312,7 +2312,7 @@ export const jmaSeisIntLoc = {
   八幡平市大更: {
     location: [39.93, 141.1],
     sect: "岩手県内陸北部",
-    arv: 1.44,
+    arv: 1.4,
   },
   八幡平市田頭: {
     location: [39.92, 141.08],
@@ -2322,7 +2322,7 @@ export const jmaSeisIntLoc = {
   八幡平市叺田: {
     location: [40.1, 141.05],
     sect: "岩手県内陸北部",
-    arv: 0.9,
+    arv: 0.91,
   },
   八幡平市野駄: {
     location: [39.96, 141.07],
@@ -2337,7 +2337,7 @@ export const jmaSeisIntLoc = {
   雫石町千刈田: {
     location: [39.7, 140.98],
     sect: "岩手県内陸北部",
-    arv: 1.09,
+    arv: 1.08,
   },
   雫石町西根上駒木野: {
     location: [39.74, 140.95],
@@ -2367,7 +2367,7 @@ export const jmaSeisIntLoc = {
   紫波町紫波中央駅前: {
     location: [39.55, 141.16],
     sect: "岩手県内陸北部",
-    arv: 0.93,
+    arv: 0.91,
   },
   矢巾町南矢幅: {
     location: [39.61, 141.14],
@@ -2387,7 +2387,7 @@ export const jmaSeisIntLoc = {
   一戸町高善寺: {
     location: [40.21, 141.3],
     sect: "岩手県内陸北部",
-    arv: 0.83,
+    arv: 1.02,
   },
   花巻市大迫町: {
     location: [39.48, 141.29],
@@ -2397,7 +2397,7 @@ export const jmaSeisIntLoc = {
   花巻市石鳥谷町: {
     location: [39.48, 141.15],
     sect: "岩手県内陸南部",
-    arv: 1.94,
+    arv: 1.5,
   },
   花巻市大迫総合支所: {
     location: [39.47, 141.29],
@@ -2422,7 +2422,7 @@ export const jmaSeisIntLoc = {
   北上市相去町: {
     location: [39.26, 141.1],
     sect: "岩手県内陸南部",
-    arv: 0.99,
+    arv: 0.98,
   },
   遠野市青笹町: {
     location: [39.33, 141.56],
@@ -2437,7 +2437,7 @@ export const jmaSeisIntLoc = {
   一関市大東町: {
     location: [39.02, 141.4],
     sect: "岩手県内陸南部",
-    arv: 0.9,
+    arv: 0.86,
   },
   一関市竹山町: {
     location: [38.93, 141.13],
@@ -2457,7 +2457,7 @@ export const jmaSeisIntLoc = {
   一関市東山町: {
     location: [39.0, 141.25],
     sect: "岩手県内陸南部",
-    arv: 0.93,
+    arv: 1.01,
   },
   一関市室根町: {
     location: [38.94, 141.44],
@@ -2467,12 +2467,12 @@ export const jmaSeisIntLoc = {
   一関市藤沢町: {
     location: [38.86, 141.35],
     sect: "岩手県内陸南部",
-    arv: 0.98,
+    arv: 0.95,
   },
   一関市川崎町: {
     location: [38.9, 141.26],
     sect: "岩手県内陸南部",
-    arv: 1.77,
+    arv: 1.79,
   },
   奥州市水沢大鐘町: {
     location: [39.13, 141.14],
@@ -2492,7 +2492,7 @@ export const jmaSeisIntLoc = {
   奥州市前沢: {
     location: [39.05, 141.12],
     sect: "岩手県内陸南部",
-    arv: 0.94,
+    arv: 0.96,
   },
   奥州市胆沢: {
     location: [39.12, 141.07],
@@ -2517,12 +2517,12 @@ export const jmaSeisIntLoc = {
   西和賀町沢内太田: {
     location: [39.43, 140.75],
     sect: "岩手県内陸南部",
-    arv: 0.78,
+    arv: 0.81,
   },
   金ケ崎町西根: {
     location: [39.2, 141.12],
     sect: "岩手県内陸南部",
-    arv: 1.09,
+    arv: 1.57,
   },
   平泉町平泉: {
     location: [38.99, 141.11],
@@ -2542,17 +2542,17 @@ export const jmaSeisIntLoc = {
   気仙沼市笹が陣: {
     location: [38.9, 141.57],
     sect: "宮城県北部",
-    arv: 1.01,
+    arv: 1.14,
   },
   気仙沼市唐桑町: {
     location: [38.9, 141.65],
     sect: "宮城県北部",
-    arv: 0.88,
+    arv: 0.89,
   },
   気仙沼市本吉町津谷: {
     location: [38.79, 141.5],
     sect: "宮城県北部",
-    arv: 1.4,
+    arv: 1.41,
   },
   登米市中田町: {
     location: [38.71, 141.24],
@@ -2567,7 +2567,7 @@ export const jmaSeisIntLoc = {
   登米市豊里町: {
     location: [38.59, 141.25],
     sect: "宮城県北部",
-    arv: 1.94,
+    arv: 0.98,
   },
   登米市登米町: {
     location: [38.66, 141.28],
@@ -2592,7 +2592,7 @@ export const jmaSeisIntLoc = {
   登米市津山町: {
     location: [38.61, 141.3],
     sect: "宮城県北部",
-    arv: 1.84,
+    arv: 2.1,
   },
   登米市米山町: {
     location: [38.63, 141.19],
@@ -2612,12 +2612,12 @@ export const jmaSeisIntLoc = {
   栗原市鶯沢: {
     location: [38.81, 140.95],
     sect: "宮城県北部",
-    arv: 1.25,
+    arv: 1.24,
   },
   栗原市花山: {
     location: [38.79, 140.85],
     sect: "宮城県北部",
-    arv: 0.88,
+    arv: 1.02,
   },
   栗原市瀬峰: {
     location: [38.66, 141.07],
@@ -2647,7 +2647,7 @@ export const jmaSeisIntLoc = {
   栗原市一迫: {
     location: [38.74, 140.95],
     sect: "宮城県北部",
-    arv: 1.23,
+    arv: 1.24,
   },
   大崎市古川三日町: {
     location: [38.57, 140.96],
@@ -2662,7 +2662,7 @@ export const jmaSeisIntLoc = {
   大崎市鳴子: {
     location: [38.75, 140.72],
     sect: "宮城県北部",
-    arv: 1.01,
+    arv: 0.97,
   },
   大崎市古川旭: {
     location: [38.57, 140.98],
@@ -2682,7 +2682,7 @@ export const jmaSeisIntLoc = {
   大崎市鹿島台: {
     location: [38.48, 141.1],
     sect: "宮城県北部",
-    arv: 2.12,
+    arv: 2.11,
   },
   大崎市岩出山: {
     location: [38.65, 140.88],
@@ -2697,7 +2697,7 @@ export const jmaSeisIntLoc = {
   色麻町四竈: {
     location: [38.55, 140.85],
     sect: "宮城県北部",
-    arv: 1.25,
+    arv: 1.26,
   },
   宮城加美町中新田: {
     location: [38.57, 140.86],
@@ -2837,7 +2837,7 @@ export const jmaSeisIntLoc = {
   仙台宮城野区五輪: {
     location: [38.26, 140.9],
     sect: "宮城県中部",
-    arv: 1.06,
+    arv: 1.08,
   },
   仙台宮城野区苦竹: {
     location: [38.27, 140.93],
@@ -2862,12 +2862,12 @@ export const jmaSeisIntLoc = {
   石巻市泉町: {
     location: [38.43, 141.3],
     sect: "宮城県中部",
-    arv: 1.35,
+    arv: 0.97,
   },
   石巻市大瓜: {
     location: [38.46, 141.35],
     sect: "宮城県中部",
-    arv: 1.11,
+    arv: 1.75,
   },
   石巻市鮎川浜: {
     location: [38.3, 141.51],
@@ -2902,7 +2902,7 @@ export const jmaSeisIntLoc = {
   石巻市雄勝町: {
     location: [38.51, 141.5],
     sect: "宮城県中部",
-    arv: 0.94,
+    arv: 0.57,
   },
   塩竈市今宮町: {
     location: [38.33, 141.01],
@@ -2927,7 +2927,7 @@ export const jmaSeisIntLoc = {
   富谷市富谷: {
     location: [38.4, 140.9],
     sect: "宮城県中部",
-    arv: 1.07,
+    arv: 1.2,
   },
   松島町高城: {
     location: [38.39, 141.07],
@@ -2977,7 +2977,7 @@ export const jmaSeisIntLoc = {
   能代市追分町: {
     location: [40.2, 140.035],
     sect: "秋田県沿岸北部",
-    arv: 2.05,
+    arv: 1.94,
   },
   能代市上町: {
     location: [40.21, 140.03],
@@ -2997,7 +2997,7 @@ export const jmaSeisIntLoc = {
   男鹿市船川: {
     location: [39.89, 139.85],
     sect: "秋田県沿岸北部",
-    arv: 0.97,
+    arv: 1.44,
   },
   男鹿市角間崎: {
     location: [39.96, 139.92],
@@ -3042,7 +3042,7 @@ export const jmaSeisIntLoc = {
   三種町森岳: {
     location: [40.1, 140.08],
     sect: "秋田県沿岸北部",
-    arv: 1.57,
+    arv: 1.46,
   },
   八峰町八森木戸の沢: {
     location: [40.39, 139.98],
@@ -3062,7 +3062,7 @@ export const jmaSeisIntLoc = {
   八郎潟町大道: {
     location: [39.95, 140.07],
     sect: "秋田県沿岸北部",
-    arv: 1.9,
+    arv: 1.88,
   },
   井川町北川尻: {
     location: [39.91, 140.08],
@@ -3077,7 +3077,7 @@ export const jmaSeisIntLoc = {
   秋田市山王: {
     location: [39.72, 140.1],
     sect: "秋田県沿岸南部",
-    arv: 1.88,
+    arv: 1.86,
   },
   秋田市雄和女米木: {
     location: [39.54, 140.21],
@@ -3107,7 +3107,7 @@ export const jmaSeisIntLoc = {
   由利本荘市桜小路: {
     location: [39.38, 140.05],
     sect: "秋田県沿岸南部",
-    arv: 1.19,
+    arv: 1.17,
   },
   由利本荘市鳥海町伏見: {
     location: [39.19, 140.19],
@@ -3127,7 +3127,7 @@ export const jmaSeisIntLoc = {
   由利本荘市東由利老方: {
     location: [39.3, 140.29],
     sect: "秋田県沿岸南部",
-    arv: 1.04,
+    arv: 1.06,
   },
   由利本荘市矢島町矢島町: {
     location: [39.23, 140.13],
@@ -3137,7 +3137,7 @@ export const jmaSeisIntLoc = {
   由利本荘市岩谷町: {
     location: [39.44, 140.1],
     sect: "秋田県沿岸南部",
-    arv: 1.79,
+    arv: 1.78,
   },
   由利本荘市前郷: {
     location: [39.32, 140.11],
@@ -3152,7 +3152,7 @@ export const jmaSeisIntLoc = {
   にかほ市金浦: {
     location: [39.25, 139.92],
     sect: "秋田県沿岸南部",
-    arv: 1.37,
+    arv: 1.39,
   },
   にかほ市象潟町浜ノ田: {
     location: [39.2, 139.91],
@@ -3177,7 +3177,7 @@ export const jmaSeisIntLoc = {
   大館市早口: {
     location: [40.27, 140.45],
     sect: "秋田県内陸北部",
-    arv: 1.2,
+    arv: 1.19,
   },
   鹿角市花輪: {
     location: [40.22, 140.79],
@@ -3192,7 +3192,7 @@ export const jmaSeisIntLoc = {
   北秋田市阿仁水無: {
     location: [39.99, 140.4],
     sect: "秋田県内陸北部",
-    arv: 0.67,
+    arv: 0.83,
   },
   北秋田市米内沢: {
     location: [40.12, 140.38],
@@ -3212,7 +3212,7 @@ export const jmaSeisIntLoc = {
   上小阿仁村小沢田: {
     location: [40.06, 140.3],
     sect: "秋田県内陸北部",
-    arv: 1.12,
+    arv: 1.14,
   },
   横手市雄物川町今宿: {
     location: [39.29, 140.43],
@@ -3222,7 +3222,7 @@ export const jmaSeisIntLoc = {
   横手市安田柳堤地内: {
     location: [39.3, 140.56],
     sect: "秋田県内陸南部",
-    arv: 1.16,
+    arv: 1.17,
   },
   横手市中央町: {
     location: [39.31, 140.57],
@@ -3267,12 +3267,12 @@ export const jmaSeisIntLoc = {
   湯沢市寺沢: {
     location: [39.04, 140.45],
     sect: "秋田県内陸南部",
-    arv: 1.08,
+    arv: 1.1,
   },
   湯沢市川連町: {
     location: [39.15, 140.57],
     sect: "秋田県内陸南部",
-    arv: 0.89,
+    arv: 0.86,
   },
   湯沢市佐竹町: {
     location: [39.16, 140.5],
@@ -3297,7 +3297,7 @@ export const jmaSeisIntLoc = {
   大仙市刈和野: {
     location: [39.55, 140.37],
     sect: "秋田県内陸南部",
-    arv: 2.06,
+    arv: 1.94,
   },
   大仙市北長野: {
     location: [39.54, 140.54],
@@ -3307,17 +3307,17 @@ export const jmaSeisIntLoc = {
   大仙市南外: {
     location: [39.45, 140.36],
     sect: "秋田県内陸南部",
-    arv: 1.25,
+    arv: 1.24,
   },
   大仙市太田町太田: {
     location: [39.51, 140.6],
     sect: "秋田県内陸南部",
-    arv: 1.17,
+    arv: 1.16,
   },
   大仙市大曲花園町: {
     location: [39.45, 140.48],
     sect: "秋田県内陸南部",
-    arv: 1.66,
+    arv: 2.08,
   },
   大仙市高梨: {
     location: [39.46, 140.51],
@@ -3342,7 +3342,7 @@ export const jmaSeisIntLoc = {
   仙北市田沢湖生保内上清水: {
     location: [39.7, 140.72],
     sect: "秋田県内陸南部",
-    arv: 0.88,
+    arv: 0.85,
   },
   仙北市角館町小勝田: {
     location: [39.6, 140.56],
@@ -3357,7 +3357,7 @@ export const jmaSeisIntLoc = {
   仙北市田沢湖生保内宮ノ後: {
     location: [39.7, 140.73],
     sect: "秋田県内陸南部",
-    arv: 0.83,
+    arv: 0.86,
   },
   仙北市西木町上荒井: {
     location: [39.66, 140.57],
@@ -3377,7 +3377,7 @@ export const jmaSeisIntLoc = {
   羽後町西馬音内: {
     location: [39.2, 140.41],
     sect: "秋田県内陸南部",
-    arv: 1.17,
+    arv: 1.18,
   },
   東成瀬村椿川: {
     location: [39.15, 140.72],
@@ -3387,7 +3387,7 @@ export const jmaSeisIntLoc = {
   東成瀬村田子内: {
     location: [39.18, 140.65],
     sect: "秋田県内陸南部",
-    arv: 0.82,
+    arv: 0.81,
   },
   鶴岡市馬場町: {
     location: [38.73, 139.83],
@@ -3397,7 +3397,7 @@ export const jmaSeisIntLoc = {
   鶴岡市温海川: {
     location: [38.6, 139.71],
     sect: "山形県庄内",
-    arv: 1.0,
+    arv: 0.67,
   },
   鶴岡市温海: {
     location: [38.62, 139.59],
@@ -3422,7 +3422,7 @@ export const jmaSeisIntLoc = {
   鶴岡市羽黒町: {
     location: [38.72, 139.9],
     sect: "山形県庄内",
-    arv: 1.31,
+    arv: 1.29,
   },
   鶴岡市下名川: {
     location: [38.61, 139.83],
@@ -3432,7 +3432,7 @@ export const jmaSeisIntLoc = {
   酒田市飛島: {
     location: [39.2, 139.55],
     sect: "山形県庄内",
-    arv: 1.57,
+    arv: 1.43,
   },
   酒田市亀ケ崎: {
     location: [38.91, 139.84],
@@ -3452,7 +3452,7 @@ export const jmaSeisIntLoc = {
   酒田市山田: {
     location: [38.86, 139.95],
     sect: "山形県庄内",
-    arv: 2.1,
+    arv: 1.02,
   },
   酒田市観音寺: {
     location: [38.97, 139.94],
@@ -3467,7 +3467,7 @@ export const jmaSeisIntLoc = {
   三川町横山: {
     location: [38.79, 139.85],
     sect: "山形県庄内",
-    arv: 2.21,
+    arv: 2.22,
   },
   庄内町清川: {
     location: [38.79, 140.02],
@@ -3537,7 +3537,7 @@ export const jmaSeisIntLoc = {
   真室川町新町: {
     location: [38.86, 140.25],
     sect: "山形県最上",
-    arv: 1.12,
+    arv: 1.14,
   },
   大蔵村肘折: {
     location: [38.61, 140.16],
@@ -3547,12 +3547,12 @@ export const jmaSeisIntLoc = {
   大蔵村清水: {
     location: [38.7, 140.23],
     sect: "山形県最上",
-    arv: 1.15,
+    arv: 1.16,
   },
   鮭川村佐渡: {
     location: [38.8, 140.22],
     sect: "山形県最上",
-    arv: 1.12,
+    arv: 1.14,
   },
   戸沢村古口: {
     location: [38.74, 140.14],
@@ -3587,7 +3587,7 @@ export const jmaSeisIntLoc = {
   上山市河崎: {
     location: [38.15, 140.27],
     sect: "山形県村山",
-    arv: 1.1,
+    arv: 1.08,
   },
   村山市中央: {
     location: [38.48, 140.38],
@@ -3607,7 +3607,7 @@ export const jmaSeisIntLoc = {
   尾花沢市若葉町: {
     location: [38.6, 140.41],
     sect: "山形県村山",
-    arv: 0.88,
+    arv: 0.87,
   },
   山辺町緑ケ丘: {
     location: [38.29, 140.26],
@@ -3642,7 +3642,7 @@ export const jmaSeisIntLoc = {
   山形朝日町宮宿: {
     location: [38.3, 140.15],
     sect: "山形県村山",
-    arv: 0.83,
+    arv: 0.86,
   },
   大江町左沢: {
     location: [38.38, 140.21],
@@ -3682,7 +3682,7 @@ export const jmaSeisIntLoc = {
   南陽市三間通: {
     location: [38.06, 140.15],
     sect: "山形県置賜",
-    arv: 1.08,
+    arv: 1.07,
   },
   高畠町高畠: {
     location: [38.0, 140.19],
@@ -3692,12 +3692,12 @@ export const jmaSeisIntLoc = {
   山形川西町上小松: {
     location: [38.01, 140.05],
     sect: "山形県置賜",
-    arv: 1.38,
+    arv: 1.1,
   },
-  山形小国町岩井沢: {
-    location: [38.06, 139.75],
+  山形小国町あけぼの: {
+    location: [38.05, 139.76],
     sect: "山形県置賜",
-    arv: 1.11,
+    arv: 0.83,
   },
   山形小国町小国小坂町: {
     location: [38.06, 139.74],
@@ -3712,7 +3712,7 @@ export const jmaSeisIntLoc = {
   白鷹町荒砥: {
     location: [38.18, 140.1],
     sect: "山形県置賜",
-    arv: 0.84,
+    arv: 0.82,
   },
   飯豊町上原: {
     location: [37.92, 139.88],
@@ -3772,7 +3772,7 @@ export const jmaSeisIntLoc = {
   白河市東: {
     location: [37.1, 140.35],
     sect: "福島県中通り",
-    arv: 0.96,
+    arv: 0.97,
   },
   白河市表郷: {
     location: [37.05, 140.31],
@@ -3782,7 +3782,7 @@ export const jmaSeisIntLoc = {
   白河市大信: {
     location: [37.2, 140.25],
     sect: "福島県中通り",
-    arv: 1.0,
+    arv: 0.98,
   },
   白河市八幡小路: {
     location: [37.13, 140.21],
@@ -3857,7 +3857,7 @@ export const jmaSeisIntLoc = {
   福島伊達市梁川町: {
     location: [37.85, 140.6],
     sect: "福島県中通り",
-    arv: 2.0,
+    arv: 1.98,
   },
   福島伊達市保原町: {
     location: [37.82, 140.56],
@@ -3897,7 +3897,7 @@ export const jmaSeisIntLoc = {
   国見町藤田: {
     location: [37.88, 140.55],
     sect: "福島県中通り",
-    arv: 0.88,
+    arv: 1.29,
   },
   川俣町五百田: {
     location: [37.66, 140.6],
@@ -3937,7 +3937,7 @@ export const jmaSeisIntLoc = {
   泉崎村泉崎: {
     location: [37.15, 140.3],
     sect: "福島県中通り",
-    arv: 1.02,
+    arv: 0.91,
   },
   中島村滑津: {
     location: [37.15, 140.35],
@@ -3982,7 +3982,7 @@ export const jmaSeisIntLoc = {
   石川町長久保: {
     location: [37.16, 140.45],
     sect: "福島県中通り",
-    arv: 1.06,
+    arv: 0.97,
   },
   玉川村小高: {
     location: [37.21, 140.41],
@@ -4037,7 +4037,7 @@ export const jmaSeisIntLoc = {
   いわき市平四ツ波: {
     location: [37.09, 140.9],
     sect: "福島県浜通り",
-    arv: 0.85,
+    arv: 0.91,
   },
   いわき市錦町: {
     location: [36.91, 140.79],
@@ -4087,12 +4087,12 @@ export const jmaSeisIntLoc = {
   福島広野町下北迫大谷地原: {
     location: [37.23, 141.0],
     sect: "福島県浜通り",
-    arv: 0.92,
+    arv: 0.93,
   },
   福島広野町下北迫苗代替: {
     location: [37.21, 141.0],
     sect: "福島県浜通り",
-    arv: 1.0,
+    arv: 1.08,
   },
   楢葉町北田: {
     location: [37.28, 140.99],
@@ -4137,7 +4137,7 @@ export const jmaSeisIntLoc = {
   浪江町幾世橋: {
     location: [37.49, 141.0],
     sect: "福島県浜通り",
-    arv: 1.05,
+    arv: 2.09,
   },
   葛尾村落合落合: {
     location: [37.5, 140.76],
@@ -4272,12 +4272,12 @@ export const jmaSeisIntLoc = {
   西会津町野沢: {
     location: [37.59, 139.65],
     sect: "福島県会津",
-    arv: 0.9,
+    arv: 0.88,
   },
   西会津町登世島: {
     location: [37.6, 139.65],
     sect: "福島県会津",
-    arv: 0.84,
+    arv: 0.85,
   },
   磐梯町磐梯: {
     location: [37.56, 139.99],
@@ -4287,7 +4287,7 @@ export const jmaSeisIntLoc = {
   猪苗代町城南: {
     location: [37.56, 140.1],
     sect: "福島県会津",
-    arv: 1.91,
+    arv: 1.9,
   },
   猪苗代町下園: {
     location: [37.56, 140.12],
@@ -4307,7 +4307,7 @@ export const jmaSeisIntLoc = {
   柳津町大成沢: {
     location: [37.41, 139.7],
     sect: "福島県会津",
-    arv: 0.67,
+    arv: 0.78,
   },
   柳津町柳津: {
     location: [37.53, 139.72],
@@ -4352,7 +4352,7 @@ export const jmaSeisIntLoc = {
   水戸市千波町: {
     location: [36.37, 140.45],
     sect: "茨城県北部",
-    arv: 1.32,
+    arv: 1.44,
   },
   水戸市内原町: {
     location: [36.36, 140.36],
@@ -4367,12 +4367,12 @@ export const jmaSeisIntLoc = {
   日立市助川小学校: {
     location: [36.59, 140.65],
     sect: "茨城県北部",
-    arv: 1.2,
+    arv: 1.14,
   },
   日立市役所: {
     location: [36.6, 140.65],
     sect: "茨城県北部",
-    arv: 1.16,
+    arv: 1.18,
   },
   日立市十王町友部: {
     location: [36.68, 140.68],
@@ -4432,7 +4432,7 @@ export const jmaSeisIntLoc = {
   笠間市中央: {
     location: [36.35, 140.3],
     sect: "茨城県北部",
-    arv: 1.43,
+    arv: 1.4,
   },
   笠間市下郷: {
     location: [36.3, 140.29],
@@ -4442,7 +4442,7 @@ export const jmaSeisIntLoc = {
   笠間市笠間: {
     location: [36.38, 140.25],
     sect: "茨城県北部",
-    arv: 0.98,
+    arv: 0.88,
   },
   ひたちなか市山ノ上町: {
     location: [36.34, 140.59],
@@ -4452,7 +4452,7 @@ export const jmaSeisIntLoc = {
   ひたちなか市南神敷台: {
     location: [36.35, 140.6],
     sect: "茨城県北部",
-    arv: 1.14,
+    arv: 1.09,
   },
   ひたちなか市東石川: {
     location: [36.4, 140.54],
@@ -4482,7 +4482,7 @@ export const jmaSeisIntLoc = {
   常陸大宮市山方: {
     location: [36.63, 140.4],
     sect: "茨城県北部",
-    arv: 0.96,
+    arv: 1.0,
   },
   常陸大宮市野口: {
     location: [36.56, 140.32],
@@ -4507,7 +4507,7 @@ export const jmaSeisIntLoc = {
   小美玉市堅倉: {
     location: [36.24, 140.35],
     sect: "茨城県北部",
-    arv: 1.51,
+    arv: 1.52,
   },
   小美玉市上玉里: {
     location: [36.16, 140.34],
@@ -4572,7 +4572,7 @@ export const jmaSeisIntLoc = {
   茨城古河市長谷町: {
     location: [36.18, 139.7],
     sect: "茨城県南部",
-    arv: 1.87,
+    arv: 1.79,
   },
   茨城古河市下大野: {
     location: [36.18, 139.76],
@@ -4592,7 +4592,7 @@ export const jmaSeisIntLoc = {
   石岡市八郷: {
     location: [36.25, 140.2],
     sect: "茨城県南部",
-    arv: 1.18,
+    arv: 0.97,
   },
   石岡市石岡: {
     location: [36.19, 140.29],
@@ -4632,7 +4632,7 @@ export const jmaSeisIntLoc = {
   取手市寺田: {
     location: [35.91, 140.05],
     sect: "茨城県南部",
-    arv: 1.53,
+    arv: 1.49,
   },
   取手市井野: {
     location: [35.91, 140.07],
@@ -4647,7 +4647,7 @@ export const jmaSeisIntLoc = {
   牛久市中央: {
     location: [35.98, 140.15],
     sect: "茨城県南部",
-    arv: 1.46,
+    arv: 1.45,
   },
   つくば市天王台: {
     location: [36.13, 140.09],
@@ -4667,7 +4667,7 @@ export const jmaSeisIntLoc = {
   茨城鹿嶋市鉢形: {
     location: [35.97, 140.65],
     sect: "茨城県南部",
-    arv: 1.1,
+    arv: 1.08,
   },
   茨城鹿嶋市宮中: {
     location: [35.98, 140.63],
@@ -4737,7 +4737,7 @@ export const jmaSeisIntLoc = {
   稲敷市役所: {
     location: [35.97, 140.3],
     sect: "茨城県南部",
-    arv: 1.34,
+    arv: 1.31,
   },
   稲敷市伊佐津: {
     location: [35.91, 140.29],
@@ -4832,7 +4832,7 @@ export const jmaSeisIntLoc = {
   美浦村受領: {
     location: [36.0, 140.3],
     sect: "茨城県南部",
-    arv: 1.4,
+    arv: 1.67,
   },
   阿見町中央: {
     location: [36.03, 140.21],
@@ -4852,7 +4852,7 @@ export const jmaSeisIntLoc = {
   五霞町小福田: {
     location: [36.11, 139.75],
     sect: "茨城県南部",
-    arv: 1.79,
+    arv: 1.94,
   },
   境町旭町: {
     location: [36.11, 139.79],
@@ -4917,7 +4917,7 @@ export const jmaSeisIntLoc = {
   日光市今市本町: {
     location: [36.72, 139.7],
     sect: "栃木県北部",
-    arv: 1.26,
+    arv: 1.29,
   },
   大田原市黒羽田町: {
     location: [36.86, 140.12],
@@ -4932,7 +4932,7 @@ export const jmaSeisIntLoc = {
   大田原市湯津上: {
     location: [36.82, 140.1],
     sect: "栃木県北部",
-    arv: 1.45,
+    arv: 1.43,
   },
   矢板市本町: {
     location: [36.81, 139.92],
@@ -4952,7 +4952,7 @@ export const jmaSeisIntLoc = {
   那須塩原市中塩原: {
     location: [36.99, 139.8],
     sect: "栃木県北部",
-    arv: 0.85,
+    arv: 0.86,
   },
   那須塩原市共墾社: {
     location: [36.96, 140.05],
@@ -4997,7 +4997,7 @@ export const jmaSeisIntLoc = {
   宇都宮市中里町: {
     location: [36.68, 139.9],
     sect: "栃木県南部",
-    arv: 1.29,
+    arv: 1.3,
   },
   宇都宮市中岡本町: {
     location: [36.62, 139.94],
@@ -5007,7 +5007,7 @@ export const jmaSeisIntLoc = {
   足利市大正町: {
     location: [36.34, 139.45],
     sect: "栃木県南部",
-    arv: 1.13,
+    arv: 1.41,
   },
   栃木市旭町: {
     location: [36.38, 139.74],
@@ -5017,7 +5017,7 @@ export const jmaSeisIntLoc = {
   栃木市大平町富田: {
     location: [36.34, 139.7],
     sect: "栃木県南部",
-    arv: 1.29,
+    arv: 1.34,
   },
   栃木市藤岡町藤岡: {
     location: [36.26, 139.65],
@@ -5027,7 +5027,7 @@ export const jmaSeisIntLoc = {
   栃木市西方町本城: {
     location: [36.47, 139.75],
     sect: "栃木県南部",
-    arv: 0.97,
+    arv: 0.98,
   },
   栃木市万町: {
     location: [36.38, 139.73],
@@ -5077,17 +5077,17 @@ export const jmaSeisIntLoc = {
   鹿沼市今宮町: {
     location: [36.57, 139.75],
     sect: "栃木県南部",
-    arv: 1.07,
+    arv: 1.09,
   },
   小山市神鳥谷: {
     location: [36.29, 139.8],
     sect: "栃木県南部",
-    arv: 1.5,
+    arv: 1.62,
   },
   小山市中央町: {
     location: [36.31, 139.8],
     sect: "栃木県南部",
-    arv: 1.5,
+    arv: 1.51,
   },
   真岡市田町: {
     location: [36.44, 140.02],
@@ -5127,7 +5127,7 @@ export const jmaSeisIntLoc = {
   那須烏山市役所: {
     location: [36.66, 140.15],
     sect: "栃木県南部",
-    arv: 0.97,
+    arv: 1.22,
   },
   下野市田中: {
     location: [36.39, 139.88],
@@ -5137,7 +5137,7 @@ export const jmaSeisIntLoc = {
   下野市笹原: {
     location: [36.39, 139.85],
     sect: "栃木県南部",
-    arv: 1.4,
+    arv: 1.39,
   },
   下野市大松山: {
     location: [36.43, 139.86],
@@ -5167,7 +5167,7 @@ export const jmaSeisIntLoc = {
   市貝町市塙: {
     location: [36.54, 140.1],
     sect: "栃木県南部",
-    arv: 1.12,
+    arv: 1.29,
   },
   芳賀町祖母井: {
     location: [36.55, 140.06],
@@ -5237,7 +5237,7 @@ export const jmaSeisIntLoc = {
   中之条町入山: {
     location: [36.65, 138.65],
     sect: "群馬県北部",
-    arv: 0.79,
+    arv: 0.78,
   },
   長野原町長野原: {
     location: [36.54, 138.65],
@@ -5267,12 +5267,12 @@ export const jmaSeisIntLoc = {
   東吾妻町本宿: {
     location: [36.51, 138.75],
     sect: "群馬県北部",
-    arv: 0.92,
+    arv: 0.94,
   },
   東吾妻町奥田: {
     location: [36.55, 138.9],
     sect: "群馬県北部",
-    arv: 0.96,
+    arv: 0.98,
   },
   片品村鎌田: {
     location: [36.77, 139.22],
@@ -5282,7 +5282,7 @@ export const jmaSeisIntLoc = {
   川場村谷地: {
     location: [36.69, 139.1],
     sect: "群馬県北部",
-    arv: 0.89,
+    arv: 0.95,
   },
   群馬昭和村糸井: {
     location: [36.64, 139.07],
@@ -5297,7 +5297,7 @@ export const jmaSeisIntLoc = {
   みなかみ町後閑: {
     location: [36.68, 139.0],
     sect: "群馬県北部",
-    arv: 0.79,
+    arv: 0.8,
   },
   みなかみ町布施: {
     location: [36.69, 138.93],
@@ -5342,7 +5342,7 @@ export const jmaSeisIntLoc = {
   高崎市高松町: {
     location: [36.32, 139.0],
     sect: "群馬県南部",
-    arv: 1.16,
+    arv: 1.4,
   },
   高崎市倉渕町: {
     location: [36.43, 138.79],
@@ -5397,7 +5397,7 @@ export const jmaSeisIntLoc = {
   伊勢崎市今泉町: {
     location: [36.31, 139.2],
     sect: "群馬県南部",
-    arv: 1.25,
+    arv: 1.29,
   },
   伊勢崎市西久保町: {
     location: [36.38, 139.23],
@@ -5407,12 +5407,12 @@ export const jmaSeisIntLoc = {
   伊勢崎市境: {
     location: [36.28, 139.25],
     sect: "群馬県南部",
-    arv: 1.29,
+    arv: 1.27,
   },
   伊勢崎市東町: {
     location: [36.34, 139.25],
     sect: "群馬県南部",
-    arv: 1.12,
+    arv: 1.14,
   },
   太田市西本町: {
     location: [36.29, 139.36],
@@ -5432,12 +5432,12 @@ export const jmaSeisIntLoc = {
   太田市新田金井町: {
     location: [36.3, 139.3],
     sect: "群馬県南部",
-    arv: 1.16,
+    arv: 1.19,
   },
   太田市大原町: {
     location: [36.36, 139.3],
     sect: "群馬県南部",
-    arv: 1.12,
+    arv: 1.08,
   },
   館林市上三林町: {
     location: [36.22, 139.48],
@@ -5457,7 +5457,7 @@ export const jmaSeisIntLoc = {
   渋川市石原: {
     location: [36.49, 139.0],
     sect: "群馬県南部",
-    arv: 1.0,
+    arv: 1.01,
   },
   渋川市北橘町: {
     location: [36.48, 139.05],
@@ -5577,7 +5577,7 @@ export const jmaSeisIntLoc = {
   板倉町板倉: {
     location: [36.22, 139.6],
     sect: "群馬県南部",
-    arv: 1.5,
+    arv: 1.51,
   },
   群馬明和町新里: {
     location: [36.21, 139.53],
@@ -5637,7 +5637,7 @@ export const jmaSeisIntLoc = {
   加須市三俣: {
     location: [36.13, 139.6],
     sect: "埼玉県北部",
-    arv: 2.05,
+    arv: 2.33,
   },
   加須市騎西: {
     location: [36.1, 139.57],
@@ -5672,12 +5672,12 @@ export const jmaSeisIntLoc = {
   東松山市松葉町: {
     location: [36.04, 139.4],
     sect: "埼玉県北部",
-    arv: 1.1,
+    arv: 1.11,
   },
   羽生市東: {
     location: [36.17, 139.55],
     sect: "埼玉県北部",
-    arv: 1.64,
+    arv: 1.84,
   },
   鴻巣市中央: {
     location: [36.07, 139.52],
@@ -5692,7 +5692,7 @@ export const jmaSeisIntLoc = {
   鴻巣市吹上富士見: {
     location: [36.1, 139.45],
     sect: "埼玉県北部",
-    arv: 2.37,
+    arv: 2.36,
   },
   深谷市花園: {
     location: [36.13, 139.23],
@@ -5722,17 +5722,17 @@ export const jmaSeisIntLoc = {
   久喜市青葉: {
     location: [36.07, 139.7],
     sect: "埼玉県北部",
-    arv: 2.95,
+    arv: 2.98,
   },
   久喜市菖蒲: {
     location: [36.06, 139.6],
     sect: "埼玉県北部",
-    arv: 1.82,
+    arv: 1.78,
   },
   久喜市栗橋: {
     location: [36.13, 139.7],
     sect: "埼玉県北部",
-    arv: 2.54,
+    arv: 2.51,
   },
   久喜市鷲宮: {
     location: [36.1, 139.67],
@@ -5757,7 +5757,7 @@ export const jmaSeisIntLoc = {
   吉見町下細谷: {
     location: [36.04, 139.45],
     sect: "埼玉県北部",
-    arv: 1.83,
+    arv: 1.87,
   },
   鳩山町大豆戸: {
     location: [35.98, 139.33],
@@ -5772,7 +5772,7 @@ export const jmaSeisIntLoc = {
   ときがわ町玉川: {
     location: [36.01, 139.3],
     sect: "埼玉県北部",
-    arv: 0.88,
+    arv: 0.9,
   },
   東秩父村御堂: {
     location: [36.06, 139.19],
@@ -5787,7 +5787,7 @@ export const jmaSeisIntLoc = {
   埼玉神川町植竹: {
     location: [36.21, 139.1],
     sect: "埼玉県北部",
-    arv: 0.98,
+    arv: 1.01,
   },
   埼玉神川町下阿久原: {
     location: [36.15, 139.05],
@@ -5817,7 +5817,7 @@ export const jmaSeisIntLoc = {
   さいたま大宮区天沼町: {
     location: [35.91, 139.65],
     sect: "埼玉県南部",
-    arv: 2.35,
+    arv: 1.42,
   },
   さいたま大宮区大門: {
     location: [35.91, 139.63],
@@ -5827,7 +5827,7 @@ export const jmaSeisIntLoc = {
   さいたま見沼区堀崎: {
     location: [35.94, 139.65],
     sect: "埼玉県南部",
-    arv: 1.64,
+    arv: 1.62,
   },
   さいたま中央区下落合: {
     location: [35.88, 139.63],
@@ -5842,7 +5842,7 @@ export const jmaSeisIntLoc = {
   さいたま浦和区高砂: {
     location: [35.86, 139.65],
     sect: "埼玉県南部",
-    arv: 1.87,
+    arv: 1.83,
   },
   さいたま浦和区常盤: {
     location: [35.86, 139.64],
@@ -5862,7 +5862,7 @@ export const jmaSeisIntLoc = {
   さいたま岩槻区本丸: {
     location: [35.95, 139.7],
     sect: "埼玉県南部",
-    arv: 1.4,
+    arv: 1.53,
   },
   川越市旭町: {
     location: [35.9, 139.47],
@@ -5897,7 +5897,7 @@ export const jmaSeisIntLoc = {
   所沢市並木: {
     location: [35.8, 139.475],
     sect: "埼玉県南部",
-    arv: 1.51,
+    arv: 1.62,
   },
   飯能市下直竹: {
     location: [35.84, 139.28],
@@ -5922,12 +5922,12 @@ export const jmaSeisIntLoc = {
   春日部市粕壁: {
     location: [35.98, 139.75],
     sect: "埼玉県南部",
-    arv: 2.43,
+    arv: 2.37,
   },
   春日部市金崎: {
     location: [35.99, 139.8],
     sect: "埼玉県南部",
-    arv: 1.91,
+    arv: 1.66,
   },
   春日部市谷原新田: {
     location: [35.96, 139.74],
@@ -6007,7 +6007,7 @@ export const jmaSeisIntLoc = {
   富士見市鶴馬: {
     location: [35.86, 139.55],
     sect: "埼玉県南部",
-    arv: 1.93,
+    arv: 1.94,
   },
   三郷市中央: {
     location: [35.83, 139.88],
@@ -6022,7 +6022,7 @@ export const jmaSeisIntLoc = {
   坂戸市千代田: {
     location: [35.96, 139.4],
     sect: "埼玉県南部",
-    arv: 1.28,
+    arv: 1.31,
   },
   幸手市東: {
     location: [36.08, 139.73],
@@ -6112,7 +6112,7 @@ export const jmaSeisIntLoc = {
   秩父市中津川: {
     location: [36.0, 138.8],
     sect: "埼玉県秩父",
-    arv: 0.57,
+    arv: 0.56,
   },
   秩父市吉田: {
     location: [36.04, 139.02],
@@ -6142,7 +6142,7 @@ export const jmaSeisIntLoc = {
   皆野町皆野: {
     location: [36.07, 139.1],
     sect: "埼玉県秩父",
-    arv: 0.86,
+    arv: 0.87,
   },
   長瀞町野上下郷: {
     location: [36.12, 139.1],
@@ -6157,7 +6157,7 @@ export const jmaSeisIntLoc = {
   小鹿野町両神薄: {
     location: [36.02, 138.9],
     sect: "埼玉県秩父",
-    arv: 0.63,
+    arv: 0.6,
   },
   小鹿野町両神振興会館: {
     location: [36.01, 138.97],
@@ -6202,7 +6202,7 @@ export const jmaSeisIntLoc = {
   東金市東岩崎: {
     location: [35.56, 140.375],
     sect: "千葉県北東部",
-    arv: 1.83,
+    arv: 1.96,
   },
   旭市南堀之内: {
     location: [35.77, 140.62],
@@ -6222,7 +6222,7 @@ export const jmaSeisIntLoc = {
   旭市ニ: {
     location: [35.72, 140.65],
     sect: "千葉県北東部",
-    arv: 1.79,
+    arv: 1.84,
   },
   匝瑳市八日市場ハ: {
     location: [35.71, 140.56],
@@ -6247,12 +6247,12 @@ export const jmaSeisIntLoc = {
   香取市役所: {
     location: [35.9, 140.5],
     sect: "千葉県北東部",
-    arv: 2.03,
+    arv: 2.1,
   },
   香取市羽根川: {
     location: [35.85, 140.6],
     sect: "千葉県北東部",
-    arv: 2.43,
+    arv: 2.34,
   },
   香取市仁良: {
     location: [35.8, 140.58],
@@ -6267,12 +6267,12 @@ export const jmaSeisIntLoc = {
   山武市松尾町富士見台: {
     location: [35.64, 140.45],
     sect: "千葉県北東部",
-    arv: 1.55,
+    arv: 1.54,
   },
   山武市蓮沼ニ: {
     location: [35.59, 140.5],
     sect: "千葉県北東部",
-    arv: 1.68,
+    arv: 1.7,
   },
   山武市埴谷: {
     location: [35.64, 140.38],
@@ -6287,7 +6287,7 @@ export const jmaSeisIntLoc = {
   山武市蓮沼ハ: {
     location: [35.6, 140.5],
     sect: "千葉県北東部",
-    arv: 1.79,
+    arv: 1.74,
   },
   山武市松尾町五反田: {
     location: [35.64, 140.46],
@@ -6302,7 +6302,7 @@ export const jmaSeisIntLoc = {
   神崎町神崎本宿: {
     location: [35.9, 140.4],
     sect: "千葉県北東部",
-    arv: 1.47,
+    arv: 1.38,
   },
   多古町多古: {
     location: [35.74, 140.47],
@@ -6327,12 +6327,12 @@ export const jmaSeisIntLoc = {
   横芝光町宮川: {
     location: [35.67, 140.5],
     sect: "千葉県北東部",
-    arv: 1.46,
+    arv: 1.47,
   },
   横芝光町栗山: {
     location: [35.66, 140.5],
     sect: "千葉県北東部",
-    arv: 1.54,
+    arv: 1.59,
   },
   一宮町一宮: {
     location: [35.37, 140.37],
@@ -6347,7 +6347,7 @@ export const jmaSeisIntLoc = {
   長生村本郷: {
     location: [35.41, 140.35],
     sect: "千葉県北東部",
-    arv: 1.99,
+    arv: 1.83,
   },
   白子町関: {
     location: [35.45, 140.37],
@@ -6372,12 +6372,12 @@ export const jmaSeisIntLoc = {
   千葉中央区中央港: {
     location: [35.6, 140.1],
     sect: "千葉県北西部",
-    arv: 1.68,
+    arv: 1.78,
   },
   千葉花見川区花島町: {
     location: [35.68, 140.1],
     sect: "千葉県北西部",
-    arv: 1.38,
+    arv: 1.5,
   },
   千葉稲毛区園生町: {
     location: [35.65, 140.13],
@@ -6432,7 +6432,7 @@ export const jmaSeisIntLoc = {
   松戸市根本: {
     location: [35.79, 139.9],
     sect: "千葉県北西部",
-    arv: 1.57,
+    arv: 1.54,
   },
   松戸市西馬橋: {
     location: [35.81, 139.91],
@@ -6472,7 +6472,7 @@ export const jmaSeisIntLoc = {
   成田市猿山: {
     location: [35.88, 140.35],
     sect: "千葉県北西部",
-    arv: 1.73,
+    arv: 1.52,
   },
   成田市松子: {
     location: [35.83, 140.42],
@@ -6507,7 +6507,7 @@ export const jmaSeisIntLoc = {
   市原市姉崎: {
     location: [35.47, 140.05],
     sect: "千葉県北西部",
-    arv: 1.44,
+    arv: 1.63,
   },
   市原市国分寺台中央: {
     location: [35.5, 140.12],
@@ -6517,12 +6517,12 @@ export const jmaSeisIntLoc = {
   流山市平和台: {
     location: [35.86, 139.9],
     sect: "千葉県北西部",
-    arv: 1.64,
+    arv: 1.71,
   },
   八千代市大和田新田: {
     location: [35.72, 140.1],
     sect: "千葉県北西部",
-    arv: 1.59,
+    arv: 1.67,
   },
   我孫子市我孫子: {
     location: [35.86, 140.03],
@@ -6532,7 +6532,7 @@ export const jmaSeisIntLoc = {
   鎌ケ谷市新鎌ケ谷: {
     location: [35.78, 140.0],
     sect: "千葉県北西部",
-    arv: 1.54,
+    arv: 1.52,
   },
   浦安市日の出: {
     location: [35.64, 139.92],
@@ -6542,7 +6542,7 @@ export const jmaSeisIntLoc = {
   浦安市猫実: {
     location: [35.65, 139.9],
     sect: "千葉県北西部",
-    arv: 2.16,
+    arv: 2.12,
   },
   四街道市鹿渡: {
     location: [35.67, 140.17],
@@ -6557,17 +6557,17 @@ export const jmaSeisIntLoc = {
   印西市大森: {
     location: [35.83, 140.15],
     sect: "千葉県北西部",
-    arv: 1.46,
+    arv: 1.47,
   },
   印西市笠神: {
     location: [35.82, 140.2],
     sect: "千葉県北西部",
-    arv: 1.33,
+    arv: 1.96,
   },
   印西市美瀬: {
     location: [35.78, 140.2],
     sect: "千葉県北西部",
-    arv: 1.52,
+    arv: 1.43,
   },
   白井市復: {
     location: [35.79, 140.06],
@@ -6622,12 +6622,12 @@ export const jmaSeisIntLoc = {
   鴨川市八色: {
     location: [35.11, 140.1],
     sect: "千葉県南部",
-    arv: 1.84,
+    arv: 1.98,
   },
   鴨川市内浦: {
     location: [35.16, 140.2],
     sect: "千葉県南部",
-    arv: 1.08,
+    arv: 0.98,
   },
   鴨川市横渚: {
     location: [35.11, 140.105],
@@ -6637,7 +6637,7 @@ export const jmaSeisIntLoc = {
   鴨川市天津: {
     location: [35.12, 140.15],
     sect: "千葉県南部",
-    arv: 0.95,
+    arv: 0.92,
   },
   君津市久留里市場: {
     location: [35.3, 140.07],
@@ -6647,7 +6647,7 @@ export const jmaSeisIntLoc = {
   君津市久保: {
     location: [35.33, 139.9],
     sect: "千葉県南部",
-    arv: 2.14,
+    arv: 2.12,
   },
   富津市下飯野: {
     location: [35.3, 139.86],
@@ -6657,7 +6657,7 @@ export const jmaSeisIntLoc = {
   袖ケ浦市坂戸市場: {
     location: [35.43, 139.95],
     sect: "千葉県南部",
-    arv: 1.43,
+    arv: 1.41,
   },
   南房総市上堀: {
     location: [35.04, 139.89],
@@ -6672,7 +6672,7 @@ export const jmaSeisIntLoc = {
   南房総市白浜町白浜: {
     location: [34.91, 139.9],
     sect: "千葉県南部",
-    arv: 1.0,
+    arv: 1.01,
   },
   南房総市岩糸: {
     location: [35.02, 139.96],
@@ -6692,7 +6692,7 @@ export const jmaSeisIntLoc = {
   南房総市谷向: {
     location: [35.03, 139.9],
     sect: "千葉県南部",
-    arv: 1.31,
+    arv: 1.28,
   },
   南房総市千倉町瀬戸: {
     location: [34.98, 139.96],
@@ -6717,12 +6717,12 @@ export const jmaSeisIntLoc = {
   大多喜町大多喜: {
     location: [35.29, 140.25],
     sect: "千葉県南部",
-    arv: 1.35,
+    arv: 1.43,
   },
   御宿町須賀: {
     location: [35.19, 140.35],
     sect: "千葉県南部",
-    arv: 0.98,
+    arv: 1.04,
   },
   鋸南町下佐久間: {
     location: [35.11, 139.84],
@@ -6737,7 +6737,7 @@ export const jmaSeisIntLoc = {
   東京千代田区富士見: {
     location: [35.7, 139.75],
     sect: "東京都２３区",
-    arv: 1.64,
+    arv: 1.78,
   },
   東京千代田区麹町: {
     location: [35.68, 139.74],
@@ -6762,12 +6762,12 @@ export const jmaSeisIntLoc = {
   東京港区海岸: {
     location: [35.64, 139.75],
     sect: "東京都２３区",
-    arv: 1.47,
+    arv: 1.4,
   },
   東京港区芝公園: {
     location: [35.66, 139.75],
     sect: "東京都２３区",
-    arv: 1.41,
+    arv: 1.51,
   },
   東京港区南青山: {
     location: [35.67, 139.72],
@@ -6782,7 +6782,7 @@ export const jmaSeisIntLoc = {
   東京新宿区西新宿: {
     location: [35.69, 139.7],
     sect: "東京都２３区",
-    arv: 1.36,
+    arv: 1.41,
   },
   東京新宿区上落合: {
     location: [35.71, 139.69],
@@ -6797,7 +6797,7 @@ export const jmaSeisIntLoc = {
   東京新宿区百人町: {
     location: [35.71, 139.7],
     sect: "東京都２３区",
-    arv: 1.41,
+    arv: 1.32,
   },
   東京文京区スポーツセンタ: {
     location: [35.72, 139.74],
@@ -6822,7 +6822,7 @@ export const jmaSeisIntLoc = {
   東京台東区千束: {
     location: [35.72, 139.8],
     sect: "東京都２３区",
-    arv: 1.79,
+    arv: 1.7,
   },
   東京墨田区横川: {
     location: [35.7, 139.82],
@@ -6832,7 +6832,7 @@ export const jmaSeisIntLoc = {
   東京墨田区吾妻橋: {
     location: [35.71, 139.8],
     sect: "東京都２３区",
-    arv: 1.67,
+    arv: 1.49,
   },
   東京墨田区東向島: {
     location: [35.72, 139.82],
@@ -6892,7 +6892,7 @@ export const jmaSeisIntLoc = {
   東京国際空港: {
     location: [35.54, 139.8],
     sect: "東京都２３区",
-    arv: 2.3,
+    arv: 2.32,
   },
   東京大田区蒲田: {
     location: [35.56, 139.72],
@@ -6912,12 +6912,12 @@ export const jmaSeisIntLoc = {
   東京大田区多摩川: {
     location: [35.56, 139.7],
     sect: "東京都２３区",
-    arv: 1.93,
+    arv: 2.18,
   },
   東京世田谷区世田谷: {
     location: [35.65, 139.65],
     sect: "東京都２３区",
-    arv: 1.37,
+    arv: 1.34,
   },
   東京世田谷区三軒茶屋: {
     location: [35.64, 139.67],
@@ -6927,17 +6927,17 @@ export const jmaSeisIntLoc = {
   東京世田谷区中町: {
     location: [35.61, 139.65],
     sect: "東京都２３区",
-    arv: 1.5,
+    arv: 1.74,
   },
   東京世田谷区成城: {
     location: [35.64, 139.6],
     sect: "東京都２３区",
-    arv: 1.72,
+    arv: 1.74,
   },
   東京渋谷区宇田川町: {
     location: [35.66, 139.7],
     sect: "東京都２３区",
-    arv: 1.24,
+    arv: 1.23,
   },
   東京渋谷区本町: {
     location: [35.68, 139.68],
@@ -7017,7 +7017,7 @@ export const jmaSeisIntLoc = {
   東京練馬区豊玉北: {
     location: [35.74, 139.65],
     sect: "東京都２３区",
-    arv: 1.43,
+    arv: 1.45,
   },
   東京練馬区東大泉: {
     location: [35.75, 139.59],
@@ -7032,7 +7032,7 @@ export const jmaSeisIntLoc = {
   東京足立区中央本町: {
     location: [35.77, 139.8],
     sect: "東京都２３区",
-    arv: 2.55,
+    arv: 2.52,
   },
   東京足立区神明南: {
     location: [35.79, 139.83],
@@ -7042,7 +7042,7 @@ export const jmaSeisIntLoc = {
   東京足立区千住中居町: {
     location: [35.75, 139.8],
     sect: "東京都２３区",
-    arv: 2.05,
+    arv: 1.89,
   },
   東京足立区伊興: {
     location: [35.79, 139.78],
@@ -7052,7 +7052,7 @@ export const jmaSeisIntLoc = {
   東京葛飾区立石: {
     location: [35.74, 139.85],
     sect: "東京都２３区",
-    arv: 2.18,
+    arv: 2.05,
   },
   東京葛飾区金町: {
     location: [35.76, 139.87],
@@ -7082,7 +7082,7 @@ export const jmaSeisIntLoc = {
   八王子市堀之内: {
     location: [35.63, 139.4],
     sect: "東京都多摩東部",
-    arv: 1.14,
+    arv: 1.15,
   },
   八王子市石川町: {
     location: [35.67, 139.36],
@@ -7122,7 +7122,7 @@ export const jmaSeisIntLoc = {
   昭島市田中町: {
     location: [35.71, 139.35],
     sect: "東京都多摩東部",
-    arv: 0.97,
+    arv: 0.96,
   },
   調布市小島町: {
     location: [35.65, 139.54],
@@ -7152,7 +7152,7 @@ export const jmaSeisIntLoc = {
   小金井市本町: {
     location: [35.7, 139.5],
     sect: "東京都多摩東部",
-    arv: 1.51,
+    arv: 1.62,
   },
   小平市小川町: {
     location: [35.73, 139.48],
@@ -7162,7 +7162,7 @@ export const jmaSeisIntLoc = {
   日野市神明: {
     location: [35.67, 139.4],
     sect: "東京都多摩東部",
-    arv: 1.16,
+    arv: 1.13,
   },
   東村山市本町: {
     location: [35.76, 139.47],
@@ -7172,12 +7172,12 @@ export const jmaSeisIntLoc = {
   東村山市美住町: {
     location: [35.75, 139.45],
     sect: "東京都多摩東部",
-    arv: 1.26,
+    arv: 1.23,
   },
   国分寺市並木町: {
     location: [35.72, 139.45],
     sect: "東京都多摩東部",
-    arv: 1.49,
+    arv: 1.56,
   },
   国分寺市泉町: {
     location: [35.7, 139.47],
@@ -7227,7 +7227,7 @@ export const jmaSeisIntLoc = {
   多摩市関戸: {
     location: [35.64, 139.45],
     sect: "東京都多摩東部",
-    arv: 1.02,
+    arv: 1.17,
   },
   多摩市鶴牧: {
     location: [35.62, 139.42],
@@ -7237,7 +7237,7 @@ export const jmaSeisIntLoc = {
   稲城市東長沼: {
     location: [35.64, 139.5],
     sect: "東京都多摩東部",
-    arv: 1.39,
+    arv: 1.29,
   },
   羽村市緑ヶ丘: {
     location: [35.77, 139.31],
@@ -7252,7 +7252,7 @@ export const jmaSeisIntLoc = {
   瑞穂町箱根ヶ崎: {
     location: [35.77, 139.35],
     sect: "東京都多摩東部",
-    arv: 1.05,
+    arv: 0.99,
   },
   青梅市東青梅: {
     location: [35.79, 139.28],
@@ -7342,7 +7342,7 @@ export const jmaSeisIntLoc = {
   三宅村坪田: {
     location: [34.06, 139.55],
     sect: "三宅島",
-    arv: 1.21,
+    arv: 1.26,
   },
   三宅村阿古: {
     location: [34.08, 139.48],
@@ -7367,7 +7367,7 @@ export const jmaSeisIntLoc = {
   八丈町富士グランド: {
     location: [33.12, 139.8],
     sect: "八丈島",
-    arv: 1.3,
+    arv: 1.34,
   },
   青ヶ島村: {
     location: [32.46, 139.76],
@@ -7393,11 +7393,6 @@ export const jmaSeisIntLoc = {
     location: [35.51, 139.69],
     sect: "神奈川県東部",
     arv: 2.1,
-  },
-  横浜鶴見区馬場: {
-    location: [35.51, 139.64],
-    sect: "神奈川県東部",
-    arv: 1.98,
   },
   横浜鶴見区末広町: {
     location: [35.49, 139.69],
@@ -7427,7 +7422,7 @@ export const jmaSeisIntLoc = {
   横浜中区山手町: {
     location: [35.44, 139.65],
     sect: "神奈川県東部",
-    arv: 1.37,
+    arv: 1.75,
   },
   横浜中区山下町: {
     location: [35.44, 139.64],
@@ -7457,7 +7452,7 @@ export const jmaSeisIntLoc = {
   横浜保土ケ谷区神戸町: {
     location: [35.45, 139.6],
     sect: "神奈川県東部",
-    arv: 1.57,
+    arv: 1.51,
   },
   横浜保土ケ谷区上菅田町: {
     location: [35.49, 139.57],
@@ -7477,7 +7472,7 @@ export const jmaSeisIntLoc = {
   横浜金沢区白帆: {
     location: [35.38, 139.65],
     sect: "神奈川県東部",
-    arv: 1.49,
+    arv: 1.61,
   },
   横浜金沢区寺前: {
     location: [35.34, 139.63],
@@ -7539,11 +7534,6 @@ export const jmaSeisIntLoc = {
     sect: "神奈川県東部",
     arv: 1.02,
   },
-  横浜旭区上白根町: {
-    location: [35.5, 139.53],
-    sect: "神奈川県東部",
-    arv: 1.02,
-  },
   横浜旭区川井宿町: {
     location: [35.49, 139.52],
     sect: "神奈川県東部",
@@ -7567,7 +7557,7 @@ export const jmaSeisIntLoc = {
   横浜瀬谷区三ツ境: {
     location: [35.46, 139.5],
     sect: "神奈川県東部",
-    arv: 1.44,
+    arv: 1.34,
   },
   横浜栄区桂台南: {
     location: [35.35, 139.56],
@@ -7592,12 +7582,12 @@ export const jmaSeisIntLoc = {
   横浜青葉区美しが丘: {
     location: [35.58, 139.55],
     sect: "神奈川県東部",
-    arv: 1.26,
+    arv: 1.02,
   },
   横浜青葉区鴨志田町: {
     location: [35.56, 139.5],
     sect: "神奈川県東部",
-    arv: 1.02,
+    arv: 1.33,
   },
   横浜都筑区池辺町: {
     location: [35.52, 139.57],
@@ -7617,7 +7607,7 @@ export const jmaSeisIntLoc = {
   川崎川崎区千鳥町: {
     location: [35.52, 139.75],
     sect: "神奈川県東部",
-    arv: 2.14,
+    arv: 2.15,
   },
   川崎川崎区中島: {
     location: [35.53, 139.715],
@@ -7667,7 +7657,7 @@ export const jmaSeisIntLoc = {
   川崎麻生区片平: {
     location: [35.59, 139.5],
     sect: "神奈川県東部",
-    arv: 1.24,
+    arv: 1.02,
   },
   横須賀市光の丘: {
     location: [35.23, 139.66],
@@ -7687,37 +7677,17 @@ export const jmaSeisIntLoc = {
   鎌倉市御成町: {
     location: [35.32, 139.55],
     sect: "神奈川県東部",
-    arv: 1.36,
+    arv: 1.35,
   },
   藤沢市朝日町: {
     location: [35.34, 139.49],
     sect: "神奈川県東部",
     arv: 1.55,
   },
-  藤沢市大庭: {
-    location: [35.37, 139.45],
-    sect: "神奈川県東部",
-    arv: 1.47,
-  },
-  藤沢市打戻: {
-    location: [35.4, 139.42],
-    sect: "神奈川県東部",
-    arv: 1.78,
-  },
-  藤沢市長後: {
-    location: [35.41, 139.46],
-    sect: "神奈川県東部",
-    arv: 1.42,
-  },
-  藤沢市辻堂西海岸: {
-    location: [35.33, 139.45],
-    sect: "神奈川県東部",
-    arv: 1.4,
-  },
   茅ヶ崎市茅ヶ崎: {
     location: [35.33, 139.4],
     sect: "神奈川県東部",
-    arv: 1.54,
+    arv: 1.51,
   },
   逗子市桜山: {
     location: [35.3, 139.59],
@@ -7742,7 +7712,7 @@ export const jmaSeisIntLoc = {
   座間市相武台: {
     location: [35.49, 139.4],
     sect: "神奈川県東部",
-    arv: 1.41,
+    arv: 1.66,
   },
   綾瀬市深谷中: {
     location: [35.43, 139.43],
@@ -7767,7 +7737,7 @@ export const jmaSeisIntLoc = {
   二宮町中里: {
     location: [35.31, 139.25],
     sect: "神奈川県東部",
-    arv: 1.66,
+    arv: 1.7,
   },
   相模原緑区若柳: {
     location: [35.6, 139.21],
@@ -7797,12 +7767,12 @@ export const jmaSeisIntLoc = {
   相模原緑区久保沢: {
     location: [35.6, 139.3],
     sect: "神奈川県西部",
-    arv: 0.86,
+    arv: 1.38,
   },
   相模原緑区橋本: {
     location: [35.6, 139.35],
     sect: "神奈川県西部",
-    arv: 1.28,
+    arv: 1.27,
   },
   相模原中央区中央: {
     location: [35.57, 139.37],
@@ -7832,7 +7802,7 @@ export const jmaSeisIntLoc = {
   小田原市荻窪: {
     location: [35.26, 139.15],
     sect: "神奈川県西部",
-    arv: 1.11,
+    arv: 1.12,
   },
   秦野市曽屋: {
     location: [35.38, 139.21],
@@ -7842,7 +7812,7 @@ export const jmaSeisIntLoc = {
   秦野市平沢: {
     location: [35.38, 139.2],
     sect: "神奈川県西部",
-    arv: 1.4,
+    arv: 1.32,
   },
   厚木市中町: {
     location: [35.44, 139.36],
@@ -7852,7 +7822,7 @@ export const jmaSeisIntLoc = {
   厚木市下津古久: {
     location: [35.4, 139.35],
     sect: "神奈川県西部",
-    arv: 2.36,
+    arv: 2.46,
   },
   伊勢原市伊勢原: {
     location: [35.4, 139.31],
@@ -7862,7 +7832,7 @@ export const jmaSeisIntLoc = {
   南足柄市関本: {
     location: [35.32, 139.1],
     sect: "神奈川県西部",
-    arv: 1.07,
+    arv: 1.17,
   },
   中井町比奈窪: {
     location: [35.33, 139.22],
@@ -7937,7 +7907,7 @@ export const jmaSeisIntLoc = {
   妙高市田町: {
     location: [37.02, 138.25],
     sect: "新潟県上越",
-    arv: 1.15,
+    arv: 1.17,
   },
   妙高市栄町: {
     location: [37.03, 138.25],
@@ -7962,7 +7932,7 @@ export const jmaSeisIntLoc = {
   上越市大手町: {
     location: [37.11, 138.25],
     sect: "新潟県上越",
-    arv: 1.77,
+    arv: 1.79,
   },
   上越市木田: {
     location: [37.15, 138.24],
@@ -8092,7 +8062,7 @@ export const jmaSeisIntLoc = {
   長岡市中之島: {
     location: [37.55, 138.88],
     sect: "新潟県中越",
-    arv: 2.18,
+    arv: 1.94,
   },
   長岡市与板町与板: {
     location: [37.54, 138.81],
@@ -8162,7 +8132,7 @@ export const jmaSeisIntLoc = {
   十日町市上山: {
     location: [37.05, 138.7],
     sect: "新潟県中越",
-    arv: 0.8,
+    arv: 1.07,
   },
   十日町市松代: {
     location: [37.13, 138.61],
@@ -8242,7 +8212,7 @@ export const jmaSeisIntLoc = {
   田上町原ケ崎新田: {
     location: [37.7, 139.06],
     sect: "新潟県中越",
-    arv: 2.13,
+    arv: 2.12,
   },
   出雲崎町米田: {
     location: [37.53, 138.71],
@@ -8262,7 +8232,7 @@ export const jmaSeisIntLoc = {
   津南町下船渡: {
     location: [37.01, 138.65],
     sect: "新潟県中越",
-    arv: 1.01,
+    arv: 1.02,
   },
   刈羽村割町新田: {
     location: [37.42, 138.62],
@@ -8337,7 +8307,7 @@ export const jmaSeisIntLoc = {
   新発田市本町: {
     location: [37.95, 139.34],
     sect: "新潟県下越",
-    arv: 1.35,
+    arv: 1.37,
   },
   新発田市乙次: {
     location: [37.92, 139.31],
@@ -8352,7 +8322,7 @@ export const jmaSeisIntLoc = {
   新発田市中央町: {
     location: [37.95, 139.33],
     sect: "新潟県下越",
-    arv: 1.38,
+    arv: 1.39,
   },
   新発田市真野原外: {
     location: [38.02, 139.32],
@@ -8372,7 +8342,7 @@ export const jmaSeisIntLoc = {
   村上市寒川: {
     location: [38.45, 139.5],
     sect: "新潟県下越",
-    arv: 0.93,
+    arv: 1.46,
   },
   村上市三之町: {
     location: [38.22, 139.48],
@@ -8452,7 +8422,7 @@ export const jmaSeisIntLoc = {
   阿賀野市かがやき: {
     location: [37.78, 139.25],
     sect: "新潟県下越",
-    arv: 0.97,
+    arv: 1.28,
   },
   胎内市新和町: {
     location: [38.06, 139.41],
@@ -8462,7 +8432,7 @@ export const jmaSeisIntLoc = {
   胎内市大川町: {
     location: [38.05, 139.41],
     sect: "新潟県下越",
-    arv: 1.24,
+    arv: 1.26,
   },
   胎内市黒川: {
     location: [38.07, 139.44],
@@ -8507,7 +8477,7 @@ export const jmaSeisIntLoc = {
   粟島浦村笹畑: {
     location: [38.46, 139.25],
     sect: "新潟県下越",
-    arv: 0.67,
+    arv: 1.13,
   },
   粟島浦村日ノ見山: {
     location: [38.47, 139.25],
@@ -8537,7 +8507,7 @@ export const jmaSeisIntLoc = {
   佐渡市松ヶ崎: {
     location: [37.92, 138.5],
     sect: "新潟県佐渡",
-    arv: 1.15,
+    arv: 1.44,
   },
   佐渡市千種: {
     location: [38.02, 138.37],
@@ -8547,17 +8517,17 @@ export const jmaSeisIntLoc = {
   佐渡市河原田本町: {
     location: [38.0, 138.32],
     sect: "新潟県佐渡",
-    arv: 1.44,
+    arv: 1.85,
   },
   佐渡市畑野: {
     location: [37.99, 138.4],
     sect: "新潟県佐渡",
-    arv: 0.92,
+    arv: 0.93,
   },
   佐渡市羽茂本郷: {
     location: [37.85, 138.32],
     sect: "新潟県佐渡",
-    arv: 1.28,
+    arv: 1.31,
   },
   佐渡市真野新町: {
     location: [37.97, 138.35],
@@ -8574,7 +8544,7 @@ export const jmaSeisIntLoc = {
     sect: "新潟県佐渡",
     arv: 0.9,
   },
-  佐渡市両津支所: {
+  佐渡市両津市民センター: {
     location: [38.08, 138.44],
     sect: "新潟県佐渡",
     arv: 1.64,
@@ -8592,7 +8562,7 @@ export const jmaSeisIntLoc = {
   富山市石坂: {
     location: [36.71, 137.2],
     sect: "富山県東部",
-    arv: 2.15,
+    arv: 2.17,
   },
   富山市八尾町福島: {
     location: [36.58, 137.14],
@@ -8622,7 +8592,7 @@ export const jmaSeisIntLoc = {
   富山市上二杉: {
     location: [36.59, 137.2],
     sect: "富山県東部",
-    arv: 0.97,
+    arv: 0.98,
   },
   富山市山田湯: {
     location: [36.58, 137.08],
@@ -8667,7 +8637,7 @@ export const jmaSeisIntLoc = {
   上市町稗田: {
     location: [36.7, 137.35],
     sect: "富山県東部",
-    arv: 1.26,
+    arv: 1.25,
   },
   立山町吉峰: {
     location: [36.61, 137.33],
@@ -8685,9 +8655,9 @@ export const jmaSeisIntLoc = {
     arv: 1.15,
   },
   入善町入膳: {
-    location: [36.93, 137.5],
+    location: [36.92, 137.5],
     sect: "富山県東部",
-    arv: 1.26,
+    arv: 1.23,
   },
   富山朝日町道下: {
     location: [36.95, 137.56],
@@ -8707,7 +8677,7 @@ export const jmaSeisIntLoc = {
   高岡市広小路: {
     location: [36.75, 137.03],
     sect: "富山県西部",
-    arv: 2.18,
+    arv: 1.23,
   },
   高岡市福岡町: {
     location: [36.71, 136.92],
@@ -8827,12 +8797,12 @@ export const jmaSeisIntLoc = {
   七尾市垣吉町: {
     location: [37.06, 136.9],
     sect: "石川県能登",
-    arv: 2.09,
+    arv: 0.94,
   },
   七尾市能登島向田町: {
     location: [37.13, 137.0],
     sect: "石川県能登",
-    arv: 1.44,
+    arv: 1.45,
   },
   七尾市中島町中島: {
     location: [37.12, 136.85],
@@ -8842,7 +8812,7 @@ export const jmaSeisIntLoc = {
   輪島市舳倉島: {
     location: [37.85, 136.92],
     sect: "石川県能登",
-    arv: 1.85,
+    arv: 1.66,
   },
   輪島市鳳至町: {
     location: [37.39, 136.9],
@@ -8862,17 +8832,17 @@ export const jmaSeisIntLoc = {
   珠洲市三崎町: {
     location: [37.45, 137.36],
     sect: "石川県能登",
-    arv: 1.46,
+    arv: 1.45,
   },
   珠洲市正院町: {
     location: [37.45, 137.29],
     sect: "石川県能登",
-    arv: 1.44,
+    arv: 1.9,
   },
   珠洲市大谷町: {
     location: [37.5, 137.18],
     sect: "石川県能登",
-    arv: 1.44,
+    arv: 0.94,
   },
   羽咋市柳田町: {
     location: [36.93, 136.78],
@@ -8902,17 +8872,17 @@ export const jmaSeisIntLoc = {
   宝達志水町子浦: {
     location: [36.86, 136.8],
     sect: "石川県能登",
-    arv: 1.29,
+    arv: 1.33,
   },
   宝達志水町今浜: {
     location: [36.83, 136.75],
     sect: "石川県能登",
-    arv: 1.86,
+    arv: 1.84,
   },
   中能登町末坂: {
     location: [36.99, 136.9],
     sect: "石川県能登",
-    arv: 1.19,
+    arv: 1.26,
   },
   中能登町井田: {
     location: [36.97, 136.91],
@@ -8932,17 +8902,17 @@ export const jmaSeisIntLoc = {
   能登町宇出津: {
     location: [37.31, 137.15],
     sect: "石川県能登",
-    arv: 1.75,
+    arv: 1.44,
   },
   能登町柳田: {
     location: [37.37, 137.1],
     sect: "石川県能登",
-    arv: 0.87,
+    arv: 0.93,
   },
   能登町松波: {
     location: [37.35, 137.24],
     sect: "石川県能登",
-    arv: 0.92,
+    arv: 2.11,
   },
   金沢市西念: {
     location: [36.59, 136.63],
@@ -8997,7 +8967,7 @@ export const jmaSeisIntLoc = {
   白山市別宮町: {
     location: [36.36, 136.6],
     sect: "石川県加賀",
-    arv: 0.96,
+    arv: 0.97,
   },
   白山市白峰: {
     location: [36.18, 136.62],
@@ -9027,12 +8997,12 @@ export const jmaSeisIntLoc = {
   白山市市原: {
     location: [36.32, 136.65],
     sect: "石川県加賀",
-    arv: 0.78,
+    arv: 0.67,
   },
   白山市女原: {
     location: [36.28, 136.65],
     sect: "石川県加賀",
-    arv: 1.0,
+    arv: 0.57,
   },
   能美市中町: {
     location: [36.45, 136.46],
@@ -9067,7 +9037,7 @@ export const jmaSeisIntLoc = {
   内灘町大学: {
     location: [36.65, 136.65],
     sect: "石川県加賀",
-    arv: 1.85,
+    arv: 1.83,
   },
   福井市豊島: {
     location: [36.06, 136.22],
@@ -9127,7 +9097,7 @@ export const jmaSeisIntLoc = {
   あわら市国影: {
     location: [36.22, 136.2],
     sect: "福井県嶺北",
-    arv: 1.98,
+    arv: 1.96,
   },
   越前市高瀬: {
     location: [35.9, 136.16],
@@ -9142,7 +9112,7 @@ export const jmaSeisIntLoc = {
   越前市粟田部: {
     location: [35.92, 136.25],
     sect: "福井県嶺北",
-    arv: 1.24,
+    arv: 0.67,
   },
   福井坂井市三国町陣ケ岡: {
     location: [36.24, 136.14],
@@ -9172,7 +9142,7 @@ export const jmaSeisIntLoc = {
   永平寺町松岡春日: {
     location: [36.09, 136.3],
     sect: "福井県嶺北",
-    arv: 1.21,
+    arv: 0.67,
   },
   永平寺町東古市: {
     location: [36.1, 136.33],
@@ -9202,7 +9172,7 @@ export const jmaSeisIntLoc = {
   南越前町今庄: {
     location: [35.77, 136.2],
     sect: "福井県嶺北",
-    arv: 0.57,
+    arv: 1.0,
   },
   越前町道口: {
     location: [35.94, 136.0],
@@ -9212,7 +9182,7 @@ export const jmaSeisIntLoc = {
   越前町織田: {
     location: [35.96, 136.05],
     sect: "福井県嶺北",
-    arv: 0.85,
+    arv: 0.86,
   },
   越前町江波: {
     location: [35.94, 136.07],
@@ -9307,7 +9277,7 @@ export const jmaSeisIntLoc = {
   韮崎市水神: {
     location: [35.71, 138.45],
     sect: "山梨県中・西部",
-    arv: 1.3,
+    arv: 1.02,
   },
   南アルプス市芦安芦倉: {
     location: [35.64, 138.38],
@@ -9432,7 +9402,7 @@ export const jmaSeisIntLoc = {
   笛吹市春日居町寺本: {
     location: [35.67, 138.65],
     sect: "山梨県中・西部",
-    arv: 1.05,
+    arv: 1.06,
   },
   甲州市塩山下於曽: {
     location: [35.7, 138.72],
@@ -9597,17 +9567,17 @@ export const jmaSeisIntLoc = {
   道志村釜之前: {
     location: [35.51, 139.0],
     sect: "山梨県東部・富士五湖",
-    arv: 0.77,
+    arv: 0.67,
   },
   西桂町小沼: {
     location: [35.52, 138.85],
     sect: "山梨県東部・富士五湖",
-    arv: 1.2,
+    arv: 0.96,
   },
   忍野村忍草: {
     location: [35.46, 138.85],
     sect: "山梨県東部・富士五湖",
-    arv: 0.82,
+    arv: 1.46,
   },
   山中湖村山中: {
     location: [35.41, 138.86],
@@ -9637,7 +9607,7 @@ export const jmaSeisIntLoc = {
   富士河口湖町役場: {
     location: [35.5, 138.75],
     sect: "山梨県東部・富士五湖",
-    arv: 1.32,
+    arv: 1.37,
   },
   富士河口湖町長浜: {
     location: [35.51, 138.71],
@@ -9742,12 +9712,12 @@ export const jmaSeisIntLoc = {
   千曲市上山田温泉: {
     location: [36.47, 138.15],
     sect: "長野県北部",
-    arv: 1.02,
+    arv: 1.94,
   },
   千曲市戸倉: {
     location: [36.49, 138.15],
     sect: "長野県北部",
-    arv: 1.05,
+    arv: 1.04,
   },
   千曲市杭瀬下: {
     location: [36.53, 138.11],
@@ -9822,7 +9792,7 @@ export const jmaSeisIntLoc = {
   飯綱町芋川: {
     location: [36.76, 138.25],
     sect: "長野県北部",
-    arv: 0.91,
+    arv: 0.92,
   },
   飯綱町牟礼: {
     location: [36.75, 138.24],
@@ -9892,7 +9862,7 @@ export const jmaSeisIntLoc = {
   上田市大手: {
     location: [36.4, 138.25],
     sect: "長野県中部",
-    arv: 0.86,
+    arv: 0.87,
   },
   上田市上丸子: {
     location: [36.32, 138.27],
@@ -9902,7 +9872,7 @@ export const jmaSeisIntLoc = {
   上田市真田町長: {
     location: [36.44, 138.3],
     sect: "長野県中部",
-    arv: 0.76,
+    arv: 0.77,
   },
   上田市下武石: {
     location: [36.28, 138.23],
@@ -9912,7 +9882,7 @@ export const jmaSeisIntLoc = {
   岡谷市幸町: {
     location: [36.07, 138.05],
     sect: "長野県中部",
-    arv: 0.98,
+    arv: 0.89,
   },
   諏訪市湖岸通り: {
     location: [36.05, 138.11],
@@ -9947,7 +9917,7 @@ export const jmaSeisIntLoc = {
   塩尻市広丘高出: {
     location: [36.12, 137.95],
     sect: "長野県中部",
-    arv: 1.13,
+    arv: 1.12,
   },
   塩尻市木曽平沢: {
     location: [35.97, 137.82],
@@ -9987,7 +9957,7 @@ export const jmaSeisIntLoc = {
   東御市大日向: {
     location: [36.33, 138.35],
     sect: "長野県中部",
-    arv: 0.93,
+    arv: 0.92,
   },
   安曇野市穂高支所: {
     location: [36.34, 137.89],
@@ -10037,12 +10007,12 @@ export const jmaSeisIntLoc = {
   南相木村見上: {
     location: [36.04, 138.55],
     sect: "長野県中部",
-    arv: 0.99,
+    arv: 0.57,
   },
   北相木村役場: {
     location: [36.06, 138.55],
     sect: "長野県中部",
-    arv: 0.78,
+    arv: 0.73,
   },
   佐久穂町高野町: {
     location: [36.16, 138.48],
@@ -10052,12 +10022,12 @@ export const jmaSeisIntLoc = {
   軽井沢町追分: {
     location: [36.34, 138.55],
     sect: "長野県中部",
-    arv: 1.25,
+    arv: 1.28,
   },
   軽井沢町長倉: {
     location: [36.35, 138.6],
     sect: "長野県中部",
-    arv: 0.75,
+    arv: 0.73,
   },
   御代田町役場: {
     location: [36.32, 138.51],
@@ -10102,7 +10072,7 @@ export const jmaSeisIntLoc = {
   麻績村麻: {
     location: [36.46, 138.05],
     sect: "長野県中部",
-    arv: 0.97,
+    arv: 0.98,
   },
   生坂村役場: {
     location: [36.43, 137.93],
@@ -10147,7 +10117,7 @@ export const jmaSeisIntLoc = {
   飯田市大久保町: {
     location: [35.52, 137.825],
     sect: "長野県南部",
-    arv: 1.11,
+    arv: 1.09,
   },
   飯田市上村: {
     location: [35.39, 137.97],
@@ -10167,7 +10137,7 @@ export const jmaSeisIntLoc = {
   伊那市下新田: {
     location: [35.83, 137.95],
     sect: "長野県南部",
-    arv: 0.89,
+    arv: 0.92,
   },
   伊那市高遠町西高遠: {
     location: [35.84, 138.06],
@@ -10207,7 +10177,7 @@ export const jmaSeisIntLoc = {
   中川村大草: {
     location: [35.63, 137.95],
     sect: "長野県南部",
-    arv: 1.0,
+    arv: 0.57,
   },
   宮田村役場: {
     location: [35.77, 137.94],
@@ -10232,7 +10202,7 @@ export const jmaSeisIntLoc = {
   阿智村駒場: {
     location: [35.44, 137.75],
     sect: "長野県南部",
-    arv: 0.86,
+    arv: 0.81,
   },
   阿智村浪合: {
     location: [35.37, 137.69],
@@ -10272,7 +10242,7 @@ export const jmaSeisIntLoc = {
   天龍村平岡: {
     location: [35.28, 137.85],
     sect: "長野県南部",
-    arv: 0.57,
+    arv: 0.94,
   },
   泰阜村梨久保: {
     location: [35.36, 137.86],
@@ -10282,7 +10252,7 @@ export const jmaSeisIntLoc = {
   泰阜村役場: {
     location: [35.38, 137.85],
     sect: "長野県南部",
-    arv: 1.06,
+    arv: 0.88,
   },
   喬木村役場: {
     location: [35.51, 137.87],
@@ -10292,7 +10262,7 @@ export const jmaSeisIntLoc = {
   豊丘村神稲: {
     location: [35.55, 137.9],
     sect: "長野県南部",
-    arv: 0.77,
+    arv: 0.76,
   },
   大鹿村大河原: {
     location: [35.58, 138.03],
@@ -10342,7 +10312,7 @@ export const jmaSeisIntLoc = {
   木曽町開田高原西野: {
     location: [35.94, 137.6],
     sect: "長野県南部",
-    arv: 0.72,
+    arv: 0.78,
   },
   木曽町三岳: {
     location: [35.85, 137.63],
@@ -10357,7 +10327,7 @@ export const jmaSeisIntLoc = {
   木曽町福島: {
     location: [35.85, 137.7],
     sect: "長野県南部",
-    arv: 0.8,
+    arv: 0.81,
   },
   高山市丹生川町森部: {
     location: [36.23, 137.31],
@@ -10392,7 +10362,7 @@ export const jmaSeisIntLoc = {
   高山市朝日町: {
     location: [36.09, 137.35],
     sect: "岐阜県飛騨",
-    arv: 0.75,
+    arv: 0.74,
   },
   高山市荘川町: {
     location: [36.03, 136.96],
@@ -10462,7 +10432,7 @@ export const jmaSeisIntLoc = {
   下呂市下呂小学校: {
     location: [35.8, 137.25],
     sect: "岐阜県飛騨",
-    arv: 0.79,
+    arv: 0.77,
   },
   下呂市小坂町: {
     location: [35.95, 137.26],
@@ -10487,7 +10457,7 @@ export const jmaSeisIntLoc = {
   白川村鳩谷: {
     location: [36.27, 136.9],
     sect: "岐阜県飛騨",
-    arv: 0.76,
+    arv: 0.86,
   },
   多治見市三笠町: {
     location: [35.33, 137.13],
@@ -10502,12 +10472,12 @@ export const jmaSeisIntLoc = {
   中津川市かやの木町: {
     location: [35.49, 137.5],
     sect: "岐阜県美濃東部",
-    arv: 0.91,
+    arv: 1.03,
   },
   中津川市本町: {
     location: [35.5, 137.5],
     sect: "岐阜県美濃東部",
-    arv: 0.91,
+    arv: 0.92,
   },
   中津川市小栗山: {
     location: [35.66, 137.43],
@@ -10527,12 +10497,12 @@ export const jmaSeisIntLoc = {
   中津川市福岡: {
     location: [35.56, 137.45],
     sect: "岐阜県美濃東部",
-    arv: 0.82,
+    arv: 0.8,
   },
   中津川市川上: {
     location: [35.61, 137.5],
     sect: "岐阜県美濃東部",
-    arv: 0.85,
+    arv: 0.57,
   },
   中津川市付知町: {
     location: [35.66, 137.435],
@@ -10552,12 +10522,12 @@ export const jmaSeisIntLoc = {
   瑞浪市上平町: {
     location: [35.36, 137.25],
     sect: "岐阜県美濃東部",
-    arv: 0.85,
+    arv: 0.84,
   },
   恵那市長島小学校: {
     location: [35.45, 137.4],
     sect: "岐阜県美濃東部",
-    arv: 0.8,
+    arv: 0.92,
   },
   恵那市岩村町: {
     location: [35.36, 137.44],
@@ -10597,7 +10567,7 @@ export const jmaSeisIntLoc = {
   美濃加茂市西町: {
     location: [35.44, 137.0],
     sect: "岐阜県美濃東部",
-    arv: 0.9,
+    arv: 1.17,
   },
   土岐市泉町: {
     location: [35.39, 137.22],
@@ -10732,7 +10702,7 @@ export const jmaSeisIntLoc = {
   羽島市竹鼻町: {
     location: [35.32, 136.7],
     sect: "岐阜県美濃中西部",
-    arv: 2.3,
+    arv: 1.88,
   },
   各務原市川島河田町: {
     location: [35.36, 136.83],
@@ -10742,7 +10712,7 @@ export const jmaSeisIntLoc = {
   各務原市那加桜町: {
     location: [35.4, 136.85],
     sect: "岐阜県美濃中西部",
-    arv: 1.0,
+    arv: 1.02,
   },
   岐阜山県市谷合運動場: {
     location: [35.59, 136.74],
@@ -10822,7 +10792,7 @@ export const jmaSeisIntLoc = {
   郡上市大和町: {
     location: [35.81, 136.9],
     sect: "岐阜県美濃中西部",
-    arv: 0.93,
+    arv: 0.91,
   },
   郡上市白鳥町白鳥: {
     location: [35.88, 136.86],
@@ -10847,7 +10817,7 @@ export const jmaSeisIntLoc = {
   海津市南濃町: {
     location: [35.22, 136.6],
     sect: "岐阜県美濃中西部",
-    arv: 1.2,
+    arv: 1.22,
   },
   海津市平田町: {
     location: [35.26, 136.64],
@@ -10982,7 +10952,7 @@ export const jmaSeisIntLoc = {
   下田市中: {
     location: [34.68, 138.95],
     sect: "静岡県伊豆",
-    arv: 1.75,
+    arv: 0.86,
   },
   下田市敷根: {
     location: [34.68, 138.93],
@@ -11002,7 +10972,7 @@ export const jmaSeisIntLoc = {
   伊豆市八幡: {
     location: [34.95, 139.0],
     sect: "静岡県伊豆",
-    arv: 0.83,
+    arv: 0.81,
   },
   伊豆市湯ケ島: {
     location: [34.89, 138.93],
@@ -11012,12 +10982,12 @@ export const jmaSeisIntLoc = {
   伊豆市小立野: {
     location: [34.98, 138.95],
     sect: "静岡県伊豆",
-    arv: 1.15,
+    arv: 1.13,
   },
   伊豆の国市田京: {
     location: [35.01, 138.95],
     sect: "静岡県伊豆",
-    arv: 1.2,
+    arv: 0.81,
   },
   伊豆の国市長岡: {
     location: [35.03, 138.93],
@@ -11082,7 +11052,7 @@ export const jmaSeisIntLoc = {
   函南町平井: {
     location: [35.09, 138.95],
     sect: "静岡県伊豆",
-    arv: 2.11,
+    arv: 1.01,
   },
   沼津市西間門: {
     location: [35.11, 138.84],
@@ -11197,12 +11167,12 @@ export const jmaSeisIntLoc = {
   静岡清水町堂庭: {
     location: [35.1, 138.9],
     sect: "静岡県東部",
-    arv: 1.49,
+    arv: 1.53,
   },
   長泉町中土狩: {
     location: [35.14, 138.9],
     sect: "静岡県東部",
-    arv: 1.39,
+    arv: 1.41,
   },
   小山町藤曲: {
     location: [35.36, 138.99],
@@ -11237,7 +11207,7 @@ export const jmaSeisIntLoc = {
   静岡駿河区曲金: {
     location: [34.98, 138.4],
     sect: "静岡県中部",
-    arv: 0.67,
+    arv: 1.27,
   },
   静岡駿河区用宗: {
     location: [34.93, 138.37],
@@ -11322,7 +11292,7 @@ export const jmaSeisIntLoc = {
   吉田町住吉: {
     location: [34.77, 138.25],
     sect: "静岡県中部",
-    arv: 1.9,
+    arv: 1.37,
   },
   川根本町東藤川: {
     location: [35.1, 138.13],
@@ -11382,7 +11352,7 @@ export const jmaSeisIntLoc = {
   浜松浜名区細江町: {
     location: [34.81, 137.65],
     sect: "静岡県西部",
-    arv: 0.95,
+    arv: 1.02,
   },
   浜松浜名区西美薗: {
     location: [34.79, 137.79],
@@ -11392,7 +11362,7 @@ export const jmaSeisIntLoc = {
   浜松天竜区春野町: {
     location: [34.98, 137.9],
     sect: "静岡県西部",
-    arv: 1.0,
+    arv: 0.57,
   },
   浜松天竜区佐久間町: {
     location: [35.09, 137.81],
@@ -11417,12 +11387,12 @@ export const jmaSeisIntLoc = {
   磐田市見付: {
     location: [34.73, 137.85],
     sect: "静岡県西部",
-    arv: 1.6,
+    arv: 1.64,
   },
   磐田市国府台: {
     location: [34.72, 137.85],
     sect: "静岡県西部",
-    arv: 1.3,
+    arv: 1.29,
   },
   磐田市福田: {
     location: [34.68, 137.88],
@@ -11457,7 +11427,7 @@ export const jmaSeisIntLoc = {
   掛川市長谷: {
     location: [34.77, 138.0],
     sect: "静岡県西部",
-    arv: 0.91,
+    arv: 0.94,
   },
   袋井市新屋: {
     location: [34.75, 137.92],
@@ -11577,12 +11547,12 @@ export const jmaSeisIntLoc = {
   新城市長篠: {
     location: [34.93, 137.575],
     sect: "愛知県東部",
-    arv: 0.87,
+    arv: 0.57,
   },
   新城市東入船: {
     location: [34.9, 137.5],
     sect: "愛知県東部",
-    arv: 0.91,
+    arv: 0.92,
   },
   田原市石神町: {
     location: [34.63, 137.14],
@@ -11622,7 +11592,7 @@ export const jmaSeisIntLoc = {
   東栄町本郷: {
     location: [35.08, 137.7],
     sect: "愛知県東部",
-    arv: 0.67,
+    arv: 0.78,
   },
   豊根村下黒川: {
     location: [35.15, 137.72],
@@ -11632,7 +11602,7 @@ export const jmaSeisIntLoc = {
   豊根村富山: {
     location: [35.18, 137.8],
     sect: "愛知県東部",
-    arv: 0.92,
+    arv: 0.57,
   },
   名古屋千種区日和町: {
     location: [35.17, 136.97],
@@ -11682,7 +11652,7 @@ export const jmaSeisIntLoc = {
   名古屋熱田区一番: {
     location: [35.12, 136.9],
     sect: "愛知県西部",
-    arv: 1.8,
+    arv: 1.79,
   },
   名古屋中川区東春田: {
     location: [35.14, 136.82],
@@ -11692,17 +11662,7 @@ export const jmaSeisIntLoc = {
   名古屋港区金城ふ頭: {
     location: [35.05, 136.85],
     sect: "愛知県西部",
-    arv: 1.74,
-  },
-  名古屋港区春田野: {
-    location: [35.11, 136.81],
-    sect: "愛知県西部",
-    arv: 1.94,
-  },
-  名古屋港区善進本町: {
-    location: [35.1, 136.86],
-    sect: "愛知県西部",
-    arv: 1.85,
+    arv: 1.73,
   },
   名古屋南区鳴尾: {
     location: [35.08, 136.93],
@@ -11713,11 +11673,6 @@ export const jmaSeisIntLoc = {
     location: [35.24, 137.02],
     sect: "愛知県西部",
     arv: 0.91,
-  },
-  名古屋守山区西新: {
-    location: [35.2, 136.97],
-    sect: "愛知県西部",
-    arv: 0.99,
   },
   名古屋緑区有松町: {
     location: [35.06, 136.97],
@@ -11752,7 +11707,7 @@ export const jmaSeisIntLoc = {
   一宮市西五城: {
     location: [35.3, 136.75],
     sect: "愛知県西部",
-    arv: 1.88,
+    arv: 2.29,
   },
   一宮市木曽川町: {
     location: [35.34, 136.78],
@@ -11792,12 +11747,12 @@ export const jmaSeisIntLoc = {
   刈谷市寿町: {
     location: [34.99, 137.0],
     sect: "愛知県西部",
-    arv: 1.18,
+    arv: 1.17,
   },
   豊田市小坂本町: {
     location: [35.09, 137.15],
     sect: "愛知県西部",
-    arv: 1.03,
+    arv: 1.3,
   },
   豊田市大洞町: {
     location: [35.27, 137.25],
@@ -11807,7 +11762,7 @@ export const jmaSeisIntLoc = {
   豊田市小坂町: {
     location: [35.08, 137.15],
     sect: "愛知県西部",
-    arv: 1.04,
+    arv: 1.01,
   },
   豊田市藤岡飯野町: {
     location: [35.2, 137.21],
@@ -11822,7 +11777,7 @@ export const jmaSeisIntLoc = {
   豊田市駒場町: {
     location: [35.02, 137.05],
     sect: "愛知県西部",
-    arv: 1.69,
+    arv: 1.73,
   },
   豊田市坂上町: {
     location: [35.07, 137.26],
@@ -11897,7 +11852,7 @@ export const jmaSeisIntLoc = {
   西尾市矢曽根町: {
     location: [34.86, 137.05],
     sect: "愛知県西部",
-    arv: 2.2,
+    arv: 2.21,
   },
   犬山市五郎丸: {
     location: [35.36, 136.94],
@@ -11912,7 +11867,7 @@ export const jmaSeisIntLoc = {
   常滑市飛香台: {
     location: [34.89, 136.85],
     sect: "愛知県西部",
-    arv: 0.97,
+    arv: 1.11,
   },
   愛知江南市赤童子町: {
     location: [35.33, 136.87],
@@ -11997,7 +11952,7 @@ export const jmaSeisIntLoc = {
   愛西市江西町: {
     location: [35.22, 136.7],
     sect: "愛知県西部",
-    arv: 1.99,
+    arv: 1.94,
   },
   愛西市諏訪町: {
     location: [35.19, 136.74],
@@ -12067,12 +12022,12 @@ export const jmaSeisIntLoc = {
   長久手市岩作城の内: {
     location: [35.18, 137.05],
     sect: "愛知県西部",
-    arv: 0.92,
+    arv: 1.1,
   },
   東郷町春木: {
     location: [35.1, 137.05],
     sect: "愛知県西部",
-    arv: 1.19,
+    arv: 1.06,
   },
   豊山町豊場: {
     location: [35.25, 136.91],
@@ -12162,7 +12117,7 @@ export const jmaSeisIntLoc = {
   桑名市長島町松ケ島: {
     location: [35.09, 136.7],
     sect: "三重県北部",
-    arv: 1.88,
+    arv: 1.9,
   },
   桑名市中央町: {
     location: [35.06, 136.69],
@@ -12182,12 +12137,12 @@ export const jmaSeisIntLoc = {
   亀山市椿世町: {
     location: [34.87, 136.45],
     sect: "三重県北部",
-    arv: 1.13,
+    arv: 1.12,
   },
   亀山市本丸町: {
     location: [34.86, 136.45],
     sect: "三重県北部",
-    arv: 0.92,
+    arv: 0.94,
   },
   亀山市関町木崎: {
     location: [34.85, 136.39],
@@ -12277,7 +12232,7 @@ export const jmaSeisIntLoc = {
   津市安濃町東観音寺: {
     location: [34.76, 136.45],
     sect: "三重県中部",
-    arv: 2.04,
+    arv: 2.05,
   },
   津市白山町川口: {
     location: [34.64, 136.34],
@@ -12302,7 +12257,7 @@ export const jmaSeisIntLoc = {
   松阪市上川町: {
     location: [34.55, 136.55],
     sect: "三重県中部",
-    arv: 1.34,
+    arv: 1.35,
   },
   松阪市魚町: {
     location: [34.58, 136.53],
@@ -12382,7 +12337,7 @@ export const jmaSeisIntLoc = {
   多気町相可: {
     location: [34.5, 136.55],
     sect: "三重県中部",
-    arv: 1.07,
+    arv: 1.28,
   },
   多気町朝柄: {
     location: [34.46, 136.46],
@@ -12452,7 +12407,7 @@ export const jmaSeisIntLoc = {
   熊野市井戸町: {
     location: [33.89, 136.1],
     sect: "三重県南部",
-    arv: 1.75,
+    arv: 1.44,
   },
   熊野市紀和町板屋: {
     location: [33.88, 135.92],
@@ -12482,7 +12437,7 @@ export const jmaSeisIntLoc = {
   志摩市磯部町迫間: {
     location: [34.38, 136.8],
     sect: "三重県南部",
-    arv: 0.94,
+    arv: 0.95,
   },
   志摩市浜島町浜島: {
     location: [34.3, 136.76],
@@ -12517,7 +12472,7 @@ export const jmaSeisIntLoc = {
   三重大紀町錦: {
     location: [34.22, 136.4],
     sect: "三重県南部",
-    arv: 1.48,
+    arv: 0.57,
   },
   三重大紀町大内山: {
     location: [34.28, 136.36],
@@ -12532,7 +12487,7 @@ export const jmaSeisIntLoc = {
   南伊勢町神前浦: {
     location: [34.28, 136.5],
     sect: "三重県南部",
-    arv: 1.75,
+    arv: 0.57,
   },
   三重紀北町十須: {
     location: [34.24, 136.27],
@@ -12652,7 +12607,7 @@ export const jmaSeisIntLoc = {
   高島市朽木市場: {
     location: [35.35, 135.92499999999998],
     sect: "滋賀県北部",
-    arv: 0.97,
+    arv: 1.0,
   },
   高島市新旭町: {
     location: [35.35, 136.04],
@@ -12673,16 +12628,6 @@ export const jmaSeisIntLoc = {
     location: [35.41, 136.03],
     sect: "滋賀県北部",
     arv: 1.14,
-  },
-  米原市春照: {
-    location: [35.39, 136.38],
-    sect: "滋賀県北部",
-    arv: 1.07,
-  },
-  米原市顔戸: {
-    location: [35.34, 136.3],
-    sect: "滋賀県北部",
-    arv: 1.94,
   },
   米原市長岡: {
     location: [35.36, 136.37],
@@ -12722,7 +12667,7 @@ export const jmaSeisIntLoc = {
   大津市御陵町: {
     location: [35.02, 135.85],
     sect: "滋賀県南部",
-    arv: 0.57,
+    arv: 0.82,
   },
   大津市南小松: {
     location: [35.24, 135.96],
@@ -12732,7 +12677,7 @@ export const jmaSeisIntLoc = {
   大津市国分: {
     location: [34.97, 135.9],
     sect: "滋賀県南部",
-    arv: 0.85,
+    arv: 0.86,
   },
   大津市木戸消防分団: {
     location: [35.2, 135.92],
@@ -12752,7 +12697,7 @@ export const jmaSeisIntLoc = {
   近江八幡市桜宮町: {
     location: [35.13, 136.1],
     sect: "滋賀県南部",
-    arv: 1.95,
+    arv: 1.97,
   },
   近江八幡市出町: {
     location: [35.13, 136.105],
@@ -12847,7 +12792,7 @@ export const jmaSeisIntLoc = {
   東近江市池庄町: {
     location: [35.13, 136.25],
     sect: "滋賀県南部",
-    arv: 0.98,
+    arv: 0.96,
   },
   東近江市市子川原町: {
     location: [35.06, 136.18],
@@ -12907,12 +12852,12 @@ export const jmaSeisIntLoc = {
   福知山市夜久野町額田: {
     location: [35.32, 135.0],
     sect: "京都府北部",
-    arv: 1.12,
+    arv: 1.1,
   },
   福知山市大江町河守: {
     location: [35.39, 135.15],
     sect: "京都府北部",
-    arv: 1.4,
+    arv: 1.47,
   },
   舞鶴市下福井: {
     location: [35.45, 135.32],
@@ -12957,12 +12902,12 @@ export const jmaSeisIntLoc = {
   京丹後市大宮町: {
     location: [35.58, 135.1],
     sect: "京都府北部",
-    arv: 1.19,
+    arv: 1.0,
   },
   京丹後市丹後町: {
     location: [35.74, 135.1],
     sect: "京都府北部",
-    arv: 1.12,
+    arv: 1.44,
   },
   京丹後市久美浜市民局: {
     location: [35.6, 134.89499999999998],
@@ -12992,17 +12937,17 @@ export const jmaSeisIntLoc = {
   与謝野町加悦: {
     location: [35.5, 135.1],
     sect: "京都府北部",
-    arv: 1.41,
+    arv: 1.27,
   },
   与謝野町岩滝: {
     location: [35.57, 135.15],
     sect: "京都府北部",
-    arv: 0.67,
+    arv: 1.38,
   },
   与謝野町四辻: {
     location: [35.53, 135.1],
     sect: "京都府北部",
-    arv: 1.41,
+    arv: 1.43,
   },
   京都北区大宮西脇台町: {
     location: [35.05, 135.74],
@@ -13092,7 +13037,7 @@ export const jmaSeisIntLoc = {
   宇治市宇治琵琶: {
     location: [34.88, 135.8],
     sect: "京都府南部",
-    arv: 0.9,
+    arv: 1.02,
   },
   宇治市折居台: {
     location: [34.88, 135.805],
@@ -13117,7 +13062,7 @@ export const jmaSeisIntLoc = {
   向日市寺戸町: {
     location: [34.95, 135.7],
     sect: "京都府南部",
-    arv: 1.0,
+    arv: 1.05,
   },
   長岡京市開田: {
     location: [34.93, 135.69],
@@ -13137,7 +13082,7 @@ export const jmaSeisIntLoc = {
   南丹市美山町島: {
     location: [35.27, 135.55],
     sect: "京都府南部",
-    arv: 0.81,
+    arv: 0.57,
   },
   南丹市日吉町保野田: {
     location: [35.16, 135.5],
@@ -13197,7 +13142,7 @@ export const jmaSeisIntLoc = {
   和束町釜塚: {
     location: [34.8, 135.9],
     sect: "京都府南部",
-    arv: 0.99,
+    arv: 0.97,
   },
   精華町南稲八妻: {
     location: [34.76, 135.79],
@@ -13242,7 +13187,7 @@ export const jmaSeisIntLoc = {
   大阪此花区春日出北: {
     location: [34.68, 135.45],
     sect: "大阪府北部",
-    arv: 1.99,
+    arv: 2.0,
   },
   大阪西区九条南: {
     location: [34.67, 135.47],
@@ -13312,7 +13257,7 @@ export const jmaSeisIntLoc = {
   大阪住吉区遠里小野: {
     location: [34.6, 135.5],
     sect: "大阪府北部",
-    arv: 1.44,
+    arv: 1.42,
   },
   大阪東住吉区杭全: {
     location: [34.63, 135.54],
@@ -13347,7 +13292,7 @@ export const jmaSeisIntLoc = {
   大阪北区茶屋町: {
     location: [34.71, 135.5],
     sect: "大阪府北部",
-    arv: 2.08,
+    arv: 1.44,
   },
   大阪中央区大手前: {
     location: [34.68, 135.52],
@@ -13392,7 +13337,7 @@ export const jmaSeisIntLoc = {
   高槻市立第２中学校: {
     location: [34.86, 135.6],
     sect: "大阪府北部",
-    arv: 1.26,
+    arv: 1.27,
   },
   高槻市消防本部: {
     location: [34.84, 135.61],
@@ -13407,7 +13352,7 @@ export const jmaSeisIntLoc = {
   枚方市大垣内: {
     location: [34.81, 135.65],
     sect: "大阪府北部",
-    arv: 1.06,
+    arv: 1.3,
   },
   茨木市東中条町: {
     location: [34.81, 135.57],
@@ -13417,7 +13362,7 @@ export const jmaSeisIntLoc = {
   八尾市本町: {
     location: [34.63, 135.6],
     sect: "大阪府北部",
-    arv: 1.8,
+    arv: 2.17,
   },
   寝屋川市本町: {
     location: [34.77, 135.63],
@@ -13434,10 +13379,10 @@ export const jmaSeisIntLoc = {
     sect: "大阪府北部",
     arv: 0.9,
   },
-  箕面市粟生外院: {
-    location: [34.84, 135.5],
+  箕面市今宮: {
+    location: [34.83, 135.5],
     sect: "大阪府北部",
-    arv: 0.85,
+    arv: 1.18,
   },
   柏原市安堂町: {
     location: [34.58, 135.63],
@@ -13457,7 +13402,7 @@ export const jmaSeisIntLoc = {
   東大阪市荒本北: {
     location: [34.68, 135.6],
     sect: "大阪府北部",
-    arv: 2.32,
+    arv: 2.3,
   },
   四條畷市西中野: {
     location: [34.74, 135.64],
@@ -13482,7 +13427,7 @@ export const jmaSeisIntLoc = {
   能勢町森上: {
     location: [34.97, 135.4],
     sect: "大阪府北部",
-    arv: 0.94,
+    arv: 0.8,
   },
   能勢町宿野: {
     location: [34.97, 135.41],
@@ -13547,7 +13492,7 @@ export const jmaSeisIntLoc = {
   岸和田市役所: {
     location: [34.46, 135.375],
     sect: "大阪府南部",
-    arv: 1.24,
+    arv: 1.23,
   },
   泉大津市東雲町: {
     location: [34.5, 135.41],
@@ -13562,7 +13507,7 @@ export const jmaSeisIntLoc = {
   泉佐野市りんくう往来: {
     location: [34.41, 135.3],
     sect: "大阪府南部",
-    arv: 1.73,
+    arv: 1.71,
   },
   泉佐野市市場: {
     location: [34.41, 135.33],
@@ -13572,7 +13517,7 @@ export const jmaSeisIntLoc = {
   富田林市本町: {
     location: [34.5, 135.6],
     sect: "大阪府南部",
-    arv: 1.06,
+    arv: 1.05,
   },
   富田林市高辺台: {
     location: [34.5, 135.57],
@@ -13592,7 +13537,7 @@ export const jmaSeisIntLoc = {
   松原市阿保: {
     location: [34.58, 135.55],
     sect: "大阪府南部",
-    arv: 2.18,
+    arv: 1.29,
   },
   大阪和泉市府中町: {
     location: [34.48, 135.42],
@@ -13612,7 +13557,7 @@ export const jmaSeisIntLoc = {
   藤井寺市岡: {
     location: [34.57, 135.6],
     sect: "大阪府南部",
-    arv: 1.06,
+    arv: 1.07,
   },
   泉南市男里: {
     location: [34.37, 135.26],
@@ -13637,12 +13582,12 @@ export const jmaSeisIntLoc = {
   忠岡町忠岡東: {
     location: [34.49, 135.4],
     sect: "大阪府南部",
-    arv: 1.37,
+    arv: 1.73,
   },
   熊取町野田: {
     location: [34.4, 135.35],
     sect: "大阪府南部",
-    arv: 0.96,
+    arv: 0.95,
   },
   関西国際空港: {
     location: [34.43, 135.24],
@@ -13662,7 +13607,7 @@ export const jmaSeisIntLoc = {
   大阪太子町山田: {
     location: [34.52, 135.65],
     sect: "大阪府南部",
-    arv: 0.88,
+    arv: 0.84,
   },
   河南町白木: {
     location: [34.49, 135.63],
@@ -13707,7 +13652,7 @@ export const jmaSeisIntLoc = {
   豊岡市中央町: {
     location: [35.54, 134.825],
     sect: "兵庫県北部",
-    arv: 1.94,
+    arv: 1.9,
   },
   養父市大屋町: {
     location: [35.33, 134.66],
@@ -13732,7 +13677,7 @@ export const jmaSeisIntLoc = {
   朝来市和田山町枚田: {
     location: [35.32, 134.85],
     sect: "兵庫県北部",
-    arv: 1.08,
+    arv: 1.05,
   },
   朝来市生野町: {
     location: [35.15, 134.79],
@@ -13752,7 +13697,7 @@ export const jmaSeisIntLoc = {
   朝来市新井: {
     location: [35.24, 134.8],
     sect: "兵庫県北部",
-    arv: 0.99,
+    arv: 0.57,
   },
   兵庫香美町香住区三川: {
     location: [35.59, 134.66],
@@ -13807,7 +13752,7 @@ export const jmaSeisIntLoc = {
   神戸長田区神楽町: {
     location: [34.66, 135.15],
     sect: "兵庫県南東部",
-    arv: 2.14,
+    arv: 1.94,
   },
   神戸須磨区若草町: {
     location: [34.69, 135.11],
@@ -13862,7 +13807,7 @@ export const jmaSeisIntLoc = {
   西宮市平木: {
     location: [34.75, 135.35],
     sect: "兵庫県南東部",
-    arv: 1.8,
+    arv: 1.38,
   },
   西宮市名塩: {
     location: [34.83, 135.31],
@@ -13877,7 +13822,7 @@ export const jmaSeisIntLoc = {
   伊丹市千僧: {
     location: [34.78, 135.4],
     sect: "兵庫県南東部",
-    arv: 1.19,
+    arv: 1.2,
   },
   加古川市加古川町: {
     location: [34.76, 134.84],
@@ -13907,7 +13852,7 @@ export const jmaSeisIntLoc = {
   三木市細川町: {
     location: [34.81, 135.05],
     sect: "兵庫県南東部",
-    arv: 1.05,
+    arv: 0.95,
   },
   三木市福井: {
     location: [34.8, 134.99],
@@ -13977,7 +13922,7 @@ export const jmaSeisIntLoc = {
   丹波市春日町: {
     location: [35.17, 135.1],
     sect: "兵庫県南東部",
-    arv: 1.12,
+    arv: 1.08,
   },
   丹波市柏原町: {
     location: [35.13, 135.08],
@@ -13987,7 +13932,7 @@ export const jmaSeisIntLoc = {
   丹波市青垣町: {
     location: [35.25, 135.0],
     sect: "兵庫県南東部",
-    arv: 0.99,
+    arv: 1.03,
   },
   丹波市市島町: {
     location: [35.21, 135.14],
@@ -14067,7 +14012,7 @@ export const jmaSeisIntLoc = {
   姫路市安富町安志: {
     location: [34.99, 134.6],
     sect: "兵庫県南西部",
-    arv: 1.02,
+    arv: 0.57,
   },
   姫路市香寺町中屋: {
     location: [34.91, 134.74],
@@ -14082,7 +14027,7 @@ export const jmaSeisIntLoc = {
   姫路市豊富: {
     location: [34.88, 134.75],
     sect: "兵庫県南西部",
-    arv: 1.16,
+    arv: 1.14,
   },
   姫路市本町: {
     location: [34.84, 134.7],
@@ -14092,12 +14037,12 @@ export const jmaSeisIntLoc = {
   姫路市網干: {
     location: [34.79, 134.6],
     sect: "兵庫県南西部",
-    arv: 1.44,
+    arv: 1.9,
   },
   姫路市白浜: {
     location: [34.78, 134.7],
     sect: "兵庫県南西部",
-    arv: 1.48,
+    arv: 1.57,
   },
   姫路市林田: {
     location: [34.92, 134.58],
@@ -14117,7 +14062,7 @@ export const jmaSeisIntLoc = {
   宍粟市山崎町中広瀬: {
     location: [35.0, 134.55],
     sect: "兵庫県南西部",
-    arv: 1.09,
+    arv: 1.06,
   },
   宍粟市山崎町船元: {
     location: [35.0, 134.555],
@@ -14147,7 +14092,7 @@ export const jmaSeisIntLoc = {
   たつの市新宮町: {
     location: [34.93, 134.55],
     sect: "兵庫県南西部",
-    arv: 1.11,
+    arv: 1.12,
   },
   たつの市揖保川町: {
     location: [34.83, 134.53],
@@ -14222,7 +14167,7 @@ export const jmaSeisIntLoc = {
   洲本市山手: {
     location: [34.34, 134.9],
     sect: "兵庫県淡路島",
-    arv: 1.85,
+    arv: 1.44,
   },
   南あわじ市福良: {
     location: [34.26, 134.71],
@@ -14267,12 +14212,12 @@ export const jmaSeisIntLoc = {
   淡路市郡家: {
     location: [34.47, 134.85],
     sect: "兵庫県淡路島",
-    arv: 1.75,
+    arv: 1.0,
   },
   淡路市志筑: {
     location: [34.44, 134.9],
     sect: "兵庫県淡路島",
-    arv: 1.31,
+    arv: 0.96,
   },
   淡路市岩屋: {
     location: [34.59, 135.02],
@@ -14342,7 +14287,7 @@ export const jmaSeisIntLoc = {
   五條市岡口: {
     location: [34.36, 135.7],
     sect: "奈良県",
-    arv: 0.87,
+    arv: 0.85,
   },
   御所市役所: {
     location: [34.46, 135.74],
@@ -14352,12 +14297,12 @@ export const jmaSeisIntLoc = {
   生駒市東新町: {
     location: [34.69, 135.7],
     sect: "奈良県",
-    arv: 0.98,
+    arv: 1.06,
   },
   香芝市本町: {
     location: [34.54, 135.7],
     sect: "奈良県",
-    arv: 1.17,
+    arv: 1.18,
   },
   葛城市柿本: {
     location: [34.49, 135.73],
@@ -14372,7 +14317,7 @@ export const jmaSeisIntLoc = {
   宇陀市榛原下井足: {
     location: [34.53, 135.95],
     sect: "奈良県",
-    arv: 0.91,
+    arv: 0.94,
   },
   宇陀市室生大野: {
     location: [34.56, 136.02],
@@ -14397,7 +14342,7 @@ export const jmaSeisIntLoc = {
   平群町吉新: {
     location: [34.63, 135.7],
     sect: "奈良県",
-    arv: 0.88,
+    arv: 1.14,
   },
   三郷町勢野西: {
     location: [34.6, 135.7],
@@ -14462,7 +14407,7 @@ export const jmaSeisIntLoc = {
   広陵町南郷: {
     location: [34.54, 135.75],
     sect: "奈良県",
-    arv: 2.04,
+    arv: 1.57,
   },
   河合町池部: {
     location: [34.58, 135.74],
@@ -14487,7 +14432,7 @@ export const jmaSeisIntLoc = {
   黒滝村寺戸: {
     location: [34.31, 135.85],
     sect: "奈良県",
-    arv: 0.77,
+    arv: 0.78,
   },
   天川村洞川: {
     location: [34.27, 135.88],
@@ -14512,7 +14457,7 @@ export const jmaSeisIntLoc = {
   下北山村寺垣内: {
     location: [34.0, 135.95],
     sect: "奈良県",
-    arv: 0.57,
+    arv: 0.78,
   },
   上北山村河合: {
     location: [34.13, 136.0],
@@ -14547,7 +14492,7 @@ export const jmaSeisIntLoc = {
   海南市下津: {
     location: [34.11, 135.15],
     sect: "和歌山県北部",
-    arv: 1.44,
+    arv: 1.39,
   },
   橋本市東家: {
     location: [34.31, 135.61],
@@ -14582,7 +14527,7 @@ export const jmaSeisIntLoc = {
   紀の川市粉河: {
     location: [34.27, 135.4],
     sect: "和歌山県北部",
-    arv: 1.01,
+    arv: 1.25,
   },
   紀の川市那賀総合センター: {
     location: [34.28, 135.43],
@@ -14622,7 +14567,7 @@ export const jmaSeisIntLoc = {
   かつらぎ町丁ノ町: {
     location: [34.3, 135.5],
     sect: "和歌山県北部",
-    arv: 0.92,
+    arv: 0.85,
   },
   かつらぎ町花園梁瀬: {
     location: [34.14, 135.52],
@@ -14667,7 +14612,7 @@ export const jmaSeisIntLoc = {
   有田川町中井原: {
     location: [34.07, 135.25],
     sect: "和歌山県北部",
-    arv: 0.92,
+    arv: 0.91,
   },
   和歌山美浜町和田: {
     location: [33.89, 135.13],
@@ -14777,7 +14722,7 @@ export const jmaSeisIntLoc = {
   すさみ町周参見: {
     location: [33.55, 135.5],
     sect: "和歌山県南部",
-    arv: 1.03,
+    arv: 0.67,
   },
   那智勝浦町天満: {
     location: [33.63, 135.94],
@@ -14787,7 +14732,7 @@ export const jmaSeisIntLoc = {
   太地町太地暖海公園: {
     location: [33.59, 135.95],
     sect: "和歌山県南部",
-    arv: 1.48,
+    arv: 1.11,
   },
   太地町役場: {
     location: [33.59, 135.94],
@@ -14832,7 +14777,7 @@ export const jmaSeisIntLoc = {
   鳥取市鹿野町鹿野小学校: {
     location: [35.46, 134.05],
     sect: "鳥取県東部",
-    arv: 1.16,
+    arv: 1.19,
   },
   鳥取市福部町細川: {
     location: [35.54, 134.28],
@@ -14867,12 +14812,12 @@ export const jmaSeisIntLoc = {
   鳥取市河原町渡一木: {
     location: [35.4, 134.2],
     sect: "鳥取県東部",
-    arv: 0.9,
+    arv: 1.94,
   },
   鳥取市青谷町青谷: {
     location: [35.52, 134.0],
     sect: "鳥取県東部",
-    arv: 1.85,
+    arv: 1.75,
   },
   岩美町浦富: {
     location: [35.58, 134.33],
@@ -14882,7 +14827,7 @@ export const jmaSeisIntLoc = {
   鳥取若桜町若桜: {
     location: [35.34, 134.4],
     sect: "鳥取県東部",
-    arv: 0.57,
+    arv: 0.93,
   },
   智頭町智頭: {
     location: [35.26, 134.23],
@@ -14892,12 +14837,12 @@ export const jmaSeisIntLoc = {
   八頭町郡家: {
     location: [35.41, 134.25],
     sect: "鳥取県東部",
-    arv: 0.9,
+    arv: 0.89,
   },
   八頭町船岡: {
     location: [35.39, 134.25],
     sect: "鳥取県東部",
-    arv: 0.89,
+    arv: 0.85,
   },
   八頭町北山: {
     location: [35.36, 134.36],
@@ -14917,7 +14862,7 @@ export const jmaSeisIntLoc = {
   倉吉市関金町大鳥居: {
     location: [35.37, 133.75],
     sect: "鳥取県中部",
-    arv: 1.11,
+    arv: 1.12,
   },
   三朝町大瀬: {
     location: [35.41, 133.86],
@@ -14952,7 +14897,7 @@ export const jmaSeisIntLoc = {
   琴浦町徳万: {
     location: [35.5, 133.69],
     sect: "鳥取県中部",
-    arv: 1.34,
+    arv: 1.36,
   },
   北栄町由良宿: {
     location: [35.49, 133.76],
@@ -14997,7 +14942,7 @@ export const jmaSeisIntLoc = {
   大山町御来屋: {
     location: [35.51, 133.5],
     sect: "鳥取県西部",
-    arv: 1.3,
+    arv: 1.31,
   },
   大山町末長: {
     location: [35.48, 133.46],
@@ -15054,11 +14999,6 @@ export const jmaSeisIntLoc = {
     sect: "鳥取県西部",
     arv: 0.57,
   },
-  松江市西生馬町: {
-    location: [35.5, 133.03],
-    sect: "島根県東部",
-    arv: 1.04,
-  },
   松江市西津田: {
     location: [35.46, 133.07],
     sect: "島根県東部",
@@ -15077,7 +15017,7 @@ export const jmaSeisIntLoc = {
   松江市鹿島町佐陀本郷: {
     location: [35.52, 133.0],
     sect: "島根県東部",
-    arv: 1.42,
+    arv: 1.45,
   },
   松江市玉湯町湯町: {
     location: [35.43, 133.01],
@@ -15097,7 +15037,7 @@ export const jmaSeisIntLoc = {
   松江市東出雲町揖屋: {
     location: [35.43, 133.15],
     sect: "島根県東部",
-    arv: 1.57,
+    arv: 1.44,
   },
   松江市八雲町西岩坂: {
     location: [35.41, 133.09],
@@ -15132,7 +15072,7 @@ export const jmaSeisIntLoc = {
   出雲市佐田町反辺: {
     location: [35.25, 132.72],
     sect: "島根県東部",
-    arv: 1.04,
+    arv: 0.67,
   },
   出雲市湖陵町二部: {
     location: [35.32, 132.67],
@@ -15187,7 +15127,7 @@ export const jmaSeisIntLoc = {
   雲南市加茂町加茂中: {
     location: [35.35, 132.91],
     sect: "島根県東部",
-    arv: 1.22,
+    arv: 1.02,
   },
   雲南市吉田町吉田: {
     location: [35.17, 132.86],
@@ -15197,7 +15137,7 @@ export const jmaSeisIntLoc = {
   雲南市木次町里方: {
     location: [35.31, 132.9],
     sect: "島根県東部",
-    arv: 1.17,
+    arv: 1.16,
   },
   奥出雲町横田: {
     location: [35.18, 133.09],
@@ -15207,7 +15147,7 @@ export const jmaSeisIntLoc = {
   奥出雲町三成: {
     location: [35.2, 133.0],
     sect: "島根県東部",
-    arv: 0.87,
+    arv: 0.94,
   },
   飯南町頓原: {
     location: [35.08, 132.78],
@@ -15262,7 +15202,7 @@ export const jmaSeisIntLoc = {
   益田市水分町: {
     location: [34.67, 131.85],
     sect: "島根県西部",
-    arv: 1.06,
+    arv: 0.98,
   },
   益田市常盤町: {
     location: [34.67, 131.84],
@@ -15282,7 +15222,7 @@ export const jmaSeisIntLoc = {
   大田市仁摩町仁万: {
     location: [35.15, 132.41],
     sect: "島根県西部",
-    arv: 2.09,
+    arv: 1.0,
   },
   大田市温泉津町小浜: {
     location: [35.09, 132.36],
@@ -15292,7 +15232,7 @@ export const jmaSeisIntLoc = {
   大田市大田町: {
     location: [35.2, 132.5],
     sect: "島根県西部",
-    arv: 1.35,
+    arv: 0.99,
   },
   江津市江津町: {
     location: [35.01, 132.22],
@@ -15367,7 +15307,7 @@ export const jmaSeisIntLoc = {
   海士町海士: {
     location: [36.1, 133.1],
     sect: "島根県隠岐",
-    arv: 1.75,
+    arv: 1.43,
   },
   西ノ島町浦郷小学校: {
     location: [36.09, 132.98],
@@ -15382,7 +15322,7 @@ export const jmaSeisIntLoc = {
   隠岐の島町西町: {
     location: [36.2, 133.33],
     sect: "島根県隠岐",
-    arv: 1.75,
+    arv: 1.48,
   },
   隠岐の島町山田: {
     location: [36.29, 133.25],
@@ -15417,12 +15357,12 @@ export const jmaSeisIntLoc = {
   津山市小中原: {
     location: [35.18, 134.05],
     sect: "岡山県北部",
-    arv: 0.8,
+    arv: 1.0,
   },
   津山市山北: {
     location: [35.07, 134.0],
     sect: "岡山県北部",
-    arv: 0.88,
+    arv: 0.87,
   },
   津山市新野東: {
     location: [35.1, 134.11],
@@ -15462,7 +15402,7 @@ export const jmaSeisIntLoc = {
   新見市哲多町本郷: {
     location: [34.94, 133.45],
     sect: "岡山県北部",
-    arv: 0.67,
+    arv: 0.97,
   },
   新見市哲西町矢田: {
     location: [34.93, 133.33],
@@ -15527,7 +15467,7 @@ export const jmaSeisIntLoc = {
   真庭市久世: {
     location: [35.08, 133.75],
     sect: "岡山県北部",
-    arv: 1.1,
+    arv: 1.09,
   },
   真庭市落合垂水: {
     location: [35.01, 133.75],
@@ -15622,7 +15562,7 @@ export const jmaSeisIntLoc = {
   岡山美咲町原田: {
     location: [35.0, 133.95],
     sect: "岡山県北部",
-    arv: 0.97,
+    arv: 0.91,
   },
   岡山北区桑田町: {
     location: [34.66, 133.92],
@@ -15632,7 +15572,7 @@ export const jmaSeisIntLoc = {
   岡山北区足守: {
     location: [34.73, 133.8],
     sect: "岡山県南部",
-    arv: 0.67,
+    arv: 1.22,
   },
   岡山北区新屋敷: {
     location: [34.66, 133.91],
@@ -15647,7 +15587,7 @@ export const jmaSeisIntLoc = {
   岡山北区建部町: {
     location: [34.87, 133.9],
     sect: "岡山県南部",
-    arv: 0.57,
+    arv: 1.1,
   },
   岡山中区浜: {
     location: [34.67, 133.94],
@@ -15762,7 +15702,7 @@ export const jmaSeisIntLoc = {
   総社市小寺: {
     location: [34.68, 133.75],
     sect: "岡山県南部",
-    arv: 1.32,
+    arv: 2.06,
   },
   高梁市原田南町: {
     location: [34.78, 133.61],
@@ -15822,7 +15762,7 @@ export const jmaSeisIntLoc = {
   瀬戸内市牛窓町: {
     location: [34.62, 134.15],
     sect: "岡山県南部",
-    arv: 1.57,
+    arv: 1.48,
   },
   瀬戸内市邑久町: {
     location: [34.66, 134.09],
@@ -15832,7 +15772,7 @@ export const jmaSeisIntLoc = {
   瀬戸内市長船町: {
     location: [34.7, 134.1],
     sect: "岡山県南部",
-    arv: 1.44,
+    arv: 1.43,
   },
   赤磐市上市: {
     location: [34.75, 134.02],
@@ -15882,7 +15822,7 @@ export const jmaSeisIntLoc = {
   和気町矢田: {
     location: [34.85, 134.1],
     sect: "岡山県南部",
-    arv: 1.23,
+    arv: 1.16,
   },
   早島町前潟: {
     location: [34.6, 133.83],
@@ -15947,7 +15887,7 @@ export const jmaSeisIntLoc = {
   広島三次市君田町: {
     location: [34.88, 132.85],
     sect: "広島県北部",
-    arv: 1.07,
+    arv: 1.06,
   },
   広島三次市吉舎町: {
     location: [34.72, 132.99],
@@ -15972,7 +15912,7 @@ export const jmaSeisIntLoc = {
   庄原市高野町: {
     location: [35.03, 132.9],
     sect: "広島県北部",
-    arv: 1.0,
+    arv: 0.98,
   },
   庄原市総領町: {
     location: [34.78, 133.07],
@@ -15982,7 +15922,7 @@ export const jmaSeisIntLoc = {
   庄原市口和町: {
     location: [34.92, 132.9],
     sect: "広島県北部",
-    arv: 0.67,
+    arv: 0.89,
   },
   庄原市比和町: {
     location: [34.98, 132.99],
@@ -16017,7 +15957,7 @@ export const jmaSeisIntLoc = {
   安芸高田市吉田町: {
     location: [34.67, 132.7],
     sect: "広島県北部",
-    arv: 0.98,
+    arv: 0.95,
   },
   安芸高田市美土里町: {
     location: [34.73, 132.63],
@@ -16037,7 +15977,7 @@ export const jmaSeisIntLoc = {
   安芸太田町中筒賀: {
     location: [34.56, 132.25],
     sect: "広島県北部",
-    arv: 0.82,
+    arv: 0.9,
   },
   安芸太田町戸河内: {
     location: [34.58, 132.23],
@@ -16087,7 +16027,7 @@ export const jmaSeisIntLoc = {
   三原市大和町: {
     location: [34.54, 132.95],
     sect: "広島県南東部",
-    arv: 0.79,
+    arv: 0.9,
   },
   三原市久井町: {
     location: [34.52, 133.03],
@@ -16112,7 +16052,7 @@ export const jmaSeisIntLoc = {
   尾道市向島町: {
     location: [34.4, 133.2],
     sect: "広島県南東部",
-    arv: 1.57,
+    arv: 1.75,
   },
   尾道市瀬戸田町: {
     location: [34.31, 133.1],
@@ -16122,7 +16062,7 @@ export const jmaSeisIntLoc = {
   尾道市御調町: {
     location: [34.51, 133.15],
     sect: "広島県南東部",
-    arv: 1.05,
+    arv: 0.57,
   },
   尾道市久保: {
     location: [34.41, 133.21],
@@ -16132,7 +16072,7 @@ export const jmaSeisIntLoc = {
   福山市松永町: {
     location: [34.45, 133.25],
     sect: "広島県南東部",
-    arv: 1.75,
+    arv: 1.44,
   },
   福山市東桜町: {
     location: [34.49, 133.36],
@@ -16182,7 +16122,7 @@ export const jmaSeisIntLoc = {
   世羅町東神崎: {
     location: [34.58, 133.05],
     sect: "広島県南東部",
-    arv: 1.03,
+    arv: 0.57,
   },
   世羅町西上原: {
     location: [34.59, 133.06],
@@ -16212,7 +16152,7 @@ export const jmaSeisIntLoc = {
   神石高原町小畠: {
     location: [34.7, 133.25],
     sect: "広島県南東部",
-    arv: 0.88,
+    arv: 0.85,
   },
   広島中区上八丁堀: {
     location: [34.4, 132.46],
@@ -16297,7 +16237,7 @@ export const jmaSeisIntLoc = {
   呉市豊浜町: {
     location: [34.18, 132.8],
     sect: "広島県南西部",
-    arv: 1.48,
+    arv: 1.0,
   },
   呉市焼山: {
     location: [34.3, 132.56],
@@ -16487,7 +16427,7 @@ export const jmaSeisIntLoc = {
   吉野川市川島町: {
     location: [34.06, 134.3],
     sect: "徳島県北部",
-    arv: 1.7,
+    arv: 1.71,
   },
   吉野川市山川町: {
     location: [34.05, 134.23],
@@ -16522,12 +16462,12 @@ export const jmaSeisIntLoc = {
   美馬市穴吹ふれスポ公園: {
     location: [34.04, 134.15],
     sect: "徳島県北部",
-    arv: 0.57,
+    arv: 1.0,
   },
   美馬市脇町: {
     location: [34.07, 134.15],
     sect: "徳島県北部",
-    arv: 1.17,
+    arv: 1.16,
   },
   美馬市木屋平: {
     location: [33.93, 134.21],
@@ -16537,7 +16477,7 @@ export const jmaSeisIntLoc = {
   美馬市美馬町: {
     location: [34.05, 134.05],
     sect: "徳島県北部",
-    arv: 1.02,
+    arv: 1.03,
   },
   美馬市穴吹町: {
     location: [34.05, 134.17],
@@ -16577,12 +16517,12 @@ export const jmaSeisIntLoc = {
   徳島三好市山城町: {
     location: [33.96, 133.75],
     sect: "徳島県北部",
-    arv: 0.57,
+    arv: 1.0,
   },
   佐那河内村下: {
     location: [33.99, 134.45],
     sect: "徳島県北部",
-    arv: 1.05,
+    arv: 0.9,
   },
   石井町高川原: {
     location: [34.07, 134.44],
@@ -16607,7 +16547,7 @@ export const jmaSeisIntLoc = {
   藍住町奥野: {
     location: [34.13, 134.5],
     sect: "徳島県北部",
-    arv: 2.21,
+    arv: 2.24,
   },
   板野町大寺: {
     location: [34.14, 134.46],
@@ -16647,12 +16587,12 @@ export const jmaSeisIntLoc = {
   阿南市富岡町: {
     location: [33.92, 134.65],
     sect: "徳島県南部",
-    arv: 1.45,
+    arv: 1.42,
   },
   阿南市山口町: {
     location: [33.87, 134.6],
     sect: "徳島県南部",
-    arv: 1.33,
+    arv: 1.35,
   },
   阿南市那賀川町: {
     location: [33.95, 134.66],
@@ -16677,7 +16617,7 @@ export const jmaSeisIntLoc = {
   那賀町横石: {
     location: [33.8, 134.45],
     sect: "徳島県南部",
-    arv: 0.57,
+    arv: 0.69,
   },
   那賀町木頭和無田: {
     location: [33.77, 134.2],
@@ -16722,7 +16662,7 @@ export const jmaSeisIntLoc = {
   海陽町大里: {
     location: [33.6, 134.35],
     sect: "徳島県南部",
-    arv: 2.13,
+    arv: 1.75,
   },
   海陽町奥浦: {
     location: [33.6, 134.355],
@@ -16732,7 +16672,7 @@ export const jmaSeisIntLoc = {
   海陽町宍喰浦: {
     location: [33.57, 134.3],
     sect: "徳島県南部",
-    arv: 1.75,
+    arv: 1.09,
   },
   高松空港: {
     location: [34.22, 134.02],
@@ -16782,7 +16722,7 @@ export const jmaSeisIntLoc = {
   高松市番町: {
     location: [34.34, 134.05],
     sect: "香川県東部",
-    arv: 2.15,
+    arv: 2.16,
   },
   さぬき市長尾総合公園: {
     location: [34.25, 134.19],
@@ -16827,7 +16767,7 @@ export const jmaSeisIntLoc = {
   東かがわ市引田: {
     location: [34.22, 134.4],
     sect: "香川県東部",
-    arv: 1.42,
+    arv: 1.75,
   },
   東かがわ市湊: {
     location: [34.24, 134.36],
@@ -16867,7 +16807,7 @@ export const jmaSeisIntLoc = {
   直島町役場: {
     location: [34.46, 134.0],
     sect: "香川県東部",
-    arv: 1.08,
+    arv: 0.94,
   },
   丸亀市新田町: {
     location: [34.26, 133.79],
@@ -16887,7 +16827,7 @@ export const jmaSeisIntLoc = {
   丸亀市大手町: {
     location: [34.29, 133.8],
     sect: "香川県西部",
-    arv: 1.4,
+    arv: 1.41,
   },
   坂出市王越町: {
     location: [34.38, 133.93],
@@ -17007,7 +16947,7 @@ export const jmaSeisIntLoc = {
   今治市南宝来町二丁目: {
     location: [34.06, 133.0],
     sect: "愛媛県東予",
-    arv: 1.75,
+    arv: 1.78,
   },
   今治市朝倉北: {
     location: [34.0, 133.02],
@@ -17047,7 +16987,7 @@ export const jmaSeisIntLoc = {
   今治市大三島町: {
     location: [34.25, 133.0],
     sect: "愛媛県東予",
-    arv: 1.75,
+    arv: 1.03,
   },
   今治市関前岡村: {
     location: [34.18, 132.88],
@@ -17057,7 +16997,7 @@ export const jmaSeisIntLoc = {
   今治市波方町: {
     location: [34.1, 132.95],
     sect: "愛媛県東予",
-    arv: 1.42,
+    arv: 1.0,
   },
   今治市伯方町: {
     location: [34.21, 133.11],
@@ -17082,7 +17022,7 @@ export const jmaSeisIntLoc = {
   西条市丹原町鞍瀬: {
     location: [33.78, 133.05],
     sect: "愛媛県東予",
-    arv: 0.67,
+    arv: 0.57,
   },
   西条市周布: {
     location: [33.93, 133.08],
@@ -17107,7 +17047,7 @@ export const jmaSeisIntLoc = {
   四国中央市中曽根町: {
     location: [33.98, 133.55],
     sect: "愛媛県東予",
-    arv: 1.0,
+    arv: 0.97,
   },
   四国中央市土居町: {
     location: [33.95, 133.42],
@@ -17142,7 +17082,7 @@ export const jmaSeisIntLoc = {
   上島町岩城: {
     location: [34.25, 133.15],
     sect: "愛媛県東予",
-    arv: 0.8,
+    arv: 0.83,
   },
   松山市北持田町: {
     location: [33.84, 132.78],
@@ -17197,12 +17137,12 @@ export const jmaSeisIntLoc = {
   久万高原町久万: {
     location: [33.66, 132.9],
     sect: "愛媛県中予",
-    arv: 0.77,
+    arv: 0.79,
   },
   久万高原町柳井川: {
     location: [33.55, 133.0],
     sect: "愛媛県中予",
-    arv: 1.0,
+    arv: 0.78,
   },
   久万高原町渋草: {
     location: [33.69, 133.04],
@@ -17217,7 +17157,7 @@ export const jmaSeisIntLoc = {
   砥部町総津: {
     location: [33.63, 132.8],
     sect: "愛媛県中予",
-    arv: 0.93,
+    arv: 0.57,
   },
   砥部町宮内: {
     location: [33.75, 132.79],
@@ -17227,7 +17167,7 @@ export const jmaSeisIntLoc = {
   宇和島市住吉町: {
     location: [33.23, 132.55],
     sect: "愛媛県南予",
-    arv: 1.36,
+    arv: 1.48,
   },
   宇和島市丸穂: {
     location: [33.22, 132.57],
@@ -17262,7 +17202,7 @@ export const jmaSeisIntLoc = {
   八幡浜市保内町: {
     location: [33.48, 132.4],
     sect: "愛媛県南予",
-    arv: 1.75,
+    arv: 0.57,
   },
   大洲市豊茂: {
     location: [33.56, 132.48],
@@ -17292,12 +17232,12 @@ export const jmaSeisIntLoc = {
   西予市野村町: {
     location: [33.38, 132.65],
     sect: "愛媛県南予",
-    arv: 0.84,
+    arv: 0.83,
   },
   西予市城川町: {
     location: [33.38, 132.75],
     sect: "愛媛県南予",
-    arv: 0.85,
+    arv: 0.82,
   },
   西予市宇和町: {
     location: [33.36, 132.51],
@@ -17317,7 +17257,7 @@ export const jmaSeisIntLoc = {
   内子町内子: {
     location: [33.55, 132.65],
     sect: "愛媛県南予",
-    arv: 1.01,
+    arv: 0.98,
   },
   内子町平岡: {
     location: [33.53, 132.66],
@@ -17327,7 +17267,7 @@ export const jmaSeisIntLoc = {
   内子町小田: {
     location: [33.57, 132.8],
     sect: "愛媛県南予",
-    arv: 0.95,
+    arv: 0.8,
   },
   伊方町三崎: {
     location: [33.39, 132.11],
@@ -17342,7 +17282,7 @@ export const jmaSeisIntLoc = {
   伊方町三机: {
     location: [33.46, 132.25],
     sect: "愛媛県南予",
-    arv: 1.44,
+    arv: 1.16,
   },
   松野町松丸: {
     location: [33.23, 132.71],
@@ -17357,7 +17297,7 @@ export const jmaSeisIntLoc = {
   愛媛鬼北町下鍵山: {
     location: [33.33, 132.8],
     sect: "愛媛県南予",
-    arv: 0.97,
+    arv: 0.57,
   },
   愛媛鬼北町近永: {
     location: [33.25, 132.68],
@@ -17382,7 +17322,7 @@ export const jmaSeisIntLoc = {
   愛南町一本松: {
     location: [32.96, 132.65],
     sect: "愛媛県南予",
-    arv: 0.85,
+    arv: 0.57,
   },
   愛南町城辺: {
     location: [32.96, 132.58],
@@ -17402,12 +17342,12 @@ export const jmaSeisIntLoc = {
   室戸市浮津: {
     location: [33.29, 134.15],
     sect: "高知県東部",
-    arv: 1.12,
+    arv: 1.42,
   },
   安芸市西浜: {
     location: [33.51, 133.9],
     sect: "高知県東部",
-    arv: 1.0,
+    arv: 1.38,
   },
   安芸市矢ノ丸: {
     location: [33.5, 133.91],
@@ -17442,7 +17382,7 @@ export const jmaSeisIntLoc = {
   馬路村馬路: {
     location: [33.56, 134.05],
     sect: "高知県東部",
-    arv: 0.67,
+    arv: 1.12,
   },
   芸西村和食: {
     location: [33.53, 133.81],
@@ -17457,7 +17397,7 @@ export const jmaSeisIntLoc = {
   高知市春野町芳原: {
     location: [33.51, 133.5],
     sect: "高知県中部",
-    arv: 0.98,
+    arv: 0.97,
   },
   高知市丸ノ内: {
     location: [33.56, 133.535],
@@ -17517,7 +17457,7 @@ export const jmaSeisIntLoc = {
   高知香南市吉川町吉原: {
     location: [33.54, 133.7],
     sect: "高知県中部",
-    arv: 1.44,
+    arv: 1.75,
   },
   香美市土佐山田町宝町: {
     location: [33.6, 133.69],
@@ -17652,7 +17592,7 @@ export const jmaSeisIntLoc = {
   四万十市古津賀: {
     location: [32.98, 132.95],
     sect: "高知県西部",
-    arv: 2.09,
+    arv: 1.75,
   },
   四万十市西土佐江川崎: {
     location: [33.17, 132.79],
@@ -17687,7 +17627,7 @@ export const jmaSeisIntLoc = {
   高知津野町永野: {
     location: [33.44, 133.2],
     sect: "高知県西部",
-    arv: 0.57,
+    arv: 0.85,
   },
   四万十町窪川中津川: {
     location: [33.31, 133.06],
@@ -17702,7 +17642,7 @@ export const jmaSeisIntLoc = {
   四万十町十川: {
     location: [33.23, 132.85],
     sect: "高知県西部",
-    arv: 1.08,
+    arv: 0.57,
   },
   四万十町琴平町: {
     location: [33.21, 133.14],
@@ -17717,7 +17657,7 @@ export const jmaSeisIntLoc = {
   三原村来栖野: {
     location: [32.91, 132.85],
     sect: "高知県西部",
-    arv: 0.99,
+    arv: 0.67,
   },
   黒潮町入野: {
     location: [33.03, 133.0],
@@ -17727,7 +17667,7 @@ export const jmaSeisIntLoc = {
   黒潮町佐賀: {
     location: [33.08, 133.1],
     sect: "高知県西部",
-    arv: 1.29,
+    arv: 1.75,
   },
   萩市土原: {
     location: [34.41, 131.41],
@@ -17752,7 +17692,7 @@ export const jmaSeisIntLoc = {
   萩市江向: {
     location: [34.41, 131.4],
     sect: "山口県北部",
-    arv: 1.75,
+    arv: 1.78,
   },
   萩市吉部: {
     location: [34.44, 131.58],
@@ -17762,7 +17702,7 @@ export const jmaSeisIntLoc = {
   萩市須佐: {
     location: [34.62, 131.6],
     sect: "山口県北部",
-    arv: 0.57,
+    arv: 1.75,
   },
   萩市明木: {
     location: [34.34, 131.41],
@@ -17777,7 +17717,7 @@ export const jmaSeisIntLoc = {
   萩市見島本村: {
     location: [34.76, 131.15],
     sect: "山口県北部",
-    arv: 0.99,
+    arv: 1.48,
   },
   長門市深川中学校: {
     location: [34.36, 131.19],
@@ -17787,7 +17727,7 @@ export const jmaSeisIntLoc = {
   長門市日置: {
     location: [34.38, 131.1],
     sect: "山口県北部",
-    arv: 1.23,
+    arv: 0.92,
   },
   長門市東深川: {
     location: [34.37, 131.18],
@@ -17797,7 +17737,7 @@ export const jmaSeisIntLoc = {
   長門市三隅: {
     location: [34.36, 131.25],
     sect: "山口県北部",
-    arv: 0.57,
+    arv: 0.92,
   },
   長門市新別名: {
     location: [34.37, 131.06],
@@ -17812,7 +17752,7 @@ export const jmaSeisIntLoc = {
   美祢市美東町大田: {
     location: [34.22, 131.35],
     sect: "山口県北部",
-    arv: 1.02,
+    arv: 0.57,
   },
   美祢市秋芳町秋吉: {
     location: [34.21, 131.29],
@@ -17852,7 +17792,7 @@ export const jmaSeisIntLoc = {
   下関市豊北町滝部: {
     location: [34.29, 130.95],
     sect: "山口県西部",
-    arv: 1.09,
+    arv: 1.15,
   },
   下関市豊田町殿敷: {
     location: [34.2, 131.08],
@@ -17882,7 +17822,7 @@ export const jmaSeisIntLoc = {
   宇部市常盤町: {
     location: [33.95, 131.25],
     sect: "山口県西部",
-    arv: 1.44,
+    arv: 1.86,
   },
   宇部市船木: {
     location: [34.05, 131.23],
@@ -17947,7 +17887,7 @@ export const jmaSeisIntLoc = {
   岩国市周東町下久原: {
     location: [34.09, 132.05],
     sect: "山口県東部",
-    arv: 1.22,
+    arv: 1.21,
   },
   岩国市玖珂支所: {
     location: [34.09, 132.08],
@@ -17962,12 +17902,12 @@ export const jmaSeisIntLoc = {
   光市岩田: {
     location: [33.98, 132.0],
     sect: "山口県東部",
-    arv: 0.92,
+    arv: 0.88,
   },
   柳井市南町: {
     location: [33.96, 132.1],
     sect: "山口県東部",
-    arv: 1.75,
+    arv: 1.57,
   },
   柳井市大畠: {
     location: [33.96, 132.17],
@@ -17982,7 +17922,7 @@ export const jmaSeisIntLoc = {
   周防大島町小松: {
     location: [33.93, 132.2],
     sect: "山口県東部",
-    arv: 1.75,
+    arv: 0.57,
   },
   周防大島町西安下庄: {
     location: [33.9, 132.28],
@@ -18117,7 +18057,7 @@ export const jmaSeisIntLoc = {
   福岡東区香椎駅東三丁目: {
     location: [33.66, 130.45],
     sect: "福岡県福岡",
-    arv: 1.15,
+    arv: 1.05,
   },
   福岡東区千早: {
     location: [33.65, 130.44],
@@ -18202,7 +18142,7 @@ export const jmaSeisIntLoc = {
   宗像市神湊: {
     location: [33.85, 130.5],
     sect: "福岡県福岡",
-    arv: 1.85,
+    arv: 1.44,
   },
   太宰府市観世音寺: {
     location: [33.51, 130.52],
@@ -18237,7 +18177,7 @@ export const jmaSeisIntLoc = {
   糸島市前原東: {
     location: [33.56, 130.2],
     sect: "福岡県福岡",
-    arv: 1.03,
+    arv: 1.02,
   },
   糸島市二丈深江: {
     location: [33.52, 130.15],
@@ -18282,7 +18222,7 @@ export const jmaSeisIntLoc = {
   久山町久原: {
     location: [33.65, 130.5],
     sect: "福岡県福岡",
-    arv: 1.11,
+    arv: 1.12,
   },
   粕屋町仲原: {
     location: [33.61, 130.48],
@@ -18312,7 +18252,7 @@ export const jmaSeisIntLoc = {
   北九州小倉南区横代東町: {
     location: [33.83, 130.9],
     sect: "福岡県北九州",
-    arv: 2.09,
+    arv: 0.95,
   },
   北九州小倉南区若園: {
     location: [33.85, 130.89],
@@ -18412,7 +18352,7 @@ export const jmaSeisIntLoc = {
   上毛町東下: {
     location: [33.55, 131.15],
     sect: "福岡県北九州",
-    arv: 0.67,
+    arv: 0.77,
   },
   上毛町垂水: {
     location: [33.58, 131.16],
@@ -18442,12 +18382,12 @@ export const jmaSeisIntLoc = {
   飯塚市立岩: {
     location: [33.65, 130.7],
     sect: "福岡県筑豊",
-    arv: 1.17,
+    arv: 1.15,
   },
   飯塚市長尾: {
     location: [33.57, 130.65],
     sect: "福岡県筑豊",
-    arv: 0.9,
+    arv: 1.17,
   },
   飯塚市忠隈: {
     location: [33.62, 130.68],
@@ -18522,12 +18462,12 @@ export const jmaSeisIntLoc = {
   香春町高野: {
     location: [33.67, 130.85],
     sect: "福岡県筑豊",
-    arv: 1.17,
+    arv: 0.9,
   },
   添田町添田: {
     location: [33.57, 130.85],
     sect: "福岡県筑豊",
-    arv: 0.93,
+    arv: 1.09,
   },
   糸田町役場: {
     location: [33.65, 130.78],
@@ -18542,7 +18482,7 @@ export const jmaSeisIntLoc = {
   大任町大行事: {
     location: [33.61, 130.85],
     sect: "福岡県筑豊",
-    arv: 1.18,
+    arv: 1.21,
   },
   赤村内田: {
     location: [33.62, 130.87],
@@ -18572,12 +18512,12 @@ export const jmaSeisIntLoc = {
   大牟田市笹林: {
     location: [33.03, 130.45],
     sect: "福岡県筑後",
-    arv: 1.75,
+    arv: 0.99,
   },
   大牟田市昭和町: {
     location: [33.02, 130.45],
     sect: "福岡県筑後",
-    arv: 1.15,
+    arv: 1.2,
   },
   大牟田市有明町: {
     location: [33.03, 130.45499999999998],
@@ -18772,7 +18712,7 @@ export const jmaSeisIntLoc = {
   福岡広川町新代: {
     location: [33.24, 130.55],
     sect: "福岡県筑後",
-    arv: 1.24,
+    arv: 1.23,
   },
   唐津市西城内: {
     location: [33.45, 129.97],
@@ -18802,7 +18742,7 @@ export const jmaSeisIntLoc = {
   唐津市北波多: {
     location: [33.38, 129.95],
     sect: "佐賀県北部",
-    arv: 1.12,
+    arv: 2.11,
   },
   唐津市肥前: {
     location: [33.44, 129.81],
@@ -18907,7 +18847,7 @@ export const jmaSeisIntLoc = {
   武雄市山内: {
     location: [33.2, 129.95],
     sect: "佐賀県南部",
-    arv: 0.84,
+    arv: 0.83,
   },
   武雄市武雄町昭和: {
     location: [33.2, 130.02],
@@ -18922,7 +18862,7 @@ export const jmaSeisIntLoc = {
   佐賀鹿島市納富分: {
     location: [33.1, 130.1],
     sect: "佐賀県南部",
-    arv: 1.35,
+    arv: 1.36,
   },
   小城市三日月: {
     location: [33.27, 130.22],
@@ -18932,7 +18872,7 @@ export const jmaSeisIntLoc = {
   小城市小城: {
     location: [33.29, 130.2],
     sect: "佐賀県南部",
-    arv: 1.26,
+    arv: 1.27,
   },
   小城市芦刈: {
     location: [33.22, 130.21],
@@ -18942,7 +18882,7 @@ export const jmaSeisIntLoc = {
   小城市牛津: {
     location: [33.25, 130.2],
     sect: "佐賀県南部",
-    arv: 1.75,
+    arv: 1.78,
   },
   嬉野市不動山: {
     location: [33.1, 129.95],
@@ -18977,12 +18917,12 @@ export const jmaSeisIntLoc = {
   吉野ヶ里町三田川: {
     location: [33.32, 130.4],
     sect: "佐賀県南部",
-    arv: 1.93,
+    arv: 1.94,
   },
   吉野ヶ里町東脊振: {
     location: [33.35, 130.4],
     sect: "佐賀県南部",
-    arv: 1.24,
+    arv: 1.26,
   },
   基山町宮浦: {
     location: [33.43, 130.52],
@@ -19007,7 +18947,7 @@ export const jmaSeisIntLoc = {
   みやき町北茂安: {
     location: [33.32, 130.45],
     sect: "佐賀県南部",
-    arv: 1.84,
+    arv: 1.81,
   },
   大町町大町: {
     location: [33.21, 130.12],
@@ -19052,12 +18992,12 @@ export const jmaSeisIntLoc = {
   佐世保市小佐々町: {
     location: [33.22, 129.6],
     sect: "長崎県北部",
-    arv: 0.9,
+    arv: 0.88,
   },
   佐世保市世知原町: {
     location: [33.26, 129.75],
     sect: "長崎県北部",
-    arv: 0.83,
+    arv: 1.0,
   },
   佐世保市江迎町: {
     location: [33.31, 129.63],
@@ -19077,7 +19017,7 @@ export const jmaSeisIntLoc = {
   平戸市岩の上町: {
     location: [33.36, 129.55],
     sect: "長崎県北部",
-    arv: 0.93,
+    arv: 0.97,
   },
   平戸市鏡川町: {
     location: [33.36, 129.54],
@@ -19102,7 +19042,7 @@ export const jmaSeisIntLoc = {
   平戸市大島村: {
     location: [33.48, 129.55],
     sect: "長崎県北部",
-    arv: 1.09,
+    arv: 1.0,
   },
   松浦市志佐町: {
     location: [33.34, 129.71],
@@ -19137,7 +19077,7 @@ export const jmaSeisIntLoc = {
   佐々町本田原: {
     location: [33.24, 129.65],
     sect: "長崎県北部",
-    arv: 0.67,
+    arv: 1.47,
   },
   長崎市南山手: {
     location: [32.73, 129.87],
@@ -19192,7 +19132,7 @@ export const jmaSeisIntLoc = {
   諫早市東小路町: {
     location: [32.84, 130.05],
     sect: "長崎県南西部",
-    arv: 0.88,
+    arv: 1.27,
   },
   諫早市小長井町: {
     location: [32.92, 130.18],
@@ -19237,7 +19177,7 @@ export const jmaSeisIntLoc = {
   西海市西彼町: {
     location: [33.0, 129.75],
     sect: "長崎県南西部",
-    arv: 1.29,
+    arv: 1.2,
   },
   西海市西海町: {
     location: [33.07, 129.69],
@@ -19262,7 +19202,7 @@ export const jmaSeisIntLoc = {
   時津町浦: {
     location: [32.83, 129.85],
     sect: "長崎県南西部",
-    arv: 1.48,
+    arv: 1.75,
   },
   島原市下折橋町: {
     location: [32.79, 130.35],
@@ -19287,7 +19227,7 @@ export const jmaSeisIntLoc = {
   雲仙市千々石町: {
     location: [32.78, 130.2],
     sect: "長崎県島原半島",
-    arv: 1.19,
+    arv: 1.21,
   },
   雲仙市雲仙出張所: {
     location: [32.74, 130.265],
@@ -19332,12 +19272,12 @@ export const jmaSeisIntLoc = {
   南島原市北有馬町: {
     location: [32.66, 130.25],
     sect: "長崎県島原半島",
-    arv: 0.89,
+    arv: 0.91,
   },
   南島原市西有家町: {
     location: [32.66, 130.3],
     sect: "長崎県島原半島",
-    arv: 1.33,
+    arv: 1.32,
   },
   南島原市布津町: {
     location: [32.69, 130.36],
@@ -19357,17 +19297,17 @@ export const jmaSeisIntLoc = {
   南島原市有家町: {
     location: [32.67, 130.3],
     sect: "長崎県島原半島",
-    arv: 1.23,
+    arv: 1.22,
   },
   長崎対馬市厳原町東里: {
     location: [34.2, 129.29],
     sect: "長崎県対馬",
-    arv: 1.48,
+    arv: 1.44,
   },
   長崎対馬市上県町飼所: {
     location: [34.53, 129.4],
     sect: "長崎県対馬",
-    arv: 1.08,
+    arv: 1.07,
   },
   長崎対馬市美津島町鴨居瀬: {
     location: [34.34, 129.38],
@@ -19387,7 +19327,7 @@ export const jmaSeisIntLoc = {
   長崎対馬市厳原町国分: {
     location: [34.2, 129.295],
     sect: "長崎県対馬",
-    arv: 1.07,
+    arv: 1.03,
   },
   長崎対馬市美津島町鷄知: {
     location: [34.27, 129.31],
@@ -19402,7 +19342,7 @@ export const jmaSeisIntLoc = {
   長崎対馬市上県町佐須奈: {
     location: [34.64, 129.4],
     sect: "長崎県対馬",
-    arv: 1.75,
+    arv: 0.67,
   },
   壱岐市芦辺町中野: {
     location: [33.8, 129.73],
@@ -19422,7 +19362,7 @@ export const jmaSeisIntLoc = {
   壱岐市石田町: {
     location: [33.75, 129.75],
     sect: "長崎県壱岐",
-    arv: 1.22,
+    arv: 1.3,
   },
   壱岐市勝本町: {
     location: [33.85, 129.69],
@@ -19437,7 +19377,7 @@ export const jmaSeisIntLoc = {
   五島市富江町繁敷: {
     location: [32.66, 128.75],
     sect: "長崎県五島",
-    arv: 0.84,
+    arv: 0.67,
   },
   五島市木場町: {
     location: [32.69, 128.83],
@@ -19487,7 +19427,7 @@ export const jmaSeisIntLoc = {
   新上五島町立串: {
     location: [33.06, 129.1],
     sect: "長崎県五島",
-    arv: 0.67,
+    arv: 0.84,
   },
   新上五島町青方: {
     location: [32.98, 129.07],
@@ -19627,7 +19567,7 @@ export const jmaSeisIntLoc = {
   八代市坂本町: {
     location: [32.43, 130.65],
     sect: "熊本県熊本",
-    arv: 1.12,
+    arv: 0.67,
   },
   荒尾市宮内出目: {
     location: [32.99, 130.43],
@@ -19642,7 +19582,7 @@ export const jmaSeisIntLoc = {
   玉名市中尾: {
     location: [32.93, 130.55],
     sect: "熊本県熊本",
-    arv: 1.65,
+    arv: 1.57,
   },
   玉名市岱明町: {
     location: [32.92, 130.52],
@@ -19732,7 +19672,7 @@ export const jmaSeisIntLoc = {
   宇城市豊野町: {
     location: [32.64, 130.75],
     sect: "熊本県熊本",
-    arv: 1.34,
+    arv: 1.31,
   },
   宇城市小川町: {
     location: [32.59, 130.7],
@@ -19772,7 +19712,7 @@ export const jmaSeisIntLoc = {
   長洲町長洲: {
     location: [32.93, 130.45],
     sect: "熊本県熊本",
-    arv: 1.83,
+    arv: 1.82,
   },
   和水町江田: {
     location: [32.98, 130.61],
@@ -19802,12 +19742,12 @@ export const jmaSeisIntLoc = {
   西原村小森: {
     location: [32.83, 130.9],
     sect: "熊本県熊本",
-    arv: 1.36,
+    arv: 1.3,
   },
   御船町御船: {
     location: [32.71, 130.8],
     sect: "熊本県熊本",
-    arv: 1.26,
+    arv: 1.28,
   },
   嘉島町上島: {
     location: [32.74, 130.76],
@@ -19907,12 +19847,12 @@ export const jmaSeisIntLoc = {
   あさぎり町免田東: {
     location: [32.24, 130.9],
     sect: "熊本県球磨",
-    arv: 1.0,
+    arv: 0.98,
   },
   あさぎり町上: {
     location: [32.22, 130.9],
     sect: "熊本県球磨",
-    arv: 0.95,
+    arv: 0.92,
   },
   あさぎり町岡原: {
     location: [32.24, 130.93],
@@ -20072,7 +20012,7 @@ export const jmaSeisIntLoc = {
   豊後高田市御玉: {
     location: [33.56, 131.45],
     sect: "大分県北部",
-    arv: 1.01,
+    arv: 0.99,
   },
   豊後高田市真玉: {
     location: [33.61, 131.48],
@@ -20092,12 +20032,12 @@ export const jmaSeisIntLoc = {
   宇佐市上田: {
     location: [33.53, 131.35],
     sect: "大分県北部",
-    arv: 1.36,
+    arv: 1.33,
   },
   宇佐市安心院町: {
     location: [33.44, 131.35],
     sect: "大分県北部",
-    arv: 1.05,
+    arv: 1.15,
   },
   国東市国見町西方寺: {
     location: [33.64, 131.57],
@@ -20132,7 +20072,7 @@ export const jmaSeisIntLoc = {
   姫島村役場: {
     location: [33.72, 131.65],
     sect: "大分県北部",
-    arv: 1.77,
+    arv: 2.13,
   },
   大分市明野北: {
     location: [33.23, 131.66],
@@ -20182,7 +20122,7 @@ export const jmaSeisIntLoc = {
   臼杵市臼杵: {
     location: [33.13, 131.8],
     sect: "大分県中部",
-    arv: 0.99,
+    arv: 1.48,
   },
   臼杵市野津町: {
     location: [33.04, 131.69],
@@ -20217,7 +20157,7 @@ export const jmaSeisIntLoc = {
   杵築市山香町: {
     location: [33.45, 131.5],
     sect: "大分県中部",
-    arv: 1.06,
+    arv: 1.07,
   },
   由布市挾間町: {
     location: [33.2, 131.51],
@@ -20282,12 +20222,12 @@ export const jmaSeisIntLoc = {
   佐伯市米水津: {
     location: [32.92, 131.98],
     sect: "大分県南部",
-    arv: 0.57,
+    arv: 0.87,
   },
   佐伯市役所: {
     location: [32.96, 131.9],
     sect: "大分県南部",
-    arv: 1.94,
+    arv: 1.75,
   },
   佐伯市鶴見: {
     location: [32.94, 131.96],
@@ -20297,7 +20237,7 @@ export const jmaSeisIntLoc = {
   佐伯市本匠: {
     location: [32.95, 131.8],
     sect: "大分県南部",
-    arv: 1.29,
+    arv: 0.99,
   },
   豊後大野市三重町: {
     location: [32.98, 131.58],
@@ -20312,7 +20252,7 @@ export const jmaSeisIntLoc = {
   豊後大野市千歳町: {
     location: [33.04, 131.6],
     sect: "大分県南部",
-    arv: 1.07,
+    arv: 0.99,
   },
   豊後大野市大野町: {
     location: [33.04, 131.5],
@@ -20367,7 +20307,7 @@ export const jmaSeisIntLoc = {
   日田市中津江村栃野: {
     location: [33.13, 130.95],
     sect: "大分県西部",
-    arv: 0.67,
+    arv: 0.78,
   },
   日田市大山町: {
     location: [33.26, 130.96],
@@ -20407,7 +20347,7 @@ export const jmaSeisIntLoc = {
   竹田市荻町: {
     location: [32.92, 131.3],
     sect: "大分県西部",
-    arv: 1.37,
+    arv: 1.42,
   },
   九重町後野上: {
     location: [33.23, 131.19],
@@ -20417,7 +20357,7 @@ export const jmaSeisIntLoc = {
   玖珠町帆足: {
     location: [33.28, 131.15],
     sect: "大分県西部",
-    arv: 1.11,
+    arv: 1.14,
   },
   延岡市天神小路: {
     location: [32.58, 131.66],
@@ -20482,12 +20422,12 @@ export const jmaSeisIntLoc = {
   西都市聖陵町: {
     location: [32.11, 131.4],
     sect: "宮崎県北部平野部",
-    arv: 1.27,
+    arv: 1.29,
   },
   高鍋町上江: {
     location: [32.13, 131.5],
     sect: "宮崎県北部平野部",
-    arv: 1.21,
+    arv: 1.8,
   },
   新富町上富田: {
     location: [32.07, 131.49],
@@ -20517,7 +20457,7 @@ export const jmaSeisIntLoc = {
   門川町平城東: {
     location: [32.47, 131.65],
     sect: "宮崎県北部平野部",
-    arv: 1.44,
+    arv: 1.75,
   },
   西米良村板谷: {
     location: [32.24, 131.12],
@@ -20527,7 +20467,7 @@ export const jmaSeisIntLoc = {
   西米良村村所: {
     location: [32.23, 131.15],
     sect: "宮崎県北部山沿い",
-    arv: 0.67,
+    arv: 0.92,
   },
   諸塚村家代: {
     location: [32.51, 131.33],
@@ -20577,7 +20517,7 @@ export const jmaSeisIntLoc = {
   五ヶ瀬町三ヶ所: {
     location: [32.68, 131.2],
     sect: "宮崎県北部山沿い",
-    arv: 0.99,
+    arv: 0.86,
   },
   宮崎市霧島: {
     location: [31.94, 131.41],
@@ -20597,12 +20537,12 @@ export const jmaSeisIntLoc = {
   宮崎市高岡町内山: {
     location: [31.96, 131.3],
     sect: "宮崎県南部平野部",
-    arv: 1.26,
+    arv: 1.32,
   },
   宮崎市田野支所: {
     location: [31.84, 131.3],
     sect: "宮崎県南部平野部",
-    arv: 0.9,
+    arv: 0.91,
   },
   宮崎市清武町西新町: {
     location: [31.86, 131.39],
@@ -20672,7 +20612,7 @@ export const jmaSeisIntLoc = {
   綾町役場: {
     location: [32.0, 131.25],
     sect: "宮崎県南部平野部",
-    arv: 1.24,
+    arv: 1.32,
   },
   都城市菖蒲原: {
     location: [31.73, 131.08],
@@ -20702,7 +20642,7 @@ export const jmaSeisIntLoc = {
   都城市山之口町花木: {
     location: [31.78, 131.15],
     sect: "宮崎県南部山沿い",
-    arv: 0.87,
+    arv: 0.86,
   },
   都城市山田町山田: {
     location: [31.81, 131.04],
@@ -20727,7 +20667,7 @@ export const jmaSeisIntLoc = {
   小林市野尻町東麓: {
     location: [31.96, 131.1],
     sect: "宮崎県南部山沿い",
-    arv: 1.36,
+    arv: 1.31,
   },
   えびの市加久藤: {
     location: [32.05, 130.81],
@@ -20747,7 +20687,7 @@ export const jmaSeisIntLoc = {
   鹿児島市東郡元: {
     location: [31.56, 130.55],
     sect: "鹿児島県薩摩",
-    arv: 2.0,
+    arv: 1.78,
   },
   鹿児島市下福元: {
     location: [31.51, 130.45],
@@ -20797,12 +20737,12 @@ export const jmaSeisIntLoc = {
   枕崎市若葉町: {
     location: [31.28, 130.3],
     sect: "鹿児島県薩摩",
-    arv: 0.99,
+    arv: 1.26,
   },
   阿久根市赤瀬川: {
     location: [32.03, 130.2],
     sect: "鹿児島県薩摩",
-    arv: 0.94,
+    arv: 1.05,
   },
   阿久根市鶴見町: {
     location: [32.01, 130.19],
@@ -20812,7 +20752,7 @@ export const jmaSeisIntLoc = {
   鹿児島出水市緑町: {
     location: [32.09, 130.35],
     sect: "鹿児島県薩摩",
-    arv: 1.37,
+    arv: 1.34,
   },
   鹿児島出水市桂島: {
     location: [32.15, 130.26],
@@ -20877,22 +20817,22 @@ export const jmaSeisIntLoc = {
   日置市日吉町日置: {
     location: [31.59, 130.35],
     sect: "鹿児島県薩摩",
-    arv: 1.75,
+    arv: 1.34,
   },
   日置市東市来町長里: {
     location: [31.66, 130.35],
     sect: "鹿児島県薩摩",
-    arv: 1.2,
+    arv: 1.23,
   },
   日置市伊集院町郡: {
     location: [31.63, 130.4],
     sect: "鹿児島県薩摩",
-    arv: 1.14,
+    arv: 1.37,
   },
   日置市吹上町中原: {
     location: [31.51, 130.35],
     sect: "鹿児島県薩摩",
-    arv: 1.41,
+    arv: 1.27,
   },
   霧島市隼人町内山田: {
     location: [31.74, 130.74],
@@ -20907,7 +20847,7 @@ export const jmaSeisIntLoc = {
   霧島市横川町中ノ: {
     location: [31.91, 130.7],
     sect: "鹿児島県薩摩",
-    arv: 1.24,
+    arv: 0.99,
   },
   霧島市国分中央: {
     location: [31.74, 130.76],
@@ -20927,7 +20867,7 @@ export const jmaSeisIntLoc = {
   霧島市福山町牧之原: {
     location: [31.67, 130.85],
     sect: "鹿児島県薩摩",
-    arv: 1.38,
+    arv: 1.48,
   },
   霧島市牧園町宿窪田: {
     location: [31.86, 130.75],
@@ -21022,7 +20962,7 @@ export const jmaSeisIntLoc = {
   さつま町宮之城保健センタ: {
     location: [31.9, 130.45],
     sect: "鹿児島県薩摩",
-    arv: 1.14,
+    arv: 1.15,
   },
   さつま町神子: {
     location: [31.95, 130.48],
@@ -21067,7 +21007,7 @@ export const jmaSeisIntLoc = {
   鹿屋市新栄町: {
     location: [31.38, 130.85],
     sect: "鹿児島県大隅",
-    arv: 1.37,
+    arv: 1.4,
   },
   鹿屋市札元: {
     location: [31.4, 130.87],
@@ -21082,7 +21022,7 @@ export const jmaSeisIntLoc = {
   鹿屋市吾平町麓: {
     location: [31.33, 130.9],
     sect: "鹿児島県大隅",
-    arv: 1.4,
+    arv: 1.44,
   },
   鹿屋市串良町岡崎: {
     location: [31.39, 130.96],
@@ -21092,7 +21032,7 @@ export const jmaSeisIntLoc = {
   垂水市田神: {
     location: [31.5, 130.7],
     sect: "鹿児島県大隅",
-    arv: 1.44,
+    arv: 1.86,
   },
   曽於市大隅町中之内: {
     location: [31.6, 130.99],
@@ -21142,7 +21082,7 @@ export const jmaSeisIntLoc = {
   錦江町田代支所: {
     location: [31.2, 130.85],
     sect: "鹿児島県大隅",
-    arv: 1.17,
+    arv: 0.99,
   },
   錦江町城元: {
     location: [31.24, 130.79],
@@ -21162,7 +21102,7 @@ export const jmaSeisIntLoc = {
   肝付町北方: {
     location: [31.28, 131.05],
     sect: "鹿児島県大隅",
-    arv: 1.26,
+    arv: 1.32,
   },
   肝付町新富: {
     location: [31.34, 130.95],
@@ -21182,7 +21122,7 @@ export const jmaSeisIntLoc = {
   鹿児島十島村宝島: {
     location: [29.15, 129.2],
     sect: "鹿児島県十島村",
-    arv: 0.67,
+    arv: 1.12,
   },
   鹿児島十島村口之島出張所: {
     location: [29.99, 129.92],
@@ -21192,12 +21132,12 @@ export const jmaSeisIntLoc = {
   鹿児島十島村中之島出張所: {
     location: [29.84, 129.85],
     sect: "鹿児島県十島村",
-    arv: 1.95,
+    arv: 1.13,
   },
   鹿児島十島村諏訪之瀬島: {
     location: [29.61, 129.7],
     sect: "鹿児島県十島村",
-    arv: 1.16,
+    arv: 1.37,
   },
   鹿児島十島村悪石島: {
     location: [29.45, 129.6],
@@ -21247,7 +21187,7 @@ export const jmaSeisIntLoc = {
   西之表市役所: {
     location: [30.73, 131.0],
     sect: "鹿児島県種子島",
-    arv: 1.35,
+    arv: 1.26,
   },
   三島村硫黄島: {
     location: [30.78, 130.28],
@@ -21272,7 +21212,7 @@ export const jmaSeisIntLoc = {
   南種子町中之下: {
     location: [30.4, 130.9],
     sect: "鹿児島県種子島",
-    arv: 1.15,
+    arv: 1.17,
   },
   南種子町西之: {
     location: [30.35, 130.88],
@@ -21282,7 +21222,7 @@ export const jmaSeisIntLoc = {
   南種子町中之上: {
     location: [30.41, 130.9],
     sect: "鹿児島県種子島",
-    arv: 1.01,
+    arv: 1.2,
   },
   屋久島町小瀬田: {
     location: [30.38, 130.66],
@@ -21372,7 +21312,7 @@ export const jmaSeisIntLoc = {
   龍郷町屋入: {
     location: [28.42, 129.6],
     sect: "鹿児島県奄美北部",
-    arv: 1.75,
+    arv: 0.57,
   },
   龍郷町浦: {
     location: [28.41, 129.59],
@@ -21522,7 +21462,7 @@ export const jmaSeisIntLoc = {
   伊平屋村役場: {
     location: [27.04, 127.975],
     sect: "沖縄県本島北部",
-    arv: 1.85,
+    arv: 1.44,
   },
   伊是名村仲田: {
     location: [26.92, 127.94],
@@ -21537,7 +21477,7 @@ export const jmaSeisIntLoc = {
   那覇空港: {
     location: [26.2, 127.65],
     sect: "沖縄県本島中南部",
-    arv: 1.78,
+    arv: 1.12,
   },
   那覇市港町: {
     location: [26.24, 127.68],
@@ -21607,7 +21547,7 @@ export const jmaSeisIntLoc = {
   南城市大里仲間: {
     location: [26.18, 127.75],
     sect: "沖縄県本島中南部",
-    arv: 1.02,
+    arv: 1.15,
   },
   南城市佐敷字新里: {
     location: [26.16, 127.77],
@@ -21647,7 +21587,7 @@ export const jmaSeisIntLoc = {
   与那原町上与那原: {
     location: [26.2, 127.75],
     sect: "沖縄県本島中南部",
-    arv: 1.12,
+    arv: 1.28,
   },
   南風原町兼城: {
     location: [26.19, 127.73],
@@ -21662,7 +21602,7 @@ export const jmaSeisIntLoc = {
   座間味村座間味: {
     location: [26.23, 127.3],
     sect: "沖縄県本島中南部",
-    arv: 1.02,
+    arv: 1.75,
   },
   渡名喜村渡名喜: {
     location: [26.37, 127.14],
@@ -21737,7 +21677,7 @@ export const jmaSeisIntLoc = {
   宮古島市平良池間: {
     location: [24.92, 125.25],
     sect: "沖縄県宮古島",
-    arv: 1.12,
+    arv: 1.2,
   },
   宮古島市上野新里: {
     location: [24.74, 125.33],
@@ -21777,7 +21717,7 @@ export const jmaSeisIntLoc = {
   宮古島市下地島空港: {
     location: [24.83, 125.15],
     sect: "沖縄県宮古島",
-    arv: 1.12,
+    arv: 2.17,
   },
   多良間村塩川: {
     location: [24.64, 124.71],
@@ -21827,12 +21767,12 @@ export const jmaSeisIntLoc = {
   与那国町久部良: {
     location: [24.45, 122.95],
     sect: "沖縄県与那国島",
-    arv: 0.94,
+    arv: 1.12,
   },
   与那国町役場: {
     location: [24.47, 123.0],
     sect: "沖縄県与那国島",
-    arv: 1.12,
+    arv: 1.44,
   },
   竹富町大原: {
     location: [24.27, 123.88],
