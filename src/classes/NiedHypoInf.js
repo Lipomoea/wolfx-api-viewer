@@ -20,6 +20,11 @@ const penaltyFullWeightClusterSize = 0
 const penaltyZeroWeightClusterSize = 50
 const penaltyFullWeight = 10
 const maxInactiveUpdatesBeforeRemove = 10
+const maxNoNewPickDuration = 60000
+const pickAssociationVelocity = 3.5
+const pickAssociationPadding = 2000
+const duplicatePickResidualTieTolerance = 1000
+const maxEffectivePickSelectionIterations = 2
 const stableHypocenterUpdateThreshold = 15
 const floatPrecisionEpsilon = 1e-9
 const minResidualThreshold = 5000
@@ -47,73 +52,115 @@ const qualityRankMinStationCounts = {
 const sortedInactiveStationsCacheKey = Symbol('sortedInactiveStations')
 
 export class FindNiedHypocenter {
-    constructor(inactiveStations, adjStationIds) {
-        this.activeStations = new Map()
+    constructor(inactiveStations, adjStations) {
+        this.picks = new Map()
         this.clusters = []
-        this.stationClusterMap = new Map()
+        this.pickClusterMap = new Map()
+        this.stationPickMap = new Map()
+        this.latestPickIdByStation = new Map()
+        this.latestPickStampByStation = new Map()
+        this.stationPickIndexVersion = 0
         this.inactiveStations = null
         this.inactiveStationMap = new Map()
         this.inactiveStationsKey = ''
         this.inactiveStationsVersion = 0
         this.inactivePenaltyCandidateCache = new WeakMap()
-        this.adjStationIds = adjStationIds
-        this.stationDensityWeights = this.calcStationDensityWeights(adjStationIds)
+        this.adjStations = adjStations
+        this.stationDensityWeights = this.calcStationDensityWeights(adjStations)
         this.nextClusterId = 1
         this.updateVersion = 0
+        this.latestUpdateStamp = 0
         this.setInactiveStations(inactiveStations)
     }
 
-    update(newActiveStations = [], inactiveStations = this.inactiveStations, stationUpdates = newActiveStations) {
+    update(pickCandidates = [], inactiveStations = this.inactiveStations, stationUpdates = []) {
         this.updateVersion++
+        this.refreshLatestUpdateStamp(pickCandidates, inactiveStations, stationUpdates)
         this.setInactiveStations(inactiveStations)
-        newActiveStations.forEach(station => this.addActiveStation(station))
-        this.updateActiveStationSources(stationUpdates)
-        this.refreshActiveStationMaxAscends()
+        pickCandidates
+            .slice()
+            .sort((pick1, pick2) => this.comparePicks(pick1, pick2))
+            .forEach(pick => this.upsertPickCandidate(pick))
+        this.updateActivePickSources(stationUpdates)
         this.refreshClusterResults()
         this.mergeCloseClusters()
         this.removeInactiveClusters()
+        this.removeExpiredKnownPicks()
         return this.getResults()
     }
 
-    addActiveStation(station) {
-        if(!this.hasValidTriggerStamp(station)) return
-        if(this.activeStations.has(station.id)) return
-        const stationSnapshot = this.createStationSnapshot(station)
-        this.activeStations.set(stationSnapshot.id, stationSnapshot)
+    refreshLatestUpdateStamp(...stationLists) {
+        const latestUpdateStamp = stationLists
+            .flatMap(stations => Array.from(stations || []))
+            .reduce((latest, station) => Math.max(latest, station?.updateStamp || 0), 0)
+        this.latestUpdateStamp = Math.max(this.latestUpdateStamp, latestUpdateStamp)
+    }
 
-        const neighborClusterSet = new Set(this.findNeighborClusters(stationSnapshot))
-        const matchingCluster = this.findBestMatchingCluster(stationSnapshot)
+    upsertPickCandidate(pick) {
+        if(!this.hasValidPickCandidate(pick)) return
+        const existingPick = this.picks.get(pick.pickId)
+        if(existingPick) {
+            this.updatePickSnapshot(existingPick, pick)
+            return
+        }
+        const pickSnapshot = this.createPickSnapshot(pick)
+        this.picks.set(pickSnapshot.pickId, pickSnapshot)
+        this.addPickToStationIndex(pickSnapshot)
+
+        const neighborClusterSet = new Set(this.findNeighborClusters(pickSnapshot))
+        const matchingCluster = this.findBestMatchingCluster(pickSnapshot)
         if(matchingCluster) neighborClusterSet.add(matchingCluster)
         const neighborClusters = [...neighborClusterSet]
         if(neighborClusters.length === 0) {
-            this.createCluster([stationSnapshot], null, true)
+            this.createCluster([pickSnapshot], null, true)
         }
         else if(neighborClusters.length === 1) {
-            this.addStationToCluster(stationSnapshot, neighborClusters[0])
+            this.addPickToCluster(pickSnapshot, neighborClusters[0])
         }
         else {
-            this.mergeAdjacentClusters(stationSnapshot, neighborClusters)
+            this.mergeAdjacentClusters(pickSnapshot, neighborClusters)
         }
     }
 
-    createStationSnapshot(station) {
+    createPickSnapshot(pick) {
         return {
-            id: station.id,
-            latLng: [...station.latLng],
-            triggerStamp: station.triggerStamp,
-            updateStamp: station.updateStamp,
-            maxAscend: station.ascend,
-            maxLevel: station.level,
-            densityWeight: this.getStationDensityWeight(station.id),
-            activeForPenalty: false,
-            source: station
+            pickId: pick.pickId,
+            stationId: pick.stationId,
+            latLng: [...pick.latLng],
+            triggerStamp: pick.triggerStamp,
+            createdStamp: pick.createdStamp ?? pick.updateStamp,
+            updateStamp: pick.updateStamp,
+            maxAscend: pick.ascend,
+            maxLevel: pick.level,
+            densityWeight: this.getStationDensityWeight(pick.stationId),
+            activeForPenalty: pick.ascend >= 3 && pick.level >= 4
         }
     }
 
-    calcStationDensityWeights(adjStationIds) {
+    addPickToStationIndex(pick) {
+        let stationPicks = this.stationPickMap.get(pick.stationId)
+        if(!stationPicks) {
+            stationPicks = new Set()
+            this.stationPickMap.set(pick.stationId, stationPicks)
+            this.stationPickIndexVersion++
+        }
+        stationPicks.add(pick)
+        const latestPickStamp = this.latestPickStampByStation.get(pick.stationId)
+        const latestPickId = this.latestPickIdByStation.get(pick.stationId)
+        if(
+            latestPickStamp === undefined ||
+            pick.triggerStamp > latestPickStamp ||
+            (pick.triggerStamp === latestPickStamp && String(pick.pickId).localeCompare(String(latestPickId)) > 0)
+        ) {
+            this.latestPickIdByStation.set(pick.stationId, pick.pickId)
+            this.latestPickStampByStation.set(pick.stationId, pick.triggerStamp)
+        }
+    }
+
+    calcStationDensityWeights(adjStations) {
         return Object.fromEntries(
-            Object.keys(adjStationIds || {}).map(id => {
-                const localNeighborCount = Math.max(adjStationIds[id]?.length || 0, 1)
+            Object.keys(adjStations || {}).map(id => {
+                const localNeighborCount = Math.max(adjStations[id]?.length || 0, 1)
                 return [id, 1 / Math.sqrt(localNeighborCount)]
             })
         )
@@ -123,40 +170,46 @@ export class FindNiedHypocenter {
         return this.stationDensityWeights[stationId] ?? 1
     }
 
-    updateActiveStationSources(stations) {
+    updateActivePickSources(stations) {
         stations.forEach(station => {
-            const activeStation = this.activeStations.get(station.id)
-            if(activeStation) this.updateStationSnapshot(activeStation, station)
+            if(!this.hasValidTriggerStamp(station)) return
+            const pickId = this.createPickId(station.id, station.triggerStamp)
+            const pick = this.picks.get(pickId)
+            if(pick) this.updatePickSnapshot(pick, station)
         })
     }
 
-    updateStationSnapshot(stationSnapshot, station) {
-        stationSnapshot.source = station
-        stationSnapshot.updateStamp = station.updateStamp
+    updatePickSnapshot(pickSnapshot, station) {
+        if(this.latestPickIdByStation.get(pickSnapshot.stationId) !== pickSnapshot.pickId) return
+        const oldMaxAscend = pickSnapshot.maxAscend
+        const oldMaxLevel = pickSnapshot.maxLevel
+        pickSnapshot.updateStamp = Math.max(pickSnapshot.updateStamp || 0, station.updateStamp || 0)
+        pickSnapshot.maxAscend = Math.max(pickSnapshot.maxAscend || 0, station.ascend || 0)
+        pickSnapshot.maxLevel = Math.max(pickSnapshot.maxLevel ?? -1, station.level ?? -1)
+        pickSnapshot.activeForPenalty = this.isPenaltyReferenceStation(pickSnapshot)
+        if(oldMaxAscend !== pickSnapshot.maxAscend || oldMaxLevel !== pickSnapshot.maxLevel) {
+            const cluster = this.pickClusterMap.get(pickSnapshot.pickId)
+            if(cluster) this.markClusterUpdated(cluster)
+        }
     }
 
-    refreshActiveStationMaxAscends() {
-        this.activeStations.forEach(station => {
-            const oldWeight = this.getStationWeight(station)
-            const oldActiveForPenalty = station.activeForPenalty
-            station.maxAscend = Math.max(station.maxAscend || 0, station.source?.ascend || 0)
-            station.maxLevel = Math.max(station.maxLevel ?? -1, station.source?.level ?? -1)
-            station.activeForPenalty = this.isPenaltyReferenceStation(station)
-            if(oldWeight !== this.getStationWeight(station) || oldActiveForPenalty !== station.activeForPenalty) {
-                const cluster = this.stationClusterMap.get(station.id)
-                if(cluster) this.markClusterUpdated(cluster)
-            }
-        })
-    }
-
-    findNeighborClusters(station) {
+    findNeighborClusters(pick) {
         const clusterSet = new Set()
-        const neighborIds = this.adjStationIds?.[station.id] || []
-        neighborIds.forEach(id => {
-            const cluster = this.stationClusterMap.get(id)
-            if(cluster) clusterSet.add(cluster)
+        const neighbors = this.adjStations?.[pick.stationId] || []
+        neighbors.forEach(({ stationId, distance }) => {
+            this.stationPickMap.get(stationId)?.forEach(neighborPick => {
+                if(!this.arePicksAssociated(pick, neighborPick, distance)) return
+                const cluster = this.pickClusterMap.get(neighborPick.pickId)
+                if(cluster) clusterSet.add(cluster)
+            })
         })
         return [...clusterSet]
+    }
+
+    arePicksAssociated(pick1, pick2, distance) {
+        if(!Number.isFinite(distance)) return false
+        const maxTriggerDiff = distance / pickAssociationVelocity * 1000 + pickAssociationPadding
+        return Math.abs(pick1.triggerStamp - pick2.triggerStamp) < maxTriggerDiff
     }
 
     findBestMatchingCluster(station) {
@@ -171,7 +224,7 @@ export class FindNiedHypocenter {
     }
 
     getClusterMatchResidualThreshold(cluster) {
-        return cluster.stations.length >= largeClusterMatchSize
+        return this.getClusterStationCount(cluster) >= largeClusterMatchSize
             ? largeClusterMatchResidual
             : defaultClusterMatchResidual
     }
@@ -200,6 +253,7 @@ export class FindNiedHypocenter {
             updates: 0,
             reportNum: 0,
             inactiveUpdateCount: 0,
+            lastNewPickStamp: 0,
             reportHypocenter: null,
             stableHypocenterUpdateCount: 0,
             stableHypocenter: null,
@@ -207,33 +261,39 @@ export class FindNiedHypocenter {
             lastUpdateVersion: null,
             initialHypocenter
         }
-        stations.forEach(station => this.addStationToCluster(station, cluster, markUpdated))
+        stations.forEach(station => this.addPickToCluster(station, cluster, markUpdated))
         this.clusters.push(cluster)
         return cluster
     }
 
-    addStationToCluster(station, cluster, markUpdated = true) {
-        if(cluster.stations.some(item => item.id === station.id)) return
-        this.insertStationToCluster(station, cluster)
-        this.stationClusterMap.set(station.id, cluster)
+    addPickToCluster(pick, cluster, markUpdated = true) {
+        if(cluster.stations.some(item => item.pickId === pick.pickId)) return
+        this.insertPickToCluster(pick, cluster)
+        this.pickClusterMap.set(pick.pickId, cluster)
+        cluster.lastNewPickStamp = Math.max(cluster.lastNewPickStamp || 0, pick.createdStamp || 0)
         if(markUpdated) this.markClusterUpdated(cluster)
         else cluster.dirty = true
         cluster.inactiveUpdateCount = 0
     }
 
-    insertStationToCluster(station, cluster) {
+    insertPickToCluster(pick, cluster) {
         let low = 0
         let high = cluster.stations.length
         while(low < high) {
             const mid = Math.floor((low + high) / 2)
-            if(cluster.stations[mid].triggerStamp <= station.triggerStamp) {
+            if(this.comparePicks(cluster.stations[mid], pick) <= 0) {
                 low = mid + 1
             }
             else {
                 high = mid
             }
         }
-        cluster.stations.splice(low, 0, station)
+        cluster.stations.splice(low, 0, pick)
+    }
+
+    comparePicks(pick1, pick2) {
+        if(pick1.triggerStamp !== pick2.triggerStamp) return pick1.triggerStamp - pick2.triggerStamp
+        return String(pick1.pickId).localeCompare(String(pick2.pickId))
     }
 
     markClusterUpdated(cluster) {
@@ -244,12 +304,12 @@ export class FindNiedHypocenter {
         cluster.dirty = true
     }
 
-    mergeAdjacentClusters(station, clusters) {
+    mergeAdjacentClusters(pick, clusters) {
         const baseCluster = clusters.reduce((best, cluster) => 
             this.selectMergeBaseCluster(best, cluster)
         )
         const initialHypocenter = this.getClusterInitialHypocenter(baseCluster)
-        const stations = [station]
+        const stations = [pick]
         clusters.forEach(cluster => {
             stations.push(...cluster.stations)
             this.removeCluster(cluster)
@@ -268,9 +328,9 @@ export class FindNiedHypocenter {
 
     removeCluster(cluster) {
         this.clusters = this.clusters.filter(item => item !== cluster)
-        cluster.stations.forEach(station => {
-            if(this.stationClusterMap.get(station.id) === cluster) {
-                this.stationClusterMap.delete(station.id)
+        cluster.stations.forEach(pick => {
+            if(this.pickClusterMap.get(pick.pickId) === cluster) {
+                this.pickClusterMap.delete(pick.pickId)
             }
         })
     }
@@ -284,15 +344,40 @@ export class FindNiedHypocenter {
     refreshClusterInactiveUpdateCount(cluster) {
         if(this.isClusterFullyInactive(cluster)) {
             cluster.inactiveUpdateCount++
-            return cluster.inactiveUpdateCount >= maxInactiveUpdatesBeforeRemove
         }
-        cluster.inactiveUpdateCount = 0
-        return false
+        else {
+            cluster.inactiveUpdateCount = 0
+        }
+        const inactiveExpired = cluster.inactiveUpdateCount >= maxInactiveUpdatesBeforeRemove
+        const noNewPickExpired = Number.isFinite(this.latestUpdateStamp) &&
+            Number.isFinite(cluster.lastNewPickStamp) &&
+            this.latestUpdateStamp - cluster.lastNewPickStamp >= maxNoNewPickDuration
+        return inactiveExpired || noNewPickExpired
     }
 
     isClusterFullyInactive(cluster) {
         return cluster.stations.length > 0 &&
-            cluster.stations.every(station => this.inactiveStationMap.has(station.id))
+            cluster.stations.every(pick => this.inactiveStationMap.has(pick.stationId))
+    }
+
+    removeExpiredKnownPicks() {
+        if(!Number.isFinite(this.latestUpdateStamp)) return
+        let stationIndexChanged = false
+        this.picks.forEach((pick, pickId) => {
+            if(this.pickClusterMap.has(pickId)) return
+            if(this.latestUpdateStamp - pick.updateStamp < maxNoNewPickDuration) return
+            this.picks.delete(pickId)
+            const stationPicks = this.stationPickMap.get(pick.stationId)
+            stationPicks?.delete(pick)
+            if(stationPicks?.size === 0) {
+                this.stationPickMap.delete(pick.stationId)
+                this.latestPickIdByStation.delete(pick.stationId)
+                this.latestPickStampByStation.delete(pick.stationId)
+                this.stationPickIndexVersion++
+                stationIndexChanged = true
+            }
+        })
+        if(stationIndexChanged) this.clusters.forEach(cluster => this.markClusterUpdated(cluster))
     }
 
     setInactiveStations(inactiveStations) {
@@ -313,7 +398,7 @@ export class FindNiedHypocenter {
     refreshClusterResults() {
         this.clusters.forEach(cluster => {
             if(!cluster.dirty) return
-            if(cluster.stations.length < minInferenceClusterSize) {
+            if(this.getClusterStationCount(cluster) < minInferenceClusterSize) {
                 cluster.result = this.createClusterResult(cluster, this.createHypocenterResult(null, this.createInvalidLikelihood(null)))
                 cluster.previousResults = { P: null, S: null }
                 this.resetClusterStableHypocenterState(cluster)
@@ -322,7 +407,7 @@ export class FindNiedHypocenter {
             }
             const initialHypocenter = cluster.initialHypocenter || cluster.result?.hypocenter || null
             const previousWaveMaps = this.createPreviousWaveMaps(cluster.previousResults)
-            const result = this.findBestHypocenter(cluster.stations, initialHypocenter, previousWaveMaps)
+            const result = this.findBestHypocenterWithEffectivePicks(cluster.stations, initialHypocenter, previousWaveMaps)
             // this.logNewScenarioStations(result, previousWaveMaps)
             // this.logNextPreviousResults(result.previousResults)
             cluster.previousResults = this.mergeValidPreviousResults(cluster.previousResults, result.previousResults)
@@ -331,6 +416,112 @@ export class FindNiedHypocenter {
             cluster.initialHypocenter = result.hypocenter
             cluster.dirty = false
         })
+    }
+
+    // Classify every pick, cap each station-phase group, then refit with effective picks.
+    findBestHypocenterWithEffectivePicks(picks, initialHypocenter, previousWaveMaps) {
+        let classificationResult = this.findBestHypocenter(picks, initialHypocenter, previousWaveMaps)
+        let effectivePickIds = this.selectEffectivePickIds(classificationResult)
+        let finalResult = classificationResult
+
+        for(let i = 0; i < maxEffectivePickSelectionIterations; i++) {
+            const effectivePicks = picks.filter(pick => effectivePickIds.has(pick.pickId))
+            if(this.getDistinctStationCount(effectivePicks) < minInferenceClusterSize) {
+                return this.createEffectivePickInvalidResult(picks, classificationResult, effectivePickIds)
+            }
+            finalResult = this.findBestHypocenter(
+                effectivePicks,
+                finalResult?.hypocenter || initialHypocenter,
+                previousWaveMaps
+            )
+            classificationResult = this.evaluateHypocenter(picks, finalResult.hypocenter, previousWaveMaps)
+            const nextEffectivePickIds = this.selectEffectivePickIds(classificationResult)
+            if(this.areSetsEqual(effectivePickIds, nextEffectivePickIds)) break
+            if(i + 1 < maxEffectivePickSelectionIterations) effectivePickIds = nextEffectivePickIds
+        }
+
+        finalResult.stations = this.createAllPickStationResults(
+            picks,
+            classificationResult,
+            finalResult,
+            effectivePickIds
+        )
+        return finalResult
+    }
+
+    selectEffectivePickIds(result) {
+        const selectedByStationWave = new Map()
+        const originStamp = result?.originStamp
+        if(!Number.isFinite(originStamp)) return new Set()
+        ;(result.stations || [])
+            .filter(item => item?.station && (item.wave === 'P' || item.wave === 'S') && item.weight > 0)
+            .forEach(item => {
+                const key = `${item.station.stationId}:${item.wave}`
+                const candidate = {
+                    item,
+                    residual: Math.abs(item.originStamp - originStamp)
+                }
+                const selected = selectedByStationWave.get(key)
+                if(!selected || this.isPreferredEffectivePick(candidate, selected)) {
+                    selectedByStationWave.set(key, candidate)
+                }
+            })
+        return new Set([...selectedByStationWave.values()].map(candidate => candidate.item.station.pickId))
+    }
+
+    isPreferredEffectivePick(candidate, selected) {
+        const residualDiff = candidate.residual - selected.residual
+        if(Math.abs(residualDiff) > duplicatePickResidualTieTolerance) return residualDiff < 0
+        const ascendDiff = (candidate.item.maxAscend || 0) - (selected.item.maxAscend || 0)
+        if(ascendDiff !== 0) return ascendDiff > 0
+        return String(candidate.item.station.pickId).localeCompare(String(selected.item.station.pickId)) < 0
+    }
+
+    createAllPickStationResults(picks, classificationResult, finalResult, effectivePickIds) {
+        const classifiedResultMap = new Map(
+            (classificationResult?.stations || []).map(item => [item.station?.pickId, item])
+        )
+        const effectiveResultMap = new Map(
+            (finalResult?.stations || []).map(item => [item.station?.pickId, item])
+        )
+        return picks.map(pick => {
+            if(effectivePickIds.has(pick.pickId) && effectiveResultMap.has(pick.pickId)) {
+                return effectiveResultMap.get(pick.pickId)
+            }
+            const classifiedResult = classifiedResultMap.get(pick.pickId)
+            if(!classifiedResult) return null
+            if(classifiedResult.wave !== 'P' && classifiedResult.wave !== 'S') return classifiedResult
+            return {
+                ...classifiedResult,
+                weight: 0,
+                excludedReason: 'duplicate-phase'
+            }
+        }).filter(Boolean)
+    }
+
+    createEffectivePickInvalidResult(picks, classificationResult, effectivePickIds) {
+        const result = this.createHypocenterResult(null, this.createInvalidLikelihood(null))
+        const effectiveResults = (classificationResult?.stations || [])
+            .filter(item => effectivePickIds.has(item.station?.pickId))
+        result.stations = this.createAllPickStationResults(
+            picks,
+            classificationResult,
+            { stations: effectiveResults },
+            effectivePickIds
+        )
+        return result
+    }
+
+    areSetsEqual(set1, set2) {
+        return set1.size === set2.size && [...set1].every(item => set2.has(item))
+    }
+
+    getClusterStationCount(cluster) {
+        return this.getDistinctStationCount(cluster.stations)
+    }
+
+    getDistinctStationCount(picks) {
+        return new Set((picks || []).map(pick => pick.stationId)).size
     }
 
     refreshClusterHypocenterState(cluster, result) {
@@ -412,8 +603,10 @@ export class FindNiedHypocenter {
     }
 
     selectMergeBaseCluster(cluster1, cluster2) {
-        if(cluster1.stations.length !== cluster2.stations.length) {
-            return cluster1.stations.length > cluster2.stations.length ? cluster1 : cluster2
+        const stationCount1 = this.getClusterStationCount(cluster1)
+        const stationCount2 = this.getClusterStationCount(cluster2)
+        if(stationCount1 !== stationCount2) {
+            return stationCount1 > stationCount2 ? cluster1 : cluster2
         }
         return cluster1.updates >= cluster2.updates ? cluster1 : cluster2
     }
@@ -450,8 +643,8 @@ export class FindNiedHypocenter {
         if(!Array.isArray(result?.stations)) return null
         const waveMap = new Map(
             result.stations
-                .filter(item => item?.station?.id !== undefined && (item.wave === 'P' || item.wave === 'S'))
-                .map(item => [item.station.id, item.wave])
+                .filter(item => item?.station?.pickId && item.weight > 0 && (item.wave === 'P' || item.wave === 'S'))
+                .map(item => [item.station.pickId, item.wave])
         )
         return waveMap.size > 0 ? waveMap : null
     }
@@ -460,9 +653,10 @@ export class FindNiedHypocenter {
         if(!Array.isArray(result?.stations)) return
         const previousWaveMap = previousWaveMaps?.[result.firstWave]
         const newStations = result.stations
-            .filter(item => item?.station && !previousWaveMap?.has(item.station.id))
+            .filter(item => item?.station && !previousWaveMap?.has(item.station.pickId))
             .map(item => ({
-                id: item.station.id,
+                pickId: item.station.pickId,
+                stationId: item.station.stationId,
                 latLng: item.station.latLng,
                 wave: item.wave
             }))
@@ -582,12 +776,16 @@ export class FindNiedHypocenter {
         const scores = Object.fromEntries(
             scenarioResults.map(({ key, result }) => [key, result.score])
         )
-        console.log('[FindNiedHypocenter] cluster station ids', cluster.map(station => station.id))
+        console.log('[FindNiedHypocenter] cluster picks', cluster.map(pick => ({
+            pickId: pick.pickId,
+            stationId: pick.stationId
+        })))
         console.log('[FindNiedHypocenter] final scenario RMSE', rmses)
         console.log('[FindNiedHypocenter] final scenario score', scores)
         scenarioResults.forEach(({ key, result }) => {
             console.log(`[FindNiedHypocenter] ${key} waves`, result.stations.map(item => ({
-                id: item.station?.id,
+                pickId: item.station?.pickId,
+                stationId: item.station?.stationId,
                 wave: item.wave
             })))
         })
@@ -652,7 +850,7 @@ export class FindNiedHypocenter {
         const inheritedItems = []
         for(const i of this.createScenarioInferenceIndexes(cluster)) {
             const station = cluster[i]
-            const previousWave = previousWaveMap.get(station.id)
+            const previousWave = previousWaveMap.get(station.pickId)
             const item = this.createInheritedScenarioStationItem(i, station, hypocenter, previousWave, optionCache, triggerRankWeights)
             if(item) inheritedItems.push(item)
         }
@@ -747,7 +945,7 @@ export class FindNiedHypocenter {
         )
         return candidateIndexes.find(index =>
             !usedIndexes.has(index) &&
-            this.getStationWeight(cluster[index], triggerRankWeights.get(cluster[index].id) ?? 1) > 0
+            this.getStationWeight(cluster[index], triggerRankWeights.get(cluster[index].pickId) ?? 1) > 0
         ) ?? null
     }
 
@@ -770,7 +968,7 @@ export class FindNiedHypocenter {
     createInheritedScenarioStationItem(index, station, hypocenter, wave, optionCache, triggerRankWeights) {
         if(wave !== 'P' && wave !== 'S') return null
         const options = this.calcStationOriginOptions(station, hypocenter, optionCache)
-        const triggerRankWeight = triggerRankWeights.get(station.id) ?? 1
+        const triggerRankWeight = triggerRankWeights.get(station.pickId) ?? 1
         const weight = this.getStationWeight(station, triggerRankWeight)
         if(weight <= 0) return null
         return {
@@ -784,7 +982,7 @@ export class FindNiedHypocenter {
 
     calcWeightedStationCount(cluster, triggerRankWeights) {
         return cluster.filter(station =>
-            this.getStationWeight(station, triggerRankWeights.get(station.id) ?? 1) > 0
+            this.getStationWeight(station, triggerRankWeights.get(station.pickId) ?? 1) > 0
         ).length
     }
 
@@ -824,6 +1022,7 @@ export class FindNiedHypocenter {
         }
         const originStamp = this.calcWeightedMean(originEntries)
         const rmse = this.calcWeightedRmse(originEntries, originStamp) / 1000
+        const effectivePickCount = this.calcEffectivePickCount(stationResults)
         const effectiveStationCount = this.calcEffectiveStationCount(stationResults)
         const { penalty: inactivePenalty, exceeded } = this.calcInactiveStationPenalty(
             hypocenter,
@@ -845,6 +1044,7 @@ export class FindNiedHypocenter {
             inactivePenalty,
             inactivePenaltyWeight,
             waveCountPenaltyMultiplier,
+            effectivePickCount,
             effectiveStationCount,
             qualityScore,
             qualityRank,
@@ -857,10 +1057,18 @@ export class FindNiedHypocenter {
         }
     }
 
-    calcEffectiveStationCount(stationResults) {
+    calcEffectivePickCount(stationResults) {
         return stationResults.filter(result =>
             (result.wave === 'P' || result.wave === 'S') && result.weight > 0
         ).length
+    }
+
+    calcEffectiveStationCount(stationResults) {
+        return new Set(
+            stationResults
+                .filter(result => (result.wave === 'P' || result.wave === 'S') && result.weight > 0)
+                .map(result => result.station.stationId)
+        ).size
     }
 
     calcQualityScore(score, effectiveStationCount) {
@@ -884,13 +1092,13 @@ export class FindNiedHypocenter {
     }
 
     calcWaveCountPenaltyMultiplier(stationResults) {
-        const pWaveCount = stationResults.filter(result => result.wave === 'P').length || 1
-        const sWaveCount = stationResults.filter(result => result.wave === 'S').length
+        const pWaveCount = stationResults.filter(result => result.wave === 'P' && result.weight > 0).length || 1
+        const sWaveCount = stationResults.filter(result => result.wave === 'S' && result.weight > 0).length
         return Math.min(Math.max(sWaveCount / pWaveCount - sWaveCountPenaltyRatio + 1, 1), sWaveCountPenaltyMaxMultiplier)
     }
 
     selectScenarioWave(station, options, originEntries, triggerRankWeights, pWaveBiasRatio = pWaveOriginStampBiasRatio, outlierFilterStage) {
-        const triggerRankWeight = triggerRankWeights.get(station.id) ?? 1
+        const triggerRankWeight = triggerRankWeights.get(station.pickId) ?? 1
         if(this.getStationWeight(station, triggerRankWeight) <= 0) return 'L'
         const selected = this.selectClosestOption(options, originEntries, pWaveBiasRatio, outlierFilterStage)
         return selected?.wave ?? 'O'
@@ -898,7 +1106,7 @@ export class FindNiedHypocenter {
 
     addScenarioStationResult(station, hypocenter, wave, optionCache, triggerRankWeights, stationResults, originEntries, options = null) {
         options ??= this.calcStationOriginOptions(station, hypocenter, optionCache)
-        const triggerRankWeight = triggerRankWeights.get(station.id) ?? 1
+        const triggerRankWeight = triggerRankWeights.get(station.pickId) ?? 1
         const weight = this.getStationWeight(station, triggerRankWeight)
         if(weight <= 0 || wave === 'L' || wave === 'O') {
             const stationResult = {
@@ -935,7 +1143,7 @@ export class FindNiedHypocenter {
 
     calcTriggerRankWeights(cluster) {
         return new Map(cluster.map((station, index) => [
-            station.id,
+            station.pickId,
             this.calcTriggerRankWeight(index + 1, cluster.length)
         ]))
     }
@@ -950,9 +1158,11 @@ export class FindNiedHypocenter {
 
     createStationResultSnapshot(station) {
         return {
-            id: station.id,
+            pickId: station.pickId,
+            stationId: station.stationId,
             latLng: station.latLng,
             triggerStamp: station.triggerStamp,
+            createdStamp: station.createdStamp,
             updateStamp: station.updateStamp,
             maxAscend: station.maxAscend,
             maxLevel: station.maxLevel,
@@ -1008,7 +1218,11 @@ export class FindNiedHypocenter {
     }
 
     getInactivePenaltyReferenceDistance(cluster, hypocenter, optionCache) {
-        const referenceStations = cluster.filter(station => this.isPenaltyReferenceStation(station))
+        const referenceStationMap = new Map()
+        cluster
+            .filter(station => this.isPenaltyReferenceStation(station))
+            .forEach(station => referenceStationMap.set(station.stationId, station))
+        const referenceStations = [...referenceStationMap.values()]
         if(referenceStations.length === 0) return null
         const distances = referenceStations
             .map(station => this.getStationOptionCache(station, hypocenter, optionCache).distance)
@@ -1035,14 +1249,19 @@ export class FindNiedHypocenter {
     getInactivePenaltyCandidates(cluster) {
         const cached = this.inactivePenaltyCandidateCache.get(cluster)
         const clusterCount = this.clusters.length
-        if(cached?.version === this.inactiveStationsVersion && cached.clusterCount === clusterCount) return cached.stations
-        const clusterStationIds = new Set(cluster.map(station => station.id))
+        if(
+            cached?.version === this.inactiveStationsVersion &&
+            cached.pickIndexVersion === this.stationPickIndexVersion &&
+            cached.clusterCount === clusterCount
+        ) return cached.stations
+        const clusterStationIds = new Set(cluster.map(station => station.stationId))
 
         if(clusterCount === 1) {
             const stations = [...this.inactiveStationMap.values()]
-                .filter(station => !this.activeStations.has(station.id) && !clusterStationIds.has(station.id))
+                .filter(station => !this.stationPickMap.has(station.id) && !clusterStationIds.has(station.id))
             this.inactivePenaltyCandidateCache.set(cluster, {
                 version: this.inactiveStationsVersion,
+                pickIndexVersion: this.stationPickIndexVersion,
                 clusterCount,
                 stations
             })
@@ -1051,9 +1270,9 @@ export class FindNiedHypocenter {
 
         const candidateMap = new Map()
         cluster.forEach(station => {
-            const neighborIds = this.adjStationIds?.[station.id] || []
-            neighborIds.forEach(id => {
-                if(this.activeStations.has(id)) return
+            const neighbors = this.adjStations?.[station.stationId] || []
+            neighbors.forEach(({ stationId: id }) => {
+                if(this.stationPickMap.has(id)) return
                 if(clusterStationIds.has(id)) return
                 const inactiveStation = this.inactiveStationMap.get(id)
                 if(inactiveStation) candidateMap.set(id, inactiveStation)
@@ -1062,6 +1281,7 @@ export class FindNiedHypocenter {
         const stations = [...candidateMap.values()]
         this.inactivePenaltyCandidateCache.set(cluster, {
             version: this.inactiveStationsVersion,
+            pickIndexVersion: this.stationPickIndexVersion,
             clusterCount,
             stations
         })
@@ -1164,6 +1384,7 @@ export class FindNiedHypocenter {
     createClusterResult(cluster, result) {
         return {
             cluster: cluster.stations.map(station => this.createStationResultSnapshot(station)),
+            clusterStationCount: this.getClusterStationCount(cluster),
             clusterId: cluster.id,
             updates: cluster.updates,
             reportNum: cluster.reportNum,
@@ -1286,6 +1507,16 @@ export class FindNiedHypocenter {
         return Number.isFinite(station?.triggerStamp) && station.triggerStamp > 0
     }
 
+    createPickId(stationId, triggerStamp) {
+        return `${stationId}:${triggerStamp}`
+    }
+
+    hasValidPickCandidate(pick) {
+        return Number.isFinite(pick?.stationId) &&
+            this.hasValidTriggerStamp(pick) &&
+            pick.pickId === this.createPickId(pick.stationId, pick.triggerStamp)
+    }
+
     createInvalidLikelihood(firstWave = null, lastWave = null, scenario = null) {
         return {
             score: Infinity,
@@ -1293,6 +1524,7 @@ export class FindNiedHypocenter {
             inactivePenalty: 0,
             inactivePenaltyWeight: 0,
             waveCountPenaltyMultiplier: 1,
+            effectivePickCount: 0,
             effectiveStationCount: 0,
             qualityScore: -Infinity,
             qualityRank: 'D',

@@ -64,7 +64,7 @@ const currentMaxShindo = computed(()=>{
     else return 7
 })
 const adjStationIds = {}
-const adjStationIds4Hypo = {}
+const adjStations4Hypo = {}
 const expireSeconds = {}
 const distMatrix = [[]]
 const bearingDirections = ['N', 'E', 'S', 'W']
@@ -143,7 +143,6 @@ const update = ()=>{
         const inactiveStations = new Set();
         const checkedStations = new Set();
         const clusters = [];
-        const newActiveStations = [];
         const stationPairAbnormalCache = new Map();
         possibleStations.forEach(station=>{
             if(!checkedStations.has(station)){
@@ -211,7 +210,6 @@ const update = ()=>{
         }
         stations.forEach(station => {
             if (activeStations.has(station)) {
-                if (!station.isActive) newActiveStations.push(station)
                 station.setActive();
             } else if (station.level > -1 && station.level < 6 && station.activity <= 0 && !station.isActive) {
                 inactiveStations.add(station);
@@ -224,8 +222,10 @@ const update = ()=>{
             clearInferredHypocenters()
         }
         else if(currentActiveStations.length > 0) {
-            const newTriggerStations = hypocenterWorker ? newActiveStations : currentActiveStations
-            updateInferredHypocentersInWorker(newTriggerStations, inactiveStations)
+            const pickCandidateStations = currentActiveStations.filter(station =>
+                station.ascend >= 2 && Number.isFinite(station.triggerStamp) && station.triggerStamp > 0
+            )
+            updateInferredHypocentersInWorker(pickCandidateStations, inactiveStations)
         }
         else {
             resetHypocenterWorker()
@@ -298,17 +298,26 @@ const stationToInferredHypocenterSnapshot = station => ({
     level: station.level,
     isActive: station.isActive
 })
-const updateInferredHypocentersInWorker = (newTriggerStations, inactiveStations) => {
+const stationToInferredHypocenterPickSnapshot = station => ({
+    pickId: `${station.id}:${station.triggerStamp}`,
+    stationId: station.id,
+    latLng: [...station.latLng],
+    triggerStamp: station.triggerStamp,
+    updateStamp: station.updateStamp,
+    ascend: station.ascend,
+    level: station.level
+})
+const updateInferredHypocentersInWorker = (pickCandidateStations, inactiveStations) => {
     if(!isNiedHypoInfEnabled()) return
     const requestId = ++hypocenterRequestId
     latestHypocenterRequestId = requestId
     getHypocenterWorker().postMessage({
         type: 'update',
         requestId,
-        newActiveStations: newTriggerStations.map(stationToInferredHypocenterSnapshot),
+        pickCandidates: pickCandidateStations.map(stationToInferredHypocenterPickSnapshot),
         activeStations: stations.filter(station => station.isActive).map(stationToInferredHypocenterSnapshot),
         inactiveStations: [...inactiveStations].map(stationToInferredHypocenterSnapshot),
-        adjStationIds: adjStationIds4Hypo
+        adjStations: adjStations4Hypo
     })
 }
 const renderInferredHypocenters = results => {
@@ -324,11 +333,11 @@ const renderInferredHypocenters = results => {
             const { lat, lng, depth } = result.hypocenter
             const latLng = [lat, lng]
             const stationDetails = Array.isArray(result.stations) ? result.stations : []
-            const waveCounts = stationDetails.reduce((counts, station) => {
+            const waveCounts = stationDetails.filter(station => station.weight > 0).reduce((counts, station) => {
                 counts[station.wave] = (counts[station.wave] || 0) + 1
                 return counts
             }, {})
-            const clusterSize = result.cluster?.length ?? stationDetails.length
+            const clusterSize = result.clusterStationCount ?? result.effectiveStationCount ?? 0
             const originTimeJst = Number.isFinite(result.originStamp) ? stampToTime(result.originStamp, 9) : '-'
             const waveLayers = createInferredWaveLayers(latLng, result)
             const markerLayer = L.marker(latLng, {
@@ -381,7 +390,7 @@ const createInferredHypocenterLabelLayer = (result, latLng, labelInfo) => {
                     <div style="display: ${textInfoMode === 2 ? 'block' : 'none'};">
                     latlng: ${labelInfo.lat.toFixed(1)}, ${labelInfo.lng.toFixed(1)}<br>
                     clusterId: ${result.clusterId ?? '-'} / updates: ${result.updates ?? '-'}<br>
-                    effective: ${result.effectiveStationCount} / qualityScore: ${result.qualityScore.toFixed(2)} / filter: ${result.filterStageLevel ?? 0}<br>
+                    effective: ${result.effectiveStationCount} stations / ${result.effectivePickCount ?? '-'} picks / qualityScore: ${result.qualityScore.toFixed(2)} / filter: ${result.filterStageLevel ?? 0}<br>
                     loss: ${result.score.toFixed(2)} / rmse: ${result.rmse.toFixed(2)} / penalty: ${result.inactivePenalty.toFixed(2)}<br>
                     scenario: ${result.scenario ?? '-'} / P: ${labelInfo.waveCounts.P || 0} S: ${labelInfo.waveCounts.S || 0} O: ${labelInfo.waveCounts.O || 0} L: ${labelInfo.waveCounts.L || 0}
                     </div>
@@ -589,7 +598,10 @@ const fetchStationList = async () => {
                         hypoDirectionSet.add(direction)
                         return hypoDirectionSet.size >= bearingDirections.length
                     })
-                adjStationIds4Hypo[i] = hypoDistances.map(obj => obj.id)
+                adjStations4Hypo[i] = hypoDistances.map(obj => ({
+                    stationId: obj.id,
+                    distance: obj.distance
+                }))
                 // const maxDist = distances[distances.length - 1].distance
                 // expireSeconds[i] = Math.max(Math.ceil(maxDist / 3.5), 5)
                 expireSeconds[i] = 10
