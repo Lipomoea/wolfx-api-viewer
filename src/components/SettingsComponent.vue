@@ -197,7 +197,7 @@
                                         type="datetime"
                                         size="small"
                                         style="width: 156px;"
-                                        placeholder="选择日期时间(CST)"
+                                        :placeholder="`选择日期时间(UTC${formatTimeZone(systemTimeZone)})`"
                                         format="YYYY-MM-DD HH:mm:ss"
                                         value-format="YYYY-MM-DD HH:mm:ss"
                                     />
@@ -1350,7 +1350,7 @@ import { APP_TITLE, APP_VERSION } from '@/utils/AppInfo';
 import Http from '@/classes/Http';
 import { h, ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { Key, QuestionFilled, Setting, TopRight } from '@element-plus/icons-vue';
-import { calcPassedTime, formatCsis, openUrl, playSound, setClassName, shindoScale, calcCsisLevel } from '@/utils/Utils';
+import { calcPassedTime, formatCsis, openUrl, playSound, setClassName, shindoScale, calcCsisLevel, formatTimeZone, systemTimeZone } from '@/utils/Utils';
 import { join, appDataDir } from "@tauri-apps/api/path";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { exists, mkdir } from "@tauri-apps/plugin-fs";
@@ -1378,7 +1378,7 @@ const statusStore = useStatusStore()
 const showDataSourceManager = ref(false)
 const replayDateTime = ref('')
 const setReplayDateTime = () => {
-    const passedTime = Math.max(Math.round(calcPassedTime(replayDateTime.value, 8) / 600) / 100, 0)
+    const passedTime = Math.max(Math.round(calcPassedTime(replayDateTime.value, systemTimeZone) / 600) / 100, 0)
     settingsStore.mainSettings.displaySeisNet.delay = passedTime
 }
 const setLat = (type)=>(val)=>{
