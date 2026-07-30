@@ -19,8 +19,6 @@ const minInferenceClusterSize = 5
 const penaltyFullWeightClusterSize = 0
 const penaltyZeroWeightClusterSize = 50
 const penaltyFullWeight = 10
-const maxInactiveUpdatesBeforeRemove = 10
-const maxNoNewPickDuration = 60000
 const pickAssociationVelocity = 3.5
 const pickAssociationPadding = 2000
 const duplicatePickResidualTieTolerance = 1000
@@ -69,13 +67,11 @@ export class FindNiedHypocenter {
         this.stationDensityWeights = this.calcStationDensityWeights(adjStations)
         this.nextClusterId = 1
         this.updateVersion = 0
-        this.latestUpdateStamp = 0
         this.setInactiveStations(inactiveStations)
     }
 
     update(pickCandidates = [], inactiveStations = this.inactiveStations, stationUpdates = []) {
         this.updateVersion++
-        this.refreshLatestUpdateStamp(pickCandidates, inactiveStations, stationUpdates)
         this.setInactiveStations(inactiveStations)
         pickCandidates
             .slice()
@@ -84,16 +80,8 @@ export class FindNiedHypocenter {
         this.updateActivePickSources(stationUpdates)
         this.refreshClusterResults()
         this.mergeCloseClusters()
-        this.removeInactiveClusters()
-        this.removeExpiredKnownPicks()
+        this.removeFinishedClusters()
         return this.getResults()
-    }
-
-    refreshLatestUpdateStamp(...stationLists) {
-        const latestUpdateStamp = stationLists
-            .flatMap(stations => Array.from(stations || []))
-            .reduce((latest, station) => Math.max(latest, station?.updateStamp || 0), 0)
-        this.latestUpdateStamp = Math.max(this.latestUpdateStamp, latestUpdateStamp)
     }
 
     upsertPickCandidate(pick) {
@@ -252,8 +240,6 @@ export class FindNiedHypocenter {
             },
             updates: 0,
             reportNum: 0,
-            inactiveUpdateCount: 0,
-            lastNewPickStamp: 0,
             reportHypocenter: null,
             stableHypocenterUpdateCount: 0,
             stableHypocenter: null,
@@ -270,10 +256,8 @@ export class FindNiedHypocenter {
         if(cluster.stations.some(item => item.pickId === pick.pickId)) return
         this.insertPickToCluster(pick, cluster)
         this.pickClusterMap.set(pick.pickId, cluster)
-        cluster.lastNewPickStamp = Math.max(cluster.lastNewPickStamp || 0, pick.createdStamp || 0)
         if(markUpdated) this.markClusterUpdated(cluster)
         else cluster.dirty = true
-        cluster.inactiveUpdateCount = 0
     }
 
     insertPickToCluster(pick, cluster) {
@@ -320,7 +304,6 @@ export class FindNiedHypocenter {
         mergedCluster.reportHypocenter = baseCluster.reportHypocenter ? { ...baseCluster.reportHypocenter } : null
         this.copyClusterStableState(mergedCluster, baseCluster)
         mergedCluster.previousResults = baseCluster.previousResults
-        mergedCluster.inactiveUpdateCount = 0
         mergedCluster.lastUpdateVersion = baseCluster.lastUpdateVersion
         this.markClusterUpdated(mergedCluster)
         return mergedCluster
@@ -335,49 +318,41 @@ export class FindNiedHypocenter {
         })
     }
 
-    removeInactiveClusters() {
-        this.clusters
-            .filter(cluster => this.refreshClusterInactiveUpdateCount(cluster))
-            .forEach(cluster => this.removeCluster(cluster))
-    }
-
-    refreshClusterInactiveUpdateCount(cluster) {
-        if(this.isClusterFullyInactive(cluster)) {
-            cluster.inactiveUpdateCount++
-        }
-        else {
-            cluster.inactiveUpdateCount = 0
-        }
-        const inactiveExpired = cluster.inactiveUpdateCount >= maxInactiveUpdatesBeforeRemove
-        const noNewPickExpired = Number.isFinite(this.latestUpdateStamp) &&
-            Number.isFinite(cluster.lastNewPickStamp) &&
-            this.latestUpdateStamp - cluster.lastNewPickStamp >= maxNoNewPickDuration
-        return inactiveExpired || noNewPickExpired
-    }
-
-    isClusterFullyInactive(cluster) {
-        return cluster.stations.length > 0 &&
-            cluster.stations.every(pick => this.inactiveStationMap.has(pick.stationId))
-    }
-
-    removeExpiredKnownPicks() {
-        if(!Number.isFinite(this.latestUpdateStamp)) return
+    removeFinishedClusters() {
+        const finishedClusters = this.clusters.filter(cluster => this.isClusterFinished(cluster))
         let stationIndexChanged = false
-        this.picks.forEach((pick, pickId) => {
-            if(this.pickClusterMap.has(pickId)) return
-            if(this.latestUpdateStamp - pick.updateStamp < maxNoNewPickDuration) return
-            this.picks.delete(pickId)
-            const stationPicks = this.stationPickMap.get(pick.stationId)
-            stationPicks?.delete(pick)
-            if(stationPicks?.size === 0) {
-                this.stationPickMap.delete(pick.stationId)
-                this.latestPickIdByStation.delete(pick.stationId)
-                this.latestPickStampByStation.delete(pick.stationId)
-                this.stationPickIndexVersion++
-                stationIndexChanged = true
-            }
+        finishedClusters.forEach(cluster => {
+            const picks = [...cluster.stations]
+            this.removeCluster(cluster)
+            picks.forEach(pick => {
+                if(this.removeKnownPick(pick)) stationIndexChanged = true
+            })
         })
         if(stationIndexChanged) this.clusters.forEach(cluster => this.markClusterUpdated(cluster))
+    }
+
+    isClusterFinished(cluster) {
+        return cluster.stations.length > 0 && cluster.stations.every(pick =>
+            this.inactiveStationMap.has(pick.stationId) || this.isPickOutdated(pick)
+        )
+    }
+
+    isPickOutdated(pick) {
+        const latestPickStamp = this.latestPickStampByStation.get(pick.stationId)
+        return Number.isFinite(latestPickStamp) && latestPickStamp > pick.triggerStamp
+    }
+
+    removeKnownPick(pick) {
+        if(this.pickClusterMap.has(pick.pickId)) return false
+        this.picks.delete(pick.pickId)
+        const stationPicks = this.stationPickMap.get(pick.stationId)
+        stationPicks?.delete(pick)
+        if(!stationPicks || stationPicks.size > 0) return false
+        this.stationPickMap.delete(pick.stationId)
+        this.latestPickIdByStation.delete(pick.stationId)
+        this.latestPickStampByStation.delete(pick.stationId)
+        this.stationPickIndexVersion++
+        return true
     }
 
     setInactiveStations(inactiveStations) {
@@ -420,8 +395,13 @@ export class FindNiedHypocenter {
 
     // Classify every pick, cap each station-phase group, then refit with effective picks.
     findBestHypocenterWithEffectivePicks(picks, initialHypocenter, previousWaveMaps) {
+        // this.logInferenceRound(1, picks)
         let classificationResult = this.findBestHypocenter(picks, initialHypocenter, previousWaveMaps)
+        const weightedPhasePickIds = this.getWeightedPhasePickIds(classificationResult)
         let effectivePickIds = this.selectEffectivePickIds(classificationResult)
+        if(this.areSetsEqual(weightedPhasePickIds, effectivePickIds)) {
+            return classificationResult
+        }
         let finalResult = classificationResult
 
         for(let i = 0; i < maxEffectivePickSelectionIterations; i++) {
@@ -429,6 +409,7 @@ export class FindNiedHypocenter {
             if(this.getDistinctStationCount(effectivePicks) < minInferenceClusterSize) {
                 return this.createEffectivePickInvalidResult(picks, classificationResult, effectivePickIds)
             }
+            // this.logInferenceRound(i + 2, effectivePicks)
             finalResult = this.findBestHypocenter(
                 effectivePicks,
                 finalResult?.hypocenter || initialHypocenter,
@@ -447,6 +428,22 @@ export class FindNiedHypocenter {
             effectivePickIds
         )
         return finalResult
+    }
+
+    logInferenceRound(round, picks) {
+        console.log('[FindNiedHypocenter] inference round', {
+            round,
+            pickCount: picks.length,
+            stationCount: this.getDistinctStationCount(picks)
+        })
+    }
+
+    getWeightedPhasePickIds(result) {
+        return new Set(
+            (result?.stations || [])
+                .filter(item => item?.station && item.weight > 0 && (item.wave === 'P' || item.wave === 'S'))
+                .map(item => item.station.pickId)
+        )
     }
 
     selectEffectivePickIds(result) {
@@ -588,7 +585,6 @@ export class FindNiedHypocenter {
                         mergedCluster.reportHypocenter = baseCluster.reportHypocenter ? { ...baseCluster.reportHypocenter } : null
                         this.copyClusterStableState(mergedCluster, baseCluster)
                         mergedCluster.previousResults = baseCluster.previousResults
-                        mergedCluster.inactiveUpdateCount = 0
                         mergedCluster.lastUpdateVersion = baseCluster.lastUpdateVersion
                         this.markClusterUpdated(mergedCluster)
                         this.refreshClusterResults()
@@ -846,7 +842,7 @@ export class FindNiedHypocenter {
         const stationResults = new Array(cluster.length)
         const originEntries = []
         const triggerRankWeights = this.calcTriggerRankWeights(cluster)
-        const weightedStationCount = this.calcWeightedStationCount(cluster, triggerRankWeights)
+        const weightedPickCount = this.calcWeightedPickCount(cluster, triggerRankWeights)
         const inheritedItems = []
         for(const i of this.createScenarioInferenceIndexes(cluster)) {
             const station = cluster[i]
@@ -854,7 +850,7 @@ export class FindNiedHypocenter {
             const item = this.createInheritedScenarioStationItem(i, station, hypocenter, previousWave, optionCache, triggerRankWeights)
             if(item) inheritedItems.push(item)
         }
-        const inheritedFilterResult = this.calcInheritedOutlierFilterResult(inheritedItems, weightedStationCount)
+        const inheritedFilterResult = this.calcInheritedOutlierFilterResult(inheritedItems, weightedPickCount)
         const { outlierIndexes, filterStage } = inheritedFilterResult
         inheritedItems.forEach(item => {
             if(outlierIndexes.has(item.index)) return
@@ -980,13 +976,13 @@ export class FindNiedHypocenter {
         }
     }
 
-    calcWeightedStationCount(cluster, triggerRankWeights) {
+    calcWeightedPickCount(cluster, triggerRankWeights) {
         return cluster.filter(station =>
             this.getStationWeight(station, triggerRankWeights.get(station.pickId) ?? 1) > 0
         ).length
     }
 
-    calcInheritedOutlierFilterResult(inheritedItems, weightedStationCount) {
+    calcInheritedOutlierFilterResult(inheritedItems, weightedPickCount) {
         const stages = inheritedOutlierFilterStages
             .filter(stage => inheritedItems.length >= stage.minCount)
         if(stages.length === 0) return { outlierIndexes: new Set(), filterStage: null }
@@ -1002,15 +998,17 @@ export class FindNiedHypocenter {
         for(const stage of stages) {
             if(Number.isFinite(stage.maxMeanResidual) && meanResidual > stage.maxMeanResidual) continue
             const threshold = Math.max(meanResidual * stage.ratio, stage.minResidual)
-            const outlierIndexes = inheritedItems
-                .filter(item => item.index > 0 && Math.abs(item.originStamp - originStamp) > threshold)
-                .map(item => item.index)
-            const remainingInheritedCount = inheritedItems.length - outlierIndexes.length
+            const outlierIndexes = new Set(
+                inheritedItems
+                    .filter(item => item.index > 0 && Math.abs(item.originStamp - originStamp) > threshold)
+                    .map(item => item.index)
+            )
+            const remainingInheritedPickCount = inheritedItems.length - outlierIndexes.size
             if(
-                remainingInheritedCount >= stage.minCount &&
-                remainingInheritedCount >= weightedStationCount * stage.minRemainingInheritedRatio
+                remainingInheritedPickCount >= stage.minCount &&
+                remainingInheritedPickCount >= weightedPickCount * stage.minRemainingInheritedRatio
             ) {
-                return { outlierIndexes: new Set(outlierIndexes), filterStage: stage }
+                return { outlierIndexes, filterStage: stage }
             }
         }
         return { outlierIndexes: new Set(), filterStage: null }

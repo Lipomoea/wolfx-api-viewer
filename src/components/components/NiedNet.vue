@@ -18,6 +18,7 @@ import { abnormalNiedStations, NiedStation, simpleIcon } from '@/classes/Station
 import { NiedStationCanvasLayer } from '@/classes/StationCanvasLayer';
 import { NiedGridCanvasLayer } from '@/classes/GridCanvasLayer';
 import { niedSitePub } from '@/utils/NiedSitePub';
+import { mergeNiedHypocenterUpdates } from '@/utils/NiedHypocenterUpdates';
 import travelTimes from '@/utils/TravelTimes';
 import infHypoIconUrl from '@/assets/icon/hypocenter/infHypo.svg';
 
@@ -116,7 +117,8 @@ let gridCanvasLayer = null
 let stopped = false
 let hypocenterWorker = null
 let hypocenterRequestId = 0
-let latestHypocenterRequestId = 0
+let inFlightHypocenterRequestId = null
+let pendingHypocenterUpdate = null
 let updateStamp = null
 const hypoInfEewMatchThreshold = {
     lat: 1,
@@ -265,26 +267,39 @@ const getHypocenterWorker = () => {
     hypocenterWorker = new Worker(new URL('@/workers/FindNiedHypocenterWorker.js', import.meta.url), { type: 'module' })
     hypocenterWorker.onmessage = event => {
         const { requestId, results } = event.data || {}
-        if(requestId !== latestHypocenterRequestId) return
-        if(!isNiedHypoInfEnabled()) return
+        if(requestId !== inFlightHypocenterRequestId) return
+        inFlightHypocenterRequestId = null
+        if(!isNiedHypoInfEnabled()) {
+            pendingHypocenterUpdate = null
+            return
+        }
         renderInferredHypocenters(results)
+        postPendingHypocenterUpdate()
     }
     hypocenterWorker.onerror = err => {
         console.log(err)
+        terminateHypocenterWorker()
     }
+    hypocenterWorker.postMessage({
+        type: 'init',
+        adjStations: adjStations4Hypo
+    })
     return hypocenterWorker
 }
 const resetHypocenterWorker = () => {
+    inFlightHypocenterRequestId = null
+    pendingHypocenterUpdate = null
     if(!hypocenterWorker) return
     const requestId = ++hypocenterRequestId
-    latestHypocenterRequestId = requestId
     hypocenterWorker.postMessage({
         type: 'reset',
         requestId
     })
 }
 const terminateHypocenterWorker = () => {
-    latestHypocenterRequestId = ++hypocenterRequestId
+    hypocenterRequestId++
+    inFlightHypocenterRequestId = null
+    pendingHypocenterUpdate = null
     if(!hypocenterWorker) return
     hypocenterWorker.terminate()
     hypocenterWorker = null
@@ -309,16 +324,31 @@ const stationToInferredHypocenterPickSnapshot = station => ({
 })
 const updateInferredHypocentersInWorker = (pickCandidateStations, inactiveStations) => {
     if(!isNiedHypoInfEnabled()) return
+    const update = {
+        pickCandidates: pickCandidateStations.map(stationToInferredHypocenterPickSnapshot),
+        activeStations: stations.filter(station => station.isActive).map(stationToInferredHypocenterSnapshot),
+        inactiveStations: [...inactiveStations].map(stationToInferredHypocenterSnapshot)
+    }
+    if(inFlightHypocenterRequestId !== null) {
+        pendingHypocenterUpdate = mergeNiedHypocenterUpdates(pendingHypocenterUpdate, update)
+        return
+    }
+    postHypocenterUpdate(update)
+}
+const postHypocenterUpdate = update => {
     const requestId = ++hypocenterRequestId
-    latestHypocenterRequestId = requestId
+    inFlightHypocenterRequestId = requestId
     getHypocenterWorker().postMessage({
         type: 'update',
         requestId,
-        pickCandidates: pickCandidateStations.map(stationToInferredHypocenterPickSnapshot),
-        activeStations: stations.filter(station => station.isActive).map(stationToInferredHypocenterSnapshot),
-        inactiveStations: [...inactiveStations].map(stationToInferredHypocenterSnapshot),
-        adjStations: adjStations4Hypo
+        ...update
     })
+}
+const postPendingHypocenterUpdate = () => {
+    if(!pendingHypocenterUpdate) return
+    const update = pendingHypocenterUpdate
+    pendingHypocenterUpdate = null
+    postHypocenterUpdate(update)
 }
 const renderInferredHypocenters = results => {
     clearInferredHypocenters()
@@ -333,7 +363,9 @@ const renderInferredHypocenters = results => {
             const { lat, lng, depth } = result.hypocenter
             const latLng = [lat, lng]
             const stationDetails = Array.isArray(result.stations) ? result.stations : []
-            const waveCounts = stationDetails.filter(station => station.weight > 0).reduce((counts, station) => {
+            const waveCounts = stationDetails.filter(station =>
+                station.weight > 0 || station.wave === 'O' || station.wave === 'L'
+            ).reduce((counts, station) => {
                 counts[station.wave] = (counts[station.wave] || 0) + 1
                 return counts
             }, {})

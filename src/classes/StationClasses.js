@@ -304,29 +304,74 @@ export class NiedStation {
         if (arr.length === 0) {
             return { ascend: 0, triggerStamp: 0 };
         }
-        let i = 0;
-        fillNan: while (i < arr.length) {
-            if (arr[i] === -1) {
-                let nanCount = 1;
-                let nextValidIndex = i + 1;
-                while (nextValidIndex < arr.length && arr[nextValidIndex] === -1) {
-                    nanCount++;
-                    if (nanCount > this.expireSeconds) {
-                        arr.splice(i);
-                        break fillNan;
-                    }
-                    nextValidIndex++;
+        const triggerSourceIndexes = this.recentLevel.map((level, index) => level === -1 ? -1 : index);
+        const maxZeroValleyLength = 3;
+        // Resolve missing values inside each -1/0 interval before measuring its zero valleys.
+        let segmentStartIndex = 0;
+        while(segmentStartIndex < arr.length) {
+            if(this.recentLevel[segmentStartIndex] > 0) {
+                segmentStartIndex++;
+                continue;
+            }
+            let segmentEndIndex = segmentStartIndex + 1;
+            while(segmentEndIndex < arr.length && this.recentLevel[segmentEndIndex] <= 0) {
+                segmentEndIndex++;
+            }
+
+            let missingStartIndex = segmentStartIndex;
+            let truncated = false;
+            while(missingStartIndex < segmentEndIndex) {
+                if(this.recentLevel[missingStartIndex] !== -1) {
+                    missingStartIndex++;
+                    continue;
                 }
-                if (nextValidIndex < arr.length) {
-                    arr[i] = arr[nextValidIndex];
-                    i++;
-                } else {
-                    arr.splice(i);
+                let missingEndIndex = missingStartIndex + 1;
+                while(missingEndIndex < segmentEndIndex && this.recentLevel[missingEndIndex] === -1) {
+                    missingEndIndex++;
+                }
+                const missingLength = missingEndIndex - missingStartIndex;
+                if(missingLength > this.expireSeconds || missingEndIndex >= arr.length) {
+                    arr.splice(missingStartIndex);
+                    triggerSourceIndexes.splice(missingStartIndex);
+                    truncated = true;
                     break;
                 }
-            } else {
-                i++;
+                arr.fill(this.recentLevel[missingEndIndex], missingStartIndex, missingEndIndex);
+                missingStartIndex = missingEndIndex;
             }
+            if(truncated) break;
+
+            let zeroStartIndex = segmentStartIndex;
+            while(zeroStartIndex < segmentEndIndex) {
+                if(arr[zeroStartIndex] !== 0) {
+                    zeroStartIndex++;
+                    continue;
+                }
+                let zeroEndIndex = zeroStartIndex + 1;
+                while(zeroEndIndex < segmentEndIndex && arr[zeroEndIndex] === 0) {
+                    zeroEndIndex++;
+                }
+                if(zeroStartIndex > 0 && zeroEndIndex < arr.length) {
+                    const zeroLength = zeroEndIndex - zeroStartIndex;
+                    const newerSideLevel = arr[zeroStartIndex - 1];
+                    const olderSideLevel = arr[zeroEndIndex];
+                    if(newerSideLevel > 0 && olderSideLevel > 0) {
+                        if(zeroLength <= maxZeroValleyLength) {
+                            arr.fill(olderSideLevel, zeroStartIndex, zeroEndIndex);
+                            triggerSourceIndexes.fill(-1, zeroStartIndex, zeroEndIndex);
+                        } else {
+                            // A retained valley may start with filled -1 values; anchor them to an observed older zero.
+                            let olderRealZeroIndex = -1;
+                            for(let i = zeroEndIndex - 1; i >= zeroStartIndex; i--) {
+                                if(this.recentLevel[i] === 0) olderRealZeroIndex = i;
+                                else if(olderRealZeroIndex >= 0) triggerSourceIndexes[i] = olderRealZeroIndex;
+                            }
+                        }
+                    }
+                }
+                zeroStartIndex = zeroEndIndex;
+            }
+            segmentStartIndex = segmentEndIndex;
         }
         if (arr.length === 0) {
             return { ascend: 0, triggerStamp: 0 };
@@ -335,6 +380,8 @@ export class NiedStation {
         let latestMinVal = arr[0];
         let latestMinIndex = 0;
         let identicalCount = 1;
+        let shallowValleyMinVal = null;
+        let shallowValleyMinIndex = -1;
         for (let i = 0; i < arr.length - 1; i++) {
             const current = arr[i];
             const next = arr[i + 1];
@@ -342,8 +389,21 @@ export class NiedStation {
                 latestMinVal = next;
                 latestMinIndex = i + 1;
                 identicalCount = 1;
+                shallowValleyMinVal = null;
+                shallowValleyMinIndex = -1;
             } else if (next > current) {
-                break;
+                if(shallowValleyMinVal === null) {
+                    shallowValleyMinVal = latestMinVal;
+                    shallowValleyMinIndex = latestMinIndex;
+                }
+                if(next - shallowValleyMinVal > 1) {
+                    latestMinVal = shallowValleyMinVal;
+                    latestMinIndex = shallowValleyMinIndex;
+                    break;
+                }
+                latestMinVal = next;
+                latestMinIndex = i + 1;
+                identicalCount = 1;
             } else {
                 identicalCount++;
                 if (identicalCount > this.expireSeconds) {
@@ -351,9 +411,10 @@ export class NiedStation {
                 }
             }
         }
-        const ascend = this.level - latestMinVal;
-        const triggerStamp = ascend > 0 && this.recentLevel[latestMinIndex] !== -1
-            ? this.updateStamp - latestMinIndex * 1000
+        const ascend = Math.max(this.level - latestMinVal, 0);
+        const triggerSourceIndex = triggerSourceIndexes[latestMinIndex];
+        const triggerStamp = ascend > 0 && triggerSourceIndex >= 0
+            ? this.updateStamp - triggerSourceIndex * 1000
             : 0;
         return { ascend, triggerStamp };
     }
