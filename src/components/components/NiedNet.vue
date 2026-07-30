@@ -111,7 +111,9 @@ const nearbyLength = 6
 const activityThresArr1 = [Infinity, 10, 14, 16, 18, 19, 20]
 const activityThresArr2 = [Infinity, 8, 11, 13, 14, 15, 16]
 const activityThresArr3 = [Infinity, 6, 9, 11, 12, 13, 14]
+const inferredHypocenterLabelOffset = 24
 let inferredHypocenterLayers = []
+let inferredHypocenterLabelLayers = []
 let stationCanvasLayer = null
 let gridCanvasLayer = null
 let stopped = false
@@ -388,8 +390,54 @@ const renderInferredHypocenters = results => {
                 waveCounts
             })
             inferredHypocenterLayers.push(...waveLayers, markerLayer)
-            if(labelLayer) inferredHypocenterLayers.push(labelLayer)
+            if(labelLayer) {
+                inferredHypocenterLayers.push(labelLayer)
+                inferredHypocenterLabelLayers.push(labelLayer)
+            }
         })
+    layoutInferredHypocenterLabels()
+}
+const layoutInferredHypocenterLabels = () => {
+    if(!map) return
+    const placedBoxes = []
+    const collisionGap = 4
+    const edgePadding = 8
+    const mapSize = map.getSize()
+    inferredHypocenterLabelLayers.forEach(labelLayer => {
+        const labelElement = labelLayer.getElement()?.firstElementChild
+        if(!labelElement) return
+        const width = labelElement.offsetWidth
+        const height = labelElement.offsetHeight
+        if(width <= 0 || height <= 0) return
+        const point = map.latLngToContainerPoint(labelLayer.getLatLng())
+        const candidates = [
+            { left: point.x - width / 2, top: point.y + inferredHypocenterLabelOffset, transform: `translate(-50%, ${inferredHypocenterLabelOffset}px)` },
+            { left: point.x - width / 2, top: point.y - inferredHypocenterLabelOffset - height, transform: `translate(-50%, calc(-100% - ${inferredHypocenterLabelOffset}px))` },
+            { left: point.x + inferredHypocenterLabelOffset, top: point.y - height / 2, transform: `translate(${inferredHypocenterLabelOffset}px, -50%)` },
+            { left: point.x - inferredHypocenterLabelOffset - width, top: point.y - height / 2, transform: `translate(calc(-100% - ${inferredHypocenterLabelOffset}px), -50%)` }
+        ].map(candidate => ({
+            ...candidate,
+            right: candidate.left + width,
+            bottom: candidate.top + height
+        }))
+        const isNonOverlapping = candidate => placedBoxes.every(box =>
+            candidate.right + collisionGap <= box.left ||
+            candidate.left >= box.right + collisionGap ||
+            candidate.bottom + collisionGap <= box.top ||
+            candidate.top >= box.bottom + collisionGap
+        )
+        const isWithinMap = candidate =>
+            candidate.left >= edgePadding &&
+            candidate.top >= edgePadding &&
+            candidate.right <= mapSize.x - edgePadding &&
+            candidate.bottom <= mapSize.y - edgePadding
+        const placement = candidates.find(candidate => isNonOverlapping(candidate) && isWithinMap(candidate)) ??
+            candidates.find(isNonOverlapping) ??
+            candidates.find(isWithinMap) ??
+            candidates[0]
+        labelElement.style.transform = placement.transform
+        placedBoxes.push(placement)
+    })
 }
 const createInferredHypocenterLabelLayer = (result, latLng, labelInfo) => {
     const textInfoMode = Number(settingsStore.mainSettings.displaySeisNet.niedHypoInfTextInfo)
@@ -399,7 +447,7 @@ const createInferredHypocenterLabelLayer = (result, latLng, labelInfo) => {
         icon: L.divIcon({
             className: '',
             iconSize: null,
-            iconAnchor: [0, -24],
+            iconAnchor: [0, 0],
             html: `
                 <div style="
                     display: inline-block;
@@ -416,7 +464,7 @@ const createInferredHypocenterLabelLayer = (result, latLng, labelInfo) => {
                     overflow: hidden;
                     pointer-events: none;
                     white-space: nowrap;
-                    transform: translateX(-50%);
+                    transform: translate(-50%, ${inferredHypocenterLabelOffset}px);
                 ">
                     ${labelHtml}
                     <div style="display: ${textInfoMode === 2 ? 'block' : 'none'};">
@@ -498,12 +546,14 @@ const clearInferredHypocenters = () => {
     statusStore.isActive.niedInfHypo = false
     if(!map) {
         inferredHypocenterLayers = []
+        inferredHypocenterLabelLayers = []
         return
     }
     inferredHypocenterLayers.forEach(layer => {
         if(map.hasLayer(layer)) map.removeLayer(layer)
     })
     inferredHypocenterLayers = []
+    inferredHypocenterLabelLayers = []
 }
 const chainActivate = (station, activeStations, checkedStations, clusters)=>{
     const pendingStations = new Set([station])
@@ -728,6 +778,7 @@ watch(()=>statusStore.map, newVal=>{
         initStationCanvasLayer()
         initGridCanvasLayer()
         map.on('zoomend', renderAll)
+        map.on('zoomend moveend', layoutInferredHypocenterLabels)
         unwatchGrids = watch(grids, (newVal)=>{
             let maxLevel = -1
             gridCanvasLayer?.setGrids(newVal)
@@ -837,6 +888,7 @@ onBeforeUnmount(()=>{
     if(unwatchRender) unwatchRender()
     if(map) {
         map.off('zoomend', renderAll)
+        map.off('zoomend moveend', layoutInferredHypocenterLabels)
         if(stationCanvasLayer && map.hasLayer(stationCanvasLayer)) map.removeLayer(stationCanvasLayer)
         if(gridCanvasLayer && map.hasLayer(gridCanvasLayer)) map.removeLayer(gridCanvasLayer)
         map.eachLayer(layer=>{

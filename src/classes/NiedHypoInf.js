@@ -40,7 +40,7 @@ const minGreedyOutlierPickCount = 30
 const pWaveOriginStampBiasRatio = 2
 const sWaveCountPenaltyThreshold = 3
 const sWaveCountPenaltyMax = 3
-const qualityRankMinStationCounts = {
+const qualityRankMinEffectivePickCounts = {
     S: 200,
     A: 100,
     B: 30,
@@ -1103,7 +1103,7 @@ export class FindNiedHypocenter {
         const waveCountPenalty = this.calcWaveCountPenalty(pickResults)
         const score = rmse + inactivePenalty * inactivePenaltyWeight + waveCountPenalty
         const qualityScore = this.calcQualityScore(score, effectivePickCount, effectiveStationCount)
-        const qualityRank = this.calcQualityRank(qualityScore, effectiveStationCount)
+        const qualityRank = this.calcQualityRank(qualityScore, effectivePickCount)
         return {
             score,
             rmse,
@@ -1142,11 +1142,11 @@ export class FindNiedHypocenter {
         return 3.8 + Math.sqrt(effectiveCount / 10) * 0.2 - score * 5 / 3
     }
 
-    calcQualityRank(qualityScore, effectiveStationCount) {
+    calcQualityRank(qualityScore, effectivePickCount) {
         const scoreRank = this.calcQualityRankByScore(qualityScore)
         return ['S', 'A', 'B', 'C', 'D'].find(rank =>
-            qualityRankMinStationCounts[rank] <= effectiveStationCount &&
-            qualityRankMinStationCounts[rank] <= qualityRankMinStationCounts[scoreRank]
+            qualityRankMinEffectivePickCounts[rank] <= effectivePickCount &&
+            qualityRankMinEffectivePickCounts[rank] <= qualityRankMinEffectivePickCounts[scoreRank]
         ) || 'D'
     }
 
