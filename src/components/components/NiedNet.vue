@@ -126,6 +126,7 @@ const hypoInfEewMatchThreshold = {
     depth: 100,
     originStamp: 10000
 }
+const minDisplayedHypocenterQualityScore = -2
 const isNiedHypoInfEnabled = () => 
     settingsStore.mainSettings.displaySeisNet.niedNet &&
     settingsStore.mainSettings.displaySeisNet.niedHypoInf
@@ -362,14 +363,14 @@ const renderInferredHypocenters = results => {
         .forEach(result => {
             const { lat, lng, depth } = result.hypocenter
             const latLng = [lat, lng]
-            const stationDetails = Array.isArray(result.stations) ? result.stations : []
-            const waveCounts = stationDetails.filter(station =>
-                station.weight > 0 || station.wave === 'O' || station.wave === 'L'
-            ).reduce((counts, station) => {
-                counts[station.wave] = (counts[station.wave] || 0) + 1
+            const pickResults = Array.isArray(result.pickResults) ? result.pickResults : []
+            const waveCounts = pickResults.filter(pickResult =>
+                pickResult.weight > 0 || pickResult.wave === 'O' || pickResult.wave === 'L'
+            ).reduce((counts, pickResult) => {
+                counts[pickResult.wave] = (counts[pickResult.wave] || 0) + 1
                 return counts
             }, {})
-            const clusterSize = result.clusterStationCount ?? result.effectiveStationCount ?? 0
+            const clusterStationCount = result.clusterStationCount ?? result.effectiveStationCount ?? 0
             const originTimeJst = Number.isFinite(result.originStamp) ? stampToTime(result.originStamp, 9) : '-'
             const waveLayers = createInferredWaveLayers(latLng, result)
             const markerLayer = L.marker(latLng, {
@@ -382,8 +383,7 @@ const renderInferredHypocenters = results => {
                 lat,
                 lng,
                 depth,
-                clusterSize,
-                stationPickCount: stationDetails.length,
+                clusterStationCount,
                 originTimeJst,
                 waveCounts
             })
@@ -422,9 +422,9 @@ const createInferredHypocenterLabelLayer = (result, latLng, labelInfo) => {
                     <div style="display: ${textInfoMode === 2 ? 'block' : 'none'};">
                     latlng: ${labelInfo.lat.toFixed(1)}, ${labelInfo.lng.toFixed(1)}<br>
                     clusterId: ${result.clusterId ?? '-'} / updates: ${result.updates ?? '-'}<br>
-                    effective: ${result.effectiveStationCount} stations / ${result.effectivePickCount ?? '-'} picks / qualityScore: ${result.qualityScore.toFixed(2)} / filter: ${result.filterStageLevel ?? 0}<br>
+                    effective: ${result.effectiveStationCount} (${result.effectivePickCount ?? '-'}) / qualityScore: ${result.qualityScore.toFixed(2)} / filter: ${result.filterStageLevel ?? 0}<br>
                     loss: ${result.score.toFixed(2)} / rmse: ${result.rmse.toFixed(2)} / penalty: ${result.inactivePenalty.toFixed(2)}<br>
-                    scenario: ${result.scenario ?? '-'} / P: ${labelInfo.waveCounts.P || 0} S: ${labelInfo.waveCounts.S || 0} O: ${labelInfo.waveCounts.O || 0} L: ${labelInfo.waveCounts.L || 0}
+                    scenario: ${result.scenario ?? '-'} / P: ${labelInfo.waveCounts.P || 0} S: ${labelInfo.waveCounts.S || 0} O: ${labelInfo.waveCounts.O || 0}
                     </div>
                 </div>
             `
@@ -434,6 +434,7 @@ const createInferredHypocenterLabelLayer = (result, latLng, labelInfo) => {
     }).addTo(map)
 }
 const shouldDisplayHypocenterResult = result => {
+    if(result.qualityScore < minDisplayedHypocenterQualityScore) return false
     if(settingsStore.mainSettings.displaySeisNet.niedHypoInfAlwaysOn) return true
     return !isMatchedWithActiveJmaEew(result)
 }
@@ -455,7 +456,7 @@ const isCloseToJmaEewHypocenter = (result, eqMessage) => {
         Math.abs((hypocenter.depth ?? 10) - eqMessage.depth) <= hypoInfEewMatchThreshold.depth &&
         Math.abs(result.originStamp - eewOriginStamp) <= hypoInfEewMatchThreshold.originStamp
 }
-const createBasicInfLabelHtml = (result, { depth, clusterSize, originTimeJst }) => {
+const createBasicInfLabelHtml = (result, { depth, clusterStationCount, originTimeJst }) => {
     const reportText = result.reportNum ?? '-'
     const stableText = result.stable ? '（稳定）' : ''
     const qualityText = result.qualityRank ? `质量${result.qualityRank}` : ''
@@ -464,7 +465,7 @@ const createBasicInfLabelHtml = (result, { depth, clusterSize, originTimeJst }) 
             NIED震源推算 第${reportText}报${stableText}<br>
             ${originTimeJst} (+9)<br>
             深${depth.toFixed(0)}km<br>
-            ${clusterSize}测站 ${qualityText}
+            ${clusterStationCount}测站 ${qualityText}
         </div>
     `
 }
