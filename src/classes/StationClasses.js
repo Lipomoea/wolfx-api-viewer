@@ -386,11 +386,13 @@ export class NiedStation {
             const current = arr[i];
             const next = arr[i + 1];
             if (next < current) {
-                latestMinVal = next;
-                latestMinIndex = i + 1;
+                if(shallowValleyMinVal === null || next < shallowValleyMinVal) {
+                    latestMinVal = next;
+                    latestMinIndex = i + 1;
+                    shallowValleyMinVal = null;
+                    shallowValleyMinIndex = -1;
+                }
                 identicalCount = 1;
-                shallowValleyMinVal = null;
-                shallowValleyMinIndex = -1;
             } else if (next > current) {
                 if(shallowValleyMinVal === null) {
                     shallowValleyMinVal = latestMinVal;
@@ -401,8 +403,6 @@ export class NiedStation {
                     latestMinIndex = shallowValleyMinIndex;
                     break;
                 }
-                latestMinVal = next;
-                latestMinIndex = i + 1;
                 identicalCount = 1;
             } else {
                 identicalCount++;
