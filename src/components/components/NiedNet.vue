@@ -353,6 +353,11 @@ const postPendingHypocenterUpdate = () => {
     pendingHypocenterUpdate = null
     postHypocenterUpdate(update)
 }
+const getPickDisplayWave = pickResult => {
+    if(pickResult.excludedReason === 'duplicate-phase') return 'D'
+    if(pickResult.weight > 0 || pickResult.wave === 'O' || pickResult.wave === 'L') return pickResult.wave
+    return null
+}
 const renderInferredHypocenters = results => {
     clearInferredHypocenters()
     if(!isNiedHypoInfEnabled()) return
@@ -366,10 +371,10 @@ const renderInferredHypocenters = results => {
             const { lat, lng, depth } = result.hypocenter
             const latLng = [lat, lng]
             const pickResults = Array.isArray(result.pickResults) ? result.pickResults : []
-            const waveCounts = pickResults.filter(pickResult =>
-                pickResult.weight > 0 || pickResult.wave === 'O' || pickResult.wave === 'L'
-            ).reduce((counts, pickResult) => {
-                counts[pickResult.wave] = (counts[pickResult.wave] || 0) + 1
+            const waveCounts = pickResults.reduce((counts, pickResult) => {
+                const displayWave = getPickDisplayWave(pickResult)
+                if(!displayWave) return counts
+                counts[displayWave] = (counts[displayWave] || 0) + 1
                 return counts
             }, {})
             const clusterStationCount = result.clusterStationCount ?? result.effectiveStationCount ?? 0
@@ -472,7 +477,7 @@ const createInferredHypocenterLabelLayer = (result, latLng, labelInfo) => {
                     clusterId: ${result.clusterId ?? '-'} / updates: ${result.updates ?? '-'}<br>
                     effective: ${result.effectiveStationCount} (${result.effectivePickCount ?? '-'}) / qualityScore: ${result.qualityScore.toFixed(2)} / filter: ${result.filterStageLevel ?? 0}<br>
                     loss: ${result.score.toFixed(2)} / rmse: ${result.rmse.toFixed(2)} / penalty: ${result.inactivePenalty.toFixed(2)}<br>
-                    scenario: ${result.scenario ?? '-'} / P: ${labelInfo.waveCounts.P || 0} S: ${labelInfo.waveCounts.S || 0} O: ${labelInfo.waveCounts.O || 0}
+                    scenario: ${result.scenario ?? '-'} / P: ${labelInfo.waveCounts.P || 0} S: ${labelInfo.waveCounts.S || 0} O: ${labelInfo.waveCounts.O || 0} D: ${labelInfo.waveCounts.D || 0}
                     </div>
                 </div>
             `
