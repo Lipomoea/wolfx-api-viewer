@@ -305,8 +305,8 @@ export class NiedStation {
             return { ascend: 0, triggerStamp: 0 };
         }
         const triggerSourceIndexes = this.recentLevel.map((level, index) => level === -1 ? -1 : index);
-        const maxZeroValleyLength = 3;
-        // Resolve missing values inside each -1/0 interval before measuring its zero valleys.
+        const maxShortValleyLength = 2;
+        // Resolve missing values before measuring short valleys.
         let segmentStartIndex = 0;
         while(segmentStartIndex < arr.length) {
             if(this.recentLevel[segmentStartIndex] > 0) {
@@ -340,41 +340,32 @@ export class NiedStation {
                 missingStartIndex = missingEndIndex;
             }
             if(truncated) break;
-
-            let zeroStartIndex = segmentStartIndex;
-            while(zeroStartIndex < segmentEndIndex) {
-                if(arr[zeroStartIndex] !== 0) {
-                    zeroStartIndex++;
-                    continue;
-                }
-                let zeroEndIndex = zeroStartIndex + 1;
-                while(zeroEndIndex < segmentEndIndex && arr[zeroEndIndex] === 0) {
-                    zeroEndIndex++;
-                }
-                if(zeroStartIndex > 0 && zeroEndIndex < arr.length) {
-                    const zeroLength = zeroEndIndex - zeroStartIndex;
-                    const newerSideLevel = arr[zeroStartIndex - 1];
-                    const olderSideLevel = arr[zeroEndIndex];
-                    if(newerSideLevel > 0 && olderSideLevel > 0) {
-                        if(zeroLength <= maxZeroValleyLength) {
-                            arr.fill(olderSideLevel, zeroStartIndex, zeroEndIndex);
-                            triggerSourceIndexes.fill(-1, zeroStartIndex, zeroEndIndex);
-                        } else {
-                            // A retained valley may start with filled -1 values; anchor them to an observed older zero.
-                            let olderRealZeroIndex = -1;
-                            for(let i = zeroEndIndex - 1; i >= zeroStartIndex; i--) {
-                                if(this.recentLevel[i] === 0) olderRealZeroIndex = i;
-                                else if(olderRealZeroIndex >= 0) triggerSourceIndexes[i] = olderRealZeroIndex;
-                            }
-                        }
-                    }
-                }
-                zeroStartIndex = zeroEndIndex;
-            }
             segmentStartIndex = segmentEndIndex;
         }
         if (arr.length === 0) {
             return { ascend: 0, triggerStamp: 0 };
+        }
+
+        let levelSegmentStartIndex = 0;
+        while(levelSegmentStartIndex < arr.length) {
+            const segmentLevel = arr[levelSegmentStartIndex];
+            let levelSegmentEndIndex = levelSegmentStartIndex + 1;
+            while(levelSegmentEndIndex < arr.length && arr[levelSegmentEndIndex] === segmentLevel) {
+                levelSegmentEndIndex++;
+            }
+            const segmentLength = levelSegmentEndIndex - levelSegmentStartIndex;
+            const newerSideLevel = arr[levelSegmentStartIndex - 1];
+            const olderSideLevel = arr[levelSegmentEndIndex];
+            const isShortDeepValley =
+                levelSegmentStartIndex > 0 &&
+                levelSegmentEndIndex < arr.length &&
+                segmentLength <= maxShortValleyLength &&
+                segmentLevel <= Math.min(newerSideLevel, olderSideLevel) - 2;
+            if(isShortDeepValley) {
+                arr.fill(olderSideLevel, levelSegmentStartIndex, levelSegmentEndIndex);
+                triggerSourceIndexes.fill(-1, levelSegmentStartIndex, levelSegmentEndIndex);
+            }
+            levelSegmentStartIndex = levelSegmentEndIndex;
         }
 
         let latestMinVal = arr[0];
