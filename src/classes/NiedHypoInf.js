@@ -33,7 +33,7 @@ const largeClusterMatchStationCount = 50
 const inheritedOutlierFilterStages = [
     { level: 3, minCount: 100, minRemainingInheritedRatio: 0.9, ratio: 2, minResidual: 3000, maxMeanResidual: 1500, pWaveBiasRatio: 1 },
     { level: 2, minCount: 30, minRemainingInheritedRatio: 0.8, ratio: 2.5, minResidual: 4000, maxMeanResidual: 2000, pWaveBiasRatio: 1.5 },
-    { level: 1, minCount: 10, minRemainingInheritedRatio: 0.4, ratio: 3, minResidual: 5000, pWaveBiasRatio: 2 }
+    { level: 1, minCount: 10, minRemainingInheritedRatio: 0.5, ratio: 3, minResidual: 5000, pWaveBiasRatio: 2 }
 ]
 const minReliablePickCount = 100
 const minGreedyOutlierPickCount = 30
