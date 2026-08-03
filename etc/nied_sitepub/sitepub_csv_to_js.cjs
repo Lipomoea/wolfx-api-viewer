@@ -1,3 +1,5 @@
+// node etc/nied_sitepub/sitepub_csv_to_js.cjs path/to/input.csv
+
 //数据来源：https://www.kyoshin.bosai.go.jp/ja/stationlist/
 
 //数据字段：
