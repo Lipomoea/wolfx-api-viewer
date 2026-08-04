@@ -30,16 +30,15 @@ const residualOutlierToleranceRatio = 3
 const defaultClusterMatchResidual = minResidualThreshold
 const largeClusterMatchResidual = 7500
 const largeClusterMatchStationCount = 50
+const defaultWaveCountPenaltyConfig = { thresholdRatio: 3, maxPenalty: 2 }
 const inheritedOutlierFilterStages = [
-    { level: 3, minCount: 100, minRemainingInheritedRatio: 0.9, ratio: 2, minResidual: 3000, maxMeanResidual: 1500, pWaveBiasRatio: 1 },
-    { level: 2, minCount: 30, minRemainingInheritedRatio: 0.8, ratio: 2.5, minResidual: 4000, maxMeanResidual: 2000, pWaveBiasRatio: 1.5 },
-    { level: 1, minCount: 10, minRemainingInheritedRatio: 0.5, ratio: 3, minResidual: 5000, pWaveBiasRatio: 2 }
+    { level: 3, minCount: 100, minRemainingInheritedRatio: 0.9, ratio: 2, minResidual: 3000, maxMeanResidual: 1500, pWaveBiasRatio: 1, waveCountPenalty: { thresholdRatio: 4, maxPenalty: 1 } },
+    { level: 2, minCount: 30, minRemainingInheritedRatio: 0.8, ratio: 2.5, minResidual: 4000, maxMeanResidual: 2000, pWaveBiasRatio: 1.5, waveCountPenalty: { thresholdRatio: 3.5, maxPenalty: 1.5 } },
+    { level: 1, minCount: 10, minRemainingInheritedRatio: 0.5, ratio: 3, minResidual: 5000, pWaveBiasRatio: 2, waveCountPenalty: defaultWaveCountPenaltyConfig }
 ]
 const minReliablePickCount = 100
 const minGreedyOutlierPickCount = 30
 const pWaveOriginStampBiasRatio = 2
-const sWaveCountPenaltyThreshold = 3
-const sWaveCountPenaltyMax = 3
 const qualityRankMinEffectivePickCounts = {
     S: 200,
     A: 100,
@@ -961,7 +960,7 @@ export class FindNiedHypocenter {
             pickResults.filter(Boolean),
             originEntries,
             penaltyContext,
-            filterStage?.level ?? 0
+            filterStage
         )
     }
 
@@ -1082,7 +1081,7 @@ export class FindNiedHypocenter {
         return { outlierIndexes: new Set(), filterStage: null }
     }
 
-    createScenarioLikelihoodResult(picks, hypocenter, firstWave, lastWave, scenario, optionCache, pickResults, originEntries, penaltyContext = this.createInactivePenaltyContext(picks), filterStageLevel = 0) {
+    createScenarioLikelihoodResult(picks, hypocenter, firstWave, lastWave, scenario, optionCache, pickResults, originEntries, penaltyContext = this.createInactivePenaltyContext(picks), filterStage = null) {
         if(this.calcWeightSum(originEntries) <= 0) {
             return this.createInvalidLikelihood(firstWave, lastWave, scenario)
         }
@@ -1100,7 +1099,10 @@ export class FindNiedHypocenter {
             return this.createInvalidLikelihood(firstWave, lastWave, scenario)
         }
         const inactivePenaltyWeight = this.calcInactivePenaltyWeight(penaltyContext.stationCount)
-        const waveCountPenalty = this.calcWaveCountPenalty(pickResults)
+        const waveCountPenalty = this.calcWaveCountPenalty(
+            pickResults,
+            filterStage?.waveCountPenalty ?? defaultWaveCountPenaltyConfig
+        )
         const score = rmse + inactivePenalty * inactivePenaltyWeight + waveCountPenalty
         const qualityScore = this.calcQualityScore(score, effectivePickCount, effectiveStationCount)
         const qualityRank = this.calcQualityRank(qualityScore, effectivePickCount)
@@ -1118,7 +1120,7 @@ export class FindNiedHypocenter {
             firstWave,
             lastWave,
             scenario,
-            filterStageLevel,
+            filterStageLevel: filterStage?.level ?? 0,
             pickResults
         }
     }
@@ -1158,10 +1160,11 @@ export class FindNiedHypocenter {
         return 'S'
     }
 
-    calcWaveCountPenalty(pickResults) {
+    calcWaveCountPenalty(pickResults, config = defaultWaveCountPenaltyConfig) {
         const pWavePickCount = pickResults.filter(result => result.wave === 'P' && result.weight > 0).length || 1
         const sWavePickCount = pickResults.filter(result => result.wave === 'S' && result.weight > 0).length
-        return Math.min(Math.max(sWavePickCount / pWavePickCount - sWaveCountPenaltyThreshold, 0), sWaveCountPenaltyMax)
+        const excessRatio = sWavePickCount / pWavePickCount - config.thresholdRatio
+        return Math.min(Math.max(excessRatio, 0), config.maxPenalty)
     }
 
     selectScenarioWave(pick, options, originEntries, triggerRankWeights, pWaveBiasRatio = pWaveOriginStampBiasRatio, outlierFilterStage) {

@@ -128,7 +128,7 @@ const hypoInfEewMatchThreshold = {
     depth: 100,
     originStamp: 10000
 }
-const minDisplayedHypocenterQualityScore = -2
+const minDisplayedHypocenterQualityScore = -3
 const isNiedHypoInfEnabled = () => 
     settingsStore.mainSettings.displaySeisNet.niedNet &&
     settingsStore.mainSettings.displaySeisNet.niedHypoInf
