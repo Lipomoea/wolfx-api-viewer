@@ -32,14 +32,13 @@ const largeClusterMatchResidual = 7500
 const largeClusterMatchStationCount = 50
 const defaultWaveCountPenaltyConfig = { thresholdRatio: 3, maxPenalty: 2 }
 const inheritedOutlierFilterStages = [
-    { level: 3, minCount: 100, minRemainingInheritedRatio: 0.9, ratio: 2, minResidual: 3000, maxMeanResidual: 1500, pWaveBiasRatio: 1, waveCountPenalty: { thresholdRatio: 4, maxPenalty: 1 } },
-    { level: 2, minCount: 30, minRemainingInheritedRatio: 0.8, ratio: 2.5, minResidual: 4000, maxMeanResidual: 2000, pWaveBiasRatio: 1.5, waveCountPenalty: { thresholdRatio: 3.5, maxPenalty: 1.5 } },
-    { level: 1, minCount: 10, minRemainingInheritedRatio: 0.5, ratio: 3, minResidual: 5000, pWaveBiasRatio: 2, waveCountPenalty: defaultWaveCountPenaltyConfig }
+    { level: 3, minCount: 100, minRemainingInheritedRatio: 0.9, ratio: 2, minResidual: 3000, maxMeanResidual: 1500, waveCountPenalty: { thresholdRatio: 4, maxPenalty: 1 } },
+    { level: 2, minCount: 30, minRemainingInheritedRatio: 0.8, ratio: 2.5, minResidual: 4000, maxMeanResidual: 2000, waveCountPenalty: { thresholdRatio: 3.5, maxPenalty: 1.5 } },
+    { level: 1, minCount: 10, minRemainingInheritedRatio: 0.5, ratio: 3, minResidual: 5000, waveCountPenalty: defaultWaveCountPenaltyConfig }
 ]
 const minReliablePickCount = 100
 const minGreedyOutlierPickCount = 30
-const pWaveOriginStampBiasRatio = 2
-const qualityRankMinEffectivePickCounts = {
+const qualityRankMinEffectiveCounts = {
     S: 200,
     A: 100,
     B: 30,
@@ -938,7 +937,7 @@ export class FindNiedHypocenter {
             if(pickResults[i]) continue
             const pick = picks[i]
             const options = this.calcPickOriginOptions(pick, hypocenter, optionCache)
-            const wave = this.selectScenarioWave(pick, options, originEntries, triggerRankWeights, filterStage?.pWaveBiasRatio ?? pWaveOriginStampBiasRatio, filterStage)
+            const wave = this.selectScenarioWave(pick, options, originEntries, triggerRankWeights, filterStage)
             pickResults[i] = this.addScenarioPickResult(
                 pick,
                 hypocenter,
@@ -1104,8 +1103,9 @@ export class FindNiedHypocenter {
             filterStage?.waveCountPenalty ?? defaultWaveCountPenaltyConfig
         )
         const score = rmse + inactivePenalty * inactivePenaltyWeight + waveCountPenalty
-        const qualityScore = this.calcQualityScore(score, effectivePickCount, effectiveStationCount)
-        const qualityRank = this.calcQualityRank(qualityScore, effectivePickCount)
+        const effectiveCount = (effectivePickCount + effectiveStationCount) / 2
+        const qualityScore = this.calcQualityScore(score, effectiveCount)
+        const qualityRank = this.calcQualityRank(qualityScore, effectiveCount)
         return {
             score,
             rmse,
@@ -1139,16 +1139,15 @@ export class FindNiedHypocenter {
         ).size
     }
 
-    calcQualityScore(score, effectivePickCount, effectiveStationCount) {
-        const effectiveCount = (effectivePickCount + effectiveStationCount) / 2
+    calcQualityScore(score, effectiveCount) {
         return 3.8 + Math.sqrt(effectiveCount / 10) * 0.2 - score * 5 / 3
     }
 
-    calcQualityRank(qualityScore, effectivePickCount) {
+    calcQualityRank(qualityScore, effectiveCount) {
         const scoreRank = this.calcQualityRankByScore(qualityScore)
         return ['S', 'A', 'B', 'C', 'D'].find(rank =>
-            qualityRankMinEffectivePickCounts[rank] <= effectivePickCount &&
-            qualityRankMinEffectivePickCounts[rank] <= qualityRankMinEffectivePickCounts[scoreRank]
+            qualityRankMinEffectiveCounts[rank] <= effectiveCount &&
+            qualityRankMinEffectiveCounts[rank] <= qualityRankMinEffectiveCounts[scoreRank]
         ) || 'D'
     }
 
@@ -1167,10 +1166,10 @@ export class FindNiedHypocenter {
         return Math.min(Math.max(excessRatio, 0), config.maxPenalty)
     }
 
-    selectScenarioWave(pick, options, originEntries, triggerRankWeights, pWaveBiasRatio = pWaveOriginStampBiasRatio, outlierFilterStage) {
+    selectScenarioWave(pick, options, originEntries, triggerRankWeights, outlierFilterStage) {
         const triggerRankWeight = triggerRankWeights.get(pick.pickId) ?? 1
         if(this.getPickWeight(pick, triggerRankWeight) <= 0) return 'L'
-        const selected = this.selectClosestOption(options, originEntries, pWaveBiasRatio, outlierFilterStage)
+        const selected = this.selectClosestOption(options, originEntries, outlierFilterStage)
         return selected?.wave ?? 'O'
     }
 
@@ -1477,7 +1476,6 @@ export class FindNiedHypocenter {
     selectClosestOption(
         options,
         originEntries,
-        pWaveBiasRatio = pWaveOriginStampBiasRatio,
         outlierFilterStage = {
             minCount: minGreedyOutlierPickCount,
             ratio: residualOutlierToleranceRatio,
@@ -1486,7 +1484,7 @@ export class FindNiedHypocenter {
     ) {
         const currentOriginStamp = this.calcWeightedMean(originEntries)
         if(this.isResidualOutlier(options, originEntries, currentOriginStamp, outlierFilterStage)) return null
-        return this.selectClosestOptionByOriginStamp(options, currentOriginStamp, pWaveBiasRatio)
+        return this.selectClosestOptionByOriginStamp(options, currentOriginStamp)
     }
 
     isResidualOutlier(options, originEntries, originStamp, outlierFilterStage = {
@@ -1512,10 +1510,10 @@ export class FindNiedHypocenter {
         return Math.max(meanResidual * ratio, minThreshold)
     }
 
-    selectClosestOptionByOriginStamp(options, originStamp, pWaveBiasRatio = pWaveOriginStampBiasRatio) {
+    selectClosestOptionByOriginStamp(options, originStamp) {
         const pDiff = Math.abs(options.P.originStamp - originStamp)
         const sDiff = Math.abs(options.S.originStamp - originStamp)
-        return pDiff <= sDiff * pWaveBiasRatio ? options.P : options.S
+        return pDiff <= sDiff ? options.P : options.S
     }
 
     createMiddleOutPickIndexes(startIndex, endIndex) {
