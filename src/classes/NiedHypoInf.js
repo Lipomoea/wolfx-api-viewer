@@ -193,7 +193,7 @@ export class FindNiedHypocenter {
     arePicksAssociated(pick1, pick2, distance) {
         if(!Number.isFinite(distance)) return false
         const maxTriggerDiff = distance / pickAssociationVelocity * 1000 + pickAssociationPadding
-        return Math.abs(pick1.triggerStamp - pick2.triggerStamp) < maxTriggerDiff
+        return Math.abs(pick1.triggerStamp - pick2.triggerStamp) <= maxTriggerDiff
     }
 
     findBestMatchingCluster(pick) {
@@ -1317,41 +1317,18 @@ export class FindNiedHypocenter {
 
     getInactivePenaltyCandidates(picks) {
         const cached = this.inactivePenaltyCandidateCache.get(picks)
-        const clusterCount = this.clusters.length
         if(
             cached?.version === this.inactiveStationsVersion &&
-            cached.pickStationPresenceVersion === this.pickStationPresenceVersion &&
-            cached.clusterCount === clusterCount
+            cached.pickStationPresenceVersion === this.pickStationPresenceVersion
         ) return cached.stations
         const clusterStationIds = new Set(picks.map(pick => pick.stationId))
-
-        if(clusterCount === 1) {
-            const stations = [...this.inactiveStationMap.values()]
-                .filter(station => !this.stationPickMap.has(station.id) && !clusterStationIds.has(station.id))
-            this.inactivePenaltyCandidateCache.set(picks, {
-                version: this.inactiveStationsVersion,
-                pickStationPresenceVersion: this.pickStationPresenceVersion,
-                clusterCount,
-                stations
-            })
-            return stations
-        }
-
-        const candidateMap = new Map()
-        picks.forEach(pick => {
-            const neighbors = this.adjStations?.[pick.stationId] || []
-            neighbors.forEach(({ stationId: id }) => {
-                if(this.stationPickMap.has(id)) return
-                if(clusterStationIds.has(id)) return
-                const inactiveStation = this.inactiveStationMap.get(id)
-                if(inactiveStation) candidateMap.set(id, inactiveStation)
-            })
-        })
-        const stations = [...candidateMap.values()]
+        const stations = [...this.inactiveStationMap.values()].filter(station =>
+            !this.stationPickMap.has(station.id) &&
+            !clusterStationIds.has(station.id)
+        )
         this.inactivePenaltyCandidateCache.set(picks, {
             version: this.inactiveStationsVersion,
             pickStationPresenceVersion: this.pickStationPresenceVersion,
-            clusterCount,
             stations
         })
         return stations
