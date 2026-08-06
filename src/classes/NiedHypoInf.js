@@ -24,7 +24,11 @@ const pickAssociationPadding = 2000
 const duplicatePickResidualTieTolerance = 1000
 const maxEffectivePickSelectionIterations = 2
 const stableHypocenterUpdateThreshold = 15
-const floatPrecisionEpsilon = 1e-9
+const sameHypocenterThreshold = {
+    lat: 1e-9,
+    lng: 1e-9,
+    depth: 1e-9
+}
 const minResidualThreshold = 5000
 const residualOutlierToleranceRatio = 3
 const defaultClusterMatchResidual = minResidualThreshold
@@ -238,7 +242,6 @@ export class FindNiedHypocenter {
             reportNum: 0,
             reportHypocenter: null,
             stableHypocenterUpdateCount: 0,
-            stableHypocenter: null,
             stable: false,
             lastUpdateVersion: null,
             initialHypocenter
@@ -371,7 +374,7 @@ export class FindNiedHypocenter {
             if(this.getClusterStationCount(cluster) < minInferenceStationCount) {
                 cluster.result = this.createClusterResult(cluster, this.createHypocenterResult(null, this.createInvalidLikelihood(null)))
                 cluster.previousResults = { P: null, S: null }
-                this.resetClusterStableHypocenterState(cluster)
+                this.resetClusterStableState(cluster)
                 cluster.dirty = false
                 return
             }
@@ -538,45 +541,39 @@ export class FindNiedHypocenter {
     refreshClusterHypocenterState(cluster, result) {
         const hypocenter = Number.isFinite(result?.score) ? result.hypocenter : null
         this.refreshClusterReportState(cluster, hypocenter)
-        this.refreshClusterStableHypocenterState(cluster, hypocenter)
     }
 
     refreshClusterReportState(cluster, hypocenter) {
-        if(!hypocenter) return
-        if(this.isSameHypocenter(cluster.reportHypocenter, hypocenter)) return
-        cluster.reportNum++
-        cluster.reportHypocenter = { ...hypocenter }
-    }
-
-    refreshClusterStableHypocenterState(cluster, hypocenter) {
+        const reportChanged = !this.isSameHypocenter(cluster.reportHypocenter, hypocenter)
+        if(reportChanged) {
+            cluster.reportNum++
+            cluster.reportHypocenter = hypocenter ? { ...hypocenter } : null
+        }
         if(!hypocenter) {
-            this.resetClusterStableHypocenterState(cluster)
+            this.resetClusterStableState(cluster)
             return
         }
-        if(this.isSameHypocenter(cluster.stableHypocenter, hypocenter)) {
-            cluster.stableHypocenterUpdateCount++
-        }
-        else {
-            cluster.stableHypocenter = { ...hypocenter }
+        if(reportChanged) {
             cluster.stableHypocenterUpdateCount = 1
             cluster.stable = false
         }
+        else cluster.stableHypocenterUpdateCount++
         if(cluster.stableHypocenterUpdateCount >= stableHypocenterUpdateThreshold) {
             cluster.stable = true
         }
     }
 
-    resetClusterStableHypocenterState(cluster) {
-        cluster.stableHypocenter = null
+    resetClusterStableState(cluster) {
         cluster.stableHypocenterUpdateCount = 0
         cluster.stable = false
     }
 
     isSameHypocenter(hypocenter1, hypocenter2) {
+        if(hypocenter1 === null || hypocenter2 === null) return hypocenter1 === null && hypocenter2 === null
         if(!hypocenter1 || !hypocenter2) return false
-        return Math.abs(hypocenter1.lat - hypocenter2.lat) <= floatPrecisionEpsilon &&
-            calcLngDiff(hypocenter1.lng, hypocenter2.lng) <= floatPrecisionEpsilon &&
-            Math.abs(hypocenter1.depth - hypocenter2.depth) <= floatPrecisionEpsilon
+        return Math.abs(hypocenter1.lat - hypocenter2.lat) <= sameHypocenterThreshold.lat &&
+            calcLngDiff(hypocenter1.lng, hypocenter2.lng) <= sameHypocenterThreshold.lng &&
+            Math.abs(hypocenter1.depth - hypocenter2.depth) <= sameHypocenterThreshold.depth
     }
 
     mergeCloseClusters() {
@@ -632,7 +629,6 @@ export class FindNiedHypocenter {
 
     copyClusterStableState(targetCluster, sourceCluster) {
         targetCluster.stable = sourceCluster.stable
-        targetCluster.stableHypocenter = sourceCluster.stableHypocenter ? { ...sourceCluster.stableHypocenter } : null
         targetCluster.stableHypocenterUpdateCount = sourceCluster.stableHypocenterUpdateCount
     }
 
