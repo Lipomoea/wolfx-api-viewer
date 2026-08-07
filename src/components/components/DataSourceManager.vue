@@ -107,6 +107,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
+import { useAccessStore } from '@/stores/access';
 import { useStatusStore } from '@/stores/status';
 import {
     dataSourceCatalog,
@@ -117,13 +118,14 @@ import {
 const visible = defineModel({ type: Boolean, default: false })
 const emit = defineEmits(['change', 'manage-api-key'])
 const settingsStore = useSettingsStore()
+const accessStore = useAccessStore()
 const statusStore = useStatusStore()
 const activeCategory = ref(dataSourceCategories[0].key)
 const hasFanApiKey = computed(() => Boolean(settingsStore.mainSettings.apiKeys.fanApiKey?.trim()))
 
 const visibleSources = computed(() => Object.keys(dataSourceCatalog).filter(source => {
-    const advancedSetting = dataSourceCatalog[source].advancedSetting
-    return !advancedSetting || settingsStore.advancedSettings[advancedSetting]
+    const requiredCapability = dataSourceCatalog[source].requiredCapability
+    return !requiredCapability || accessStore.canUse(requiredCapability)
 }))
 
 const sourcesFor = category => visibleSources.value
@@ -147,6 +149,7 @@ const confirmFssn = () => ElMessageBox.confirm(
 )
 
 const canEnable = async (source, wasEnabled) => {
+    if(!settingsStore.isDataSourceAvailable(source)) return false
     if(source != 'fssnEqlist' || wasEnabled) return true
     try {
         await confirmFssn()

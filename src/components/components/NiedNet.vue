@@ -445,7 +445,7 @@ const layoutInferredHypocenterLabels = () => {
     })
 }
 const createInferredHypocenterLabelLayer = (result, latLng, labelInfo) => {
-    const textInfoMode = Number(settingsStore.mainSettings.displaySeisNet.niedHypoInfTextInfo)
+    const textInfoMode = settingsStore.effectiveNiedHypoInfTextInfo
     if(textInfoMode === 0) return null
     const labelHtml = createBasicInfLabelHtml(result, labelInfo)
     return L.marker(latLng, {

@@ -2,7 +2,8 @@ import { defineStore } from 'pinia';
 import merge from 'lodash/merge';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { calcDistanceKm } from '@/utils/Utils';
-import { createDefaultDataSources, migrateLegacyDataSources } from '@/utils/DataSources';
+import { createDefaultDataSources, dataSourceCatalog, migrateLegacyDataSources } from '@/utils/DataSources';
+import { legacyAccessSettingKeys, useAccessStore } from './access';
 
 export const useSettingsStore = defineStore('settingsStore', {
     state: ()=>({
@@ -115,10 +116,6 @@ export const useSettingsStore = defineStore('settingsStore', {
             displayTyphoon: false
         },
         advancedSettings: {
-            enableIclEew: false,
-            enableTremFunctions: false,
-            enableGqEew: false,
-            enableNmefcTsunami: false,
             defaultFanServer: 0,
             displayApiType: false,
             forceCalcInt: false,
@@ -126,7 +123,6 @@ export const useSettingsStore = defineStore('settingsStore', {
             preventFlickerMode: false,
             mockEew: false,
             mockOnReplay: false,
-            advancedHypoInf: false,
             fallbackSvgStationRender: false
         }
     }),
@@ -153,23 +149,53 @@ export const useSettingsStore = defineStore('settingsStore', {
             return nearestLoc
         },
         actionWhiteListArr: (state) => state.mainSettings.actionWhiteList.split('|').filter(key => key),
-        isDataSourceEnabled: state => source => Object.values(state.mainSettings.dataSources[source] || {}).some(Boolean),
-        isDataSourceFullyEnabled: state => source => {
-            const apis = Object.values(state.mainSettings.dataSources[source] || {})
-            return apis.length > 0 && apis.every(Boolean)
+        isDataSourceAvailable: () => source => {
+            const requiredCapability = dataSourceCatalog[source]?.requiredCapability
+            return !requiredCapability || useAccessStore().canUse(requiredCapability)
         },
-        isDataSourcePartiallyEnabled: state => source => {
-            const apis = Object.values(state.mainSettings.dataSources[source] || {})
-            return apis.some(Boolean) && !apis.every(Boolean)
+        isDataSourceEnabled(state) {
+            return source => this.isDataSourceAvailable(source)
+                && Object.values(state.mainSettings.dataSources[source] || {}).some(Boolean)
         },
-        enabledDataSources: state => Object.entries(state.mainSettings.dataSources)
-            .filter(([, apis]) => Object.values(apis).some(Boolean))
-            .map(([source]) => source),
+        isDataSourceFullyEnabled(state) {
+            return source => {
+                if(!this.isDataSourceAvailable(source)) return false
+                const apis = Object.values(state.mainSettings.dataSources[source] || {})
+                return apis.length > 0 && apis.every(Boolean)
+            }
+        },
+        isDataSourcePartiallyEnabled(state) {
+            return source => {
+                if(!this.isDataSourceAvailable(source)) return false
+                const apis = Object.values(state.mainSettings.dataSources[source] || {})
+                return apis.some(Boolean) && !apis.every(Boolean)
+            }
+        },
+        effectiveDataSources(state) {
+            return Object.fromEntries(Object.entries(dataSourceCatalog).map(([source, config]) => [
+                source,
+                Object.fromEntries(config.apis.map(api => [
+                    api,
+                    this.isDataSourceAvailable(source)
+                        && Boolean(state.mainSettings.dataSources[source]?.[api]),
+                ])),
+            ]))
+        },
+        effectiveNiedHypoInfTextInfo(state) {
+            const mode = Number(state.mainSettings.displaySeisNet.niedHypoInfTextInfo)
+            return useAccessStore().canUse('advancedHypoInf') ? mode : Math.min(mode, 1)
+        },
+        enabledDataSources() {
+            return Object.entries(this.effectiveDataSources)
+                .filter(([, apis]) => Object.values(apis).some(Boolean))
+                .map(([source]) => source)
+        },
     },
     actions: {
         setDataSourceEnabled(source, enabled) {
             const apis = this.mainSettings.dataSources[source]
             if(!apis) return
+            if(enabled && !this.isDataSourceAvailable(source)) return
             Object.keys(apis).forEach(api => {
                 apis[api] = enabled
             })
@@ -191,6 +217,13 @@ export const useSettingsStore = defineStore('settingsStore', {
             if(jsonString){
                 const json = JSON.parse(jsonString)
                 let migrated = false
+                // TODO(access-settings-migration): Remove with the legacy fallback in accessStore.
+                legacyAccessSettingKeys.forEach(key => {
+                    if(key in json) {
+                        delete json[key]
+                        migrated = true
+                    }
+                })
                 if('provinceCeaEew' in json) {
                     this.mainSettings.provinceCeaEew = Boolean(json.provinceCeaEew)
                     delete json.provinceCeaEew

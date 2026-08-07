@@ -38,7 +38,7 @@ export const dataSourceCatalog = {
         category: 'eew',
         displayOrder: 1,
         apis: ['fan'],
-        advancedSetting: 'enableIclEew',
+        requiredCapability: 'iclEew',
     },
     scEew: {
         label: '四川地震局: 地震预警',
@@ -65,7 +65,7 @@ export const dataSourceCatalog = {
         category: 'eew',
         displayOrder: 7,
         apis: ['globalquake'],
-        advancedSetting: 'enableGqEew',
+        requiredCapability: 'gqEew',
     },
     jmaEqlist: {
         label: '日本気象庁: 地震情報',

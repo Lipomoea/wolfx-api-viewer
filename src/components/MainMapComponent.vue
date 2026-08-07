@@ -263,7 +263,7 @@
                         <div :class="'s' + webSocketStatus.wolfx.readyState">Wolfx{{ webSocketStatus.wolfx.urlIndex ? '(B)' : '' }}</div>
                         <div :class="fanStatusClass">FAN{{ webSocketStatus.fan.urlIndex ? '(B)' : '' }}</div>
                         <div :class="'s' + webSocketStatus.p2pquake.readyState">P2PQ{{ webSocketStatus.p2pquake.urlIndex ? '(B)' : '' }}</div>
-                        <div v-if="settingsStore.advancedSettings.enableGqEew" :class="'s' + webSocketStatus.gq.readyState">GQ{{ webSocketStatus.gq.urlIndex ? '(B)' : '' }}</div>
+                        <div v-if="accessStore.canUse('gqEew')" :class="'s' + webSocketStatus.gq.readyState">GQ{{ webSocketStatus.gq.urlIndex ? '(B)' : '' }}</div>
                     </div>
                     <div class="update-time" v-if="settingsStore.mainSettings.displayClock" @dblclick="resetSeisNetDelay">
                         当前时间: {{ currentTimeText }} (UTC{{ formatTimeZone(systemTimeZone) }})
@@ -356,6 +356,7 @@ import { ref, reactive, computed, onMounted, onBeforeUnmount, onUnmounted, watch
 import { HomeFilled, FullScreen, WarnTriangleFilled, InfoFilled, Setting } from '@element-plus/icons-vue';
 import { eewSources, eqlistSources, seisNetSources, sourceTypes, tsunamiSources, useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
+import { useAccessStore } from '@/stores/access';
 import { useTimeStore } from '@/stores/time';
 import EqlistComponent from './EqlistComponent.vue';
 import SettingsComponent from './SettingsComponent.vue';
@@ -376,6 +377,7 @@ classNameArray.forEach(color => classNameColors[color] = style.getPropertyValue(
 classNameArray.forEach(color => tsunamiColors[color] = style.getPropertyValue(`--tsunami-${color}`).trim())
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
+const accessStore = useAccessStore()
 const timeStore = useTimeStore()
 const currentTimeText = computed(() => stampToTime(timeStore.currentTimeStamp, systemTimeZone))
 let map, jpEewBaseMap, krEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap, cnTsunamiBaseMap, labelLayer1, labelLayer2, terminatorLayer, terminatorFillLayer, cnFaultBaseMap
@@ -1090,7 +1092,7 @@ const loadMaps = async (retries = 0) => {
                 smartSetView()
             }, { deep: true, immediate: true }))
         }
-        if(settingsStore.isDataSourceEnabled('nmefcTsunami') && settingsStore.advancedSettings.enableNmefcTsunami && 'cn_tsunami' in topojsonUrls) {
+        if(settingsStore.isDataSourceEnabled('nmefcTsunami') && accessStore.canUse('nmefcTsunamiMap') && 'cn_tsunami' in topojsonUrls) {
             if(cn_tsunami) {
                 cnTsunamiBaseMap = loadBaseMap(cn_tsunami, 'tsunamiBasePane', false, {
                     color: tsunamiBaseMapDefaultStroke,

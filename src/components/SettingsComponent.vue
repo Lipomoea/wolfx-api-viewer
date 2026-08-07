@@ -88,11 +88,11 @@
                                 >
                                     <el-option label="关闭" :value="0" />
                                     <el-option label="打开" :value="1" />
-                                    <el-option label="详细" :value="2" v-show="settingsStore.advancedSettings.advancedHypoInf" />
+                                    <el-option label="详细" :value="2" v-show="accessStore.canUse('advancedHypoInf')" />
                                 </el-select>
                             </div>
                         </div>
-                        <div class="w-full" v-if="settingsStore.advancedSettings.enableTremFunctions">
+                        <div class="w-full" v-if="accessStore.canUse('tremFunctions')">
                             <div class="switch-full">
                                 <span>TREM-Net・震度（台湾）</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.tremNet" />
@@ -426,7 +426,7 @@
                                 :format-tooltip="(value) => shindoScale[value]"
                             />
                         </div>
-                        <div class="switch-full" v-if="settingsStore.advancedSettings.enableGqEew">
+                        <div class="switch-full" v-if="accessStore.canUse('gqEew')">
                             <div class="justify-between" style="width: 10rem;">
                                 <span>GQ预警震级阈值</span>
                                 <div class="mag" :class="setClassName(calcCsisLevel(settingsStore.mainSettings.gqActionMag, 10, 0), false)">
@@ -1344,6 +1344,7 @@
 
 <script setup>
 import { useSettingsStore } from '@/stores/settings';
+import { useAccessStore } from '@/stores/access';
 import { useStatusStore } from '@/stores/status';
 import { chimeUrls, utilUrls } from '@/utils/Urls';
 import { APP_TITLE, APP_VERSION } from '@/utils/AppInfo';
@@ -1374,6 +1375,7 @@ const simplifyMarks = {
     4: '极致'
 }
 const settingsStore = useSettingsStore()
+const accessStore = useAccessStore()
 const statusStore = useStatusStore()
 const showDataSourceManager = ref(false)
 const replayDateTime = ref('')
@@ -1548,7 +1550,7 @@ const handleAdvance = (val)=>{
             break
         }
         case 'enableAdvancedHypoInf': {
-            settingsStore.advancedSettings.advancedHypoInf = true
+            accessStore.grant('advancedHypoInf')
             ElMessage({
                 message: '功能已开启',
                 type: 'success'
@@ -1556,7 +1558,7 @@ const handleAdvance = (val)=>{
             break
         }
         case 'disableAdvancedHypoInf': {
-            settingsStore.advancedSettings.advancedHypoInf = false
+            accessStore.revoke('advancedHypoInf')
             if (settingsStore.mainSettings.displaySeisNet.niedHypoInfTextInfo == 2)
                 settingsStore.mainSettings.displaySeisNet.niedHypoInfTextInfo = 1
             ElMessage({
@@ -1567,7 +1569,7 @@ const handleAdvance = (val)=>{
         }
         case 'disableIclEew': {
             if(settingsStore.isDataSourceEnabled('iclEew')) handleNeedReload()
-            settingsStore.advancedSettings.enableIclEew = false
+            accessStore.revoke('iclEew')
             settingsStore.setDataSourceEnabled('iclEew', false)
             localStorage.removeItem('iclUrl')
             ElMessage({
@@ -1577,7 +1579,7 @@ const handleAdvance = (val)=>{
             break
         }
         case 'disableTremFunctions': {
-            settingsStore.advancedSettings.enableTremFunctions = false
+            accessStore.revoke('tremFunctions')
             settingsStore.mainSettings.displaySeisNet.tremNet = false
             localStorage.removeItem('tremUrl')
             handleNeedReload()
@@ -1589,7 +1591,7 @@ const handleAdvance = (val)=>{
         }
         case 'disableGqEew': {
             if(settingsStore.isDataSourceEnabled('gqEew')) handleNeedReload()
-            settingsStore.advancedSettings.enableGqEew = false
+            accessStore.revoke('gqEew')
             settingsStore.setDataSourceEnabled('gqEew', false)
             localStorage.removeItem('gqUrl')
             ElMessage({
@@ -1599,7 +1601,7 @@ const handleAdvance = (val)=>{
             break
         }
         case 'disableNmefcTsunami': {
-            settingsStore.advancedSettings.enableNmefcTsunami = false
+            accessStore.revoke('nmefcTsunamiMap')
             localStorage.removeItem('nmefcTsunami')
             handleNeedReload()
             ElMessage({
@@ -1616,8 +1618,9 @@ const postVerify = async (type = verifyType)=>{
         case 'enableIclEew': {
             const res = await Http.post('https://api.lipomoea.tech/icl_url', idForm)
             if(res && res.success){
-                settingsStore.advancedSettings.enableIclEew = true
                 localStorage.setItem('iclUrl', JSON.stringify(res.data))
+                accessStore.grant('iclEew')
+                if(settingsStore.isDataSourceEnabled('iclEew')) handleNeedReload()
                 verifyDialog.value = false
                 ElMessage({
                     message: '认证成功',
@@ -1635,8 +1638,8 @@ const postVerify = async (type = verifyType)=>{
         case 'enableTremFunctions': {
             const res = await Http.post('https://api.lipomoea.tech/trem_url', idForm)
             if(res && res.success){
-                settingsStore.advancedSettings.enableTremFunctions = true
                 localStorage.setItem('tremUrl', JSON.stringify(res.data))
+                accessStore.grant('tremFunctions')
                 handleNeedReload()
                 verifyDialog.value = false
                 ElMessage({
@@ -1655,8 +1658,9 @@ const postVerify = async (type = verifyType)=>{
         case 'enableGqEew': {
             const res = await Http.post('https://api.lipomoea.tech/gq_url', idForm)
             if(res && res.success){
-                settingsStore.advancedSettings.enableGqEew = true
                 localStorage.setItem('gqUrl', JSON.stringify(res.data))
+                accessStore.grant('gqEew')
+                if(settingsStore.isDataSourceEnabled('gqEew')) handleNeedReload()
                 verifyDialog.value = false
                 ElMessage({
                     message: '认证成功',
@@ -1674,8 +1678,8 @@ const postVerify = async (type = verifyType)=>{
         case 'enableNmefcTsunami': {
             const res = await Http.post('https://api.lipomoea.tech/cn_tsunami_topo_json_url', idForm)
             if(res && res.success){
-                settingsStore.advancedSettings.enableNmefcTsunami = true
                 localStorage.setItem('nmefcTsunami', JSON.stringify(res.data))
+                accessStore.grant('nmefcTsunamiMap')
                 handleNeedReload()
                 verifyDialog.value = false
                 ElMessage({
