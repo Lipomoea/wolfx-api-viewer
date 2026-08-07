@@ -445,42 +445,14 @@ const layoutInferredHypocenterLabels = () => {
     })
 }
 const createInferredHypocenterLabelLayer = (result, latLng, labelInfo) => {
-    const textInfoMode = settingsStore.effectiveNiedHypoInfTextInfo
-    if(textInfoMode === 0) return null
-    const labelHtml = createBasicInfLabelHtml(result, labelInfo)
+    const labelHtml = createInfLabelHtml(result, labelInfo)
+    if(!labelHtml) return null
     return L.marker(latLng, {
         icon: L.divIcon({
             className: '',
             iconSize: null,
             iconAnchor: [0, 0],
-            html: `
-                <div style="
-                    display: inline-block;
-                    width: max-content;
-                    max-width: 360px;
-                    padding: 8px 10px;
-                    color: #fff;
-                    -webkit-text-stroke: 0.35px #000000cc;
-                    paint-order: stroke fill;
-                    text-shadow: 0 0 2px #000000cc, 0 0 4px #000000aa, 1px 1px 2px #000000cc, -1px -1px 2px #000000cc;
-                    font-size: 12px;
-                    line-height: 1.25;
-                    text-align: center;
-                    overflow: hidden;
-                    pointer-events: none;
-                    white-space: nowrap;
-                    transform: translate(-50%, ${inferredHypocenterLabelOffset}px);
-                ">
-                    ${labelHtml}
-                    <div style="display: ${textInfoMode === 2 ? 'block' : 'none'};">
-                    latlng: ${labelInfo.lat.toFixed(1)}, ${labelInfo.lng.toFixed(1)}<br>
-                    clusterId: ${result.clusterId ?? '-'} / updates: ${result.updates ?? '-'}<br>
-                    effective: ${result.effectiveStationCount} (${result.effectivePickCount ?? '-'}) / qualityScore: ${result.qualityScore.toFixed(2)} / filter: ${result.filterStageLevel ?? 0}<br>
-                    loss: ${result.score.toFixed(2)} / rmse: ${result.rmse.toFixed(2)} / penalty: ${result.inactivePenalty.toFixed(2)}<br>
-                    scenario: ${result.scenario ?? '-'} / P: ${labelInfo.waveCounts.P || 0} S: ${labelInfo.waveCounts.S || 0} O: ${labelInfo.waveCounts.O || 0} D: ${labelInfo.waveCounts.D || 0}
-                    </div>
-                </div>
-            `
+            html: labelHtml
         }),
         // pane: 'eewMarkerPane',
         interactive: false
@@ -509,16 +481,47 @@ const isCloseToJmaEewHypocenter = (result, eqMessage) => {
         Math.abs((hypocenter.depth ?? 10) - eqMessage.depth) <= hypoInfEewMatchThreshold.depth &&
         Math.abs(result.originStamp - eewOriginStamp) <= hypoInfEewMatchThreshold.originStamp
 }
-const createBasicInfLabelHtml = (result, { depth, clusterStationCount, originTimeJst }) => {
+const createInfLabelHtml = (result, labelInfo) => {
+    const textInfoMode = settingsStore.effectiveNiedHypoInfTextInfo
+    if(textInfoMode === 0) return ''
+    const { lat, lng, depth, clusterStationCount, originTimeJst, waveCounts } = labelInfo
     const reportText = result.reportNum ?? '-'
     const stableText = result.stable ? '（稳定）' : ''
     const qualityText = result.qualityRank ? `质量${result.qualityRank}` : ''
+    const detailedHtml = textInfoMode === 2 ? `
+        <div>
+            latlng: ${lat.toFixed(1)}, ${lng.toFixed(1)}<br>
+            clusterId: ${result.clusterId ?? '-'} / updates: ${result.updates ?? '-'}<br>
+            effective: ${result.effectiveStationCount} (${result.effectivePickCount ?? '-'}) / qualityScore: ${result.qualityScore.toFixed(2)} / filter: ${result.filterStageLevel ?? 0}<br>
+            loss: ${result.score.toFixed(2)} / rmse: ${result.rmse.toFixed(2)} / penalty: ${result.inactivePenalty.toFixed(2)}<br>
+            scenario: ${result.scenario ?? '-'} / P: ${waveCounts.P || 0} S: ${waveCounts.S || 0} O: ${waveCounts.O || 0} D: ${waveCounts.D || 0}
+        </div>
+    ` : ''
     return `
-        <div style="font-size: 14px; font-weight: 700; line-height: 1.25;">
-            NIED震源推算 第${reportText}报${stableText}<br>
-            ${originTimeJst} (+9)<br>
-            深${depth.toFixed(0)}km<br>
-            ${clusterStationCount}测站 ${qualityText}
+        <div style="
+            display: inline-block;
+            width: max-content;
+            max-width: 360px;
+            padding: 8px 10px;
+            color: #fff;
+            -webkit-text-stroke: 0.35px #000000cc;
+            paint-order: stroke fill;
+            text-shadow: 0 0 2px #000000cc, 0 0 4px #000000aa, 1px 1px 2px #000000cc, -1px -1px 2px #000000cc;
+            font-size: 12px;
+            line-height: 1.25;
+            text-align: center;
+            overflow: hidden;
+            pointer-events: none;
+            white-space: nowrap;
+            transform: translate(-50%, ${inferredHypocenterLabelOffset}px);
+        ">
+            <div style="font-size: 14px; font-weight: 700; line-height: 1.25;">
+                NIED震源推算 第${reportText}报${stableText}<br>
+                ${originTimeJst} (+9)<br>
+                深${depth.toFixed(0)}km<br>
+                ${clusterStationCount}测站 ${qualityText}
+            </div>
+            ${detailedHtml}
         </div>
     `
 }

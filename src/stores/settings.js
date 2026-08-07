@@ -192,6 +192,24 @@ export const useSettingsStore = defineStore('settingsStore', {
         },
     },
     actions: {
+        resetUnauthorizedFeatureSettings() {
+            const accessStore = useAccessStore()
+            if(!accessStore.canUse('iclEew')) {
+                this.setDataSourceEnabled('iclEew', false)
+            }
+            if(!accessStore.canUse('gqEew')) {
+                this.setDataSourceEnabled('gqEew', false)
+            }
+            if(!accessStore.canUse('tremFunctions')) {
+                this.mainSettings.displaySeisNet.tremNet = false
+            }
+            if(
+                !accessStore.canUse('advancedHypoInf') &&
+                Number(this.mainSettings.displaySeisNet.niedHypoInfTextInfo) > 1
+            ) {
+                this.mainSettings.displaySeisNet.niedHypoInfTextInfo = 1
+            }
+        },
         setDataSourceEnabled(source, enabled) {
             const apis = this.mainSettings.dataSources[source]
             if(!apis) return

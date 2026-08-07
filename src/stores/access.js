@@ -1,14 +1,6 @@
 import { defineStore } from 'pinia';
 
 // TODO(access-settings-migration): Remove the legacy keys, map, and fallback argument after all supported versions have migrated.
-export const legacyAccessSettingKeys = [
-    'enableIclEew',
-    'enableTremFunctions',
-    'enableGqEew',
-    'enableNmefcTsunami',
-    'advancedHypoInf',
-]
-
 const legacyCapabilityMap = {
     enableIclEew: 'iclEew',
     enableTremFunctions: 'tremFunctions',
@@ -17,6 +9,7 @@ const legacyCapabilityMap = {
     advancedHypoInf: 'advancedHypoInf',
 }
 
+export const legacyAccessSettingKeys = Object.keys(legacyCapabilityMap)
 const capabilityKeys = Object.values(legacyCapabilityMap)
 const requiredLocalConfig = {
     iclEew: 'iclUrl',

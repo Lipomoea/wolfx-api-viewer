@@ -86,6 +86,7 @@ onBeforeMount(async () => {
   // Restore legacy access fields first; setAdvancedSettings removes them afterward.
   accessStore.setAccessSettings(localStorage.getItem('accessSettings'), advancedSettings)
   settingsStore.setAdvancedSettings(advancedSettings)
+  settingsStore.resetUnauthorizedFeatureSettings()
   settingsStore.mainSettings.displaySeisNet.delay = 0
   if(accessStore.canUse('gqEew')) Object.assign(eqUrls, JSON.parse(localStorage.getItem('gqUrl')))
   if(accessStore.canUse('nmefcTsunamiMap')) Object.assign(topojsonUrls, JSON.parse(localStorage.getItem('nmefcTsunami')))
