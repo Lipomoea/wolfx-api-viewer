@@ -216,7 +216,7 @@ const update = ()=>{
         stations.forEach(station => {
             if (activeStations.has(station)) {
                 station.setActive();
-            } else if (station.level > -1 && station.level < 6 && station.activity <= 0 && !station.isActive) {
+            } else if (station.level > -1 && station.level < 5 && station.activity <= 0 && !station.isActive) {
                 inactiveStations.add(station);
             }
         })

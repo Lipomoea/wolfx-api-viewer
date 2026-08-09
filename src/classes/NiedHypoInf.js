@@ -1541,7 +1541,7 @@ export class FindNiedHypocenter {
     }
 
     isPenaltyReferencePick(pick) {
-        return pick.maxAscend >= 3 && pick.maxLevel >= 4
+        return pick.maxAscend >= 3 && pick.maxLevel >= 5
     }
 
     hasValidTriggerStamp(source) {
