@@ -21,6 +21,7 @@ const penaltyZeroWeightStationCount = 50
 const penaltyFullWeight = 10
 const pickAssociationVelocity = 3.5
 const pickAssociationPadding = 2000
+const clusterMatchResidualTieTolerance = 1000
 const duplicatePickResidualTieTolerance = 1000
 const maxEffectivePickSelectionIterations = 2
 const stableHypocenterUpdateThreshold = 15
@@ -50,6 +51,11 @@ const qualityRankMinEffectiveCounts = {
     D: 0
 }
 const sortedInactiveStationsCacheKey = Symbol('sortedInactiveStations')
+const compareStrings = (value1, value2) => {
+    const string1 = String(value1)
+    const string2 = String(value2)
+    return string1 < string2 ? -1 : string1 > string2 ? 1 : 0
+}
 
 export class FindNiedHypocenter {
     constructor(inactiveStations, adjStations) {
@@ -75,6 +81,7 @@ export class FindNiedHypocenter {
     update(pickCandidates = [], inactiveStations = this.inactiveStations, stationUpdates = []) {
         this.updateVersion++
         this.setInactiveStations(inactiveStations)
+        const activeStationIds = new Set(stationUpdates.map(station => station.id))
         pickCandidates
             .slice()
             .sort((pick1, pick2) => this.comparePicks(pick1, pick2))
@@ -82,7 +89,7 @@ export class FindNiedHypocenter {
         this.updateActivePickSources(stationUpdates)
         this.refreshClusterResults()
         this.mergeCloseClusters()
-        this.removeFinishedClusters()
+        this.removeFinishedClusters(activeStationIds)
         return this.getResults()
     }
 
@@ -139,7 +146,7 @@ export class FindNiedHypocenter {
         if(
             latestPickStamp === undefined ||
             pick.triggerStamp > latestPickStamp ||
-            (pick.triggerStamp === latestPickStamp && String(pick.pickId).localeCompare(String(latestPickId)) > 0)
+            (pick.triggerStamp === latestPickStamp && compareStrings(pick.pickId, latestPickId) > 0)
         ) {
             this.latestPickIdByStation.set(pick.stationId, pick.pickId)
             this.latestPickStampByStation.set(pick.stationId, pick.triggerStamp)
@@ -202,13 +209,21 @@ export class FindNiedHypocenter {
 
     findBestMatchingCluster(pick) {
         if(!this.hasValidTriggerStamp(pick)) return null
-        const bestMatch = this.clusters.reduce((best, cluster) => {
-            const residual = this.calcClusterPickResidual(pick, cluster)
-            if(residual === null || residual > this.getClusterMatchResidualThreshold(cluster)) return best
-            if(!best || residual < best.residual) return { cluster, residual }
-            return best
-        }, null)
-        return bestMatch?.cluster || null
+        const matches = this.clusters.map(cluster => {
+            const match = this.calcClusterPickMatch(pick, cluster)
+            return match ? { cluster, ...match } : null
+        }).filter(match =>
+            match && match.residual <= this.getClusterMatchResidualThreshold(match.cluster)
+        )
+        if(matches.length === 0) return null
+        const minResidual = Math.min(...matches.map(match => match.residual))
+        return matches
+            .filter(match => match.residual - minResidual < clusterMatchResidualTieTolerance)
+            .reduce((best, match) => {
+                if(match.distance !== best.distance) return match.distance < best.distance ? match : best
+                if(match.residual !== best.residual) return match.residual < best.residual ? match : best
+                return match.cluster.id < best.cluster.id ? match : best
+            }).cluster
     }
 
     getClusterMatchResidualThreshold(cluster) {
@@ -217,15 +232,18 @@ export class FindNiedHypocenter {
             : defaultClusterMatchResidual
     }
 
-    calcClusterPickResidual(pick, cluster) {
+    calcClusterPickMatch(pick, cluster) {
         const result = cluster.result
         if(!result?.hypocenter || !Number.isFinite(result.originStamp)) return null
         const optionCache = new Map()
         const options = this.calcPickOriginOptions(pick, result.hypocenter, optionCache)
-        return Math.min(
-            Math.abs(options.P.originStamp - result.originStamp),
-            Math.abs(options.S.originStamp - result.originStamp)
-        )
+        return {
+            residual: Math.min(
+                Math.abs(options.P.originStamp - result.originStamp),
+                Math.abs(options.S.originStamp - result.originStamp)
+            ),
+            distance: options.distance
+        }
     }
 
     createCluster(picks, initialHypocenter = null, markUpdated = false) {
@@ -276,7 +294,7 @@ export class FindNiedHypocenter {
 
     comparePicks(pick1, pick2) {
         if(pick1.triggerStamp !== pick2.triggerStamp) return pick1.triggerStamp - pick2.triggerStamp
-        return String(pick1.pickId).localeCompare(String(pick2.pickId))
+        return compareStrings(pick1.pickId, pick2.pickId)
     }
 
     markClusterUpdated(cluster) {
@@ -317,8 +335,8 @@ export class FindNiedHypocenter {
         })
     }
 
-    removeFinishedClusters() {
-        const finishedClusters = this.clusters.filter(cluster => this.isClusterFinished(cluster))
+    removeFinishedClusters(activeStationIds) {
+        const finishedClusters = this.clusters.filter(cluster => this.isClusterFinished(cluster, activeStationIds))
         const previousPickStationPresenceVersion = this.pickStationPresenceVersion
         finishedClusters.forEach(cluster => {
             const picks = [...cluster.picks]
@@ -330,9 +348,9 @@ export class FindNiedHypocenter {
         }
     }
 
-    isClusterFinished(cluster) {
+    isClusterFinished(cluster, activeStationIds) {
         return cluster.picks.length > 0 && cluster.picks.every(pick =>
-            this.inactiveStationMap.has(pick.stationId) || this.isPickOutdated(pick)
+            !activeStationIds.has(pick.stationId) || this.isPickOutdated(pick)
         )
     }
 
@@ -481,7 +499,7 @@ export class FindNiedHypocenter {
         if(Math.abs(residualDiff) > duplicatePickResidualTieTolerance) return residualDiff < 0
         const ascendDiff = (candidate.item.maxAscend || 0) - (selected.item.maxAscend || 0)
         if(ascendDiff !== 0) return ascendDiff > 0
-        return String(candidate.item.pick.pickId).localeCompare(String(selected.item.pick.pickId)) < 0
+        return compareStrings(candidate.item.pick.pickId, selected.item.pick.pickId) < 0
     }
 
     createAllPickResults(picks, classificationResult, finalResult, effectivePickIds) {

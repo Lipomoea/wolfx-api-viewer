@@ -230,7 +230,7 @@ const update = ()=>{
             const pickCandidateStations = currentActiveStations.filter(station =>
                 station.ascend >= 2 && Number.isFinite(station.triggerStamp) && station.triggerStamp > 0
             )
-            updateInferredHypocentersInWorker(pickCandidateStations, inactiveStations)
+            updateInferredHypocentersInWorker(pickCandidateStations, currentActiveStations, inactiveStations)
         }
         else {
             resetHypocenterWorker()
@@ -325,11 +325,11 @@ const stationToInferredHypocenterPickSnapshot = station => ({
     ascend: station.ascend,
     level: station.level
 })
-const updateInferredHypocentersInWorker = (pickCandidateStations, inactiveStations) => {
+const updateInferredHypocentersInWorker = (pickCandidateStations, activeStations, inactiveStations) => {
     if(!isNiedHypoInfEnabled()) return
     const update = {
         pickCandidates: pickCandidateStations.map(stationToInferredHypocenterPickSnapshot),
-        activeStations: stations.filter(station => station.isActive).map(stationToInferredHypocenterSnapshot),
+        activeStations: activeStations.map(stationToInferredHypocenterSnapshot),
         inactiveStations: [...inactiveStations].map(stationToInferredHypocenterSnapshot)
     }
     if(inFlightHypocenterRequestId !== null) {
