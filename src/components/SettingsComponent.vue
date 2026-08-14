@@ -1414,8 +1414,27 @@ const setLng = (type)=>(val)=>{
     }
 }
 const autoLocate = async ()=>{
-    const res = await Http.get(utilUrls.geoIp)
-    if(res.city_zh == null){
+    let location = null
+    for(const source of utilUrls.geoIp){
+        try{
+            const res = await Http.get(source.url)
+            if(!res) continue
+
+            const parsed = source.func(res)
+            const lat = Number(parsed?.lat)
+            const lng = Number(parsed?.lng)
+            const place = typeof parsed?.place === 'string' ? parsed.place.trim() : ''
+            if(!place || !Number.isFinite(lat) || !Number.isFinite(lng)
+                || lat < -90 || lat > 90 || lng < -180 || lng > 180) continue
+
+            location = { lat, lng, place }
+            break
+        }
+        catch(err){
+            console.log(err)
+        }
+    }
+    if(!location){
         ElMessage({
             message: '获取位置失败',
             type: 'error',
@@ -1423,7 +1442,7 @@ const autoLocate = async ()=>{
     }
     else{
         ElMessageBox.confirm(
-            `你的IP定位城市是${res.city_zh}，参考经纬度(${res.latitude}, ${res.longitude})。是否更新设置？`,
+            `你的IP定位地址是${location.place}，参考经纬度(${location.lat}, ${location.lng})。是否更新设置？`,
             '自动定位',
             {
                 confirmButtonText: '确定',
@@ -1432,8 +1451,8 @@ const autoLocate = async ()=>{
                 showClose: false,
             }
         ).then(()=>{
-            setLat('userLatLng')(res.latitude)
-            setLng('userLatLng')(res.longitude)
+            setLat('userLatLng')(location.lat)
+            setLng('userLatLng')(location.lng)
             ElMessage({
                 message: '位置更新成功',
                 type: 'success',

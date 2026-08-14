@@ -94,15 +94,32 @@ export const topojsonUrls = {
   kr_eew: "/json/kr.eew.topo.json",
 };
 export const utilUrls = {
-  geoIp: "https://api.wolfx.jp/geoip.php",
+  geoIp: [
+    {
+      url: "https://api.fanstudio.tech/tool/ip/",
+      func: item => ({
+        lat: item.latitude,
+        lng: item.longitude,
+        place: item.city + (item.district ? item.district : ""),
+      }),
+    },
+    {
+      url: "https://api.wolfx.jp/geoip.php",
+      func: item => ({
+        lat: item.latitude,
+        lng: item.longitude,
+        place: item.city_zh,
+      }),
+    },
+  ],
   ntpTime: [
     {
       url: "https://api.fanstudio.tech/tool/ntp.php",
-      function: item => item.unixtime_ms,
+      func: item => item.unixtime_ms,
     },
     {
       url: "https://api.wolfx.jp/ntp.json",
-      function: item => item.timestamp,
+      func: item => item.timestamp,
     },
   ],
 };

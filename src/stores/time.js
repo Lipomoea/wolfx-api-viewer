@@ -59,7 +59,7 @@ export const useTimeStore = defineStore('timeStore', {
                 const systemTimeStamp = Date.now()
                 if(!res) continue
 
-                const serverTimeStamp = source.function(res)
+                const serverTimeStamp = source.func(res)
                 if(!Number.isFinite(serverTimeStamp)) continue
 
                 consecutiveCalibrationFailures = 0
