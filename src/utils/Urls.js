@@ -100,7 +100,7 @@ export const utilUrls = {
       func: item => ({
         lat: item.latitude,
         lng: item.longitude,
-        place: item.city + (item.district ? item.district : ""),
+        place: item.city + (item.district || ""),
       }),
     },
     {
