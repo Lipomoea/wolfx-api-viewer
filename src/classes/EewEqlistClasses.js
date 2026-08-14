@@ -190,7 +190,7 @@ export class EewEvent {
         }
     }
     drawWaves(updated = false){
-        const start = Date.now()
+        const start = performance.now()
         const passedTime = calcPassedTime(this.eqMessage.originTime, this.eqMessage.timeZone) / 1000
         this.handleCountdown(passedTime)
         if(this.hypoLatLng && !this.eqMessage.isAssumption){
@@ -200,7 +200,7 @@ export class EewEvent {
             this.clearWaves()
         }
         clearTimeout(this.drawWavesTimer)
-        const end = Date.now()
+        const end = performance.now()
         const used = Math.max(end - start, 0)
         this.drawWavesTimer = setTimeout(() => {
             this.drawWaves()
