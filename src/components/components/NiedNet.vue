@@ -493,7 +493,7 @@ const createInfLabelHtml = (result, labelInfo) => {
             latlng: ${lat.toFixed(1)}, ${lng.toFixed(1)}<br>
             clusterId: ${result.clusterId ?? '-'} / updates: ${result.updates ?? '-'}<br>
             effective: ${result.effectiveStationCount} (${result.effectivePickCount ?? '-'}) / qualityScore: ${result.qualityScore.toFixed(2)} / filter: ${result.filterStageLevel ?? 0}<br>
-            loss: ${result.score.toFixed(2)} / rmse: ${result.rmse.toFixed(2)} / penalty: ${result.inactivePenalty.toFixed(2)}<br>
+            loss: ${result.score.toFixed(2)} / rmse: ${result.rmse.toFixed(2)} / penalty: ${result.inactivePenalty.toFixed(2)} + ${result.unexplainedPickPenalty.toFixed(2)}<br>
             scenario: ${result.scenario ?? '-'} / P: ${waveCounts.P || 0} S: ${waveCounts.S || 0} O: ${waveCounts.O || 0} D: ${waveCounts.D || 0}
         </div>
     ` : ''
