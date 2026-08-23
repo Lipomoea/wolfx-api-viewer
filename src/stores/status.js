@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import Http from '@/classes/Http';
 import WebSocketObj from '@/classes/WebSocket';
 import { eqUrls, FAN_API_APP_ID, iconUrls, tsunamiUrls } from '@/utils/Urls';
-import { setClassName, calcCsisLevel, stampToTime, getShindoFromInstShindo, shindoScaleKanji, calcTimeDiff, playSound, sendMyNotification, focusWindow, formatShindo, timeToStamp, systemTimeZone, convertTimeString } from '@/utils/Utils';
+import { setClassName, calcCsisLevel, stampToTime, getShindoFromInstShindo, shindoScaleKanji, calcTimeDiff, playSound, sendMyNotification, focusWindow, formatShindo, timeToStamp, systemTimeZone, convertTimeString, convertCompactTimeString } from '@/utils/Utils';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { useSettingsStore } from './settings';
 import { isTauri } from '@tauri-apps/api/core';
@@ -1151,12 +1151,13 @@ export const useStatusStore = defineStore('statusStore', {
                     case 'jmaEqlist': {
                         const item = data[keys[i]]
                         const id = item.EventID
+                        const originTime = convertCompactTimeString(id) || item.time_full.replace(/\//g, '-')
                         list[i] = {
                             source: 'JMA',
                             id,
                             timeZone: 9,
                             useShindo: true,
-                            originTime: item.time_full.replace(/\//g, '-'),
+                            originTime,
                             lat: Number(item.latitude),
                             lng: Number(item.longitude),
                             hypocenter: item.location,

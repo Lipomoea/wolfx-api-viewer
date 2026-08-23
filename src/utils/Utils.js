@@ -6,6 +6,7 @@ import { isTauri } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-shell";
 import { booleanPointInPolygon, point } from "@turf/turf";
 import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { presimplify, simplify } from "topojson-simplify";
@@ -13,6 +14,7 @@ import { cnSeisIntLoc, cnSeisIntLocBush } from "./CnSeisIntLoc";
 import { around } from "geokdbush";
 import { jmaSeisIntLoc } from "./JmaSeisIntLoc";
 import { krSeisIntLoc, krSeisIntLocBush } from "./KrSeisIntLoc";
+dayjs.extend(customParseFormat);
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -89,6 +91,11 @@ export const stampToTime = (timeStamp, timeZone) => {
     .toISOString()
     .replace("T", " ")
     .slice(0, -5);
+};
+export const convertCompactTimeString = time => {
+  if (typeof time !== "string") return null;
+  const parsed = dayjs.utc(time, "YYYYMMDDHHmmss", true);
+  return parsed.isValid() ? parsed.format("YYYY-MM-DD HH:mm:ss") : null;
 };
 export const convertTimeString = (
   time,

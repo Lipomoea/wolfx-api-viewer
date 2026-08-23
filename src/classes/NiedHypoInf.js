@@ -391,6 +391,7 @@ export class FindNiedHypocenter {
     refreshClusterResults() {
         this.clusters.forEach(cluster => {
             if(!cluster.dirty) return
+            // this.logClusterTriggerStamps(cluster)
             if(this.getClusterStationCount(cluster) < minInferenceStationCount) {
                 cluster.result = this.createClusterResult(cluster, this.createHypocenterResult(null, this.createInvalidLikelihood(null)))
                 cluster.previousResults = { P: null, S: null }
@@ -469,6 +470,34 @@ export class FindNiedHypocenter {
             round,
             pickCount: picks.length,
             stationCount: this.getDistinctStationCount(picks)
+        })
+    }
+
+    logClusterTriggerStamps(cluster) {
+        const triggerStampsByStation = new Map()
+        cluster.picks.forEach(pick => {
+            if(!triggerStampsByStation.has(pick.stationId)) {
+                triggerStampsByStation.set(pick.stationId, {
+                    latLng: pick.latLng,
+                    triggerStamps: []
+                })
+            }
+            triggerStampsByStation.get(pick.stationId).triggerStamps.push(pick.triggerStamp)
+        })
+        const stations = [...triggerStampsByStation.entries()]
+            .map(([stationId, { latLng, triggerStamps }]) => ({
+                stationId,
+                latLng,
+                triggerStamps: triggerStamps.sort((a, b) => a - b)
+            }))
+            .sort((station1, station2) =>
+                station1.triggerStamps[0] - station2.triggerStamps[0] ||
+                station1.stationId - station2.stationId
+            )
+        console.log('[FindNiedHypocenter] cluster triggerStamps', {
+            clusterId: cluster.id,
+            updates: cluster.updates,
+            stations
         })
     }
 

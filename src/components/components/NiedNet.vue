@@ -67,7 +67,11 @@ const currentMaxShindo = computed(()=>{
 const adjStationIds = {}
 const adjStations4Hypo = {}
 const expireSeconds = {}
-const distMatrix = [[]]
+const triggerCompatibilityConfig = {
+    waveSpeedKmPerSecond: 3.5,
+    fixedToleranceMilliseconds: 2000
+}
+const triggerDiffToleranceMatrix = [[]]
 const bearingDirections = ['N', 'E', 'S', 'W']
 let decimal = [0, 0]
 const activeStations = computed(() => stations.filter(station => station.isActive))
@@ -147,25 +151,18 @@ const update = ()=>{
         const activeStations = new Set();
         const inactiveStations = new Set();
         const checkedStations = new Set();
-        const clusters = [];
-        const stationPairAbnormalCache = new Map();
         possibleStations.forEach(station=>{
             if(!checkedStations.has(station)){
-                if(station.isActive && station.ascend > 0) {
-                    chainActivate(station, activeStations, checkedStations, clusters)
+                if(station.isActive && station.ascend > 0 && hasValidTriggerStamp(station)) {
+                    chainActivate(station, activeStations, checkedStations)
                     return
                 }
                 const nearbyStations = adjStationIds[station.id].map(id=>stations[id]).filter(station=>station.level > -1)
-                // const possibleNearbyStations = nearbyStations.filter(station=>station.activity > 0)
-                // const nearbyActiveNum = possibleNearbyStations.length - possibleNearbyStations.filter(station => station.ascend <= 1 && !station.isActive).length / 2
-                // let nearest0Index = nearbyStations.map(station => station.activity).indexOf(0);
-                // if (nearest0Index == -1) nearest0Index = Infinity;
-                const nearbyActiveNum = nearbyStations.reduce((sum, nearbyStation, index) => {
+                const compatibleNearbyStations = getCompatibleNearbyStations(station, nearbyStations)
+                const nearbyActiveNum = compatibleNearbyStations.reduce((sum, nearbyStation) => {
                     let score = 1;
-                    if (nearbyStation.activity <= 0) return sum;
                     if (nearbyStation.isActive) return sum + score;
                     if (nearbyStation.ascend <= 1) score /= 2;
-                    // if (index >= nearest0Index) score /= 2;
                     return sum + score;
                 }, 0);
                 let numThres, activityThres
@@ -186,20 +183,13 @@ const update = ()=>{
                         return
                 }
                 if (nearbyActiveNum >= numThres) {
-                    const abnormalCandidates = nearbyStations.filter(station => !station.isActive && station.ascend > 2);
-                    if (hasAbnormalStationPair(abnormalCandidates, stationPairAbnormalCache)) {
-                        activityThres *= 2;
-                        // console.log(abnormalCandidates.map(station => [station.triggerStamp / 1000, station.ascend]), abnormalCandidates.map(station => [...station.recentLevel]));
-                    }
                     const numActivity = nearbyActiveNum * (nearbyActiveNum + 1) / 2
-                    const nearbyActivity = nearbyStations.reduce((sum, nearbyStation, index) => {
-                        let score = nearbyStation.activity;
-                        // if (nearbyStation.isActive) return sum + score;
-                        // if (index >= nearest0Index) score /= 2;
-                        return sum + score;
-                    }, 0) + numActivity;
+                    const nearbyActivity = compatibleNearbyStations.reduce(
+                        (sum, nearbyStation) => sum + nearbyStation.activity,
+                        numActivity
+                    )
                     if (nearbyActivity >= activityThres) {
-                        chainActivate(station, activeStations, checkedStations, clusters)
+                        chainActivate(station, activeStations, checkedStations)
                     }
                 }
             }
@@ -238,32 +228,19 @@ const update = ()=>{
         }
     }
 }
-const hasAbnormalStationPair = (targetStations, stationPairAbnormalCache) => {
-    for(let i = 0; i < targetStations.length - 1; i++) {
-        for(let j = i + 1; j < targetStations.length; j++) {
-            if(isAbnormalStationPair(targetStations[i], targetStations[j], stationPairAbnormalCache)) {
-                return true
-            }
-        }
-    }
-    return false
+const hasValidTriggerStamp = station =>
+    Number.isFinite(station.triggerStamp) && station.triggerStamp > 0
+const isStationTriggerCompatible = (station1, station2) => {
+    if(!hasValidTriggerStamp(station1) || !hasValidTriggerStamp(station2)) return false
+    const toleranceMilliseconds = triggerDiffToleranceMatrix[station1.id]?.[station2.id]
+    if(!Number.isFinite(toleranceMilliseconds)) return false
+    return Math.abs(station1.triggerStamp - station2.triggerStamp) <= toleranceMilliseconds
 }
-const isAbnormalStationPair = (station1, station2, stationPairAbnormalCache) => {
-    const id1 = Math.min(station1.id, station2.id)
-    const id2 = Math.max(station1.id, station2.id)
-    const key = `${id1}-${id2}`
-    if(stationPairAbnormalCache.has(key)) return stationPairAbnormalCache.get(key)
-    const result = calcStationPairAbnormal(station1, station2)
-    stationPairAbnormalCache.set(key, result)
-    return result
-}
-const calcStationPairAbnormal = (station1, station2) => {
-    if(!station1.triggerStamp || !station2.triggerStamp) return false
-    const distance = distMatrix[station1.id]?.[station2.id]
-    if(!Number.isFinite(distance)) return false
-    const maxDiffSeconds = distance / 3.5 + 2
-    const triggerDiffSeconds = Math.abs(station1.triggerStamp - station2.triggerStamp) / 1000
-    return maxDiffSeconds < triggerDiffSeconds
+const getCompatibleNearbyStations = (centerStation, nearbyStations) => {
+    if(!hasValidTriggerStamp(centerStation)) return []
+    return nearbyStations.filter(station =>
+        station.activity > 0 && isStationTriggerCompatible(centerStation, station)
+    )
 }
 const getHypocenterWorker = () => {
     if(hypocenterWorker) return hypocenterWorker
@@ -563,23 +540,22 @@ const clearInferredHypocenters = () => {
     inferredHypocenterLayers = []
     inferredHypocenterLabelLayers = []
 }
-const chainActivate = (station, activeStations, checkedStations, clusters)=>{
-    const pendingStations = new Set([station])
-    const cluster = [];
+const chainActivate = (seedStation, activeStations, checkedStations)=>{
+    if(!hasValidTriggerStamp(seedStation)) return
+    const pendingStations = new Set([seedStation])
     while(pendingStations.size > 0){
         const currentStation = pendingStations.values().next().value
         pendingStations.delete(currentStation)
         checkedStations.add(currentStation)
-        if(currentStation.activity > 0){
-            activeStations.add(currentStation)
-            cluster.push(currentStation);
-            adjStationIds[currentStation.id].forEach(id=>{
-                const neighbor = stations[id]
-                if(!checkedStations.has(neighbor)) pendingStations.add(neighbor)
-            })
-        }
+        activeStations.add(currentStation)
+        adjStationIds[currentStation.id].forEach(id=>{
+            const neighbor = stations[id]
+            if(checkedStations.has(neighbor) || pendingStations.has(neighbor)) return
+            if(neighbor.activity <= 0) return
+            if(!isStationTriggerCompatible(currentStation, neighbor)) return
+            pendingStations.add(neighbor)
+        })
     }
-    clusters.push(cluster);
 }
 const renderAll = ()=>{
     if(useStationCanvasRenderer.value) {
@@ -646,13 +622,15 @@ const fetchStationList = async () => {
             for(let i = 0; i < stationList.length; i++){
                 latLngs[i] = stationList[i]
             }
+            const distanceMatrix = []
+            triggerDiffToleranceMatrix.length = 0
             for(let i = 0; i < stationList.length; i++){
                 const distances = []
-                distMatrix[i] = []
+                distanceMatrix[i] = []
                 for(let j = 0; j < stationList.length; j++){
                     let distance
                     if(j < i) {
-                        distance = distMatrix[j][i]
+                        distance = distanceMatrix[j][i]
                     }
                     else if(j == i) {
                         distance = 0
@@ -660,7 +638,7 @@ const fetchStationList = async () => {
                     else {
                         distance = calcDistanceKm(latLngs[i], latLngs[j])
                     }
-                    distMatrix[i][j] = distance
+                    distanceMatrix[i][j] = distance
                     distances.push({ id: j, distance })
                 }
                 const sortedDistances = distances.sort((a, b) => a.distance - b.distance)
@@ -695,8 +673,16 @@ const fetchStationList = async () => {
                 }))
                 // const maxDist = distances[distances.length - 1].distance
                 // expireSeconds[i] = Math.max(Math.ceil(maxDist / 3.5), 5)
-                expireSeconds[i] = 10
+                expireSeconds[i] = 8
             }
+            distanceMatrix.forEach(distanceRow => {
+                for(let i = 0; i < distanceRow.length; i++) {
+                    distanceRow[i] =
+                        distanceRow[i] / triggerCompatibilityConfig.waveSpeedKmPerSecond * 1000 +
+                        triggerCompatibilityConfig.fixedToleranceMilliseconds
+                }
+                triggerDiffToleranceMatrix.push(distanceRow)
+            })
             stationList.forEach((latLng, index)=>{
                 const station = reactive(new NiedStation(map, index, latLng, 'c', expireSeconds[index], useStationCanvasRenderer.value))
                 stations.push(station)
