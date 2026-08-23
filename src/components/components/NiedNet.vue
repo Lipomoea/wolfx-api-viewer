@@ -335,6 +335,12 @@ const getPickDisplayWave = pickResult => {
     if(pickResult.weight > 0 || pickResult.wave === 'O' || pickResult.wave === 'L') return pickResult.wave
     return null
 }
+const getFilterStageText = result => {
+    const inferenceLevels = Array.isArray(result.inferenceFilterStageLevels) && result.inferenceFilterStageLevels.length > 0
+        ? result.inferenceFilterStageLevels
+        : [result.filterStageLevel ?? 0]
+    return inferenceLevels.join(' -> ')
+}
 const renderInferredHypocenters = results => {
     clearInferredHypocenters()
     if(!isNiedHypoInfEnabled()) return
@@ -469,7 +475,7 @@ const createInfLabelHtml = (result, labelInfo) => {
         <div>
             latlng: ${lat.toFixed(1)}, ${lng.toFixed(1)}<br>
             clusterId: ${result.clusterId ?? '-'} / updates: ${result.updates ?? '-'}<br>
-            effective: ${result.effectiveStationCount} (${result.effectivePickCount ?? '-'}) / qualityScore: ${result.qualityScore.toFixed(2)} / filter: ${result.filterStageLevel ?? 0}<br>
+            effective: ${result.effectiveStationCount} (${result.effectivePickCount ?? '-'}) / qualityScore: ${result.qualityScore.toFixed(2)} / filter: ${getFilterStageText(result)}<br>
             loss: ${result.score.toFixed(2)} / rmse: ${result.rmse.toFixed(2)} / penalty: ${result.inactivePenalty.toFixed(2)} * ${result.inactivePenaltyWeight.toFixed(2)} + ${result.waveCountPenalty.toFixed(2)} + ${result.unexplainedPickPenalty.toFixed(2)}<br>
             scenario: ${result.scenario ?? '-'} / P: ${waveCounts.P || 0} S: ${waveCounts.S || 0} O: ${waveCounts.O || 0} D: ${waveCounts.D || 0}
         </div>
