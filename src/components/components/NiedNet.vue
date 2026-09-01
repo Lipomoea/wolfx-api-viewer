@@ -472,7 +472,7 @@ const createInfLabelHtml = (result, labelInfo) => {
     const stableText = result.stable ? '（稳定）' : ''
     const qualityText = result.qualityRank ? `质量${result.qualityRank}` : ''
     const detailedHtml = textInfoMode === 2 ? `
-        <div>
+        <div style="opacity: 0.6;">
             latlng: ${lat.toFixed(1)}, ${lng.toFixed(1)}<br>
             clusterId: ${result.clusterId ?? '-'} / updates: ${result.updates ?? '-'}<br>
             effective: ${result.effectiveStationCount} (${result.effectivePickCount ?? '-'}) / qualityScore: ${result.qualityScore.toFixed(2)} / filter: ${getFilterStageText(result)}<br>
@@ -498,7 +498,7 @@ const createInfLabelHtml = (result, labelInfo) => {
             white-space: nowrap;
             transform: translate(-50%, ${inferredHypocenterLabelOffset}px);
         ">
-            <div style="font-size: 14px; font-weight: 700; line-height: 1.25;">
+            <div style="font-size: 14px; font-weight: 700; line-height: 1.25; opacity: 0.8;">
                 NIED震源推算 第${reportText}报${stableText}<br>
                 ${originTimeJst} (+9)<br>
                 深${depth.toFixed(0)}km<br>
