@@ -1,6 +1,6 @@
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { getCsisLevelFromCsis, getLevelFromInstShindo, getMmiFromKmaLevel, getShindoFromChar, getShindoFromInstShindo, intScale, shindoScale } from '@/utils/Utils';
+import { getCsisLevelFromCsis, getLevelFromInstShindo, getMmiFromKmaLevel, getShindoFromChar, getShindoFromInstShindo, getShindoFromLevel, intScale, shindoScale } from '@/utils/Utils';
 import { useSettingsStore } from '@/stores/settings';
 import { markRaw, ref } from 'vue';
 import '@/assets/background.css';
@@ -225,14 +225,20 @@ const getKmaColorRadius = (holdLevel, zoom) => {
     }
     return { color, radius }
 }
-const getNiedMarkerType = (level, zoom) => {
-    if(settingsStore.mainSettings.displaySeisNet.displayNiedShindo && level >= (settingsStore.mainSettings.displaySeisNet.displayShindo0 ? 6 : 8) && zoom >= 4){
+const getPalertMarkerType = (level, zoom) => {
+    if(settingsStore.mainSettings.displaySeisNet.displayPalertShindo && level >= (settingsStore.mainSettings.displaySeisNet.displayShindo0 ? 6 : 8) && zoom >= 4){
         return simpleIcon.value ? 1 : 2
     }
     return 0
 }
 const getTremMarkerType = (level, zoom) => {
     if(settingsStore.mainSettings.displaySeisNet.displayTremShindo && level >= (settingsStore.mainSettings.displaySeisNet.displayShindo0 ? 6 : 8) && zoom >= 4){
+        return simpleIcon.value ? 1 : 2
+    }
+    return 0
+}
+const getNiedMarkerType = (level, zoom) => {
+    if(settingsStore.mainSettings.displaySeisNet.displayNiedShindo && level >= (settingsStore.mainSettings.displaySeisNet.displayShindo0 ? 6 : 8) && zoom >= 4){
         return simpleIcon.value ? 1 : 2
     }
     return 0
@@ -244,6 +250,329 @@ const getKmaMarkerType = (holdLevel, zoom) => {
     return 0
 }
 
+export class PalertStation {
+    constructor(map, id, latLng, useCanvasLayer = false){
+        if(!settingsStore) settingsStore = useSettingsStore()
+        this.map = markRaw(map)
+        this.id = id
+        this.latLng = latLng
+        this.useCanvasLayer = useCanvasLayer
+        this.pga = null
+        this.pgv = null
+        this.level = -1
+        this.recentData = []
+        this.recentSeconds = 60
+        this.activity = 0
+        this.holdLevel = -1
+        this.shindo = getShindoFromLevel(this.holdLevel)
+        this.isActive = false
+        this.markerType = null
+        if(!this.useCanvasLayer) this.render()
+    }
+    update(data, missingSeconds = 0, render = true){
+        this.pga = data.pga
+        this.pgv = data.pgv
+        this.level = data.level
+        const missingData = Array.from({ length: Math.min(missingSeconds, this.recentSeconds) }, (_, index) => ({
+            timestamp: data.timestamp - (index + 1) * 1000,
+            pga: null,
+            pgv: null,
+            level: -1,
+        }))
+        this.recentData.unshift({ ...data }, ...missingData)
+        this.recentData.splice(this.recentSeconds)
+        this.activity = this.calcActivity()
+        this.updateHoldLevel(render)
+    }
+    calcActivity(){
+        let activity = this.level >= 10 ? 2 : this.level >= 8 ? 1 : 0
+        const recentPga = this.recentData
+            .slice(0, 12)
+            .map(data => data.pga)
+            .filter(pga => Number.isFinite(pga) && pga >= 0)
+        const backgroundPga = this.recentData
+            .slice(12, this.recentSeconds)
+            .map(data => data.pga)
+            .filter(pga => Number.isFinite(pga) && pga >= 0)
+        if(recentPga.length === 0 || backgroundPga.length < 24) return activity
+
+        const backgroundAverage = backgroundPga.reduce((sum, pga) => sum + pga, 0) / backgroundPga.length
+        if(Number.isFinite(backgroundAverage) && backgroundAverage > 0 && Math.max(...recentPga) > backgroundAverage * 3) {
+            activity = Math.max(activity, 1)
+        }
+        return activity
+    }
+    updateHoldLevel(render = true){
+        const holdSeconds = settingsStore.mainSettings.displaySeisNet.palertLevelHold
+        const latestTimestamp = this.recentData[0]?.timestamp
+        const earliestTimestamp = latestTimestamp - (holdSeconds - 1) * 1000
+        const holdLevel = Math.max(
+            ...this.recentData
+                .filter(data => data.timestamp >= earliestTimestamp && data.timestamp <= latestTimestamp)
+                .map(data => data.level),
+            -1
+        )
+        if(holdLevel == this.holdLevel) return
+        this.holdLevel = holdLevel
+        this.shindo = getShindoFromLevel(this.holdLevel)
+        render && !this.useCanvasLayer && this.render()
+    }
+    clearHistory(render = true){
+        this.pga = null
+        this.pgv = null
+        this.level = -1
+        this.clearRecentData()
+        this.isActive = false
+        clearTimeout(this.activeTimer)
+        this.updateHoldLevel(render)
+    }
+    clearRecentData(){
+        this.recentData.length = 0
+        this.activity = 0
+    }
+    render(){
+        if(this.useCanvasLayer) return
+        const oldMarkerType = this.markerType
+        const oldColor = this.color
+        const oldRadius = this.radius
+        this.setColorRadius()
+        const zoom = this.map.getZoom()
+        this.markerType = getPalertMarkerType(this.holdLevel, zoom)
+        if(this.markerType == oldMarkerType && this.color == oldColor && this.radius == oldRadius) return
+        if((this.markerType == 2) != (oldMarkerType == 2) || this.color != oldColor) {
+            if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
+            switch(this.markerType) {
+                case 2: {
+                    const iconZoom = Math.min(Math.max(zoom, 6), 10)
+                    const shindoIcon = shindoIcons[iconZoom][this.shindo]
+                    this.marker = markRaw(L.marker(this.latLng, {
+                        icon: shindoIcon,
+                        pane: `palertStationPane${this.holdLevel}`,
+                        interactive: false
+                    }))
+                    break
+                }
+                case 1: {
+                    const color = shindoColorBand[this.holdLevel]
+                    const radius = Math.max(this.radius, 2)
+                    this.marker = markRaw(L.circleMarker(this.latLng, {
+                        radius: radius * 1.8,
+                        opacity: 1,
+                        fillOpacity: 1,
+                        color: '#ffffff',
+                        fillColor: color,
+                        weight: radius * 0.4,
+                        pane: `palertStationPane${this.holdLevel}`,
+                        interactive: false
+                    }))
+                    break
+                }
+                case 0:
+                    this.marker = markRaw(L.circleMarker(this.latLng, {
+                        radius: this.radius,
+                        opacity: 1,
+                        fillOpacity: 1,
+                        color: this.color,
+                        fillColor: this.color,
+                        weight: 0,
+                        pane: `palertStationPane${this.holdLevel}`,
+                        interactive: false
+                    }))
+                    break
+            }
+            this.marker.addTo(this.map)
+        }
+        else {
+            switch(this.markerType) {
+                case 2: {
+                    const iconZoom = Math.min(Math.max(zoom, 6), 10)
+                    const shindoIcon = shindoIcons[iconZoom][this.shindo]
+                    this.marker.setIcon(shindoIcon)
+                    break
+                }
+                case 1: {
+                    const color = shindoColorBand[this.holdLevel]
+                    const radius = Math.max(this.radius, 2)
+                    this.marker.setStyle({
+                        color: '#ffffff',
+                        fillColor: color,
+                        weight: radius * 0.4,
+                    }).setRadius(radius * 1.8)
+                    break
+                }
+                case 0:
+                    this.marker.setStyle({
+                        color: this.color,
+                        fillColor: this.color,
+                        weight: 0,
+                    }).setRadius(this.radius)
+                    break
+            }
+        }
+    }
+    setColorRadius(){
+        const zoom = this.map.getZoom()
+        const { color, radius } = getNiedColorRadius(this.holdLevel, zoom)
+        this.color = color
+        this.radius = radius
+    }
+    getCanvasDrawInfo(zoom = this.map.getZoom()){
+        if(!settingsStore) settingsStore = useSettingsStore()
+        const { color, radius } = getNiedColorRadius(this.holdLevel, zoom)
+        return {
+            latLng: this.latLng,
+            level: this.holdLevel,
+            drawOrder: this.holdLevel,
+            simpleColorLevel: this.holdLevel,
+            shindo: this.shindo,
+            iconKey: this.shindo,
+            color,
+            radius,
+            markerType: getPalertMarkerType(this.holdLevel, zoom)
+        }
+    }
+    setActive(){
+        this.isActive = true
+        clearTimeout(this.activeTimer)
+        this.activeTimer = setTimeout(() => {
+            this.isActive = false
+        }, 12500)
+    }
+    terminate(){
+        if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
+        this.map = null
+        this.marker = null
+        clearTimeout(this.activeTimer)
+    }
+}
+export class TremStation {
+    constructor(map, id, latLng, intensity, isActive, useCanvasLayer = false){
+        if(!settingsStore) settingsStore = useSettingsStore()
+        this.map = markRaw(map)
+        this.id = id
+        this.latLng = latLng
+        this.useCanvasLayer = useCanvasLayer
+        this.intensity = intensity
+        this.shindo = getShindoFromInstShindo(intensity)
+        this.level = getLevelFromInstShindo(intensity)
+        this.isActive = isActive
+        this.markerType = null
+        if(!this.useCanvasLayer) this.render()
+    }
+    update(intensity, isActive, render = true){
+        this.intensity = intensity
+        const level = getLevelFromInstShindo(intensity)
+        if(level != this.level){
+            this.shindo = getShindoFromInstShindo(intensity)
+            this.level = level
+            render && !this.useCanvasLayer && this.render()
+        }
+        this.isActive = isActive
+    }
+    render(){
+        if(this.useCanvasLayer) return
+        const oldMarkerType = this.markerType
+        const oldColor = this.color
+        const oldRadius = this.radius
+        this.setColorRadius()
+        const zoom = this.map.getZoom()
+        this.markerType = getTremMarkerType(this.level, zoom)
+        if(this.markerType == oldMarkerType && this.color == oldColor && this.radius == oldRadius) return
+        if((this.markerType == 2) != (oldMarkerType == 2) || this.color != oldColor) {
+            if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
+            switch(this.markerType) {
+                case 2:
+                    const iconZoom = Math.min(Math.max(zoom, 6), 10)
+                    const shindoIcon = shindoIcons[iconZoom][this.shindo]
+                    this.marker = markRaw(L.marker(this.latLng, {
+                        icon: shindoIcon,
+                        pane: `tremStationPane${this.level}`,
+                        interactive: false
+                    }))
+                    break
+                case 1:
+                    const color = shindoColorBand[this.level]
+                    const radius = Math.max(this.radius, 2)
+                    this.marker = markRaw(L.circleMarker(this.latLng, {
+                        radius: radius * 1.8,
+                        opacity: 1,
+                        fillOpacity: 1,
+                        color: '#ffffff',
+                        fillColor: color,
+                        weight: radius * 0.4,
+                        pane: `tremStationPane${this.level}`,
+                        interactive: false
+                    }))
+                    break
+                case 0:
+                    this.marker = markRaw(L.circleMarker(this.latLng, {
+                        radius: this.radius,
+                        opacity: 1,
+                        fillOpacity: 1,
+                        color: this.color,
+                        fillColor: this.color,
+                        weight: 0,
+                        pane: `tremStationPane${this.level}`,
+                        interactive: false
+                    }))
+                    break
+            }
+            this.marker.addTo(this.map)
+        }
+        else {
+            switch(this.markerType) {
+                case 2:
+                    const iconZoom = Math.min(Math.max(zoom, 6), 10)
+                    const shindoIcon = shindoIcons[iconZoom][this.shindo]
+                    this.marker.setIcon(shindoIcon)
+                    break
+                case 1:
+                    const color = shindoColorBand[this.level]
+                    const radius = Math.max(this.radius, 2)
+                    this.marker.setStyle({
+                        color: '#ffffff',
+                        fillColor: color,
+                        weight: radius * 0.4,
+                    }).setRadius(radius * 1.8)
+                    break
+                case 0:
+                    this.marker.setStyle({
+                        color: this.color,
+                        fillColor: this.color,
+                        weight: 0,
+                    }).setRadius(this.radius)
+                    break
+            }
+        }
+    }
+    setColorRadius(){
+        const zoom = this.map.getZoom()
+        const { color, radius } = getNiedColorRadius(this.level, zoom)
+        this.color = color
+        this.radius = radius
+    }
+    getCanvasDrawInfo(zoom = this.map.getZoom()){
+        if(!settingsStore) settingsStore = useSettingsStore()
+        const { color, radius } = getNiedColorRadius(this.level, zoom)
+        return {
+            latLng: this.latLng,
+            level: this.level,
+            drawOrder: this.intensity,
+            simpleColorLevel: this.level,
+            intensity: this.intensity,
+            shindo: this.shindo,
+            iconKey: this.shindo,
+            color,
+            radius,
+            markerType: getTremMarkerType(this.level, zoom)
+        }
+    }
+    terminate(){
+        if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
+        this.map = null
+        this.marker = null
+    }
+}
 export class NiedStation {
     constructor(map, id, latLng, intensity, expireSeconds, useCanvasLayer = false){
         if(!settingsStore) settingsStore = useSettingsStore()
@@ -573,134 +902,6 @@ export class NiedStation {
         this.map = null
         this.marker = null
         clearTimeout(this.activeTimer)
-    }
-}
-export class TremStation {
-    constructor(map, id, latLng, intensity, isActive, useCanvasLayer = false){
-        if(!settingsStore) settingsStore = useSettingsStore()
-        this.map = markRaw(map)
-        this.id = id
-        this.latLng = latLng
-        this.useCanvasLayer = useCanvasLayer
-        this.intensity = intensity
-        this.shindo = getShindoFromInstShindo(intensity)
-        this.level = getLevelFromInstShindo(intensity)
-        this.isActive = isActive
-        this.markerType = null
-        if(!this.useCanvasLayer) this.render()
-    }
-    update(intensity, isActive, render = true){
-        this.intensity = intensity
-        const level = getLevelFromInstShindo(intensity)
-        if(level != this.level){
-            this.shindo = getShindoFromInstShindo(intensity)
-            this.level = level
-            render && !this.useCanvasLayer && this.render()
-        }
-        this.isActive = isActive
-    }
-    render(){
-        if(this.useCanvasLayer) return
-        const oldMarkerType = this.markerType
-        const oldColor = this.color
-        const oldRadius = this.radius
-        this.setColorRadius()
-        const zoom = this.map.getZoom()
-        this.markerType = getTremMarkerType(this.level, zoom)
-        if(this.markerType == oldMarkerType && this.color == oldColor && this.radius == oldRadius) return
-        if((this.markerType == 2) != (oldMarkerType == 2) || this.color != oldColor) {
-            if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
-            switch(this.markerType) {
-                case 2:
-                    const iconZoom = Math.min(Math.max(zoom, 6), 10)
-                    const shindoIcon = shindoIcons[iconZoom][this.shindo]
-                    this.marker = markRaw(L.marker(this.latLng, {
-                        icon: shindoIcon,
-                        pane: `tremStationPane${this.level}`,
-                        interactive: false
-                    }))
-                    break
-                case 1:
-                    const color = shindoColorBand[this.level]
-                    const radius = Math.max(this.radius, 2)
-                    this.marker = markRaw(L.circleMarker(this.latLng, {
-                        radius: radius * 1.8,
-                        opacity: 1,
-                        fillOpacity: 1,
-                        color: '#ffffff',
-                        fillColor: color,
-                        weight: radius * 0.4,
-                        pane: `tremStationPane${this.level}`,
-                        interactive: false
-                    }))
-                    break
-                case 0:
-                    this.marker = markRaw(L.circleMarker(this.latLng, {
-                        radius: this.radius,
-                        opacity: 1,
-                        fillOpacity: 1,
-                        color: this.color,
-                        fillColor: this.color,
-                        weight: 0,
-                        pane: `tremStationPane${this.level}`,
-                        interactive: false
-                    }))
-                    break
-            }
-            this.marker.addTo(this.map)
-        }
-        else {
-            switch(this.markerType) {
-                case 2:
-                    const iconZoom = Math.min(Math.max(zoom, 6), 10)
-                    const shindoIcon = shindoIcons[iconZoom][this.shindo]
-                    this.marker.setIcon(shindoIcon)
-                    break
-                case 1:
-                    const color = shindoColorBand[this.level]
-                    const radius = Math.max(this.radius, 2)
-                    this.marker.setStyle({
-                        color: '#ffffff',
-                        fillColor: color,
-                        weight: radius * 0.4,
-                    }).setRadius(radius * 1.8)
-                    break
-                case 0:
-                    this.marker.setStyle({
-                        color: this.color,
-                        fillColor: this.color,
-                        weight: 0,
-                    }).setRadius(this.radius)
-                    break
-            }
-        }
-    }
-    setColorRadius(){
-        const zoom = this.map.getZoom()
-        const { color, radius } = getNiedColorRadius(this.level, zoom)
-        this.color = color
-        this.radius = radius
-    }
-    getCanvasDrawInfo(zoom = this.map.getZoom()){
-        if(!settingsStore) settingsStore = useSettingsStore()
-        const { color, radius } = getNiedColorRadius(this.level, zoom)
-        return {
-            latLng: this.latLng,
-            level: this.level,
-            drawOrder: this.intensity,
-            simpleColorLevel: this.level,
-            intensity: this.intensity,
-            shindo: this.shindo,
-            iconKey: this.shindo,
-            color,
-            radius,
-            markerType: getTremMarkerType(this.level, zoom)
-        }
-    }
-    terminate(){
-        if(this.marker && this.map.hasLayer(this.marker)) this.map.removeLayer(this.marker)
-        this.map = null
-        this.marker = null
     }
 }
 export class KmaStation {

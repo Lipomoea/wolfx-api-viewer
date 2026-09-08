@@ -67,7 +67,7 @@ export const defaultTsunamiMessage = {
 }
 
 export { eewSources, eqlistSources, tsunamiSources }
-export const seisNetSources = ['niedNet', 'tremNet', 'kmaNet']
+export const seisNetSources = ['palertNet', 'tremNet', 'niedNet', 'kmaNet']
 
 const wolfx2Source = {
     'jma_eew': 'jmaEew',
@@ -249,8 +249,9 @@ export const useStatusStore = defineStore('statusStore', {
             fssnEqlist: false,
             jmaTsunami: false,
             nmefcTsunami: false,
-            niedNet: false,
+            palertNet: false,
             tremNet: false,
+            niedNet: false,
             kmaNet: false,
             niedInfHypo: false,
         },

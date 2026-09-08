@@ -11,7 +11,7 @@ import axios from 'axios';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { seisNetUrls, iconUrls } from '@/utils/Urls';
-import { getTimeNumberString, playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromLevel, exactRound, timeToStamp, calcDistanceKm, calcBearingDeg, calcLngDiff, stampToTime, calcWaveDistance } from '@/utils/Utils';
+import { getTimeNumberString, playSound, sendMyNotification, focusWindow, getShindoFromLevel, exactRound, timeToStamp, calcDistanceKm, calcBearingDeg, calcLngDiff, stampToTime, calcWaveDistance } from '@/utils/Utils';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { abnormalNiedStations, NiedStation, simpleIcon } from '@/classes/StationClasses';
@@ -121,6 +121,9 @@ let inferredHypocenterLabelLayers = []
 let stationCanvasLayer = null
 let gridCanvasLayer = null
 let stopped = false
+let requestGeneration = 0
+let latestFrameStamp = null
+let pendingTimelineSwitch = false
 let hypocenterWorker = null
 let hypocenterRequestId = 0
 let inFlightHypocenterRequestId = null
@@ -703,22 +706,40 @@ const fetchStationList = async () => {
 }
 const clearAbnormalList = () => 
     Object.keys(abnormalNiedStations).forEach(key => delete abnormalNiedStations[key])
+const scheduleTimelineSwitch = () => {
+    requestGeneration++
+    pendingTimelineSwitch = true
+    stations.forEach(station => {
+        station.recentLevel.length = 0
+    })
+    clearAbnormalList()
+    resetHypocenterWorker()
+}
 onMounted(()=>{
     fetchStationInterval = setInterval(fetchStationList, 5000);
     fetchStationList()
     requestInterval = setInterval(async () => {
         if(stopped) return
+        const generation = requestGeneration
         try {
             const isRealtime = settingsStore.mainSettings.displaySeisNet.delay == 0
             const time = getTimeNumberString(9, -delay.value)
             const date = time.slice(0, 8)
             const res = await getData(`${seisNetUrls.nied.stationData}/${date}/${time}.json`)
-            if(stopped) return
+            if(stopped || generation != requestGeneration) return
             if(res?.status == 200) {
                 const data = res.data
                 if(data.realTimeData.siteConfigId == siteConfigId.value) {
+                    const frameTime = data.realTimeData.dataTime.slice(0, -6)
+                    const frameStamp = timeToStamp(frameTime, 9)
+                    if(!Number.isFinite(frameStamp)) return
+                    const isFirstFrameAfterTimelineSwitch = pendingTimelineSwitch
+                    if(!isFirstFrameAfterTimelineSwitch && latestFrameStamp !== null && frameStamp <= latestFrameStamp) return
+
                     stationData.value = data.realTimeData.intensity.split('')
-                    const timeDiff = calcTimeDiff(data.realTimeData.dataTime.slice(0, -6), 9, niedUpdateTime.value, 9)
+                    const timeDiff = latestFrameStamp === null || isFirstFrameAfterTimelineSwitch
+                        ? 0
+                        : frameStamp - latestFrameStamp
                     if(timeDiff > 1000) {
                         const popNum = Math.min(Math.round(timeDiff / 1000) - 1, 60)
                         const noDataArr = Array(popNum).fill(-1)
@@ -732,18 +753,20 @@ onMounted(()=>{
                             station.isActive = false
                         })
                     }
-                    if(delay.value > maxDelay && timeDiff <= -3000) {
+                    if(isFirstFrameAfterTimelineSwitch) {
                         stations.forEach(station => {
-                            station.level = -1
-                            station.recentLevel = []
+                            station.ascend = 0
+                            station.triggerStamp = 0
+                            station.activity = 0
                             station.isActive = false
+                            clearTimeout(station.activeTimer)
                         })
-                        clearAbnormalList()
+                        clearInferredHypocenters()
                     }
-                    if(delay.value > maxDelay && timeDiff <= -3000 || timeDiff > 0) {
-                        niedUpdateTime.value = data.realTimeData.dataTime.slice(0, -6).replace('T', ' ')
-                        update()
-                    }
+                    pendingTimelineSwitch = false
+                    latestFrameStamp = frameStamp
+                    niedUpdateTime.value = frameTime.replace('T', ' ')
+                    update()
                 }
                 else if(siteConfigId.value && isRealtime){
                     clearInterval(requestInterval)
@@ -771,7 +794,7 @@ onMounted(()=>{
     }, 500);
     document.addEventListener('visibilitychange', handleVisibilityChange)
 })
-let unwatchGrids, unwatchRender
+let unwatchGrids, unwatchRender, unwatchDelay
 watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
@@ -863,7 +886,8 @@ watch(currentMaxShindo, (newVal, oldVal)=>{
         focused = false
     }
 })
-watch(()=>settingsStore.mainSettings.displaySeisNet.delay, newVal=>{
+unwatchDelay = watch(()=>settingsStore.mainSettings.displaySeisNet.delay, (newVal, oldVal)=>{
+    if(oldVal !== undefined) scheduleTimelineSwitch()
     clearInterval(delayInterval)
     if(newVal > maxDelay / 60000){
         delay.value = newVal * 60000
@@ -878,6 +902,7 @@ watch(()=>settingsStore.mainSettings.displaySeisNet.delay, newVal=>{
 }, { immediate: true })
 onBeforeUnmount(()=>{
     stopped = true
+    requestGeneration++
     clearInterval(fetchStationInterval)
     clearInterval(requestInterval)
     clearInterval(delayInterval)
@@ -886,6 +911,7 @@ onBeforeUnmount(()=>{
     document.removeEventListener('visibilitychange', handleVisibilityChange)
     if(unwatchGrids) unwatchGrids()
     if(unwatchRender) unwatchRender()
+    if(unwatchDelay) unwatchDelay()
     if(map) {
         map.off('zoomend', renderAll)
         map.off('zoomend moveend', layoutInferredHypocenterLabels)

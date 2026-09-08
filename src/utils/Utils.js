@@ -392,6 +392,27 @@ export const getShindoFromLevel = level => {
   if (level == 20) return "7";
   return "?";
 };
+const palertPgaThresholds = [
+  0.10, 0.14, 0.18, 0.25, 0.33, 0.44, 0.59,
+  0.8, 1.4, 2.5, 4.4, 8, 14,
+];
+export const getPalertLevelFromPgaPgv = (pga, pgv) => {
+  if (!Number.isFinite(pga) || pga < 0) return -1;
+
+  if (pga < 25) {
+    let level = 0;
+    while (level < palertPgaThresholds.length && pga >= palertPgaThresholds[level]) level++;
+    return level;
+  }
+
+  const effectivePgv = Number.isFinite(pgv) && pgv >= 0 ? pgv : 0;
+  if (effectivePgv < 15) return pga < 44 ? 14 : 15;
+  if (effectivePgv < 30) return 16;
+  if (effectivePgv < 50) return 17;
+  if (effectivePgv < 80) return 18;
+  if (effectivePgv < 140) return 19;
+  return 20;
+};
 export const getShindoFromInstShindo = (instShindo, useSymbol = true) => {
   if (instShindo < -3.0) return "?";
   else if (instShindo < 0.5) return "0";

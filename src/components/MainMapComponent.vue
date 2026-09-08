@@ -168,24 +168,24 @@
                         </div>
                     </div>
                     <div class="event">
-                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.displayMaxInt && settingsStore.mainSettings.displaySeisNet.niedNet && settingsStore.mainSettings.displaySeisNet.displayNiedShindo">
-                            <div class="shindo-bar gray">NIED实时</div>
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.displayMaxInt && settingsStore.mainSettings.displaySeisNet.palertNet && settingsStore.mainSettings.displaySeisNet.displayPalertShindo && statusStore.isTauri">
+                            <div class="shindo-bar gray">P-Alert实时</div>
                             <div class="info">
-                                <div class="intensity" :class="setClassName(niedMaxShindo, true)">
+                                <div class="intensity" :class="setClassName(palertMaxShindo, true)">
                                     <div class="intensity-title">最大震度</div>
-                                    <div :class="niedMaxShindo != '?'?'shindo':'csis'">
-                                        {{ niedMaxShindo }}
+                                    <div :class="palertMaxShindo != '?'?'shindo':'csis'">
+                                        {{ palertMaxShindo }}
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.displayPeriodMaxInt && settingsStore.mainSettings.displaySeisNet.niedNet && settingsStore.mainSettings.displaySeisNet.displayNiedShindo && niedPeriodMaxShindo != '?'">
-                            <div class="shindo-bar" :class="niedPeriodBarClass">NIED区间</div>
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.displayPeriodMaxInt && settingsStore.mainSettings.displaySeisNet.palertNet && settingsStore.mainSettings.displaySeisNet.displayPalertShindo && palertPeriodMaxShindo != '?' && statusStore.isTauri">
+                            <div class="shindo-bar" :class="palertPeriodBarClass">P-Alert区间</div>
                             <div class="info">
-                                <div class="intensity" :class="setClassName(niedPeriodMaxShindo, true)">
+                                <div class="intensity" :class="setClassName(palertPeriodMaxShindo, true)">
                                     <div class="intensity-title">最大震度</div>
-                                    <div :class="niedPeriodMaxShindo != '?'?'shindo':'csis'">
-                                        {{ niedPeriodMaxShindo }}
+                                    <div :class="palertPeriodMaxShindo != '?'?'shindo':'csis'">
+                                        {{ palertPeriodMaxShindo }}
                                     </div>
                                 </div>
                             </div>
@@ -208,6 +208,28 @@
                                     <div class="intensity-title">最大震度</div>
                                     <div :class="tremPeriodMaxShindo != '?'?'shindo':'csis'">
                                         {{ tremPeriodMaxShindo }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.displayMaxInt && settingsStore.mainSettings.displaySeisNet.niedNet && settingsStore.mainSettings.displaySeisNet.displayNiedShindo">
+                            <div class="shindo-bar gray">NIED实时</div>
+                            <div class="info">
+                                <div class="intensity" :class="setClassName(niedMaxShindo, true)">
+                                    <div class="intensity-title">最大震度</div>
+                                    <div :class="niedMaxShindo != '?'?'shindo':'csis'">
+                                        {{ niedMaxShindo }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="eew realtime" v-if="settingsStore.mainSettings.displaySeisNet.displayPeriodMaxInt && settingsStore.mainSettings.displaySeisNet.niedNet && settingsStore.mainSettings.displaySeisNet.displayNiedShindo && niedPeriodMaxShindo != '?'">
+                            <div class="shindo-bar" :class="niedPeriodBarClass">NIED区间</div>
+                            <div class="info">
+                                <div class="intensity" :class="setClassName(niedPeriodMaxShindo, true)">
+                                    <div class="intensity-title">最大震度</div>
+                                    <div :class="niedPeriodMaxShindo != '?'?'shindo':'csis'">
+                                        {{ niedPeriodMaxShindo }}
                                     </div>
                                 </div>
                             </div>
@@ -268,11 +290,14 @@
                     <div class="update-time" v-if="settingsStore.mainSettings.displayClock" @dblclick="resetSeisNetDelay">
                         当前时间: {{ currentTimeText }} (UTC{{ formatTimeZone(systemTimeZone) }})
                     </div>
-                    <div class="update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isNiedDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.niedNet" @dblclick="resetSeisNetDelay">
-                        強震モニタ: {{ niedUpdateTime }} (UTC+9)
+                    <div class="update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isPalertDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.palertNet && statusStore.isTauri" @dblclick="resetSeisNetDelay">
+                        P-Alert: {{ palertUpdateTime }} (UTC+8)
                     </div>
                     <div class="update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isTremDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.tremNet" @dblclick="resetSeisNetDelay">
                         TREM-Net : {{ tremUpdateTime }} (UTC+8)
+                    </div>
+                    <div class="update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isNiedDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.niedNet" @dblclick="resetSeisNetDelay">
+                        強震モニタ: {{ niedUpdateTime }} (UTC+9)
                     </div>
                     <div class="update-time" :class="isKmaDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.kmaNet" @dblclick="resetSeisNetDelay">
                         KMA-PEWS: {{ kmaUpdateTime }} (UTC+9)
@@ -382,7 +407,7 @@ const timeStore = useTimeStore()
 const currentTimeText = computed(() => stampToTime(timeStore.currentTimeStamp, systemTimeZone))
 let map, jpEewBaseMap, krEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap, cnTsunamiBaseMap, labelLayer1, labelLayer2, terminatorLayer, terminatorFillLayer, cnFaultBaseMap
 let eewBaseGroup, tsunamiBaseGroup
-let eewMarkerPane, eqlistMarkerPane, eewReachPane, historyMarkerPane, wavePane, waveFillPane, niedGridPane, tremGridPane, kmaGridPane, eewBasePane, tsunamiBasePane, labelPane1, labelPane2
+let eewMarkerPane, eqlistMarkerPane, eewReachPane, historyMarkerPane, wavePane, waveFillPane, palertGridPane, tremGridPane, niedGridPane, kmaGridPane, eewBasePane, tsunamiBasePane, labelPane1, labelPane2
 let userMarker
 const defaultLatLng = [38.1, 104.6]
 const { isValidUserLatLng, isValidViewLatLng, isDisplayUser, nearestJmaLoc } = storeToRefs(settingsStore)
@@ -472,15 +497,15 @@ const fanStatusClass = computed(() => webSocketStatus.value.fan.readyState == 1 
     ? 'incomplete'
     : `s${webSocketStatus.value.fan.readyState}`
 )
-const niedUpdateTime = ref('1970-01-01 09:00:00')
-const niedMaxShindo = ref('?')
-const niedPeriodMaxShindo = ref('?')
-const niedPeriodBarClass = ref('gray')
-const isNiedDelayed = ref(true)
-provide('niedUpdateTime', niedUpdateTime)
-provide('niedMaxShindo', niedMaxShindo)
-provide('niedPeriodMaxShindo', niedPeriodMaxShindo)
-provide('niedPeriodBarClass', niedPeriodBarClass)
+const palertUpdateTime = ref('1970-01-01 08:00:00')
+const palertMaxShindo = ref('?')
+const palertPeriodMaxShindo = ref('?')
+const palertPeriodBarClass = ref('gray')
+const isPalertDelayed = ref(true)
+provide('palertUpdateTime', palertUpdateTime)
+provide('palertMaxShindo', palertMaxShindo)
+provide('palertPeriodMaxShindo', palertPeriodMaxShindo)
+provide('palertPeriodBarClass', palertPeriodBarClass)
 const tremUpdateTime = ref('1970-01-01 08:00:00')
 const tremMaxShindo = ref('?')
 const tremPeriodMaxShindo = ref('?')
@@ -490,6 +515,15 @@ provide('tremUpdateTime', tremUpdateTime)
 provide('tremMaxShindo', tremMaxShindo)
 provide('tremPeriodMaxShindo', tremPeriodMaxShindo)
 provide('tremPeriodBarClass', tremPeriodBarClass)
+const niedUpdateTime = ref('1970-01-01 09:00:00')
+const niedMaxShindo = ref('?')
+const niedPeriodMaxShindo = ref('?')
+const niedPeriodBarClass = ref('gray')
+const isNiedDelayed = ref(true)
+provide('niedUpdateTime', niedUpdateTime)
+provide('niedMaxShindo', niedMaxShindo)
+provide('niedPeriodMaxShindo', niedPeriodMaxShindo)
+provide('niedPeriodBarClass', niedPeriodBarClass)
 const kmaUpdateTime = ref('1970-01-01 09:00:00')
 const kmaMaxInt = ref('?')
 const kmaPeriodMaxInt = ref('?')
@@ -613,10 +647,12 @@ onMounted(()=>{
     tsunamiBasePane = map.getPane('tsunamiBasePane')
     tsunamiBasePane.style.zIndex = 40
     for(let i = -1; i <= 20; i++){
-        map.createPane(`niedStationPane${i}`)
-        map.getPane(`niedStationPane${i}`).style.zIndex = i + 50
+        map.createPane(`palertStationPane${i}`)
+        map.getPane(`palertStationPane${i}`).style.zIndex = i + 50
         map.createPane(`tremStationPane${i}`)
         map.getPane(`tremStationPane${i}`).style.zIndex = i + 50
+        map.createPane(`niedStationPane${i}`)
+        map.getPane(`niedStationPane${i}`).style.zIndex = i + 50
     }
     for(let i = -1; i <= 13; i++){
         map.createPane(`kmaStationPane${i}`)
@@ -630,12 +666,15 @@ onMounted(()=>{
     map.getPane('userPane').style.zIndex = 100
     map.createPane('terminatorPane')
     map.getPane('terminatorPane').style.zIndex = 130
-    map.createPane('niedGridPane')
-    niedGridPane = map.getPane('niedGridPane')
-    niedGridPane.style.zIndex = 140
+    map.createPane('palertGridPane')
+    palertGridPane = map.getPane('palertGridPane')
+    palertGridPane.style.zIndex = 140
     map.createPane('tremGridPane')
     tremGridPane = map.getPane('tremGridPane')
     tremGridPane.style.zIndex = 140
+    map.createPane('niedGridPane')
+    niedGridPane = map.getPane('niedGridPane')
+    niedGridPane.style.zIndex = 140
     map.createPane('kmaGridPane')
     kmaGridPane = map.getPane('kmaGridPane')
     kmaGridPane.style.zIndex = 140
@@ -1140,8 +1179,9 @@ watchEffect(() => {
     const menuOpac = menuId.value == 'eqlists' ? 0.3 : 1
     // 你不许使用可选链符号（不然报错）
     if(eewMarkerPane) eewMarkerPane.style.opacity = blinkOpac * menuOpac
-    if(niedGridPane) niedGridPane.style.opacity = blinkOpac * menuOpac * (settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid || !(statusStore.isActive.jmaEew || statusStore.isActive.niedInfHypo) ? 1 : 0)
+    if(palertGridPane) palertGridPane.style.opacity = blinkOpac * menuOpac * (!statusStore.isActive.cwaEew || settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid ? 1 : 0)
     if(tremGridPane) tremGridPane.style.opacity = blinkOpac * menuOpac * (!statusStore.isActive.cwaEew || settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid ? 1 : 0)
+    if(niedGridPane) niedGridPane.style.opacity = blinkOpac * menuOpac * (settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid || !(statusStore.isActive.jmaEew || statusStore.isActive.niedInfHypo) ? 1 : 0)
     if(kmaGridPane) kmaGridPane.style.opacity = blinkOpac * menuOpac * (!statusStore.isActive.kmaEew || settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid ? 1 : 0)
 })
 const intervalEvents = ()=>{
@@ -1149,8 +1189,9 @@ const intervalEvents = ()=>{
     tsunamiFlickerCounter = (tsunamiFlickerCounter + 1) % 6
     infoPageCounter.value = (infoPageCounter.value + 1) % 25200
     tsunamiBasePane.style.opacity = (tsunamiFlickerCounter ? 1 : 0) * (menuId.value == 'eews' ? 0.3 : 1)
-    isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
+    isPalertDelayed.value = !verifyUpToDate(palertUpdateTime.value, 8, 20000)
     isTremDelayed.value = !verifyUpToDate(tremUpdateTime.value, 8, 10000)
+    isNiedDelayed.value = !verifyUpToDate(niedUpdateTime.value, 9, 10000)
     isKmaDelayed.value = !verifyUpToDate(kmaUpdateTime.value, 9, 10000)
 }
 const setMapHeight = (height) => {
@@ -1228,8 +1269,9 @@ const setView = (force = false) => {
                         case 'eewMarkerPane':
                             shouldExtend = true
                             break
-                        case 'niedGridPane':
+                        case 'palertGridPane':
                         case 'tremGridPane':
+                        case 'niedGridPane':
                         case 'kmaGridPane':
                             if(layer.options.isGridCanvasLayer && layer.hasGrid?.()) {
                                 shouldExtend = true
@@ -1254,7 +1296,7 @@ const setView = (force = false) => {
                                 sWaveFill = event.sWaveFill
                             break
                         case 'cwaEew':
-                            if(!statusStore.isActive.tremNet)
+                            if(!(statusStore.isActive.tremNet || statusStore.isActive.palertNet))
                                 sWaveFill = event.sWaveFill
                             break
                         case 'kmaEew':

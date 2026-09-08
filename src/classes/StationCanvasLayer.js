@@ -94,10 +94,10 @@ export class StationCanvasLayer extends CanvasLayer {
     }
 }
 
-export class NiedStationCanvasLayer extends StationCanvasLayer {
+export class PalertStationCanvasLayer extends StationCanvasLayer {
     constructor(stations, options = {}) {
         super(stations, {
-            pane: 'niedStationPane0',
+            pane: 'palertStationPane0',
             ...options
         })
     }
@@ -107,6 +107,15 @@ export class TremStationCanvasLayer extends StationCanvasLayer {
     constructor(stations, options = {}) {
         super(stations, {
             pane: 'tremStationPane0',
+            ...options
+        })
+    }
+}
+
+export class NiedStationCanvasLayer extends StationCanvasLayer {
+    constructor(stations, options = {}) {
+        super(stations, {
+            pane: 'niedStationPane0',
             ...options
         })
     }

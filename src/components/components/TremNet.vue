@@ -10,7 +10,7 @@ import Http from '@/classes/Http';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { seisNetUrls, iconUrls } from '@/utils/Urls';
-import { playSound, sendMyNotification, calcTimeDiff, focusWindow, getShindoFromInstShindo, stampToTime, getShindoFromLevel, exactRound } from '@/utils/Utils';
+import { playSound, sendMyNotification, focusWindow, getShindoFromInstShindo, stampToTime, getShindoFromLevel, exactRound } from '@/utils/Utils';
 import 'leaflet/dist/leaflet.css';
 import { simpleIcon, TremStation } from '@/classes/StationClasses';
 import { TremStationCanvasLayer } from '@/classes/StationCanvasLayer';
@@ -30,6 +30,9 @@ let stationCanvasLayer = null
 let gridCanvasLayer = null
 let map
 let stopped = false
+let requestGeneration = 0
+let latestFrameStamp = null
+let pendingTimelineSwitch = false
 const delay = computed(()=>settingsStore.mainSettings.displaySeisNet.delay * 60000)
 const tremMaxShindo = inject('tremMaxShindo')
 const tremUpdateTime = inject('tremUpdateTime')
@@ -138,18 +141,23 @@ onMounted(()=>{
     fetchStationList()
     requestInterval = setInterval(async () => {
         if(stopped) return
+        const generation = requestGeneration
         try {
             const time = timeStore.getTimeStamp() - delay.value
             const res = await Http.get(stationDataUrl.value + (delay.value > 0 ? `/${Math.round(time / 1000)}` : `?time=${time}`), { timeout: 3000 })
-            if(stopped) return
+            if(stopped || generation != requestGeneration) return
             if(res && Object.keys(res).length > 0){
+                const frameStamp = Number(res.time)
+                if(!Number.isFinite(frameStamp)) return
+                const isFirstFrameAfterTimelineSwitch = pendingTimelineSwitch
+                if(!isFirstFrameAfterTimelineSwitch && latestFrameStamp !== null && frameStamp <= latestFrameStamp) return
+
+                pendingTimelineSwitch = false
+                latestFrameStamp = frameStamp
                 stationData = res.station
                 const timeString = stampToTime(res.time, 8)
-                const timeDiff = calcTimeDiff(timeString, 8, tremUpdateTime.value, 8)
-                if(delay.value > 0 && timeDiff < 0 || timeDiff > 0){
-                    tremUpdateTime.value = timeString
-                    update()
-                }
+                tremUpdateTime.value = timeString
+                update()
             }
         } catch (err) {
             console.log(err);
@@ -157,7 +165,11 @@ onMounted(()=>{
     }, 1000);
     document.addEventListener('visibilitychange', handleVisibilityChange)
 })
-let unwatchStationList, unwatchGrids, unwatchRender
+const scheduleTimelineSwitch = () => {
+    requestGeneration++
+    pendingTimelineSwitch = true
+}
+let unwatchStationList, unwatchGrids, unwatchRender, unwatchDelay
 watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
@@ -208,6 +220,7 @@ watch(()=>statusStore.map, newVal=>{
         )
     }
 }, { immediate: true })
+unwatchDelay = watch(delay, scheduleTimelineSwitch)
 watch(()=>(statusStore.isActive.cwaEew || statusStore.isActive.tremNet), newVal=>{
     if(newVal){
         if(periodMaxLevel == -1){
@@ -263,12 +276,14 @@ watch(currentMaxShindo, (newVal, oldVal)=>{
 const stationDataUrl = computed(() => delay.value > 0 ? seisNetUrls?.trem.stationData : seisNetUrls?.trem.stationData.replace(/api-\d/, settingsStore.mainSettings.displaySeisNet.tremApi))
 onBeforeUnmount(()=>{
     stopped = true
+    requestGeneration++
     clearInterval(fetchStationInterval)
     clearInterval(requestInterval)
     document.removeEventListener('visibilitychange', handleVisibilityChange)
     if(unwatchStationList) unwatchStationList()
     if(unwatchGrids) unwatchGrids()
     if(unwatchRender) unwatchRender()
+    if(unwatchDelay) unwatchDelay()
     if(map) {
         map.off('zoomend', renderAll)
         if(stationCanvasLayer && map.hasLayer(stationCanvasLayer)) map.removeLayer(stationCanvasLayer)

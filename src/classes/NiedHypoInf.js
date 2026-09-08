@@ -1368,13 +1368,45 @@ export class FindNiedHypocenter {
         picks
             .filter(pick => this.isPenaltyReferencePick(pick))
             .forEach(pick => referenceStationMap.set(pick.stationId, pick))
-        const referenceStations = [...referenceStationMap.values()]
-        if(referenceStations.length === 0) return null
-        const distances = referenceStations
+        const distances = [...referenceStationMap.values()]
             .map(station => this.getOptionCacheEntry(station, hypocenter, optionCache).distance)
+            .filter(distance => Number.isFinite(distance))
             .sort((a, b) => a - b)
+        if(distances.length === 0) {
+            const fallbackPick = this.selectFallbackPenaltyReferencePick(picks, hypocenter, optionCache)
+            if(!fallbackPick) return null
+            const fallbackDistance = this.getOptionCacheEntry(fallbackPick, hypocenter, optionCache).distance
+            return Number.isFinite(fallbackDistance) ? fallbackDistance : null
+        }
         const referenceIndex = Math.max(Math.floor(distances.length * 0.9) - 1, 0)
         return distances[referenceIndex]
+    }
+
+    selectFallbackPenaltyReferencePick(picks, hypocenter, optionCache) {
+        let nearestPick = null
+        let nearestDistance = Infinity
+        for(const pick of picks) {
+            const distance = this.getOptionCacheEntry(pick, hypocenter, optionCache).distance
+            if(Number.isFinite(distance) && distance < nearestDistance) {
+                nearestPick = pick
+                nearestDistance = distance
+            }
+        }
+        if(nearestPick) return nearestPick
+
+        let maxAscendPick = null
+        for(const pick of picks) {
+            if(!Number.isFinite(pick.maxAscend)) continue
+            if(!maxAscendPick || pick.maxAscend > maxAscendPick.maxAscend) maxAscendPick = pick
+        }
+        if(maxAscendPick) return maxAscendPick
+
+        let maxLevelPick = null
+        for(const pick of picks) {
+            if(!Number.isFinite(pick.maxLevel)) continue
+            if(!maxLevelPick || pick.maxLevel > maxLevelPick.maxLevel) maxLevelPick = pick
+        }
+        return maxLevelPick || picks[0] || null
     }
 
     getSortedInactiveStations(picks, hypocenter, optionCache) {

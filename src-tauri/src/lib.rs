@@ -1,3 +1,5 @@
+mod palert;
+
 use tauri::{
     menu::{CheckMenuItem, CheckMenuItemBuilder, MenuBuilder, MenuItemBuilder},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
@@ -51,6 +53,7 @@ pub fn run() {
     //     }
     // }
     tauri::Builder::default()
+        .manage(palert::PalertClient::new())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_os::init())
@@ -62,7 +65,11 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_window_state::Builder::new().build())
-        .invoke_handler(tauri::generate_handler![set_tray_game_mode])
+        .invoke_handler(tauri::generate_handler![
+            set_tray_game_mode,
+            palert::fetch_palert_realtime_data,
+            palert::fetch_palert_station_list
+        ])
         .setup(|app| {
             let app_version = app.package_info().version.to_string();
             let window_title = format!("要石 kanameishi v{}", app_version);

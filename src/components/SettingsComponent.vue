@@ -18,6 +18,57 @@
                 <div class="group">
                     <span class="font-bold w-full">数据源</span>
                     <div class="switch-group">
+                        <div class="w-full" v-if="isTauri">
+                            <div class="switch-full">
+                                <span>P-Alert・加速度/速度（台湾）</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.palertNet" />
+                            </div>
+                            <div class="switch-full pl-4">
+                                <span>转为震度阶</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayPalertShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.palertNet" />
+                            </div>
+                            <div class="switch-full pl-4">
+                                <span>震度保持</span>
+                                <el-select
+                                    v-model="settingsStore.mainSettings.displaySeisNet.palertLevelHold"
+                                    size="small"
+                                    :disabled="!settingsStore.mainSettings.displaySeisNet.palertNet"
+                                    style="width: 72px;"
+                                >
+                                    <el-option label="实时" :value="1" />
+                                    <el-option label="5秒" :value="5" />
+                                    <el-option label="10秒" :value="10" />
+                                    <el-option label="30秒" :value="30" />
+                                    <el-option label="60秒" :value="60" />
+                                </el-select>
+                            </div>
+                        </div>
+                        <div class="w-full" v-if="accessStore.canUse('tremFunctions')">
+                            <div class="switch-full">
+                                <span>TREM-Net・震度（台湾）</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.tremNet" />
+                            </div>
+                            <div class="switch-full pl-4">
+                                <span>解析震度阶</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayTremShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.tremNet" />
+                            </div>
+                            <div class="switch-full pl-4">
+                                <span>API</span>
+                                <el-select
+                                    v-model="settingsStore.mainSettings.displaySeisNet.tremApi"
+                                    size="small"
+                                    :disabled="!settingsStore.mainSettings.displaySeisNet.tremNet"
+                                    style="width: 72px;"
+                                >
+                                    <el-option label="api-1" value="api-1" />
+                                    <el-option label="api-2" value="api-2" />
+                                    <el-option label="lb-1" value="lb-1" />
+                                    <el-option label="lb-2" value="lb-2" />
+                                    <el-option label="lb-3" value="lb-3" />
+                                    <el-option label="lb-4" value="lb-4" />
+                                </el-select>
+                            </div>
+                        </div>
                         <div class="w-full">
                             <div class="switch-full">
                                 <span>強震モニタ・震度（日本）</span>
@@ -89,32 +140,6 @@
                                     <el-option label="关闭" :value="0" />
                                     <el-option label="打开" :value="1" />
                                     <el-option label="详细" :value="2" v-show="accessStore.canUse('advancedHypoInf')" />
-                                </el-select>
-                            </div>
-                        </div>
-                        <div class="w-full" v-if="accessStore.canUse('tremFunctions')">
-                            <div class="switch-full">
-                                <span>TREM-Net・震度（台湾）</span>
-                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.tremNet" />
-                            </div>
-                            <div class="switch-full pl-4">
-                                <span>解析震度阶</span>
-                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayTremShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.tremNet" />
-                            </div>
-                            <div class="switch-full pl-4">
-                                <span>API</span>
-                                <el-select 
-                                    v-model="settingsStore.mainSettings.displaySeisNet.tremApi"
-                                    size="small"
-                                    :disabled="!settingsStore.mainSettings.displaySeisNet.tremNet"
-                                    style="width: 72px;"
-                                >
-                                    <el-option label="api-1" value="api-1" />
-                                    <el-option label="api-2" value="api-2" />
-                                    <el-option label="lb-1" value="lb-1" />
-                                    <el-option label="lb-2" value="lb-2" />
-                                    <el-option label="lb-3" value="lb-3" />
-                                    <el-option label="lb-4" value="lb-4" />
                                 </el-select>
                             </div>
                         </div>
