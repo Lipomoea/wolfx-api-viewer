@@ -31,7 +31,8 @@ export class StationCanvasLayer extends CanvasLayer {
     }
 
     getStations() {
-        return Array.isArray(this.stations) ? this.stations : Object.values(this.stations || {})
+        const stations = typeof this.stations === 'function' ? this.stations() : this.stations
+        return Array.isArray(stations) ? stations : Object.values(stations || {})
     }
 
     getDrawOrder(info) {
@@ -94,21 +95,16 @@ export class StationCanvasLayer extends CanvasLayer {
     }
 }
 
-export class PalertStationCanvasLayer extends StationCanvasLayer {
+export class TaiwanStationCanvasLayer extends StationCanvasLayer {
     constructor(stations, options = {}) {
         super(stations, {
-            pane: 'palertStationPane0',
+            pane: 'taiwanStationPane',
             ...options
         })
     }
-}
 
-export class TremStationCanvasLayer extends StationCanvasLayer {
-    constructor(stations, options = {}) {
-        super(stations, {
-            pane: 'tremStationPane0',
-            ...options
-        })
+    getDrawOrder(info) {
+        return Number.isFinite(info.level) ? info.level : -1
     }
 }
 

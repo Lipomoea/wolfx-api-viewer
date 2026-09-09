@@ -5,16 +5,15 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, inject } from 'vue';
+import { reactive, computed, onMounted, onBeforeUnmount, watch, inject } from 'vue';
 import Http from '@/classes/Http';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { seisNetUrls, iconUrls } from '@/utils/Urls';
-import { playSound, sendMyNotification, focusWindow, getShindoFromInstShindo, stampToTime, getShindoFromLevel, exactRound } from '@/utils/Utils';
+import { playSound, sendMyNotification, focusWindow, getShindoFromInstShindo, stampToTime, getShindoFromLevel } from '@/utils/Utils';
 import 'leaflet/dist/leaflet.css';
 import { simpleIcon, TremStation } from '@/classes/StationClasses';
-import { TremStationCanvasLayer } from '@/classes/StationCanvasLayer';
-import { TremGridCanvasLayer } from '@/classes/GridCanvasLayer';
+import { TaiwanGridCanvasLayer } from '@/classes/GridCanvasLayer';
 import { useTimeStore } from '@/stores/time';
 
 const statusStore = useStatusStore()
@@ -26,8 +25,8 @@ Object.assign(seisNetUrls, JSON.parse(localStorage.getItem('tremUrl'))?.seisNetU
 const stationList = reactive({})
 let stationData
 const stations = reactive({})
-let stationCanvasLayer = null
-let gridCanvasLayer = null
+const taiwanSeisNetLayers = inject('taiwanSeisNetLayers')
+const unregisterSource = taiwanSeisNetLayers.registerSource('trem', stations, station => station.level)
 let map
 let stopped = false
 let requestGeneration = 0
@@ -39,7 +38,6 @@ const tremUpdateTime = inject('tremUpdateTime')
 const tremPeriodMaxShindo = inject('tremPeriodMaxShindo')
 const tremPeriodBarClass = inject('tremPeriodBarClass')
 const handleTempEqlists = inject('handleTempEqlists')
-const smartSetView = inject('smartSetView')
 let periodMaxLevel = -1
 const handleVisibilityChange = () => {
     if (document.visibilityState === 'visible' && pendingRender) {
@@ -48,7 +46,7 @@ const handleVisibilityChange = () => {
     }
 }
 const currentMaxShindo = computed(()=>{
-    const currentMaxLevel = Math.max(...grids.value.map(grid => grid.level), -1)
+    const currentMaxLevel = Math.max(...activeLevels.value, -1)
     if(currentMaxLevel == -1) return -1
     else if(currentMaxLevel <= 7) return 0
     else if(currentMaxLevel <= 9) return 1
@@ -59,65 +57,34 @@ const currentMaxShindo = computed(()=>{
     else if(currentMaxLevel <= 19) return 6
     else return 7
 })
-const activeStationIds = computed(() => Object.keys(stations).filter(id => stations[id].isActive))
-let decimal = [0, 0]
-const grids = computed(()=>{
-    const gridMap = {}
-    activeStationIds.value.forEach(id=>{
-        const latLng = stations[id].latLng.map((l, index) => Math.round(l - decimal[index]) + decimal[index])
-        const level = stations[id].level
-        const key = JSON.stringify(latLng)
-        if(key in gridMap){
-            if(level > gridMap[key].level) gridMap[key].level = level
-        }
-        else {
-            gridMap[key] = {
-                latLng,
-                level
-            }
-        }
-    })
-    return Object.values(gridMap)
-})
+const activeLevels = computed(() => Object.values(stations)
+    .filter(station => station.isActive)
+    .map(station => station.level))
 let pendingRender = false
 const update = ()=>{
     const render = document.visibilityState === 'visible'
     if(!render) pendingRender = true
     let maxInst = -3.1
-    let first = null
     Object.keys(stations).forEach(id=>{
         if(id in stationData){
             const alert = !!stationData[id].alert
             const intensity = alert ? stationData[id].I : stationData[id].i
             stations[id].update(intensity, alert, render)
-            if(alert && !statusStore.isActive.tremNet && (!first || intensity > first.intensity)) {
-                first = stations[id]
-            }
             if(intensity > maxInst) maxInst = intensity
         }
         else stations[id].update(-3.1, false)
     })
     if(render && useStationCanvasRenderer.value) renderAll()
-    if(first) decimal = first.latLng.map(val => exactRound((val + 180) % 1, 2))
     tremMaxShindo.value = getShindoFromInstShindo(maxInst)
 }
 const renderAll = ()=>{
     if(useStationCanvasRenderer.value) {
-        stationCanvasLayer?.redraw()
+        taiwanSeisNetLayers.redrawStations()
         return
     }
     Object.keys(stations).forEach(id=>{
         stations[id].render()
     })
-}
-const initStationCanvasLayer = () => {
-    if(!useStationCanvasRenderer.value) return
-    if(!map || stationCanvasLayer || Object.keys(stations).length === 0) return
-    stationCanvasLayer = new TremStationCanvasLayer(stations).addTo(map)
-}
-const initGridCanvasLayer = () => {
-    if(!map || gridCanvasLayer) return
-    gridCanvasLayer = new TremGridCanvasLayer(grids.value).addTo(map)
 }
 const clearReactiveObject = (obj) => {
     if(obj) for(let key in obj) delete obj[key]
@@ -169,12 +136,10 @@ const scheduleTimelineSwitch = () => {
     requestGeneration++
     pendingTimelineSwitch = true
 }
-let unwatchStationList, unwatchGrids, unwatchRender, unwatchDelay
+let unwatchStationList, unwatchActivity, unwatchRender, unwatchDelay
 watch(()=>statusStore.map, newVal=>{
     if(newVal !== null){
         map = newVal
-        initStationCanvasLayer()
-        initGridCanvasLayer()
         map.on('zoomend', renderAll)
         unwatchStationList = watch(stationList, newVal=>{
             if(Object.keys(newVal).length > 0){
@@ -182,32 +147,25 @@ watch(()=>statusStore.map, newVal=>{
                     stations[id].terminate()
                     delete stations[id]
                 })
-                map.eachLayer(layer=>{
-                    if(layer.options.pane?.includes('tremStationPane')){
-                        map.removeLayer(layer)
-                    }
-                })
                 Object.keys(newVal).forEach(id=>{
                     const info = newVal[id].info.slice(-1)[0]
                     const latLng = [info.lat, info.lon]
                     const station = reactive(new TremStation(map, id, latLng, -3.1, false, useStationCanvasRenderer.value))
                     stations[id] = station
                 })
-                initStationCanvasLayer()
                 renderAll()
             }
         }, { immediate: true })
-        unwatchGrids = watch(grids, (newVal)=>{
+        unwatchActivity = watch(activeLevels, (newVal)=>{
             let maxLevel = -1
-            gridCanvasLayer?.setGrids(newVal)
-            newVal.forEach(item => {
-                if(item.level > maxLevel) {
-                    maxLevel = item.level
+            newVal.forEach(level => {
+                if(level > maxLevel) {
+                    maxLevel = level
                 }
-                if(item.level > periodMaxLevel) periodMaxLevel = item.level
+                if(level > periodMaxLevel) periodMaxLevel = level
             })
             tremPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel)
-            tremPeriodBarClass.value = maxLevel >= 0 ? TremGridCanvasLayer.getGridColorByLevel(maxLevel) : 'gray'
+            tremPeriodBarClass.value = maxLevel >= 0 ? TaiwanGridCanvasLayer.getGridColorByLevel(maxLevel) : 'gray'
             statusStore.isActive.tremNet = newVal.length > 0
         }, { immediate: true })
         unwatchRender = watch(
@@ -233,7 +191,6 @@ watch(()=>(statusStore.isActive.cwaEew || statusStore.isActive.tremNet), newVal=
         tremPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel)
     }
 }, { immediate: true })
-watch(() => grids.value.length, () => smartSetView())
 let shake1Notified = false, shake2Notified = false
 let focused = false
 watch(currentMaxShindo, (newVal, oldVal)=>{
@@ -281,21 +238,13 @@ onBeforeUnmount(()=>{
     clearInterval(requestInterval)
     document.removeEventListener('visibilitychange', handleVisibilityChange)
     if(unwatchStationList) unwatchStationList()
-    if(unwatchGrids) unwatchGrids()
+    if(unwatchActivity) unwatchActivity()
     if(unwatchRender) unwatchRender()
     if(unwatchDelay) unwatchDelay()
     if(map) {
         map.off('zoomend', renderAll)
-        if(stationCanvasLayer && map.hasLayer(stationCanvasLayer)) map.removeLayer(stationCanvasLayer)
-        if(gridCanvasLayer && map.hasLayer(gridCanvasLayer)) map.removeLayer(gridCanvasLayer)
-        map.eachLayer(layer=>{
-            if(layer.options.pane == 'tremGridPane' || layer.options.pane?.includes('tremStationPane')){
-                map.removeLayer(layer)
-            }
-        })
     }
-    stationCanvasLayer = null
-    gridCanvasLayer = null
+    unregisterSource()
     Object.keys(stations).forEach(id=>{
         stations[id].terminate()
         delete stations[id]

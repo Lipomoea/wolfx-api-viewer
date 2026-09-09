@@ -10,11 +10,10 @@ import Palert from '@/classes/Palert';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { iconUrls } from '@/utils/Urls';
-import { calcDistanceKm, exactRound, focusWindow, getPalertLevelFromPgaPgv, getShindoFromLevel, playSound, sendMyNotification, stampToTime } from '@/utils/Utils';
+import { calcDistanceKm, focusWindow, getPalertLevelFromPgaPgv, getShindoFromLevel, playSound, sendMyNotification, stampToTime } from '@/utils/Utils';
 import 'leaflet/dist/leaflet.css';
 import { PalertStation, simpleIcon } from '@/classes/StationClasses';
-import { PalertStationCanvasLayer } from '@/classes/StationCanvasLayer';
-import { PalertGridCanvasLayer } from '@/classes/GridCanvasLayer';
+import { TaiwanGridCanvasLayer } from '@/classes/GridCanvasLayer';
 import { useTimeStore } from '@/stores/time';
 
 const statusStore = useStatusStore()
@@ -24,10 +23,10 @@ const useStationCanvasRenderer = computed(() => !settingsStore.advancedSettings.
 
 const stationList = reactive([])
 const stations = reactive({})
+const taiwanSeisNetLayers = inject('taiwanSeisNetLayers')
+const unregisterSource = taiwanSeisNetLayers.registerSource('palert', stations, station => station.holdLevel)
 let adjStationIds = {}
 let stationVersion = ''
-let stationCanvasLayer = null
-let gridCanvasLayer = null
 let map
 let stopped = false
 let requestGeneration = 0
@@ -39,10 +38,8 @@ const palertUpdateTime = inject('palertUpdateTime')
 const palertPeriodMaxShindo = inject('palertPeriodMaxShindo')
 const palertPeriodBarClass = inject('palertPeriodBarClass')
 const handleTempEqlists = inject('handleTempEqlists')
-const smartSetView = inject('smartSetView')
 let periodMaxLevel = -1
 let pendingRender = false
-let decimal = [0, 0]
 
 const handleVisibilityChange = () => {
     if(document.visibilityState === 'visible' && pendingRender) {
@@ -50,24 +47,11 @@ const handleVisibilityChange = () => {
         renderAll()
     }
 }
-const activeStationIds = computed(() => Object.keys(stations).filter(id => stations[id].isActive))
-const grids = computed(() => {
-    const gridMap = {}
-    activeStationIds.value.forEach(id => {
-        const latLng = stations[id].latLng.map((value, index) => Math.round(value - decimal[index]) + decimal[index])
-        const level = stations[id].holdLevel
-        const key = JSON.stringify(latLng)
-        if(key in gridMap) {
-            if(level > gridMap[key].level) gridMap[key].level = level
-        }
-        else {
-            gridMap[key] = { latLng, level }
-        }
-    })
-    return Object.values(gridMap)
-})
+const activeLevels = computed(() => Object.values(stations)
+    .filter(station => station.isActive)
+    .map(station => station.holdLevel))
 const currentMaxShindo = computed(() => {
-    const currentMaxLevel = Math.max(...grids.value.map(grid => grid.level), -1)
+    const currentMaxLevel = Math.max(...activeLevels.value, -1)
     if(currentMaxLevel == -1) return -1
     if(currentMaxLevel <= 7) return 0
     if(currentMaxLevel <= 9) return 1
@@ -160,12 +144,9 @@ const commitFrame = (frameStamp, pgaData, pgvData, generation) => {
     if(render && useStationCanvasRenderer.value) renderAll()
 
     const detectedStations = detectActiveStations()
-    let first = null
     detectedStations.forEach(station => {
         station.setActive()
-        if(!statusStore.isActive.palertNet && (!first || station.holdLevel > first.holdLevel)) first = station
     })
-    if(first) decimal = first.latLng.map(value => exactRound((value + 180) % 1, 2))
 }
 const fetchRealtimeData = async () => {
     if(stopped) return
@@ -250,19 +231,10 @@ const fetchStationList = async () => {
 }
 const renderAll = () => {
     if(useStationCanvasRenderer.value) {
-        stationCanvasLayer?.redraw()
+        taiwanSeisNetLayers.redrawStations()
         return
     }
     Object.values(stations).forEach(station => station.render())
-}
-const initStationCanvasLayer = () => {
-    if(!useStationCanvasRenderer.value) return
-    if(!map || stationCanvasLayer || Object.keys(stations).length === 0) return
-    stationCanvasLayer = new PalertStationCanvasLayer(stations).addTo(map)
-}
-const initGridCanvasLayer = () => {
-    if(!map || gridCanvasLayer) return
-    gridCanvasLayer = new PalertGridCanvasLayer(grids.value).addTo(map)
 }
 
 let fetchStationInterval, requestInterval
@@ -274,12 +246,10 @@ onMounted(() => {
     document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 
-let unwatchMap, unwatchStationList, unwatchGrids, unwatchRender, unwatchHold, unwatchDelay
+let unwatchMap, unwatchStationList, unwatchActivity, unwatchRender, unwatchHold, unwatchDelay
 unwatchMap = watch(() => statusStore.map, newVal => {
     if(newVal === null) return
     map = newVal
-    initStationCanvasLayer()
-    initGridCanvasLayer()
     map.on('zoomend', renderAll)
     unwatchStationList = watch(stationList, newVal => {
         if(newVal.length === 0) return
@@ -288,9 +258,6 @@ unwatchMap = watch(() => statusStore.map, newVal => {
         clearTimelineState(false)
         Object.values(stations).forEach(station => station.terminate())
         clearReactiveObject(stations)
-        map.eachLayer(layer => {
-            if(layer.options.pane?.includes('palertStationPane')) map.removeLayer(layer)
-        })
         newVal.forEach(info => {
             if(typeof info.station != 'string' || !Number.isFinite(info.lat) || !Number.isFinite(info.lon)) return
             stations[info.station] = reactive(new PalertStation(
@@ -301,18 +268,16 @@ unwatchMap = watch(() => statusStore.map, newVal => {
             ))
         })
         adjStationIds = buildAdjStationIds()
-        initStationCanvasLayer()
         renderAll()
     }, { immediate: true })
-    unwatchGrids = watch(grids, newVal => {
+    unwatchActivity = watch(activeLevels, newVal => {
         let maxLevel = -1
-        gridCanvasLayer?.setGrids(newVal)
-        newVal.forEach(item => {
-            if(item.level > maxLevel) maxLevel = item.level
-            if(item.level > periodMaxLevel) periodMaxLevel = item.level
+        newVal.forEach(level => {
+            if(level > maxLevel) maxLevel = level
+            if(level > periodMaxLevel) periodMaxLevel = level
         })
         palertPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel)
-        palertPeriodBarClass.value = maxLevel >= 0 ? PalertGridCanvasLayer.getGridColorByLevel(maxLevel) : 'gray'
+        palertPeriodBarClass.value = maxLevel >= 0 ? TaiwanGridCanvasLayer.getGridColorByLevel(maxLevel) : 'gray'
         statusStore.isActive.palertNet = newVal.length > 0
     }, { immediate: true })
     unwatchRender = watch(
@@ -343,7 +308,6 @@ watch(() => statusStore.isActive.cwaEew || statusStore.isActive.palertNet, newVa
         palertPeriodMaxShindo.value = getShindoFromLevel(periodMaxLevel)
     }
 }, { immediate: true })
-watch(() => grids.value.length, () => smartSetView())
 
 let shake1Notified = false, shake2Notified = false
 let focused = false
@@ -382,22 +346,14 @@ onBeforeUnmount(() => {
     document.removeEventListener('visibilitychange', handleVisibilityChange)
     if(unwatchMap) unwatchMap()
     if(unwatchStationList) unwatchStationList()
-    if(unwatchGrids) unwatchGrids()
+    if(unwatchActivity) unwatchActivity()
     if(unwatchRender) unwatchRender()
     if(unwatchHold) unwatchHold()
     if(unwatchDelay) unwatchDelay()
     if(map) {
         map.off('zoomend', renderAll)
-        if(stationCanvasLayer && map.hasLayer(stationCanvasLayer)) map.removeLayer(stationCanvasLayer)
-        if(gridCanvasLayer && map.hasLayer(gridCanvasLayer)) map.removeLayer(gridCanvasLayer)
-        map.eachLayer(layer => {
-            if(layer.options.pane == 'palertGridPane' || layer.options.pane?.includes('palertStationPane')) {
-                map.removeLayer(layer)
-            }
-        })
     }
-    stationCanvasLayer = null
-    gridCanvasLayer = null
+    unregisterSource()
     Object.values(stations).forEach(station => station.terminate())
     clearReactiveObject(stations)
     palertUpdateTime.value = '1970-01-01 08:00:00'

@@ -251,6 +251,12 @@ const getKmaMarkerType = (holdLevel, zoom) => {
 }
 
 export class PalertStation {
+    static #pgaActivityRules = [
+        { multiple: 6, activity: 2 },
+        { multiple: 3, activity: 1 },
+        { multiple: 2, activity: 0.5 },
+    ]
+
     constructor(map, id, latLng, useCanvasLayer = false){
         if(!settingsStore) settingsStore = useSettingsStore()
         this.map = markRaw(map)
@@ -285,9 +291,10 @@ export class PalertStation {
         this.updateHoldLevel(render)
     }
     calcActivity(){
-        let activity = this.level >= 10 ? 2 : this.level >= 8 ? 1 : 0
-        const recentPga = this.recentData
-            .slice(0, 12)
+        const recentData = this.recentData.slice(0, 12)
+        const maxLevel = Math.max(...recentData.map(data => data.level), -1)
+        let activity = maxLevel >= 10 ? 2 : maxLevel >= 8 ? 1 : 0
+        const recentPga = recentData
             .map(data => data.pga)
             .filter(pga => Number.isFinite(pga) && pga >= 0)
         const backgroundPga = this.recentData
@@ -297,8 +304,12 @@ export class PalertStation {
         if(recentPga.length === 0 || backgroundPga.length < 24) return activity
 
         const backgroundAverage = backgroundPga.reduce((sum, pga) => sum + pga, 0) / backgroundPga.length
-        if(Number.isFinite(backgroundAverage) && backgroundAverage > 0 && Math.max(...recentPga) > backgroundAverage * 3) {
-            activity = Math.max(activity, 1)
+        if(Number.isFinite(backgroundAverage) && backgroundAverage > 0) {
+            const maxPga = Math.max(...recentPga)
+            const pgaActivity = PalertStation.#pgaActivityRules.find(
+                rule => maxPga >= backgroundAverage * rule.multiple
+            )?.activity ?? 0
+            activity = Math.max(activity, pgaActivity)
         }
         return activity
     }

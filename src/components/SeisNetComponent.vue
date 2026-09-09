@@ -8,6 +8,8 @@
 </template>
 
 <script setup>
+import { computed, inject, onBeforeUnmount, provide, watch } from 'vue';
+import { TaiwanSeisNetLayers } from '@/classes/TaiwanSeisNetLayers';
 import { useSettingsStore } from '@/stores/settings';
 import { useAccessStore } from '@/stores/access';
 import { useStatusStore } from '@/stores/status';
@@ -19,6 +21,14 @@ import KmaNet from './components/KmaNet.vue';
 const settingsStore = useSettingsStore()
 const accessStore = useAccessStore()
 const statusStore = useStatusStore()
+const useStationCanvasRenderer = computed(() => !settingsStore.advancedSettings.fallbackSvgStationRender)
+const taiwanSeisNetLayers = new TaiwanSeisNetLayers(useStationCanvasRenderer, inject('smartSetView'))
+provide('taiwanSeisNetLayers', taiwanSeisNetLayers)
+const unwatchMap = watch(() => statusStore.map, map => taiwanSeisNetLayers.setMap(map), { immediate: true })
+onBeforeUnmount(() => {
+    unwatchMap()
+    taiwanSeisNetLayers.dispose()
+})
 </script>
 
 <style lang="scss" scoped>

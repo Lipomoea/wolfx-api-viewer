@@ -119,37 +119,20 @@ export class GridCanvasLayer extends CanvasLayer {
     }
 }
 
-export class PalertGridCanvasLayer extends GridCanvasLayer {
+export class TaiwanGridCanvasLayer extends GridCanvasLayer {
     static getGridColorByLevel(level) {
         return level <= 7 ? 'green' : level <= 13 ? 'yellow' : 'red'
     }
 
     constructor(grids = {}, options = {}) {
         super(grids, {
-            pane: 'palertGridPane',
+            pane: 'taiwanGridPane',
             ...options
         })
     }
 
     getGridColor(grid) {
-        return PalertGridCanvasLayer.getGridColorByLevel(grid.level)
-    }
-}
-
-export class TremGridCanvasLayer extends GridCanvasLayer {
-    static getGridColorByLevel(level) {
-        return level <= 7 ? 'green' : level <= 13 ? 'yellow' : 'red'
-    }
-
-    constructor(grids = {}, options = {}) {
-        super(grids, {
-            pane: 'tremGridPane',
-            ...options
-        })
-    }
-
-    getGridColor(grid) {
-        return TremGridCanvasLayer.getGridColorByLevel(grid.level)
+        return TaiwanGridCanvasLayer.getGridColorByLevel(grid.level)
     }
 }
 

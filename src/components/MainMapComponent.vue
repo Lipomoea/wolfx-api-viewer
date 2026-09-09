@@ -407,7 +407,7 @@ const timeStore = useTimeStore()
 const currentTimeText = computed(() => stampToTime(timeStore.currentTimeStamp, systemTimeZone))
 let map, jpEewBaseMap, krEewBaseMap, cnEewBaseMap, jpTsunamiBaseMap, cnTsunamiBaseMap, labelLayer1, labelLayer2, terminatorLayer, terminatorFillLayer, cnFaultBaseMap
 let eewBaseGroup, tsunamiBaseGroup
-let eewMarkerPane, eqlistMarkerPane, eewReachPane, historyMarkerPane, wavePane, waveFillPane, palertGridPane, tremGridPane, niedGridPane, kmaGridPane, eewBasePane, tsunamiBasePane, labelPane1, labelPane2
+let eewMarkerPane, eqlistMarkerPane, eewReachPane, historyMarkerPane, wavePane, waveFillPane, taiwanGridPane, niedGridPane, kmaGridPane, eewBasePane, tsunamiBasePane, labelPane1, labelPane2
 let userMarker
 const defaultLatLng = [38.1, 104.6]
 const { isValidUserLatLng, isValidViewLatLng, isDisplayUser, nearestJmaLoc } = storeToRefs(settingsStore)
@@ -646,6 +646,8 @@ onMounted(()=>{
     map.createPane('tsunamiBasePane')
     tsunamiBasePane = map.getPane('tsunamiBasePane')
     tsunamiBasePane.style.zIndex = 40
+    map.createPane('taiwanStationPane')
+    map.getPane('taiwanStationPane').style.zIndex = 50
     for(let i = -1; i <= 20; i++){
         map.createPane(`palertStationPane${i}`)
         map.getPane(`palertStationPane${i}`).style.zIndex = i + 50
@@ -666,12 +668,9 @@ onMounted(()=>{
     map.getPane('userPane').style.zIndex = 100
     map.createPane('terminatorPane')
     map.getPane('terminatorPane').style.zIndex = 130
-    map.createPane('palertGridPane')
-    palertGridPane = map.getPane('palertGridPane')
-    palertGridPane.style.zIndex = 140
-    map.createPane('tremGridPane')
-    tremGridPane = map.getPane('tremGridPane')
-    tremGridPane.style.zIndex = 140
+    map.createPane('taiwanGridPane')
+    taiwanGridPane = map.getPane('taiwanGridPane')
+    taiwanGridPane.style.zIndex = 140
     map.createPane('niedGridPane')
     niedGridPane = map.getPane('niedGridPane')
     niedGridPane.style.zIndex = 140
@@ -1179,8 +1178,7 @@ watchEffect(() => {
     const menuOpac = menuId.value == 'eqlists' ? 0.3 : 1
     // 你不许使用可选链符号（不然报错）
     if(eewMarkerPane) eewMarkerPane.style.opacity = blinkOpac * menuOpac
-    if(palertGridPane) palertGridPane.style.opacity = blinkOpac * menuOpac * (!statusStore.isActive.cwaEew || settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid ? 1 : 0)
-    if(tremGridPane) tremGridPane.style.opacity = blinkOpac * menuOpac * (!statusStore.isActive.cwaEew || settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid ? 1 : 0)
+    if(taiwanGridPane) taiwanGridPane.style.opacity = blinkOpac * menuOpac * (!statusStore.isActive.cwaEew || settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid ? 1 : 0)
     if(niedGridPane) niedGridPane.style.opacity = blinkOpac * menuOpac * (settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid || !(statusStore.isActive.jmaEew || statusStore.isActive.niedInfHypo) ? 1 : 0)
     if(kmaGridPane) kmaGridPane.style.opacity = blinkOpac * menuOpac * (!statusStore.isActive.kmaEew || settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid ? 1 : 0)
 })
@@ -1269,8 +1267,7 @@ const setView = (force = false) => {
                         case 'eewMarkerPane':
                             shouldExtend = true
                             break
-                        case 'palertGridPane':
-                        case 'tremGridPane':
+                        case 'taiwanGridPane':
                         case 'niedGridPane':
                         case 'kmaGridPane':
                             if(layer.options.isGridCanvasLayer && layer.hasGrid?.()) {
