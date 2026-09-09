@@ -81,25 +81,11 @@ const parseResponse = (response, allowEmpty = false) => {
     if(!Number.isFinite(timestamp)) throw new Error('P-Alert response has an invalid timestamp')
     return { dataVals: response.dataVals, timestamp }
 }
-const detectActiveStations = () => {
-    const seedStations = new Set()
-    Object.values(stations).forEach(station => {
-        const nearbyStations = (adjStationIds[station.id] ?? [])
-            .map(id => stations[id])
-            .filter(Boolean)
-        const activitySum = nearbyStations.reduce((sum, nearbyStation) => sum + nearbyStation.activity, 0)
-        if(activitySum < Math.max(nearbyStations.length * 0.1, 3)) return
-        nearbyStations.forEach(nearbyStation => {
-            if(nearbyStation.activity > 0) seedStations.add(nearbyStation)
-        })
-    })
-
-    const activeStations = new Set()
-    const pendingStations = new Set(seedStations)
+const chainActivate = (seedStation, activeStations) => {
+    const pendingStations = new Set([seedStation])
     while(pendingStations.size > 0) {
         const currentStation = pendingStations.values().next().value
         pendingStations.delete(currentStation)
-        if(activeStations.has(currentStation)) continue
         activeStations.add(currentStation)
         const nearbyIds = adjStationIds[currentStation.id] ?? []
         nearbyIds.forEach(id => {
@@ -107,6 +93,34 @@ const detectActiveStations = () => {
             if(neighbor?.activity > 0 && !activeStations.has(neighbor)) pendingStations.add(neighbor)
         })
     }
+}
+const detectActiveStations = () => {
+    const possibleStations = Object.values(stations).filter(station => station.activity > 0)
+    const activeStations = new Set()
+    possibleStations.forEach(station => {
+        if(!activeStations.has(station)) {
+            if(station.isActive) {
+                chainActivate(station, activeStations)
+            }
+            else {
+                const nearbyStations = (adjStationIds[station.id] ?? [])
+                    .map(id => stations[id])
+                    .filter(Boolean)
+                const activeStationCount = nearbyStations.filter(nearbyStation => nearbyStation.activity > 0).length
+                const activitySum = nearbyStations.reduce((sum, nearbyStation) => sum + nearbyStation.activity, 0)
+                if(
+                    // activeStationCount >= Math.max(nearbyStations.length * 0.1, 2) &&
+                    activitySum >= Math.max(nearbyStations.length * 0.1, 3)
+                ) {
+                    console.log(nearbyStations.map(station => {
+                        const { activity, recentData } = station
+                        return { activity, recentData: [...recentData] }
+                    }))
+                    chainActivate(station, activeStations)
+                }
+            }
+        }
+    })
     return activeStations
 }
 const updateMaxShindo = () => {

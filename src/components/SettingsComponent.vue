@@ -20,15 +20,15 @@
                     <div class="switch-group">
                         <div class="w-full" v-if="isTauri">
                             <div class="switch-full">
-                                <span>P-Alert・加速度/速度（台湾）</span>
+                                <span>P-Alert・中央气象署震度（台湾）</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.palertNet" />
                             </div>
                             <div class="switch-full pl-4">
-                                <span>转为震度阶</span>
+                                <span>显示震度阶</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayPalertShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.palertNet" />
                             </div>
                             <div class="switch-full pl-4">
-                                <span>震度保持</span>
+                                <span>震度显示保持</span>
                                 <el-select
                                     v-model="settingsStore.mainSettings.displaySeisNet.palertLevelHold"
                                     size="small"
@@ -45,11 +45,11 @@
                         </div>
                         <div class="w-full" v-if="accessStore.canUse('tremFunctions')">
                             <div class="switch-full">
-                                <span>TREM-Net・震度（台湾）</span>
+                                <span>TREM-Net・中央气象署震度（台湾）</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.tremNet" />
                             </div>
                             <div class="switch-full pl-4">
-                                <span>解析震度阶</span>
+                                <span>显示震度阶</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayTremShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.tremNet" />
                             </div>
                             <div class="switch-full pl-4">
@@ -71,11 +71,11 @@
                         </div>
                         <div class="w-full">
                             <div class="switch-full">
-                                <span>強震モニタ・震度（日本）</span>
+                                <span>強震モニタ・日本气象厅震度（日本）</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.niedNet" :disabled="statusStore.isNiedUpdating" />
                             </div>
                             <div class="switch-full pl-4">
-                                <span>解析震度阶</span>
+                                <span>显示震度阶</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayNiedShindo" :disabled="!settingsStore.mainSettings.displaySeisNet.niedNet" />
                             </div>
                             <div class="switch-full pl-4">
@@ -145,11 +145,11 @@
                         </div>
                         <div class="w-full">
                             <div class="switch-full">
-                                <span>KMA-PEWS・加速度（韩国）</span>
+                                <span>KMA-PEWS・修正麦加利烈度（韩国）</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.kmaNet" />
                             </div>
                             <div class="switch-full pl-4">
-                                <span>转换为烈度（MMI）</span>
+                                <span>显示烈度阶</span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.displayKmaInt" :disabled="!settingsStore.mainSettings.displaySeisNet.kmaNet" />
                             </div>
                             <div class="switch-full pl-4">
@@ -179,7 +179,7 @@
                                 </el-select>
                             </div>
                             <div class="switch-full pl-4">
-                                <span>加速度保持</span>
+                                <span>烈度显示保持</span>
                                 <el-select 
                                     v-model="settingsStore.mainSettings.displaySeisNet.kmaIntHold"
                                     size="small"
