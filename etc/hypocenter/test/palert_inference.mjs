@@ -137,7 +137,8 @@ const requestProbe = name => {
     const pending = []
     const request = (...args) => new Promise((resolve, reject) => pending.push({ args, resolve, reject }))
     const probe = new Function('StationFrameQueue', 'request', 'timeToStamp', 'stampToTime', 'console', `
-        const settingsStore = { mainSettings: { displaySeisNet: { httpDataPriority: 'complete', delay: 0 } } };
+        const settingsStore = { mainSettings: { displaySeisNet: { httpDataPriority: 'complete' } } };
+        const statusStore = { seisNetReplayDelay: 0 };
         let stopped = false, requestGeneration = 0, latestFrameStamp = null, pendingTimelineSwitch = false;
         let now = 1788880000000, poll, interval, requestInterval, modeChanged;
         const committed = [], delay = { value: 0 }, maxDelay = 3000, timeStore = { getTimeStamp: () => now };
@@ -1265,6 +1266,42 @@ delete globalThis.__niedClientDeps
 console.log('PASS NIED Worker update queue, reset reuse, stale results/errors, error cleanup and restart')
 
 const { reactive, ref, computed, watch, nextTick, effectScope } = require('vue')
+
+// Verify all three production delay bindings react to the shared runtime state and map reset.
+for(const name of ['Palert', 'Nied', 'Trem']) {
+    const source = name === 'Palert' ? componentSource : name === 'Nied' ? niedComponentSource : tremComponentSource
+    const statusStore = reactive({ seisNetReplayDelay: 0 })
+    const scope = effectScope()
+    let switches = 0
+    try {
+        const delay = scope.run(() => new Function('statusStore', 'ref', 'computed', 'watch', 'scheduleTimelineSwitch', `
+            let unwatchDelay, delayInterval;
+            const setInterval = () => 1, clearInterval = () => {};
+            ${name === 'Nied'
+                ? section(source, 'const defaultDelay =', 'const niedMaxShindo =') +
+                    section(source, 'unwatchDelay = watch(', 'watch(() => settingsStore.mainSettings.displaySeisNet.httpDataPriority')
+                : section(source, 'const delay = computed', '\n') + '\n' +
+                    section(source, 'unwatchDelay = watch(delay, scheduleTimelineSwitch)', '\n')}
+            return delay;
+        `)(statusStore, ref, computed, watch, () => switches++))
+        const realtimeDelay = delay.value
+        statusStore.seisNetReplayDelay = 2.5
+        await nextTick()
+        assert.equal(delay.value, 150000, `${name} converts runtime replay minutes to milliseconds`)
+        assert.equal(switches, 1, `${name} switches its timeline on replay changes`)
+        const reset = new Function('statusStore', section(read('src/components/MainMapComponent.vue'),
+            'const resetSeisNetDelay =', 'const tempEqlists =') + '\nreturn resetSeisNetDelay;')(statusStore)
+        reset()
+        await nextTick()
+        assert.equal(statusStore.seisNetReplayDelay, 0)
+        assert.equal(delay.value, realtimeDelay, `${name} returns to its original realtime delay`)
+        assert.equal(switches, 2, `${name} switches its timeline on map reset`)
+    }
+    finally {
+        scope.stop()
+    }
+}
+console.log('PASS NIED/P-Alert/TREM runtime replay bindings, minute conversion, timeline switching and map reset')
 // Run the production reminder computation and watcher without producing real sounds or notifications.
 const alertStations = reactive({
     active: new PalertStation(null, 'active', [24, 121], true),
@@ -1718,10 +1755,10 @@ console.log('PASS NIED Worker reinitialization, pending-update cancellation, gen
 
 // Test the actual settings actions/getter with an isolated capability store.
 globalThis.__palertSettingsDeps = {
-    merge: createRequire(import.meta.url)('lodash/merge'),
     capabilities: new Set(['iclEew', 'gqEew', 'tremFunctions'])
 }
-const settingsSource = `const { merge, capabilities } = globalThis.__palertSettingsDeps;
+const settingsSource = `import { parseSettings, restoreSettings } from '@/utils/SettingsRestore';
+const { capabilities } = globalThis.__palertSettingsDeps;
 const defineStore = (id, options) => options;
 const createDefaultDataSources = () => ({});
 const useAccessStore = () => ({ canUse: name => capabilities.has(name) });

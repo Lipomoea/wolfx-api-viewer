@@ -290,13 +290,13 @@
                     <div class="update-time" v-if="settingsStore.mainSettings.displayClock" @dblclick="resetSeisNetDelay">
                         当前时间: {{ currentTimeText }} (UTC{{ formatTimeZone(systemTimeZone) }})
                     </div>
-                    <div class="update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isPalertDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.palertNet && statusStore.isTauri" @dblclick="resetSeisNetDelay">
+                    <div class="update-time" :class="statusStore.seisNetReplayDelay > 0 ? 'replay' : isPalertDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.palertNet && statusStore.isTauri" @dblclick="resetSeisNetDelay">
                         P-Alert: {{ palertUpdateTime }} (UTC+8)
                     </div>
-                    <div class="update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isTremDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.tremNet" @dblclick="resetSeisNetDelay">
+                    <div class="update-time" :class="statusStore.seisNetReplayDelay > 0 ? 'replay' : isTremDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.tremNet" @dblclick="resetSeisNetDelay">
                         TREM-Net : {{ tremUpdateTime }} (UTC+8)
                     </div>
-                    <div class="update-time" :class="settingsStore.mainSettings.displaySeisNet.delay > 0 ? 'replay' : isNiedDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.niedNet" @dblclick="resetSeisNetDelay">
+                    <div class="update-time" :class="statusStore.seisNetReplayDelay > 0 ? 'replay' : isNiedDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.niedNet" @dblclick="resetSeisNetDelay">
                         強震モニタ: {{ niedUpdateTime }} (UTC+9)
                     </div>
                     <div class="update-time" :class="isKmaDelayed ? 'delayed' : ''" v-if="settingsStore.mainSettings.displaySeisNet.kmaNet" @dblclick="resetSeisNetDelay">
@@ -414,7 +414,7 @@ const { isValidUserLatLng, isValidViewLatLng, isDisplayUser, nearestJmaLoc } = s
 const userLatLng = computed(() => settingsStore.mainSettings.userLatLng)
 const viewLatLng = computed(() => settingsStore.mainSettings.viewLatLng)
 const zoomLevel = ref(settingsStore.mainSettings.defaultZoom)
-const resetSeisNetDelay = () => settingsStore.mainSettings.displaySeisNet.delay = 0
+const resetSeisNetDelay = () => statusStore.seisNetReplayDelay = 0
 const tempEqlists = ref('')
 let tempEqlistsTimer
 const handleTempEqlists = (time, source = '') => {

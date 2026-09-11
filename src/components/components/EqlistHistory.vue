@@ -81,7 +81,7 @@ const eqlists = computed(() => sorted.value.filter(item => (settingsStore.mainSe
 onBeforeUnmount(() => {
     stopReplay()
 })
-watch(() => settingsStore.mainSettings.displaySeisNet.delay, newVal => {
+watch(() => statusStore.seisNetReplayDelay, newVal => {
     if(replayState.itemId == null) return
     if(Number(newVal) == 0) {
         stopReplay(false)
@@ -102,7 +102,7 @@ const toggleReplay = (item) => {
 }
 const startReplay = (item) => {
     const passedTime = exactRound(Math.max(calcPassedTime(item.originTime, item.timeZone) / 60000 + replayLeadSeconds / 60, 0), 2)
-    settingsStore.mainSettings.displaySeisNet.delay = passedTime
+    statusStore.seisNetReplayDelay = passedTime
     replayState.itemId = item.id
     if (settingsStore.advancedSettings.mockOnReplay && settingsStore.advancedSettings.mockEew) {
         createMockEew(item)
@@ -145,7 +145,7 @@ const stopReplay = (resetDelay = true) => {
     }
     resetReplayState()
     if(resetDelay) {
-        settingsStore.mainSettings.displaySeisNet.delay = 0
+        statusStore.seisNetReplayDelay = 0
     }
 }
 const handleCopy = async (item) => {

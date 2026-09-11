@@ -60,7 +60,7 @@ const frameQueue = new StationFrameQueue(
     frame => commitFrame(frame.timestamp, frame.pgaData, frame.pgvData, frame.generation),
     () => settingsStore.mainSettings.displaySeisNet.httpDataPriority === 'complete'
 )
-const delay = computed(() => settingsStore.mainSettings.displaySeisNet.delay * 60000)
+const delay = computed(() => statusStore.seisNetReplayDelay * 60000)
 const palertMaxShindo = inject('palertMaxShindo')
 const palertUpdateTime = inject('palertUpdateTime')
 const palertPeriodMaxShindo = inject('palertPeriodMaxShindo')

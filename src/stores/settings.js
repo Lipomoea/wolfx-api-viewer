@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia';
-import merge from 'lodash/merge';
 import { jmaSeisIntLoc } from '@/utils/JmaSeisIntLoc';
 import { calcDistanceKm } from '@/utils/Utils';
-import { createDefaultDataSources, dataSourceCatalog, migrateLegacyDataSources } from '@/utils/DataSources';
-import { legacyAccessSettingKeys, useAccessStore } from './access';
+import { createDefaultDataSources, dataSourceCatalog } from '@/utils/DataSources';
+import { useAccessStore } from './access';
+import { parseSettings, restoreSettings } from '@/utils/SettingsRestore';
 
-export const useSettingsStore = defineStore('settingsStore', {
-    state: ()=>({
+const createDefaultSettings = () => {
+    return {
         mainSettings: {
             dataSources: createDefaultDataSources(),
             provinceCeaEew: false,
@@ -20,7 +20,6 @@ export const useSettingsStore = defineStore('settingsStore', {
                 alwaysDisplayGrid: false,
                 displayMaxInt: false,
                 displayPeriodMaxInt: false,
-                delay: 0,
                 httpDataPriority: 'realtime',
                 palertNet: false,
                 palertLevelHold: 1,
@@ -132,7 +131,21 @@ export const useSettingsStore = defineStore('settingsStore', {
             mockOnReplay: false,
             fallbackSvgStationRender: false
         }
-    }),
+    }
+}
+
+const restoreCoordinates = (value, fallback) => Array.isArray(value) && value.length === 2 && value.every(Number.isFinite)
+    ? value.slice() : fallback.slice()
+
+const mainSettingsArrayReaders = {
+    historySources: (value, fallback) => Array.isArray(value)
+        ? value.filter(source => fallback.includes(source)) : fallback.slice(),
+    userLatLng: restoreCoordinates,
+    viewLatLng: restoreCoordinates,
+}
+
+export const useSettingsStore = defineStore('settingsStore', {
+    state: createDefaultSettings,
     getters: {
         isValidUserLatLng: (state) => state.mainSettings.userLatLng.every(item => item || item === 0) && !state.mainSettings.userLatLng.every(item => item === 0),
         isValidViewLatLng: (state) => state.mainSettings.viewLatLng.every(item => item || item === 0) && !state.mainSettings.viewLatLng.every(item => item === 0),
@@ -233,50 +246,15 @@ export const useSettingsStore = defineStore('settingsStore', {
             })
         },
         setMainSettings(jsonString){
-            if(jsonString){
-                const json = JSON.parse(jsonString)
-                if(!json.dataSources && json.source) {
-                    json.dataSources = migrateLegacyDataSources(json.source)
-                }
-                delete json.dataSources?.cwaEqlist?.trem
-                delete json.dataSources?.iclEew?.lipo
-                delete json.source
-                if(json.historySources) this.mainSettings.historySources = []
-                merge(this.mainSettings, json)
-                if(!['realtime', 'complete'].includes(this.mainSettings.displaySeisNet.httpDataPriority)) {
-                    this.mainSettings.displaySeisNet.httpDataPriority = 'realtime'
-                }
+            const json = parseSettings(jsonString)
+            this.mainSettings = restoreSettings(createDefaultSettings().mainSettings, json, mainSettingsArrayReaders)
+            if(!['realtime', 'complete'].includes(this.mainSettings.displaySeisNet.httpDataPriority)) {
+                this.mainSettings.displaySeisNet.httpDataPriority = 'realtime'
             }
         },
         setAdvancedSettings(jsonString){
-            if(jsonString){
-                const json = JSON.parse(jsonString)
-                let migrated = false
-                // TODO(access-settings-migration): Remove with the legacy fallback in accessStore.
-                legacyAccessSettingKeys.forEach(key => {
-                    if(key in json) {
-                        delete json[key]
-                        migrated = true
-                    }
-                })
-                if('provinceCeaEew' in json) {
-                    this.mainSettings.provinceCeaEew = Boolean(json.provinceCeaEew)
-                    delete json.provinceCeaEew
-                    migrated = true
-                }
-                if('tokens' in json) {
-                    delete json.tokens
-                    migrated = true
-                }
-                if('enableMultiApi' in json || 'multiApi' in json) {
-                    delete json.enableMultiApi
-                    delete json.multiApi
-                    localStorage.removeItem('multiApi')
-                    migrated = true
-                }
-                if(migrated) localStorage.setItem('advancedSettings', JSON.stringify(json))
-                merge(this.advancedSettings, json)
-            }
+            const json = parseSettings(jsonString)
+            this.advancedSettings = restoreSettings(createDefaultSettings().advancedSettings, json)
         },
     }
 })

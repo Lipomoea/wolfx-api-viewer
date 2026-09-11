@@ -1,16 +1,8 @@
 import { defineStore } from 'pinia';
+import { parseSettings, restoreSettings } from '@/utils/SettingsRestore';
 
-// TODO(access-settings-migration): Remove the legacy keys, map, and fallback argument after all supported versions have migrated.
-const legacyCapabilityMap = {
-    enableIclEew: 'iclEew',
-    enableTremFunctions: 'tremFunctions',
-    enableGqEew: 'gqEew',
-    enableNmefcTsunami: 'nmefcTsunamiMap',
-    advancedHypoInf: 'advancedHypoInf',
-}
-
-export const legacyAccessSettingKeys = Object.keys(legacyCapabilityMap)
-const capabilityKeys = Object.values(legacyCapabilityMap)
+const capabilityKeys = ['iclEew', 'tremFunctions', 'gqEew', 'nmefcTsunamiMap', 'advancedHypoInf']
+const createDefaultCapabilities = () => Object.fromEntries(capabilityKeys.map(key => [key, false]))
 const requiredLocalConfig = {
     iclEew: 'iclUrl',
     tremFunctions: 'tremUrl',
@@ -29,44 +21,20 @@ const hasLocalConfig = key => {
 
 export const useAccessStore = defineStore('accessStore', {
     state: () => ({
-        capabilities: Object.fromEntries(capabilityKeys.map(key => [key, false])),
+        capabilities: createDefaultCapabilities(),
     }),
     getters: {
         canUse: state => feature => Boolean(state.capabilities[feature]),
     },
     actions: {
-        setAccessSettings(jsonString, legacyAdvancedSettings) {
-            let restored = {}
-            let migrated = false
-            try {
-                if(jsonString) {
-                    restored = JSON.parse(jsonString)
-                }
-                else if(legacyAdvancedSettings) {
-                    // Migrate once from advancedSettings when accessSettings does not exist yet.
-                    const legacy = JSON.parse(legacyAdvancedSettings)
-                    Object.entries(legacyCapabilityMap).forEach(([legacyKey, capability]) => {
-                        restored[capability] = legacy[legacyKey]
-                    })
-                    migrated = true
-                }
-            }
-            catch (_) {
-                restored = {}
-            }
-
-            capabilityKeys.forEach(key => {
-                this.capabilities[key] = Boolean(restored[key])
-            })
+        setAccessSettings(jsonString) {
+            const restored = parseSettings(jsonString)
+            this.capabilities = restoreSettings(createDefaultCapabilities(), restored)
             Object.entries(requiredLocalConfig).forEach(([capability, storageKey]) => {
                 if(this.capabilities[capability] && !hasLocalConfig(storageKey)) {
                     this.capabilities[capability] = false
                 }
             })
-
-            if(migrated) {
-                localStorage.setItem('accessSettings', JSON.stringify(this.capabilities))
-            }
         },
         grant(feature) {
             if(!(feature in this.capabilities)) return false

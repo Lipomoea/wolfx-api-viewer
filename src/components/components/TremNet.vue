@@ -37,7 +37,7 @@ const frameQueue = new StationFrameQueue(
     frame => commitFrame(frame),
     () => settingsStore.mainSettings.displaySeisNet.httpDataPriority === 'complete'
 )
-const delay = computed(()=>settingsStore.mainSettings.displaySeisNet.delay * 60000)
+const delay = computed(()=>statusStore.seisNetReplayDelay * 60000)
 const tremMaxShindo = inject('tremMaxShindo')
 const tremUpdateTime = inject('tremUpdateTime')
 const tremPeriodMaxShindo = inject('tremPeriodMaxShindo')

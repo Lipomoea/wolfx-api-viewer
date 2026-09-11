@@ -192,6 +192,7 @@ export const useStatusStore = defineStore('statusStore', {
     state: ()=>({
         map: null,
         isTauri: isTauri(),
+        isResettingApp: false,
         showMockDialog: false,
         showStatusPanel: false,
         httpRequest: null,
@@ -210,6 +211,7 @@ export const useStatusStore = defineStore('statusStore', {
         sourceRoutes: {},
         enabledSource: [],
         isNiedUpdating: false,
+        seisNetReplayDelay: 0, // Minutes behind realtime; only retained for the current session.
         eqMessage: {
             jmaEew: Object.assign({}, defaultEqMessage),
             cwaEew: Object.assign({}, defaultEqMessage),
@@ -277,6 +279,10 @@ export const useStatusStore = defineStore('statusStore', {
         activeEqlistSources: state => eqlistSources.filter(source => state.enabledSource.includes(source)),
     },
     actions: {
+        setLocalStorageItem(key, value) {
+            if(this.isResettingApp) return
+            localStorage.setItem(key, value)
+        },
         configureDataSources(routes) {
             this.sourceRoutes = Object.fromEntries(
                 Object.entries(routes).map(([source, apis]) => [source, { ...apis }])

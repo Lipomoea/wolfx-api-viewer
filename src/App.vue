@@ -81,13 +81,10 @@ const history2Eqlist = {
 
 onBeforeMount(async () => {
   document.title = APP_TITLE
-  const advancedSettings = localStorage.getItem('advancedSettings')
   settingsStore.setMainSettings(localStorage.getItem('mainSettings'))
-  // Restore legacy access fields first; setAdvancedSettings removes them afterward.
-  accessStore.setAccessSettings(localStorage.getItem('accessSettings'), advancedSettings)
-  settingsStore.setAdvancedSettings(advancedSettings)
+  accessStore.setAccessSettings(localStorage.getItem('accessSettings'))
+  settingsStore.setAdvancedSettings(localStorage.getItem('advancedSettings'))
   settingsStore.resetUnauthorizedFeatureSettings()
-  settingsStore.mainSettings.displaySeisNet.delay = 0
   if(accessStore.canUse('gqEew')) Object.assign(eqUrls, JSON.parse(localStorage.getItem('gqUrl')))
   if(accessStore.canUse('nmefcTsunamiMap')) Object.assign(topojsonUrls, JSON.parse(localStorage.getItem('nmefcTsunami')))
   timeStore.startUpdatingTime()
@@ -129,13 +126,13 @@ onBeforeUnmount(() => {
   unlistenTrayGameMode?.()
 })
 watch(() => settingsStore.mainSettings, (newValue) => {
-  localStorage.setItem('mainSettings', JSON.stringify(newValue))
+  statusStore.setLocalStorageItem('mainSettings', JSON.stringify(newValue))
 }, { deep: true })
 watch(() => settingsStore.advancedSettings, (newValue) => {
-  localStorage.setItem('advancedSettings', JSON.stringify(newValue))
+  statusStore.setLocalStorageItem('advancedSettings', JSON.stringify(newValue))
 }, { deep: true })
 watch(() => accessStore.capabilities, (newValue) => {
-  localStorage.setItem('accessSettings', JSON.stringify(newValue))
+  statusStore.setLocalStorageItem('accessSettings', JSON.stringify(newValue))
 }, { deep: true })
 watch(() => settingsStore.mainSettings.gameMode, (enabled) => {
   void syncTrayGameModeMenu(enabled)

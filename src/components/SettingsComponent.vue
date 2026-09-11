@@ -254,15 +254,15 @@
                                 <span>测站回放(min)</span>
                                 <div class="flex gap-2">
                                     <el-input-number
-                                        v-model="settingsStore.mainSettings.displaySeisNet.delay"
+                                        v-model="statusStore.seisNetReplayDelay"
                                         size="small"
                                         :min="0"
                                         style="width: 108px;"
                                     />
                                     <el-button
                                         size="small"
-                                        @click="settingsStore.mainSettings.displaySeisNet.delay = 0"
-                                        :disabled="settingsStore.mainSettings.displaySeisNet.delay == 0"
+                                        @click="statusStore.seisNetReplayDelay = 0"
+                                        :disabled="statusStore.seisNetReplayDelay == 0"
                                     >还原</el-button>
                                 </div>
                             </div>
@@ -1289,6 +1289,13 @@
                     <span class="font-bold w-full">帮助&关于</span>
                     <div class="switch-group">
                         <el-button @click="showAbout = true">帮助&关于</el-button>
+                        <el-button
+                            type="danger"
+                            style="margin-left: 0;"
+                            :disabled="isResetConfirming"
+                            :loading="statusStore.isResettingApp"
+                            @click="handleResetApp"
+                        >重置应用设置</el-button>
                     </div>
                 </div>
                 <span class="sub-title" v-if="needReload">需要重载</span>
@@ -1458,7 +1465,7 @@ const showDataSourceManager = ref(false)
 const replayDateTime = ref('')
 const setReplayDateTime = () => {
     const passedTime = Math.max(Math.round(calcPassedTime(replayDateTime.value, systemTimeZone) / 600) / 100, 0)
-    settingsStore.mainSettings.displaySeisNet.delay = passedTime
+    statusStore.seisNetReplayDelay = passedTime
 }
 const setLat = (type)=>(val)=>{
     if(!val) {
@@ -1601,6 +1608,42 @@ const needReload = ref(false)
 const handleReload = () => {
     window.location.reload()
 }
+const isResetConfirming = ref(false)
+const handleResetApp = async () => {
+    if(isResetConfirming.value || statusStore.isResettingApp) return
+    isResetConfirming.value = true
+    try {
+        await ElMessageBox.confirm(
+            `重置将清除本地保存的设置、API 密钥和功能授权信息，并立即重新加载应用程序。${isTauri ? '自定义音效文件将不受影响。' : ''}\n此操作无法撤销，是否继续？`,
+            '重置应用设置',
+            {
+                customClass: 'reset-settings-message-box',
+                confirmButtonText: '重置并重新加载',
+                confirmButtonClass: 'el-button--danger',
+                cancelButtonText: '取消',
+                type: 'warning',
+                showClose: false,
+                closeOnClickModal: false,
+            }
+        )
+    } catch {
+        return
+    } finally {
+        isResetConfirming.value = false
+    }
+
+    // Block pending settings watchers and authorization responses until the page reloads.
+    statusStore.isResettingApp = true
+    try {
+        localStorage.clear()
+    } catch(error) {
+        statusStore.isResettingApp = false
+        console.error('清空本地存储失败', error)
+        ElMessage({ message: '重置失败，无法清空本地存储', type: 'error' })
+        return
+    }
+    window.location.reload()
+}
 const handleMockEew = newVal => {
     if(newVal) {
         ElMessageBox.confirm(
@@ -1715,8 +1758,9 @@ const postVerify = async (type = verifyType)=>{
     switch(type){
         case 'enableIclEew': {
             const res = await Http.post('https://api.lipomoea.tech/icl_url', idForm)
+            if(statusStore.isResettingApp) return
             if(res && res.success){
-                localStorage.setItem('iclUrl', JSON.stringify(res.data))
+                statusStore.setLocalStorageItem('iclUrl', JSON.stringify(res.data))
                 accessStore.grant('iclEew')
                 if(settingsStore.isDataSourceEnabled('iclEew')) handleNeedReload()
                 verifyDialog.value = false
@@ -1735,8 +1779,9 @@ const postVerify = async (type = verifyType)=>{
         }
         case 'enableTremFunctions': {
             const res = await Http.post('https://api.lipomoea.tech/trem_url', idForm)
+            if(statusStore.isResettingApp) return
             if(res && res.success){
-                localStorage.setItem('tremUrl', JSON.stringify(res.data))
+                statusStore.setLocalStorageItem('tremUrl', JSON.stringify(res.data))
                 accessStore.grant('tremFunctions')
                 handleNeedReload()
                 verifyDialog.value = false
@@ -1755,8 +1800,9 @@ const postVerify = async (type = verifyType)=>{
         }
         case 'enableGqEew': {
             const res = await Http.post('https://api.lipomoea.tech/gq_url', idForm)
+            if(statusStore.isResettingApp) return
             if(res && res.success){
-                localStorage.setItem('gqUrl', JSON.stringify(res.data))
+                statusStore.setLocalStorageItem('gqUrl', JSON.stringify(res.data))
                 accessStore.grant('gqEew')
                 if(settingsStore.isDataSourceEnabled('gqEew')) handleNeedReload()
                 verifyDialog.value = false
@@ -1775,8 +1821,9 @@ const postVerify = async (type = verifyType)=>{
         }
         case 'enableNmefcTsunami': {
             const res = await Http.post('https://api.lipomoea.tech/cn_tsunami_topo_json_url', idForm)
+            if(statusStore.isResettingApp) return
             if(res && res.success){
-                localStorage.setItem('nmefcTsunami', JSON.stringify(res.data))
+                statusStore.setLocalStorageItem('nmefcTsunami', JSON.stringify(res.data))
                 accessStore.grant('nmefcTsunamiMap')
                 handleNeedReload()
                 verifyDialog.value = false
@@ -2065,9 +2112,10 @@ onMounted(async () => {
         loadAudio()
         isAutoStart.value = await isEnabled()
     }
+    if(statusStore.isResettingApp) return
     const localFlg = localStorage.getItem('SHOW_ABOUT_FLG') || ''
     if(localFlg < SHOW_ABOUT_FLG) showAbout.value = true
-    localStorage.setItem('SHOW_ABOUT_FLG', SHOW_ABOUT_FLG)
+    statusStore.setLocalStorageItem('SHOW_ABOUT_FLG', SHOW_ABOUT_FLG)
 })
 onBeforeUnmount(() => {
     clearInterval(autoCheckInterval)
@@ -2243,6 +2291,9 @@ ul {
 </style>
 
 <style lang="scss">
+.reset-settings-message-box .el-message-box__message {
+    white-space: pre-line;
+}
 .about-box {
     padding: 20px;
     .header {

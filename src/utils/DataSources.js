@@ -134,15 +134,3 @@ export const createDefaultDataSources = () => Object.fromEntries(
         Object.fromEntries(config.apis.map(api => [api, Boolean(config.defaultEnabled)])),
     ])
 )
-
-export const migrateLegacyDataSources = legacySources => {
-    const dataSources = createDefaultDataSources()
-    Object.entries(dataSources).forEach(([source, apis]) => {
-        if(source in legacySources) {
-            Object.keys(apis).forEach(api => {
-                apis[api] = Boolean(legacySources[source])
-            })
-        }
-    })
-    return dataSources
-}

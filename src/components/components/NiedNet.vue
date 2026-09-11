@@ -775,7 +775,7 @@ onMounted(()=>{
         const ticket = frameQueue.begin(timeToStamp(targetTime, 9))
         let frame = null
         try {
-            const isRealtime = settingsStore.mainSettings.displaySeisNet.delay == 0
+            const isRealtime = statusStore.seisNetReplayDelay == 0
             const date = time.slice(0, 8)
             const res = await getData(`${seisNetUrls.nied.stationData}/${date}/${time}.json`,
                 () => !stopped && generation == requestGeneration && frameQueue.isPending(ticket))
@@ -912,7 +912,7 @@ watch(currentMaxShindo, (newVal, oldVal)=>{
         focused = false
     }
 })
-unwatchDelay = watch(()=>settingsStore.mainSettings.displaySeisNet.delay, (newVal, oldVal)=>{
+unwatchDelay = watch(()=>statusStore.seisNetReplayDelay, (newVal, oldVal)=>{
     if(oldVal !== undefined) scheduleTimelineSwitch()
     clearInterval(delayInterval)
     if(newVal > maxDelay / 60000){
