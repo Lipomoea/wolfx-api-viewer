@@ -21,6 +21,7 @@ export const useSettingsStore = defineStore('settingsStore', {
                 displayMaxInt: false,
                 displayPeriodMaxInt: false,
                 delay: 0,
+                httpDataPriority: 'realtime',
                 palertNet: false,
                 palertLevelHold: 1,
                 palertHypoInf: false,
@@ -242,6 +243,9 @@ export const useSettingsStore = defineStore('settingsStore', {
                 delete json.source
                 if(json.historySources) this.mainSettings.historySources = []
                 merge(this.mainSettings, json)
+                if(!['realtime', 'complete'].includes(this.mainSettings.displaySeisNet.httpDataPriority)) {
+                    this.mainSettings.displaySeisNet.httpDataPriority = 'realtime'
+                }
             }
         },
         setAdvancedSettings(jsonString){

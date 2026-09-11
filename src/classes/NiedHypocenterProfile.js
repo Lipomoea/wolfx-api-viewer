@@ -28,6 +28,7 @@ export const niedHypocenterProfile = {
         penaltyFullWeightStationCount: 0,
         penaltyZeroWeightStationCount: 50,
         penaltyFullWeight: 10,
+        penaltyReferenceQuantile: 0.9,
         pickAssociationVelocity: 3.5,
         pickAssociationPadding: 2000,
         clusterMatchResidualTieTolerance: 1000,

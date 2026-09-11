@@ -7,6 +7,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, inject } from 'vue';
 import Http from '@/classes/Http';
+import { StationFrameQueue } from '@/utils/StationFrameQueue';
 import axios from 'axios';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
@@ -93,13 +94,13 @@ const grids = computed(()=>{
     })
     return Object.values(gridMap)
 })
-const getData = async (url)=>{
+const getData = async (url, isCurrent = () => true)=>{
     try {
         const res = await axios.get(url, { timeout: 3000 })
         return res
     }
     catch (e) {
-        if(e.code == "ERR_BAD_REQUEST" && delay.value <= maxDelay - 100) {
+        if(isCurrent() && e.code == "ERR_BAD_REQUEST" && delay.value <= maxDelay - 100) {
             delay.value += 100
         }
     }
@@ -125,6 +126,10 @@ let stopped = false
 let requestGeneration = 0
 let latestFrameStamp = null
 let pendingTimelineSwitch = false
+const frameQueue = new StationFrameQueue(
+    frame => commitFrame(frame),
+    () => settingsStore.mainSettings.displaySeisNet.httpDataPriority === 'complete'
+)
 let hypocenterWorker = null
 let hypocenterRequestId = 0
 let inFlightHypocenterRequestId = null
@@ -603,6 +608,8 @@ const fetchStationList = async () => {
         if(stopped) return
         if(res && res.siteConfigId && res.items?.length > 0) {
             clearInterval(fetchStationInterval)
+            requestGeneration++
+            frameQueue.reset(pendingTimelineSwitch ? null : latestFrameStamp)
             siteConfigId.value = res.siteConfigId
             
             //低精度[[lat, lng], ...]
@@ -717,6 +724,7 @@ const clearAbnormalList = () =>
     Object.keys(abnormalNiedStations).forEach(key => delete abnormalNiedStations[key])
 const scheduleTimelineSwitch = () => {
     requestGeneration++
+    frameQueue.reset()
     pendingTimelineSwitch = true
     stations.forEach(station => {
         station.recentLevel.length = 0
@@ -724,58 +732,65 @@ const scheduleTimelineSwitch = () => {
     clearAbnormalList()
     resetHypocenterWorker()
 }
+const commitFrame = ({ timestamp: frameStamp, frameTime, intensity, generation }) => {
+    if(stopped || generation != requestGeneration) return
+    const isFirstFrameAfterTimelineSwitch = pendingTimelineSwitch
+    if(!isFirstFrameAfterTimelineSwitch && latestFrameStamp !== null && frameStamp <= latestFrameStamp) return
+    stationData.value = intensity.split('')
+    const timeDiff = latestFrameStamp === null || isFirstFrameAfterTimelineSwitch
+        ? 0 : frameStamp - latestFrameStamp
+    if(timeDiff > 1000) {
+        const popNum = Math.min(Math.round(timeDiff / 1000) - 1, 60)
+        const noDataArr = Array(popNum).fill(-1)
+        stations.forEach(station => {
+            station.recentLevel.unshift(...noDataArr)
+            station.recentLevel.splice(station.maxRecentLength)
+        })
+    }
+    if(timeDiff > 10000) stations.forEach(station => { station.isActive = false })
+    if(isFirstFrameAfterTimelineSwitch) {
+        stations.forEach(station => {
+            station.ascend = 0
+            station.triggerStamp = 0
+            station.activity = 0
+            station.isActive = false
+            clearTimeout(station.activeTimer)
+        })
+        clearInferredHypocenters()
+    }
+    pendingTimelineSwitch = false
+    latestFrameStamp = frameStamp
+    niedUpdateTime.value = frameTime.replace('T', ' ')
+    update()
+}
 onMounted(()=>{
     fetchStationInterval = setInterval(fetchStationList, 10000);
     fetchStationList()
     requestInterval = setInterval(async () => {
         if(stopped) return
         const generation = requestGeneration
+        const time = getTimeNumberString(9, -delay.value)
+        const targetTime = `${time.slice(0, 4)}-${time.slice(4, 6)}-${time.slice(6, 8)}T`
+            + `${time.slice(8, 10)}:${time.slice(10, 12)}:${time.slice(12, 14)}`
+        const ticket = frameQueue.begin(timeToStamp(targetTime, 9))
+        let frame = null
         try {
             const isRealtime = settingsStore.mainSettings.displaySeisNet.delay == 0
-            const time = getTimeNumberString(9, -delay.value)
             const date = time.slice(0, 8)
-            const res = await getData(`${seisNetUrls.nied.stationData}/${date}/${time}.json`)
-            if(stopped || generation != requestGeneration) return
+            const res = await getData(`${seisNetUrls.nied.stationData}/${date}/${time}.json`,
+                () => !stopped && generation == requestGeneration && frameQueue.isPending(ticket))
+            if(stopped || generation != requestGeneration || !frameQueue.isPending(ticket)) return
             if(res?.status == 200) {
                 const data = res.data
                 if(data.realTimeData.siteConfigId == siteConfigId.value) {
+                    if(typeof data.realTimeData.dataTime !== 'string' || typeof data.realTimeData.intensity !== 'string') return
                     const frameTime = data.realTimeData.dataTime.slice(0, -6)
                     const frameStamp = timeToStamp(frameTime, 9)
                     if(!Number.isFinite(frameStamp)) return
                     const isFirstFrameAfterTimelineSwitch = pendingTimelineSwitch
                     if(!isFirstFrameAfterTimelineSwitch && latestFrameStamp !== null && frameStamp <= latestFrameStamp) return
 
-                    stationData.value = data.realTimeData.intensity.split('')
-                    const timeDiff = latestFrameStamp === null || isFirstFrameAfterTimelineSwitch
-                        ? 0
-                        : frameStamp - latestFrameStamp
-                    if(timeDiff > 1000) {
-                        const popNum = Math.min(Math.round(timeDiff / 1000) - 1, 60)
-                        const noDataArr = Array(popNum).fill(-1)
-                        stations.forEach(station => {
-                            station.recentLevel.unshift(...noDataArr)
-                            station.recentLevel.splice(station.maxRecentLength)
-                        })
-                    }
-                    if(timeDiff > 10000) {
-                        stations.forEach(station => {
-                            station.isActive = false
-                        })
-                    }
-                    if(isFirstFrameAfterTimelineSwitch) {
-                        stations.forEach(station => {
-                            station.ascend = 0
-                            station.triggerStamp = 0
-                            station.activity = 0
-                            station.isActive = false
-                            clearTimeout(station.activeTimer)
-                        })
-                        clearInferredHypocenters()
-                    }
-                    pendingTimelineSwitch = false
-                    latestFrameStamp = frameStamp
-                    niedUpdateTime.value = frameTime.replace('T', ' ')
-                    update()
+                    frame = { timestamp: frameStamp, frameTime, intensity: data.realTimeData.intensity, generation }
                 }
                 else if(siteConfigId.value && isRealtime){
                     clearInterval(requestInterval)
@@ -799,6 +814,9 @@ onMounted(()=>{
             }
         } catch (err) {
             console.log(err);
+        }
+        finally {
+            frameQueue.finish(ticket, frame)
         }
     }, 500);
     document.addEventListener('visibilitychange', handleVisibilityChange)
@@ -908,9 +926,14 @@ unwatchDelay = watch(()=>settingsStore.mainSettings.displaySeisNet.delay, (newVa
         }, 10000);
     }
 }, { immediate: true })
+watch(() => settingsStore.mainSettings.displaySeisNet.httpDataPriority, () => {
+    requestGeneration++
+    frameQueue.reset(pendingTimelineSwitch ? null : latestFrameStamp)
+}, { flush: 'sync' })
 onBeforeUnmount(()=>{
     stopped = true
     requestGeneration++
+    frameQueue.reset()
     clearInterval(fetchStationInterval)
     clearInterval(requestInterval)
     clearInterval(delayInterval)

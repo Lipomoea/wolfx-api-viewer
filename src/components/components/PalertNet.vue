@@ -6,6 +6,7 @@
 import { reactive, computed, onMounted, onBeforeUnmount, watch, inject } from 'vue';
 import { createPalertHypocenterUpdate, mergePalertHypocenterUpdates } from '@/utils/PalertHypocenterUpdates';
 import Palert from '@/classes/Palert';
+import { StationFrameQueue } from '@/utils/StationFrameQueue';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { iconUrls } from '@/utils/Urls';
@@ -55,6 +56,10 @@ let stopped = false
 let requestGeneration = 0
 let latestFrameStamp = null
 let pendingTimelineSwitch = false
+const frameQueue = new StationFrameQueue(
+    frame => commitFrame(frame.timestamp, frame.pgaData, frame.pgvData, frame.generation),
+    () => settingsStore.mainSettings.displaySeisNet.httpDataPriority === 'complete'
+)
 const delay = computed(() => settingsStore.mainSettings.displaySeisNet.delay * 60000)
 const palertMaxShindo = inject('palertMaxShindo')
 const palertUpdateTime = inject('palertUpdateTime')
@@ -435,9 +440,11 @@ const fetchRealtimeData = async () => {
     const recordTime = delay.value > 0
         ? Math.round((timeStore.getTimeStamp() - delay.value) / 1000)
         : 0
+    const ticket = frameQueue.begin(recordTime ? recordTime * 1000 : null)
+    let frame = null
     try {
         const pgaResponse = parseResponse(await Palert.getRealtimeData(0, recordTime))
-        if(stopped || generation != requestGeneration) return
+        if(stopped || generation != requestGeneration || !frameQueue.isPending(ticket)) return
         if(!pendingTimelineSwitch && latestFrameStamp !== null && pgaResponse.timestamp <= latestFrameStamp) return
 
         const needsPgv = Object.values(pgaResponse.dataVals)
@@ -458,10 +465,13 @@ const fetchRealtimeData = async () => {
                 console.log(err)
             }
         }
-        commitFrame(pgaResponse.timestamp, pgaResponse.dataVals, pgvData, generation)
+        frame = { timestamp: pgaResponse.timestamp, pgaData: pgaResponse.dataVals, pgvData, generation }
     }
     catch(err) {
         console.log(err)
+    }
+    finally {
+        frameQueue.finish(ticket, frame)
     }
 }
 const clearReactiveObject = obj => {
@@ -516,6 +526,7 @@ const buildAdjStations = () => {
     return { detectionAdjStations, hypocenterAdjStations, triggerDiffTolerances }
 }
 const clearTimelineState = (render = true) => {
+    frameQueue.reset()
     terminateHypocenterWorker()
     clearInferredHypocenters()
     latestFrameStamp = null
@@ -532,6 +543,7 @@ const scheduleTimelineSwitch = () => {
     clearInferredHypocenters()
     requestGeneration++
     pendingTimelineSwitch = true
+    frameQueue.reset()
     Object.values(stations).forEach(station => station.clearRecentData())
 }
 let fetchStationTimer, requestInterval
@@ -626,6 +638,10 @@ unwatchMap = watch(() => statusStore.map, newVal => {
     })
 }, { immediate: true })
 unwatchDelay = watch(delay, scheduleTimelineSwitch)
+watch(() => settingsStore.mainSettings.displaySeisNet.httpDataPriority, () => {
+    requestGeneration++
+    frameQueue.reset(pendingTimelineSwitch ? null : latestFrameStamp)
+}, { flush: 'sync' })
 watch(isHypocenterEnabled, enabled => {
     if(enabled) return
     terminateHypocenterWorker()
@@ -678,6 +694,7 @@ onBeforeUnmount(() => {
     terminateHypocenterWorker()
     destroyInferredHypocenterLayers()
     requestGeneration++
+    frameQueue.reset()
     clearTimeout(fetchStationTimer)
     clearInterval(requestInterval)
     document.removeEventListener('visibilitychange', handleVisibilityChange)

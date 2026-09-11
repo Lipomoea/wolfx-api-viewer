@@ -3,6 +3,8 @@ import { niedHypocenterProfile } from './NiedHypocenterProfile'
 // Initial search/travel-time settings use the existing baseline until P-Alert replay calibration.
 // Clone all nested parameters so tuning P-Alert cannot change NIED.
 const parameters = structuredClone(niedHypocenterProfile.parameters)
+parameters.penaltyFullWeight = 8
+parameters.penaltyReferenceQuantile = 0.8
 const waveCountPenaltyConfigs = [
     { thresholdRatio: 8, maxPenalty: 2 },
     { thresholdRatio: 9, maxPenalty: 1.5 },
@@ -52,7 +54,7 @@ export const palertHypocenterProfile = {
     },
 
     isPenaltyReferencePick(pick) {
-        return Number.isFinite(pick.secondMaxLevel) && pick.secondMaxLevel >= 10
+        return Number.isFinite(pick.secondMaxLevel) && pick.secondMaxLevel >= 9
     },
 
     fallbackReferenceMetrics: [

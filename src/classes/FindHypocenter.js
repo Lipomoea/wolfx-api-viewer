@@ -1325,7 +1325,7 @@ export class FindHypocenter {
             const fallbackDistance = this.getOptionCacheEntry(fallbackPick, hypocenter, optionCache).distance
             return Number.isFinite(fallbackDistance) ? fallbackDistance : null
         }
-        const referenceIndex = Math.max(Math.floor(distances.length * 0.9) - 1, 0)
+        const referenceIndex = Math.max(Math.floor(distances.length * this.parameters.penaltyReferenceQuantile) - 1, 0)
         return distances[referenceIndex]
     }
 

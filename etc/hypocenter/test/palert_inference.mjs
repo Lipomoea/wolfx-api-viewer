@@ -46,10 +46,200 @@ const { FindPalertHypocenter } = await load('src/classes/PalertHypoInf.js')
 const { FindNiedHypocenter } = await load('src/classes/NiedHypoInf.js')
 const { palertHypocenterProfile: profile } = await load('src/classes/PalertHypocenterProfile.js')
 const { niedHypocenterProfile: nied } = await load('src/classes/NiedHypocenterProfile.js')
-const { calcDistanceKm, calcReachTime, getPalertLevelFromPgaPgv, stampToTime } = await load('src/utils/Utils.js')
+const { calcDistanceKm, calcReachTime, getPalertLevelFromPgaPgv, stampToTime, timeToStamp } = await load('src/utils/Utils.js')
 const tables = (await load('src/utils/TravelTimes.js')).default
 const componentSource = read('src/components/components/PalertNet.vue')
 const niedComponentSource = read('src/components/components/NiedNet.vue')
+const tremComponentSource = read('src/components/components/TremNet.vue')
+const { StationFrameQueue } = await load('src/utils/StationFrameQueue.js')
+const queueProbe = (ordered = true) => {
+    const committed = []
+    const queue = new StationFrameQueue(frame => committed.push(frame.timestamp), () => ordered)
+    return { queue, committed }
+}
+for(const order of [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]]) {
+    const { queue, committed } = queueProbe()
+    const tickets = [queue.begin(), queue.begin(), queue.begin()]
+    for(const index of order) queue.finish(tickets[index], { timestamp: index + 1 })
+    assert.deepEqual(committed, order.indexOf(0) === 2 ? [2, 3] : [1, 2, 3], 'Only two ready later frames can displace an unresolved first frame')
+    assert.equal(queue.entries.length, 0)
+}
+{
+    const { queue, committed } = queueProbe()
+    const tickets = Array.from({ length: 4 }, () => queue.begin())
+    queue.finish(tickets[1], { timestamp: 2 })
+    queue.finish(tickets[2], { timestamp: 2 })
+    assert.deepEqual(committed, [], 'Two responses for one second consume only one waiting frame')
+    queue.finish(tickets[3], { timestamp: 3 })
+    assert.deepEqual(committed, [2, 3])
+    queue.finish(tickets[0], { timestamp: 1 })
+    assert.deepEqual(committed, [2, 3], 'A discarded request cannot reappear on late success')
+}
+for(const firstAttemptFails of [false, true]) {
+    const { queue, committed } = queueProbe()
+    const first = queue.begin('same-second'), retry = queue.begin('same-second'), later = queue.begin('next-second')
+    queue.finish(later, { timestamp: 2 })
+    if(firstAttemptFails) queue.finish(first)
+    assert.deepEqual(committed, [])
+    queue.finish(retry, { timestamp: 1 })
+    assert.deepEqual(committed, [1, 2], 'A successful same-second attempt satisfies the frame despite other pending/failed attempts')
+    queue.finish(first, { timestamp: 1 })
+    assert.equal(queue.entries.length, 0)
+    assert.equal(queue.groups.size, 0)
+}
+{
+    const { queue, committed } = queueProbe()
+    const first = queue.begin('same-second'), retry = queue.begin('same-second'), later = queue.begin()
+    queue.finish(later, { timestamp: 2 })
+    queue.finish(first)
+    assert.deepEqual(committed, [], 'One failed attempt cannot end a frame with another pending attempt')
+    queue.finish(retry)
+    assert.deepEqual(committed, [2], 'All attempts failing releases the next frame without needing a second ready frame')
+    const invalid = queue.begin(), valid = queue.begin()
+    queue.finish(valid, { timestamp: 3 })
+    queue.finish(invalid, { timestamp: NaN })
+    assert.deepEqual(committed, [2, 3])
+}
+{
+    const { queue, committed } = queueProbe()
+    const a = queue.begin(), b = queue.begin(), c = queue.begin(), d = queue.begin()
+    queue.finish(b, { timestamp: 2 })
+    queue.finish(d, { timestamp: 4 })
+    assert.deepEqual(committed, [2], 'After displacing A and committing B, D alone must still wait for C')
+    queue.finish(c, { timestamp: 3 })
+    queue.finish(a, { timestamp: 1 })
+    assert.deepEqual(committed, [2, 3, 4])
+}
+{
+    const { queue, committed } = queueProbe(false)
+    const a = queue.begin(), b = queue.begin()
+    queue.finish(b, { timestamp: 2 })
+    assert.deepEqual(committed, [2], 'Realtime priority never waits for an earlier request')
+    queue.finish(a, { timestamp: 1 })
+    assert.deepEqual(committed, [2])
+}
+for(const preserveStamp of [false, true]) {
+    const { queue, committed } = queueProbe()
+    queue.finish(queue.begin(), { timestamp: 10 })
+    const a = queue.begin(), b = queue.begin()
+    queue.finish(b, { timestamp: 12 })
+    queue.reset(preserveStamp ? 10 : null)
+    queue.finish(a, { timestamp: 11 })
+    queue.finish(queue.begin(), { timestamp: 5 })
+    assert.deepEqual(committed, preserveStamp ? [10] : [10, 5], 'Mode/source resets retain the committed time; timeline resets permit an earlier frame')
+    assert.equal(queue.entries.length, 0)
+}
+console.log('PASS frame queue ordering, one-distinct-frame limit, duplicate attempts, failures, late responses, realtime priority and resets')
+
+// Drive the production request callbacks with deferred HTTP responses, without network/rendering.
+const requestProbe = name => {
+    const source = name === 'Palert' ? componentSource : name === 'Nied' ? niedComponentSource : tremComponentSource
+    const pending = []
+    const request = (...args) => new Promise((resolve, reject) => pending.push({ args, resolve, reject }))
+    const probe = new Function('StationFrameQueue', 'request', 'timeToStamp', 'stampToTime', 'console', `
+        const settingsStore = { mainSettings: { displaySeisNet: { httpDataPriority: 'complete', delay: 0 } } };
+        let stopped = false, requestGeneration = 0, latestFrameStamp = null, pendingTimelineSwitch = false;
+        let now = 1788880000000, poll, interval, requestInterval, modeChanged;
+        const committed = [], delay = { value: 0 }, maxDelay = 3000, timeStore = { getTimeStamp: () => now };
+        const Palert = { getRealtimeData: request }, Http = { get: request }, axios = { get: request };
+        const seisNetUrls = { nied: { stationData: 'test' } }, stationDataUrl = { value: 'test' };
+        const siteConfigId = { value: 'test' }, getTimeNumberString = () => stampToTime(now, 9).replace(/[^0-9]/g, '');
+        const setInterval = (callback, milliseconds) => { poll = callback; interval = milliseconds; };
+        const watch = (source, callback) => { modeChanged = callback; };
+        const frameQueue = new StationFrameQueue(frame => commitFrame(frame),
+            () => settingsStore.mainSettings.displaySeisNet.httpDataPriority === 'complete');
+        const commitFrame = frame => {
+            if(stopped || frame.generation !== requestGeneration) return;
+            latestFrameStamp = frame.timestamp;
+            pendingTimelineSwitch = false;
+            committed.push(frame);
+        };
+        ${name === 'Palert' ? section(source, 'const normalizeMeasurement =', 'const hasValidTriggerStamp =') +
+            section(source, 'const fetchRealtimeData =', 'const clearReactiveObject =') :
+            (name === 'Nied' ? section(source, 'const getData =', 'const calcBearingDirection =') : '') +
+            section(source, '    requestInterval = setInterval(async () => {', "    document.addEventListener('visibilitychange'")}
+        ${name === 'Trem' ? section(source, 'watch([() => settingsStore.mainSettings.displaySeisNet.httpDataPriority', 'onBeforeUnmount(') :
+            section(source, 'watch(() => settingsStore.mainSettings.displaySeisNet.httpDataPriority', name === 'Palert' ? 'watch(isHypocenterEnabled,' : 'onBeforeUnmount(')}
+        return { committed, queue: frameQueue, interval, fetch: ${name === 'Palert' ? 'fetchRealtimeData' : '() => poll()'},
+            setTime: value => { now = value; }, delay,
+            setMode: value => { settingsStore.mainSettings.displaySeisNet.httpDataPriority = value; modeChanged(); },
+            resetTimeline: () => { requestGeneration++; pendingTimelineSwitch = true; frameQueue.reset(); },
+            stop: () => { stopped = true; requestGeneration++; frameQueue.reset(); }
+        };
+    `)(StationFrameQueue, request, timeToStamp, stampToTime, { log() {} })
+    const response = (timestamp, pga = 1) => name === 'Palert' ? { timestamp, dataVals: { probe: pga } }
+        : name === 'Trem' ? { time: timestamp, station: { probe: { i: pga } } }
+        : { status: 200, data: { realTimeData: { siteConfigId: 'test', intensity: '8', dataTime: stampToTime(timestamp, 9) + '+09:00' } } }
+    return { ...probe, pending, response }
+}
+for(const name of ['Palert', 'Nied', 'Trem']) {
+    const p = requestProbe(name), base = 1788880000000
+    if(name !== 'Palert') assert.equal(p.interval, name === 'Nied' ? 500 : 1000)
+    const a = p.fetch(); p.setTime(base + 1000); const b = p.fetch()
+    p.pending[1].resolve(p.response(base + 1000)); await b
+    assert.equal(p.committed.length, 0, `${name} holds a later frame`)
+    p.pending[0].resolve(p.response(base)); await a
+    assert.deepEqual(p.committed.map(frame => frame.timestamp), [base, base + 1000])
+    p.setTime(base + 2000); const stale = p.fetch()
+    p.setTime(base + 3000); const next = p.fetch()
+    p.pending[3].resolve(p.response(base + 3000)); await next
+    p.setTime(base + 4000); const newest = p.fetch()
+    p.pending[4].resolve(p.response(base + 4000)); await newest
+    p.pending[2].resolve(p.response(base + 2000)); await stale
+    assert.deepEqual(p.committed.map(frame => frame.timestamp), [base, base + 1000, base + 3000, base + 4000])
+    p.setTime(base + 5000); const beforeSwitch = p.fetch()
+    p.setMode('realtime')
+    p.pending[5].resolve(p.response(base + 5000)); await beforeSwitch
+    assert.equal(p.committed.length, 4, 'Mode changes discard in-flight results')
+    p.setTime(base + 6000); const slow = p.fetch()
+    p.setTime(base + 7000); const fast = p.fetch()
+    p.pending[7].resolve(p.response(base + 7000)); await fast
+    assert.equal(p.committed.at(-1).timestamp, base + 7000, 'Realtime mode submits immediately')
+    p.pending[6].resolve(p.response(base + 6000)); await slow
+    p.setMode('complete'); p.resetTimeline(); p.setTime(base - 1000)
+    const rewind = p.fetch(); p.pending[8].resolve(p.response(base - 1000)); await rewind
+    assert.equal(p.committed.at(-1).timestamp, base - 1000, 'Rewinding permits an earlier first frame')
+    const stopped = p.fetch(); p.stop(); p.pending[9].resolve(p.response(base)); await stopped
+    assert.equal(p.committed.length, 6, 'Stopped requests cannot commit')
+}
+{
+    const p = requestProbe('Nied'), base = 1788880000000
+    const first = p.fetch(), duplicate = p.fetch()
+    p.pending[1].resolve(p.response(base)); await duplicate
+    assert.equal(p.committed.length, 1, 'NIED same-second success does not wait for its duplicate')
+    p.pending[0].reject({ code: 'ERR_BAD_REQUEST' }); await first
+    assert.equal(p.delay.value, 0, 'A superseded request cannot change the realtime delay')
+    const lateDuplicate = p.fetch()
+    p.setTime(base + 1000); const next = p.fetch()
+    p.pending[3].resolve(p.response(base + 1000)); await next
+    assert.equal(p.committed.length, 2, 'A new request for an already committed second cannot block the next second')
+    p.pending[2].resolve(p.response(base)); await lateDuplicate
+    assert.equal(p.committed.length, 2)
+}
+for(const name of ['Palert', 'Nied', 'Trem']) {
+    for(const reject of [false, true]) {
+        const p = requestProbe(name), base = 1788880000000
+        const a = p.fetch(); p.setTime(base + 1000); const b = p.fetch()
+        p.pending[1].resolve(p.response(base + 1000)); await b
+        if(reject) p.pending[0].reject(new Error('timeout'))
+        else p.pending[0].resolve({})
+        await a
+        assert.equal(p.committed.length, 1, `${name} failure/invalid response releases the waiting frame`)
+        assert.equal(p.queue.entries.length, 0)
+    }
+}
+{
+    const p = requestProbe('Palert'), base = 1788880000000
+    const a = p.fetch(); p.setTime(base + 1000); const b = p.fetch()
+    p.pending[0].resolve(p.response(base, 25)); await Promise.resolve(); await Promise.resolve()
+    assert.deepEqual(p.pending[2].args, [1, base / 1000], 'PGV is requested for the matching PGA second')
+    p.pending[1].resolve(p.response(base + 1000)); await b
+    assert.equal(p.committed.length, 0, 'PGA plus pending PGV is still an unfinished frame')
+    p.pending[2].reject(new Error('PGV timeout')); await a
+    assert.deepEqual(p.committed.map(frame => frame.timestamp), [base, base + 1000])
+    assert.equal(p.committed[0].pgvData, null, 'PGV failure preserves valid PGA')
+}
+console.log('PASS actual HTTP callbacks, NIED 500ms same-second attempts, PGA/PGV readiness, failure release, mode changes, rewind and stop')
 
 // Exercise both production station-list pollers with deferred requests and virtual timers.
 for(const name of ['Palert', 'Trem']) {
@@ -62,6 +252,7 @@ for(const name of ['Palert', 'Trem']) {
     const request = () => new Promise((resolve, reject) => pendingRequests.push({ resolve, reject }))
     const poller = new Function('stationList', 'Palert', 'Http', 'seisNetUrls', 'setTimeout', 'clearTimeout', 'clearInterval', 'console', `
         let stopped = false, stationVersion = '', requestGeneration = 0;
+        const frameQueue = { reset() {} };
         const terminateHypocenterWorker = () => {};
         const destroyInferredHypocenterLayers = () => {};
         const clearReactiveObject = obj => { for(const key of Object.keys(obj)) delete obj[key]; };
@@ -93,12 +284,12 @@ for(const name of ['Palert', 'Trem']) {
     assert.equal(timers.size, 0)
     pendingRequests.shift().reject(new Error('Initial request failed'))
     await task
-    expectDelay(10000)
+    expectDelay(isPalert ? 20000 : 10000)
     for(const response of [undefined, {}, invalidResponse, isPalert ? { staInfos: [] } : []]) {
         task = beginNext()
         pendingRequests.shift().resolve(response)
         await task
-        expectDelay(10000)
+        expectDelay(isPalert ? 20000 : 10000)
         assert.equal(Object.keys(stationList).length, 0)
     }
     task = beginNext()
@@ -138,7 +329,7 @@ for(const name of ['Palert', 'Trem']) {
     await task
     assert.equal(Object.keys(stoppedDuringRequest.stationList).length, 0)
 }
-console.log('PASS P-Alert/TREM station-list retries at ten seconds, refreshes at ten minutes, metadata validation, cached data and unmount cleanup')
+console.log('PASS P-Alert/TREM station-list retries at twenty/ten seconds, refreshes at ten minutes, metadata validation, cached data and unmount cleanup')
 
 // Exercise the actual station class without Leaflet/Vue rendering dependencies.
 const stationSource = source => `let settingsStore = { mainSettings: { displaySeisNet: { palertLevelHold: 1 } } };
@@ -726,9 +917,13 @@ for(const [maxLevel, weight] of [[-1, 0], [6, 0], [7, 0.2], [8, 0.8], [9, 1.2], 
 }
 assert.notEqual(profile.parameters, nied.parameters)
 assert.notEqual(profile.parameters.hypocenterSearchSteps, nied.parameters.hypocenterSearchSteps)
-const { defaultWaveCountPenaltyConfig, inheritedOutlierFilterStages, waveCountPenaltySlope, ...sharedParameters } = profile.parameters
+const { defaultWaveCountPenaltyConfig, inheritedOutlierFilterStages, waveCountPenaltySlope, penaltyFullWeight, penaltyReferenceQuantile, ...sharedParameters } = profile.parameters
+assert.equal(penaltyFullWeight, 8)
+assert.equal(nied.parameters.penaltyFullWeight, 10)
+assert.equal(penaltyReferenceQuantile, 0.8)
+assert.equal(nied.parameters.penaltyReferenceQuantile, 0.9)
 assert.deepEqual(sharedParameters, Object.fromEntries(Object.entries(nied.parameters)
-    .filter(([key]) => key !== 'defaultWaveCountPenaltyConfig' && key !== 'inheritedOutlierFilterStages')))
+    .filter(([key]) => !['defaultWaveCountPenaltyConfig', 'inheritedOutlierFilterStages', 'penaltyFullWeight', 'penaltyReferenceQuantile'].includes(key))))
 const expectedPenaltyConfigs = [
     { thresholdRatio: 8, maxPenalty: 2 },
     { thresholdRatio: 9, maxPenalty: 1.5 },
@@ -828,11 +1023,12 @@ console.log('PASS P/S penalty thresholds, half-rate slope, caps and greedy/PREV 
 assert(finder.hasValidPickCandidate({ stationId: 'W460', triggerStamp: stamp, pickId: `W460:${stamp}` }))
 assert(!finder.hasValidPickCandidate({ stationId: 460, triggerStamp: stamp, pickId: `460:${stamp}` }))
 assert.equal(finder.getPickWeight({ maxLevel: 13, densityWeight: 0.25 }, 0.5), 0.25)
-const pick = { stationId: 'W460', pickId: `W460:${stamp}`, latLng: [24, 121], triggerStamp: stamp, updateStamp: stamp, maxLevel: 12, secondMaxLevel: 9 }
+const pick = { stationId: 'W460', pickId: `W460:${stamp}`, latLng: [24, 121], triggerStamp: stamp, updateStamp: stamp, maxLevel: 12, secondMaxLevel: 8 }
 finder.upsertPickCandidate(pick)
 const stored = finder.picks.get(pick.pickId)
+assert(!finder.isPenaltyReferencePick(stored))
 finder.clusters[0].dirty = false
-finder.updatePickSnapshot(stored, { ...pick, secondMaxLevel: 10, updateStamp: stamp + 1000 })
+finder.updatePickSnapshot(stored, { ...pick, secondMaxLevel: 9, updateStamp: stamp + 1000 })
 assert(finder.clusters[0].dirty, 'Second maximum alone changes reference qualification and must invalidate the fit')
 assert(finder.isPenaltyReferencePick(stored))
 const quietSnapshot = { id: 'W460', latLng: [24, 121], updateStamp: stamp + 12000, nonQuietBoundaryStamp: stamp + 1000 }
@@ -927,9 +1123,14 @@ console.log('PASS cluster-specific boundaries, old-pick independence, merge/cach
 
 const refs = new FindPalertHypocenter([], {})
 refs.getOptionCacheEntry = pick => ({ distance: pick.distance })
-const candidates = [10, 20, 30, 40].map((distance, i) => ({ stationId: `W${i}`, distance, maxLevel: 12, secondMaxLevel: 10 }))
+const candidates = [10, 20, 30, 40].map((distance, i) => ({ stationId: `W${i}`, distance, maxLevel: 12, secondMaxLevel: 9 }))
 assert.equal(refs.getInactivePenaltyReferenceDistance([...candidates, { ...candidates[0] }], {}, new Map()), 30)
-const weak = candidates.map(pick => ({ ...pick, secondMaxLevel: 9 }))
+const tenReferences = Array.from({ length: 10 }, (_, i) => ({ stationId: `W${i}`, distance: (i + 1) * 10, maxLevel: 12, secondMaxLevel: 9, maxAscend: 3 }))
+const niedRefs = new FindNiedHypocenter([], {})
+niedRefs.getOptionCacheEntry = refs.getOptionCacheEntry
+assert.equal(refs.getInactivePenaltyReferenceDistance([...tenReferences, { ...tenReferences[0] }], {}, new Map()), 80)
+assert.equal(niedRefs.getInactivePenaltyReferenceDistance(tenReferences, {}, new Map()), 90)
+const weak = candidates.map(pick => ({ ...pick, secondMaxLevel: 8 }))
 assert.equal(refs.getInactivePenaltyReferenceDistance(weak, {}, new Map()), 10)
 const noDistances = [{ secondMaxLevel: 9, maxLevel: 14 }, { secondMaxLevel: 10, maxLevel: 12 }]
 assert.equal(refs.selectFallbackPenaltyReferencePick(noDistances, {}, new Map()), noDistances[1])
@@ -1527,6 +1728,11 @@ const useAccessStore = () => ({ canUse: name => capabilities.has(name) });
 ${read('src/stores/settings.js').replace(/^import .*;\r?\n/gm, '')}`
 const { useSettingsStore: settingsDefinition } = await load('src/stores/test-palert-settings.js', settingsSource)
 const settings = Object.assign(settingsDefinition.state(), settingsDefinition.actions)
+assert.equal(settings.mainSettings.displaySeisNet.httpDataPriority, 'realtime')
+settings.setMainSettings(JSON.stringify({ displaySeisNet: { httpDataPriority: 'complete' } }))
+assert.equal(settings.mainSettings.displaySeisNet.httpDataPriority, 'complete')
+settings.setMainSettings(JSON.stringify({ displaySeisNet: { httpDataPriority: 'invalid' } }))
+assert.equal(settings.mainSettings.displaySeisNet.httpDataPriority, 'realtime')
 const effectiveMode = () => settingsDefinition.getters.effectivePalertHypoInfTextInfo.call(settings, settings)
 assert.equal(settings.mainSettings.displaySeisNet.palertHypoInf, false)
 assert.equal(settings.mainSettings.displaySeisNet.palertHypoInfAlwaysOn, false)

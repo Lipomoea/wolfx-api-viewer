@@ -43,7 +43,23 @@
                                 </el-select>
                             </div>
                             <div class="switch-full pl-4">
-                                <span>本地推算震源（P-Alert）</span>
+                                <span>
+                                    本地推算震源
+                                    <el-popover
+                                        placement="top"
+                                        :width="310"
+                                        trigger="hover"
+                                    >
+                                        <template #reference>
+                                            <question-filled width="1em" height="1em" />
+                                        </template>
+                                        <p>启用后，会在软件内部通过测站信息自行推算可能的震源。</p>
+                                        <strong>
+                                            <p>实验性功能，精度低，不代表任何权威信息来源，仅供参考。</p>
+                                            <p>此功能会消耗较多计算机资源。</p>
+                                        </strong>
+                                    </el-popover>
+                                </span>
                                 <el-switch v-model="settingsStore.mainSettings.displaySeisNet.palertHypoInf" :disabled="!settingsStore.mainSettings.displaySeisNet.palertNet" />
                             </div>
                             <div class="switch-full pl-8">
@@ -218,6 +234,21 @@
                     </div>
                     <div class="font-bold w-full">通用设置</div>
                     <div class="switch-group">
+                        <div class="w-full">
+                            <div class="switch-full">
+                                <span>测站数据更新偏好
+                                    <el-popover placement="right" :width="300" trigger="hover">
+                                        <template #reference><el-icon><QuestionFilled /></el-icon></template>
+                                        <p><strong>实时性优先：</strong>测站数据将尽可能保持最新，但是会增加过往数据丢失的风险。可能影响测站检出、震源推理准确度。</p>
+                                        <p><strong>完整性优先：</strong>请求不稳定时，新的测站数据会短暂等待较早的数据以保持数据序列完整。测站数据可能短暂延迟。</p>
+                                    </el-popover>
+                                </span>
+                                <el-select v-model="settingsStore.mainSettings.displaySeisNet.httpDataPriority" size="small" style="width: 108px;">
+                                    <el-option label="实时性优先" value="realtime" />
+                                    <el-option label="完整性优先" value="complete" />
+                                </el-select>
+                            </div>
+                        </div>
                         <div class="w-full">
                             <div class="switch-full">
                                 <span>测站回放(min)</span>

@@ -7,6 +7,7 @@
 <script setup>
 import { reactive, computed, onMounted, onBeforeUnmount, watch, inject } from 'vue';
 import Http from '@/classes/Http';
+import { StationFrameQueue } from '@/utils/StationFrameQueue';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { seisNetUrls, iconUrls } from '@/utils/Urls';
@@ -32,6 +33,10 @@ let stopped = false
 let requestGeneration = 0
 let latestFrameStamp = null
 let pendingTimelineSwitch = false
+const frameQueue = new StationFrameQueue(
+    frame => commitFrame(frame),
+    () => settingsStore.mainSettings.displaySeisNet.httpDataPriority === 'complete'
+)
 const delay = computed(()=>settingsStore.mainSettings.displaySeisNet.delay * 60000)
 const tremMaxShindo = inject('tremMaxShindo')
 const tremUpdateTime = inject('tremUpdateTime')
@@ -115,36 +120,47 @@ const fetchStationList = async () => {
         }
     }
 }
+const commitFrame = ({ timestamp: frameStamp, data, generation }) => {
+    if(stopped || generation != requestGeneration) return
+    if(!pendingTimelineSwitch && latestFrameStamp !== null && frameStamp <= latestFrameStamp) return
+    pendingTimelineSwitch = false
+    latestFrameStamp = frameStamp
+    stationData = data
+    tremUpdateTime.value = stampToTime(frameStamp, 8)
+    update()
+}
 onMounted(()=>{
     fetchStationList()
     requestInterval = setInterval(async () => {
         if(stopped) return
         const generation = requestGeneration
+        const time = timeStore.getTimeStamp() - delay.value
+        const targetTime = delay.value > 0 ? Math.round(time / 1000) : null
+        const ticket = frameQueue.begin(targetTime === null ? null : targetTime * 1000)
+        let frame = null
         try {
-            const time = timeStore.getTimeStamp() - delay.value
-            const res = await Http.get(stationDataUrl.value + (delay.value > 0 ? `/${Math.round(time / 1000)}` : `?time=${time}`), { timeout: 3000 })
-            if(stopped || generation != requestGeneration) return
+            const res = await Http.get(stationDataUrl.value + (targetTime !== null ? `/${targetTime}` : `?time=${time}`), { timeout: 3000 })
+            if(stopped || generation != requestGeneration || !frameQueue.isPending(ticket)) return
             if(res && Object.keys(res).length > 0){
                 const frameStamp = Number(res.time)
-                if(!Number.isFinite(frameStamp)) return
+                if(!Number.isFinite(frameStamp) || !res.station || typeof res.station !== 'object' || Array.isArray(res.station)) return
                 const isFirstFrameAfterTimelineSwitch = pendingTimelineSwitch
                 if(!isFirstFrameAfterTimelineSwitch && latestFrameStamp !== null && frameStamp <= latestFrameStamp) return
 
-                pendingTimelineSwitch = false
-                latestFrameStamp = frameStamp
-                stationData = res.station
-                const timeString = stampToTime(res.time, 8)
-                tremUpdateTime.value = timeString
-                update()
+                frame = { timestamp: frameStamp, data: res.station, generation }
             }
         } catch (err) {
             console.log(err);
+        }
+        finally {
+            frameQueue.finish(ticket, frame)
         }
     }, 1000);
     document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 const scheduleTimelineSwitch = () => {
     requestGeneration++
+    frameQueue.reset()
     pendingTimelineSwitch = true
 }
 let unwatchStationList, unwatchActivity, unwatchRender, unwatchDelay
@@ -154,6 +170,8 @@ watch(()=>statusStore.map, newVal=>{
         map.on('zoomend', renderAll)
         unwatchStationList = watch(stationList, newVal=>{
             if(Object.keys(newVal).length > 0){
+                requestGeneration++
+                frameQueue.reset(pendingTimelineSwitch ? null : latestFrameStamp)
                 Object.keys(stations).forEach(id=>{
                     stations[id].terminate()
                     delete stations[id]
@@ -242,9 +260,14 @@ watch(currentMaxShindo, (newVal, oldVal)=>{
     }
 })
 const stationDataUrl = computed(() => delay.value > 0 ? seisNetUrls?.trem.stationData : seisNetUrls?.trem.stationData.replace(/api-\d/, settingsStore.mainSettings.displaySeisNet.tremApi))
+watch([() => settingsStore.mainSettings.displaySeisNet.httpDataPriority, stationDataUrl], () => {
+    requestGeneration++
+    frameQueue.reset(pendingTimelineSwitch ? null : latestFrameStamp)
+}, { flush: 'sync' })
 onBeforeUnmount(()=>{
     stopped = true
     requestGeneration++
+    frameQueue.reset()
     clearTimeout(fetchStationTimer)
     clearInterval(requestInterval)
     document.removeEventListener('visibilitychange', handleVisibilityChange)
