@@ -116,7 +116,8 @@ const activityThresArr1 = [Infinity, 10, 14, 16, 18, 19, 20]
 const activityThresArr2 = [Infinity, 8, 11, 13, 14, 15, 16]
 const activityThresArr3 = [Infinity, 6, 9, 11, 12, 13, 14]
 const inferredHypocenterLabelOffset = 24
-let inferredHypocenterLayers = []
+let inferredHypocenterMap = null
+let inferredHypocenterLayers = null
 let inferredHypocenterLabelLayers = []
 let stationCanvasLayer = null
 let gridCanvasLayer = null
@@ -247,27 +248,30 @@ const getCompatibleNearbyStations = (centerStation, nearbyStations) => {
 }
 const getHypocenterWorker = () => {
     if(hypocenterWorker) return hypocenterWorker
-    hypocenterWorker = new Worker(new URL('@/workers/FindNiedHypocenterWorker.js', import.meta.url), { type: 'module' })
-    hypocenterWorker.onmessage = event => {
+    const worker = new Worker(new URL('@/workers/FindNiedHypocenterWorker.js', import.meta.url), { type: 'module' })
+    hypocenterWorker = worker
+    worker.onmessage = event => {
         const { requestId, results } = event.data || {}
-        if(requestId !== inFlightHypocenterRequestId) return
+        if(hypocenterWorker !== worker || requestId !== inFlightHypocenterRequestId) return
         inFlightHypocenterRequestId = null
         if(!isNiedHypoInfEnabled()) {
             pendingHypocenterUpdate = null
             return
         }
-        renderInferredHypocenters(results)
+        renderInferredHypocenters(results || [])
         postPendingHypocenterUpdate()
     }
-    hypocenterWorker.onerror = err => {
-        console.log(err)
+    worker.onerror = err => {
+        if(hypocenterWorker !== worker) return
         terminateHypocenterWorker()
+        clearInferredHypocenters()
+        console.error(err)
     }
-    hypocenterWorker.postMessage({
+    worker.postMessage({
         type: 'init',
         adjStations: adjStations4Hypo
     })
-    return hypocenterWorker
+    return worker
 }
 const resetHypocenterWorker = () => {
     inFlightHypocenterRequestId = null
@@ -345,9 +349,17 @@ const getFilterStageText = result => {
     return inferenceLevels.join(' -> ')
 }
 const renderInferredHypocenters = results => {
+    if(inferredHypocenterMap !== statusStore.map) {
+        destroyInferredHypocenterLayers()
+        inferredHypocenterMap = statusStore.map
+        if(inferredHypocenterMap) {
+            inferredHypocenterLayers = L.layerGroup().addTo(inferredHypocenterMap)
+            inferredHypocenterMap.on('zoomend moveend', layoutInferredHypocenterLabels)
+        }
+    }
     clearInferredHypocenters()
     if(!isNiedHypoInfEnabled()) return
-    if(!map || !Array.isArray(results)) return
+    if(!inferredHypocenterMap || !Array.isArray(results)) return
     const visibleResults = results
         .filter(result => result.hypocenter && Number.isFinite(result.score))
         .filter(shouldDisplayHypocenterResult)
@@ -365,13 +377,13 @@ const renderInferredHypocenters = results => {
             }, {})
             const clusterStationCount = result.clusterStationCount ?? result.effectiveStationCount ?? 0
             const originTimeJst = Number.isFinite(result.originStamp) ? stampToTime(result.originStamp, 9) : '-'
-            const waveLayers = createInferredWaveLayers(latLng, result)
-            const markerLayer = L.marker(latLng, {
+            createInferredWaveLayers(latLng, result)
+            L.marker(latLng, {
                 icon: infHypoIcon,
                 opacity: 1,
                 interactive: false,
                 pane: 'eewMarkerPane',
-            }).addTo(map)
+            }).addTo(inferredHypocenterLayers)
             const labelLayer = createInferredHypocenterLabelLayer(result, latLng, {
                 lat,
                 lng,
@@ -380,27 +392,25 @@ const renderInferredHypocenters = results => {
                 originTimeJst,
                 waveCounts
             })
-            inferredHypocenterLayers.push(...waveLayers, markerLayer)
             if(labelLayer) {
-                inferredHypocenterLayers.push(labelLayer)
                 inferredHypocenterLabelLayers.push(labelLayer)
             }
         })
     layoutInferredHypocenterLabels()
 }
 const layoutInferredHypocenterLabels = () => {
-    if(!map) return
+    if(!inferredHypocenterMap) return
     const placedBoxes = []
     const collisionGap = 4
     const edgePadding = 8
-    const mapSize = map.getSize()
+    const mapSize = inferredHypocenterMap.getSize()
     inferredHypocenterLabelLayers.forEach(labelLayer => {
         const labelElement = labelLayer.getElement()?.firstElementChild
         if(!labelElement) return
         const width = labelElement.offsetWidth
         const height = labelElement.offsetHeight
         if(width <= 0 || height <= 0) return
-        const point = map.latLngToContainerPoint(labelLayer.getLatLng())
+        const point = inferredHypocenterMap.latLngToContainerPoint(labelLayer.getLatLng())
         const candidates = [
             { left: point.x - width / 2, top: point.y + inferredHypocenterLabelOffset, transform: `translate(-50%, ${inferredHypocenterLabelOffset}px)` },
             { left: point.x - width / 2, top: point.y - inferredHypocenterLabelOffset - height, transform: `translate(-50%, calc(-100% - ${inferredHypocenterLabelOffset}px))` },
@@ -442,7 +452,7 @@ const createInferredHypocenterLabelLayer = (result, latLng, labelInfo) => {
         }),
         // pane: 'eewMarkerPane',
         interactive: false
-    }).addTo(map)
+    }).addTo(inferredHypocenterLayers)
 }
 const shouldDisplayHypocenterResult = result => {
     if(result.qualityScore < minDisplayedHypocenterQualityScore) return false
@@ -524,7 +534,7 @@ const createInferredWaveLayers = (latLng, result) => {
 const createInferredWaveLayer = (latLng, depth, passedTime, isPWave, color) => {
     let waveInfo = calcWaveDistance(travelTimes.jma2001, isPWave, depth, passedTime)
     if(waveInfo.radius > 2000) waveInfo = calcWaveDistance(travelTimes.jb, isPWave, depth, passedTime)
-    if(waveInfo.radius <= 0) return null
+    if(!Number.isFinite(waveInfo.radius) || waveInfo.radius <= 0) return null
     return L.circle(latLng, {
         radius: waveInfo.radius * 1000,
         color,
@@ -534,20 +544,19 @@ const createInferredWaveLayer = (latLng, depth, passedTime, isPWave, color) => {
         dashArray: '8 8',
         interactive: false,
         pane: 'wavePane'
-    }).addTo(map)
+    }).addTo(inferredHypocenterLayers)
 }
 const clearInferredHypocenters = () => {
-    statusStore.isActive.niedInfHypo = false
-    if(!map) {
-        inferredHypocenterLayers = []
-        inferredHypocenterLabelLayers = []
-        return
-    }
-    inferredHypocenterLayers.forEach(layer => {
-        if(map.hasLayer(layer)) map.removeLayer(layer)
-    })
-    inferredHypocenterLayers = []
+    inferredHypocenterLayers?.clearLayers()
     inferredHypocenterLabelLayers = []
+    statusStore.isActive.niedInfHypo = false
+}
+const destroyInferredHypocenterLayers = () => {
+    inferredHypocenterMap?.off('zoomend moveend', layoutInferredHypocenterLabels)
+    clearInferredHypocenters()
+    inferredHypocenterLayers?.remove()
+    inferredHypocenterLayers = null
+    inferredHypocenterMap = null
 }
 const chainActivate = (seedStation, activeStations, checkedStations)=>{
     if(!hasValidTriggerStamp(seedStation)) return
@@ -716,7 +725,7 @@ const scheduleTimelineSwitch = () => {
     resetHypocenterWorker()
 }
 onMounted(()=>{
-    fetchStationInterval = setInterval(fetchStationList, 5000);
+    fetchStationInterval = setInterval(fetchStationList, 10000);
     fetchStationList()
     requestInterval = setInterval(async () => {
         if(stopped) return
@@ -801,7 +810,6 @@ watch(()=>statusStore.map, newVal=>{
         initStationCanvasLayer()
         initGridCanvasLayer()
         map.on('zoomend', renderAll)
-        map.on('zoomend moveend', layoutInferredHypocenterLabels)
         unwatchGrids = watch(grids, (newVal)=>{
             let maxLevel = -1
             gridCanvasLayer?.setGrids(newVal)
@@ -914,7 +922,6 @@ onBeforeUnmount(()=>{
     if(unwatchDelay) unwatchDelay()
     if(map) {
         map.off('zoomend', renderAll)
-        map.off('zoomend moveend', layoutInferredHypocenterLabels)
         if(stationCanvasLayer && map.hasLayer(stationCanvasLayer)) map.removeLayer(stationCanvasLayer)
         if(gridCanvasLayer && map.hasLayer(gridCanvasLayer)) map.removeLayer(gridCanvasLayer)
         map.eachLayer(layer=>{
@@ -932,7 +939,7 @@ onBeforeUnmount(()=>{
     stations.length = 0
     clearAbnormalList()
     terminateHypocenterWorker()
-    clearInferredHypocenters()
+    destroyInferredHypocenterLayers()
     statusStore.isActive.niedNet = false
 })
 </script>

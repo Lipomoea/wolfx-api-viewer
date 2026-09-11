@@ -254,6 +254,7 @@ export const useStatusStore = defineStore('statusStore', {
             niedNet: false,
             kmaNet: false,
             niedInfHypo: false,
+            palertInfHypo: false,
         },
         history: {
             jmaEqlist: [],
@@ -1178,7 +1179,7 @@ export const useStatusStore = defineStore('statusStore', {
                         const maxIntensity = formatShindo(data[i].maxIntensity)
                         list[i] = {
                             source: 'CWA',
-                            id: data[i].id,
+                            id: `${data[i].id}${dayjs.utc(data[i].shockTime, 'YYYY-MM-DD HH:mm:ss').format('YYYYMMDDHHmmss')}`,
                             timeZone: 8,
                             useShindo: true,
                             originTime: data[i].shockTime,

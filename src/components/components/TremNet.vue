@@ -89,22 +89,33 @@ const renderAll = ()=>{
 const clearReactiveObject = (obj) => {
     if(obj) for(let key in obj) delete obj[key]
 }
-let fetchStationInterval, requestInterval
+let fetchStationTimer, requestInterval
+const isValidStationInfo = ([id, station]) => {
+    const info = Array.isArray(station?.info) ? station.info.at(-1) : null
+    return id.length > 0 && Number.isFinite(info?.lat) && Math.abs(info.lat) <= 90 &&
+        Number.isFinite(info?.lon) && Math.abs(info.lon) <= 180
+}
 const fetchStationList = async () => {
     if(stopped) return
     try {
         const res = await Http.get(seisNetUrls?.trem.stationList + `?time=${Date.now()}`)
-        if(stopped) return
-        if(res && JSON.stringify(res) != JSON.stringify(stationList)){
+        if(stopped || !res || typeof res !== 'object' || Array.isArray(res)) return
+        const validStations = Object.fromEntries(Object.entries(res).filter(isValidStationInfo))
+        if(Object.keys(validStations).length === 0) return
+        if(JSON.stringify(validStations) != JSON.stringify(stationList)){
             clearReactiveObject(stationList)
-            Object.assign(stationList, res)
+            Object.assign(stationList, validStations)
         }
     } catch (err) {
         console.log(err);
     }
+    finally {
+        if(!stopped) {
+            fetchStationTimer = setTimeout(fetchStationList, Object.keys(stationList).length > 0 ? 10 * 60 * 1000 : 10 * 1000)
+        }
+    }
 }
 onMounted(()=>{
-    fetchStationInterval = setInterval(fetchStationList, 180 * 1000);
     fetchStationList()
     requestInterval = setInterval(async () => {
         if(stopped) return
@@ -234,7 +245,7 @@ const stationDataUrl = computed(() => delay.value > 0 ? seisNetUrls?.trem.statio
 onBeforeUnmount(()=>{
     stopped = true
     requestGeneration++
-    clearInterval(fetchStationInterval)
+    clearTimeout(fetchStationTimer)
     clearInterval(requestInterval)
     document.removeEventListener('visibilitychange', handleVisibilityChange)
     if(unwatchStationList) unwatchStationList()

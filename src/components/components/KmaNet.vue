@@ -63,7 +63,7 @@ const grids = computed(()=>{
     return Object.values(gridMap)
 })
 const currentMaxShindo = computed(()=>{
-    const currentMaxLevel = Math.max(...grids.value.map(grid => grid.level), -1)
+    const currentMaxLevel = Math.max(...activeStations.value.map(station => station.recentMaxLevel), -1)
     if(currentMaxLevel == -1) return -1
     else if(currentMaxLevel <= 3) return 0
     else if(currentMaxLevel <= 4) return 1

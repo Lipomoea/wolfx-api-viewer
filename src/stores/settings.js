@@ -23,6 +23,9 @@ export const useSettingsStore = defineStore('settingsStore', {
                 delay: 0,
                 palertNet: false,
                 palertLevelHold: 1,
+                palertHypoInf: false,
+                palertHypoInfAlwaysOn: false,
+                palertHypoInfTextInfo: 0,
                 displayPalertShindo: false,
                 tremNet: false,
                 tremApi: 'lb-1',
@@ -188,6 +191,10 @@ export const useSettingsStore = defineStore('settingsStore', {
             const mode = Number(state.mainSettings.displaySeisNet.niedHypoInfTextInfo)
             return useAccessStore().canUse('advancedHypoInf') ? mode : Math.min(mode, 1)
         },
+        effectivePalertHypoInfTextInfo(state) {
+            const mode = Number(state.mainSettings.displaySeisNet.palertHypoInfTextInfo)
+            return useAccessStore().canUse('advancedHypoInf') ? mode : Math.min(mode, 1)
+        },
         enabledDataSources() {
             return Object.entries(this.effectiveDataSources)
                 .filter(([, apis]) => Object.values(apis).some(Boolean))
@@ -211,6 +218,9 @@ export const useSettingsStore = defineStore('settingsStore', {
                 Number(this.mainSettings.displaySeisNet.niedHypoInfTextInfo) > 1
             ) {
                 this.mainSettings.displaySeisNet.niedHypoInfTextInfo = 1
+            }
+            if(!accessStore.canUse('advancedHypoInf') && Number(this.mainSettings.displaySeisNet.palertHypoInfTextInfo) > 1) {
+                this.mainSettings.displaySeisNet.palertHypoInfTextInfo = 1
             }
         },
         setDataSourceEnabled(source, enabled) {

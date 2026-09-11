@@ -1178,7 +1178,7 @@ watchEffect(() => {
     const menuOpac = menuId.value == 'eqlists' ? 0.3 : 1
     // 你不许使用可选链符号（不然报错）
     if(eewMarkerPane) eewMarkerPane.style.opacity = blinkOpac * menuOpac
-    if(taiwanGridPane) taiwanGridPane.style.opacity = blinkOpac * menuOpac * (!statusStore.isActive.cwaEew || settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid ? 1 : 0)
+    if(taiwanGridPane) taiwanGridPane.style.opacity = blinkOpac * menuOpac * (settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid || !(statusStore.isActive.cwaEew || statusStore.isActive.palertInfHypo) ? 1 : 0)
     if(niedGridPane) niedGridPane.style.opacity = blinkOpac * menuOpac * (settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid || !(statusStore.isActive.jmaEew || statusStore.isActive.niedInfHypo) ? 1 : 0)
     if(kmaGridPane) kmaGridPane.style.opacity = blinkOpac * menuOpac * (!statusStore.isActive.kmaEew || settingsStore.mainSettings.displaySeisNet.alwaysDisplayGrid ? 1 : 0)
 })

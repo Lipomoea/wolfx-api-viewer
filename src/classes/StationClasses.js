@@ -262,7 +262,20 @@ export class PalertStation {
         this.level = -1
         this.recentData = []
         this.recentSeconds = 60
+        this.recentMaxLevel = -1
+        this.updateStamp = null
+        this.nonQuietBoundaryStamp = null
+        this.missingCountSinceBoundary = 0
+        this.consecutiveMissingCount = 0
+        this.triggerStamp = null
+        this.maxLevel = -1
+        this.secondMaxLevel = -1
+        this.triggerMaxPga = null
+        this.triggerSecondMaxPga = null
+        this.noNewPeakCount = 0
+        this.completedPick = null
         this.activity = 0
+        this.activitySeconds = 12
         this.holdLevel = -1
         this.shindo = getShindoFromLevel(this.holdLevel)
         this.isActive = false
@@ -270,6 +283,11 @@ export class PalertStation {
         if(!this.useCanvasLayer) this.render()
     }
     update(data, missingSeconds = 0, render = true){
+        if(!Number.isFinite(data.timestamp) || data.timestamp <= 0 ||
+            (this.updateStamp !== null && data.timestamp <= this.updateStamp)) return
+        const previousUpdateStamp = this.updateStamp
+        this.updateStamp = data.timestamp
+        this.updatePenaltyState(data, previousUpdateStamp)
         this.pga = data.pga
         this.pgv = data.pgv
         this.level = data.level
@@ -281,28 +299,119 @@ export class PalertStation {
         }))
         this.recentData.unshift({ ...data }, ...missingData)
         this.recentData.splice(this.recentSeconds)
+        this.recentMaxLevel = Math.max(...this.recentData.map(data => data.level).filter(Number.isFinite), -1)
         this.activity = this.calcActivity()
+        this.completedPick = null
+        // Advance missing seconds before the current sample, so a gap cannot revive a closed pick.
+        for(let i = 0; this.triggerStamp !== null && i < missingSeconds; i++) {
+            this.updateTrigger({ timestamp: previousUpdateStamp + (i + 1) * 1000, level: -1, pga: null })
+        }
+        this.updateTrigger(data)
         this.updateHoldLevel(render)
     }
     calcActivity(){
-        const recentData = this.recentData.slice(0, 12)
+        const recentData = this.recentData.slice(0, this.activitySeconds)
         const maxLevel = Math.max(...recentData.map(data => data.level), -1)
-        let activity = maxLevel >= 10 ? 2 : maxLevel >= 8 ? 1 : 0
-        const recentPga = recentData
-            .map(data => data.pga)
-            .filter(pga => Number.isFinite(pga) && pga >= 0)
-        const backgroundPga = this.recentData
-            .slice(12, this.recentSeconds)
-            .map(data => data.pga)
-            .filter(pga => Number.isFinite(pga) && pga >= 0)
-        if(recentPga.length === 0 || backgroundPga.length < 24) return activity
-
-        const backgroundAverage = backgroundPga.reduce((sum, pga) => sum + pga, 0) / backgroundPga.length
-        if(Number.isFinite(backgroundAverage) && backgroundAverage > 0) {
-            const maxPga = Math.max(...recentPga)
-            if(maxPga >= backgroundAverage * 3) activity = Math.max(activity, 1)
+        return maxLevel >= 10 ? 2 : maxLevel >= 9 ? 1.5 : maxLevel >= 8 ? 1 : maxLevel >= 7 ? 0.5 : 0
+    }
+    updateTrigger(sample){
+        const { timestamp, level, pga } = sample
+        const isValid = Number.isFinite(level) && level >= 0 && Number.isFinite(pga) && pga >= 0
+        if(this.triggerStamp === null) {
+            if(!isValid) return
+            let backgroundMaxPga = 0
+            for(let offset = 1; offset <= 8; offset++) {
+                const before = this.recentData[offset]
+                if(!before || before.timestamp !== timestamp - offset * 1000 ||
+                    !Number.isFinite(before.level) || before.level < 0 ||
+                    !Number.isFinite(before.pga) || before.pga < 0) return
+                if(offset >= 2) backgroundMaxPga = Math.max(backgroundMaxPga, before.pga)
+            }
+            const previous = this.recentData[1]
+            // Either sample may reach level seven; prefer the preceding sample as onset, including a completed pick's final sample.
+            if((level >= 7 || previous.level >= 7) && previous.pga > 0 &&
+                pga >= backgroundMaxPga * 1.5 && previous.pga >= backgroundMaxPga * 1.5) {
+                this.triggerStamp = previous.timestamp
+                this.maxLevel = previous.level
+                this.triggerMaxPga = previous.pga
+            }
+            else {
+                if(level < 7 || pga <= 0 || pga < Math.max(backgroundMaxPga, previous.pga) * 2) return
+                this.triggerStamp = timestamp
+            }
         }
-        return activity
+
+        const oldMaxPga = this.triggerMaxPga
+        const oldSecondMaxPga = this.triggerSecondMaxPga
+        if(isValid) {
+            if(level >= this.maxLevel) {
+                this.secondMaxLevel = this.maxLevel
+                this.maxLevel = level
+            }
+            else if(level > this.secondMaxLevel) this.secondMaxLevel = level
+            if(this.triggerMaxPga === null || pga >= this.triggerMaxPga) {
+                this.triggerSecondMaxPga = this.triggerMaxPga
+                this.triggerMaxPga = pga
+            }
+            else if(this.triggerSecondMaxPga === null || pga > this.triggerSecondMaxPga) this.triggerSecondMaxPga = pga
+        }
+        // Equal values at distinct times count toward the top two, but only a value change renews the pick.
+        this.noNewPeakCount = oldMaxPga !== this.triggerMaxPga || oldSecondMaxPga !== this.triggerSecondMaxPga
+            ? 0 : this.noNewPeakCount + 1
+        if(this.noNewPeakCount < 8) return
+        this.completedPick = {
+            triggerStamp: this.triggerStamp,
+            updateStamp: timestamp,
+            level,
+            maxLevel: this.maxLevel,
+            secondMaxLevel: this.secondMaxLevel
+        }
+        this.clearTrigger()
+    }
+    clearTrigger(){
+        this.triggerStamp = null
+        this.maxLevel = -1
+        this.secondMaxLevel = -1
+        this.triggerMaxPga = null
+        this.triggerSecondMaxPga = null
+        this.noNewPeakCount = 0
+    }
+    updatePenaltyState(sample, previousUpdateStamp){
+        const missingSeconds = previousUpdateStamp === null ? 0
+            : Math.max(Math.round((sample.timestamp - previousUpdateStamp) / 1000) - 1, 0)
+        if(missingSeconds >= 3) {
+            // From the third missing frame onward, every missing frame advances the boundary.
+            this.nonQuietBoundaryStamp = sample.timestamp - 1000
+            this.missingCountSinceBoundary = 0
+            this.consecutiveMissingCount += missingSeconds
+        }
+        else {
+            for(let offset = missingSeconds; offset > 0; offset--) {
+                this.updatePenaltySample({ timestamp: sample.timestamp - offset * 1000, level: -1 })
+            }
+        }
+        this.updatePenaltySample(sample)
+    }
+    updatePenaltySample({ timestamp, level }){
+        this.nonQuietBoundaryStamp ??= timestamp - 1000
+        if(Number.isFinite(level) && level >= 0) {
+            this.consecutiveMissingCount = 0
+            if(level <= 5) return
+        }
+        else {
+            this.missingCountSinceBoundary++
+            this.consecutiveMissingCount++
+            const elapsedSeconds = (timestamp - this.nonQuietBoundaryStamp) / 1000
+            if(this.consecutiveMissingCount < 3 && this.missingCountSinceBoundary / elapsedSeconds <= 0.05) return
+        }
+        this.nonQuietBoundaryStamp = timestamp
+        this.missingCountSinceBoundary = 0
+    }
+    isPenaltyStation(){
+        if(!Number.isFinite(this.nonQuietBoundaryStamp) || !Number.isFinite(this.updateStamp)) return false
+        const elapsedSeconds = (this.updateStamp - this.nonQuietBoundaryStamp) / 1000
+        return elapsedSeconds >= 10 && this.missingCountSinceBoundary / elapsedSeconds <= 0.05 &&
+            this.consecutiveMissingCount < 3
     }
     updateHoldLevel(render = true){
         const holdSeconds = settingsStore.mainSettings.displaySeisNet.palertLevelHold
@@ -330,7 +439,14 @@ export class PalertStation {
     }
     clearRecentData(){
         this.recentData.length = 0
+        this.recentMaxLevel = -1
         this.activity = 0
+        this.updateStamp = null
+        this.nonQuietBoundaryStamp = null
+        this.missingCountSinceBoundary = 0
+        this.consecutiveMissingCount = 0
+        this.clearTrigger()
+        this.completedPick = null
     }
     render(){
         if(this.useCanvasLayer) return
@@ -916,6 +1032,7 @@ export class KmaStation {
         this.level = intensity + 2
         this.recentLevel = []
         this.recentSeconds = 60
+        this.recentMaxLevel = -1
         this.activityLevel = this.level
         this.activitySeconds = 12
         this.holdLevel = this.level
@@ -929,6 +1046,7 @@ export class KmaStation {
         this.level = intensity + 2
         this.recentLevel.unshift(this.level)
         this.recentLevel.splice(this.recentSeconds)
+        this.recentMaxLevel = Math.max(...this.recentLevel.filter(Number.isFinite), -1)
         const activityArr = this.recentLevel.slice(0, this.activitySeconds)
         const pastArr = this.recentLevel.slice(this.activitySeconds)
         this.activityLevel = Math.max(...activityArr, -1)

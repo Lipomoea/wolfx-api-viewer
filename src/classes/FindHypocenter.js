@@ -8,7 +8,7 @@ const compareStrings = (value1, value2) => {
 }
 
 export class FindHypocenter {
-    constructor(inactiveStations, adjStations, profile) {
+    constructor(inactiveStations, adjStations, profile, stationDensityWeights = null) {
         this.profile = profile
         this.parameters = profile.parameters
         this.picks = new Map()
@@ -24,7 +24,7 @@ export class FindHypocenter {
         this.inactiveStationsVersion = 0
         this.inactivePenaltyCandidateCache = new WeakMap()
         this.adjStations = adjStations
-        this.stationDensityWeights = this.calcStationDensityWeights(adjStations)
+        this.stationDensityWeights = stationDensityWeights ?? FindHypocenter.calcStationDensityWeights(adjStations)
         this.nextClusterId = 1
         this.updateVersion = 0
         this.setInactiveStations(inactiveStations)
@@ -79,8 +79,7 @@ export class FindHypocenter {
             triggerStamp: pick.triggerStamp,
             createdStamp: pick.createdStamp ?? pick.updateStamp,
             updateStamp: pick.updateStamp,
-            maxAscend: pick.ascend,
-            maxLevel: pick.level,
+            ...this.profile.createPickMetrics(pick),
             densityWeight: this.getStationDensityWeight(pick.stationId)
         }
     }
@@ -105,10 +104,11 @@ export class FindHypocenter {
         }
     }
 
-    calcStationDensityWeights(adjStations) {
+    static calcStationDensityWeights(adjStations) {
         return Object.fromEntries(
             Object.keys(adjStations || {}).map(id => {
-                const localNeighborCount = Math.max(adjStations[id]?.length || 0, 1)
+                // Directional links beyond 30 km provide connectivity, not local density.
+                const localNeighborCount = Math.max(adjStations[id]?.filter(({ distance }) => distance <= 30).length || 0, 1)
                 return [id, 1 / Math.sqrt(localNeighborCount)]
             })
         )
@@ -129,12 +129,8 @@ export class FindHypocenter {
 
     updatePickSnapshot(pickSnapshot, source) {
         if(this.latestPickIdByStation.get(pickSnapshot.stationId) !== pickSnapshot.pickId) return
-        const oldMaxAscend = pickSnapshot.maxAscend
-        const oldMaxLevel = pickSnapshot.maxLevel
         pickSnapshot.updateStamp = Math.max(pickSnapshot.updateStamp || 0, source.updateStamp || 0)
-        pickSnapshot.maxAscend = Math.max(pickSnapshot.maxAscend || 0, source.ascend || 0)
-        pickSnapshot.maxLevel = Math.max(pickSnapshot.maxLevel ?? -1, source.level ?? -1)
-        if(oldMaxAscend !== pickSnapshot.maxAscend || oldMaxLevel !== pickSnapshot.maxLevel) {
+        if(this.profile.updatePickMetrics(pickSnapshot, source)) {
             const cluster = this.pickClusterMap.get(pickSnapshot.pickId)
             if(cluster) this.markClusterUpdated(cluster)
         }
@@ -493,8 +489,8 @@ export class FindHypocenter {
     isPreferredEffectivePick(candidate, selected) {
         const residualDiff = candidate.residual - selected.residual
         if(Math.abs(residualDiff) > this.parameters.duplicatePickResidualTieTolerance) return residualDiff < 0
-        const ascendDiff = (candidate.item.maxAscend || 0) - (selected.item.maxAscend || 0)
-        if(ascendDiff !== 0) return ascendDiff > 0
+        const strengthDiff = this.profile.getEffectivePickStrength(candidate.item) - this.profile.getEffectivePickStrength(selected.item)
+        if(strengthDiff !== 0) return strengthDiff > 0
         return compareStrings(candidate.item.pick.pickId, selected.item.pick.pickId) < 0
     }
 
@@ -1177,7 +1173,8 @@ export class FindHypocenter {
         const pWavePickCount = pickResults.filter(result => result.wave === 'P' && result.weight > 0).length || 1
         const sWavePickCount = pickResults.filter(result => result.wave === 'S' && result.weight > 0).length
         const excessRatio = sWavePickCount / pWavePickCount - config.thresholdRatio
-        return Math.min(Math.max(excessRatio, 0), config.maxPenalty)
+        const penalty = excessRatio * (this.parameters.waveCountPenaltySlope ?? 1)
+        return Math.min(Math.max(penalty, 0), config.maxPenalty)
     }
 
     calcUnexplainedPickPenalty(pickResults, totalPickCount = pickResults.length) {
@@ -1261,8 +1258,7 @@ export class FindHypocenter {
             triggerStamp: pick.triggerStamp,
             createdStamp: pick.createdStamp,
             updateStamp: pick.updateStamp,
-            maxAscend: pick.maxAscend,
-            maxLevel: pick.maxLevel,
+            ...this.profile.getPickMetrics(pick),
             densityWeight: pick.densityWeight
         }
     }
@@ -1345,19 +1341,19 @@ export class FindHypocenter {
         }
         if(nearestPick) return nearestPick
 
-        let maxAscendPick = null
-        for(const pick of picks) {
-            if(!Number.isFinite(pick.maxAscend)) continue
-            if(!maxAscendPick || pick.maxAscend > maxAscendPick.maxAscend) maxAscendPick = pick
+        for(const getValue of this.profile.fallbackReferenceMetrics) {
+            let strongestPick = null
+            let strongestValue = -Infinity
+            for(const pick of picks) {
+                const value = getValue(pick)
+                if(Number.isFinite(value) && value > strongestValue) {
+                    strongestPick = pick
+                    strongestValue = value
+                }
+            }
+            if(strongestPick) return strongestPick
         }
-        if(maxAscendPick) return maxAscendPick
-
-        let maxLevelPick = null
-        for(const pick of picks) {
-            if(!Number.isFinite(pick.maxLevel)) continue
-            if(!maxLevelPick || pick.maxLevel > maxLevelPick.maxLevel) maxLevelPick = pick
-        }
-        return maxLevelPick || picks[0] || null
+        return picks[0] || null
     }
 
     getSortedInactiveStations(picks, hypocenter, optionCache) {
@@ -1594,8 +1590,8 @@ export class FindHypocenter {
     }
 
     getPickWeight(pick, triggerRankWeight = 1) {
-        const ascendWeight = this.profile.getAscendWeight(pick.maxAscend)
-        return ascendWeight * (pick.densityWeight ?? 1) * triggerRankWeight
+        const baseWeight = this.profile.getPickBaseWeight(pick)
+        return baseWeight * (pick.densityWeight ?? 1) * triggerRankWeight
     }
 
     isPenaltyReferencePick(pick) {

@@ -15,20 +15,26 @@ const MAX_RECORD_TIME: f64 = 9_007_199_254_740_991.0;
 const MAX_RESPONSE_BYTES: usize = 1_048_576;
 
 pub struct PalertClient {
-    http: Result<Client, String>,
+    realtime_http: Result<Client, String>,
+    station_list_http: Result<Client, String>,
 }
 
 impl PalertClient {
     pub fn new() -> Self {
-        let http = Client::builder()
-            .connect_timeout(Duration::from_secs(3))
-            .timeout(Duration::from_secs(3))
-            .redirect(Policy::none())
-            .user_agent("kanameishi")
-            .build()
-            .map_err(|err| format!("Failed to initialize P-Alert HTTP client: {err}"));
+        let build_http = |timeout| {
+            Client::builder()
+                .connect_timeout(timeout)
+                .timeout(timeout)
+                .redirect(Policy::none())
+                .user_agent("kanameishi")
+                .build()
+                .map_err(|err| format!("Failed to initialize P-Alert HTTP client: {err}"))
+        };
 
-        Self { http }
+        Self {
+            realtime_http: build_http(Duration::from_secs(5)),
+            station_list_http: build_http(Duration::from_secs(15)),
+        }
     }
 
     async fn fetch_realtime_data(
@@ -38,35 +44,42 @@ impl PalertClient {
     ) -> Result<RealtimeData, String> {
         validate_data_type(data_type)?;
         validate_record_time(record_time)?;
-        let data: RealtimeGraphQlData = self
-            .request_graphql(
-                REALTIME_DATA_QUERY,
-                json!({
-                    "recordTime": record_time,
-                    "token": "",
-                    "type": data_type
-                }),
-            )
-            .await?;
+        let data: RealtimeGraphQlData = Self::request_graphql(
+            &self.realtime_http,
+            REALTIME_DATA_QUERY,
+            json!({
+                "recordTime": record_time,
+                "token": "",
+                "type": data_type
+            }),
+        )
+        .await?;
 
         data.realtime_data
             .ok_or_else(|| "P-Alert response is missing data.realtimePGA".to_string())
     }
 
     async fn fetch_station_list(&self) -> Result<StationListData, String> {
-        let data: StationListGraphQlData = self
-            .request_graphql(STATION_LIST_QUERY, json!({ "staFilter": "onlineAll" }))
-            .await?;
+        let data: StationListGraphQlData = Self::request_graphql(
+            &self.station_list_http,
+            STATION_LIST_QUERY,
+            json!({ "staFilter": "onlineAll" }),
+        )
+        .await?;
 
         data.station_list
             .ok_or_else(|| "P-Alert response is missing data.stationList".to_string())
     }
 
-    async fn request_graphql<T>(&self, query: &'static str, variables: Value) -> Result<T, String>
+    async fn request_graphql<T>(
+        http: &Result<Client, String>,
+        query: &'static str,
+        variables: Value,
+    ) -> Result<T, String>
     where
         T: DeserializeOwned,
     {
-        let http = self.http.as_ref().map_err(Clone::clone)?;
+        let http = http.as_ref().map_err(Clone::clone)?;
         let response = http
             .post(PALERT_GRAPHQL_URL)
             .header(ACCEPT, "application/json")

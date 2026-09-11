@@ -314,15 +314,17 @@ export const calcWaveDistance = (travelTime, isPWave, depth, time) => {
   while (depths[i] < depth && i < depths.length - 1) i++;
   const k1 = depths[i] - depth;
   const k2 = depth - depths[i - 1];
-  const times = [];
-  for (let j = 0; j < distances.length; j++) {
-    times[j] = (k1 * data[i - 1][j] + k2 * data[i][j]) / (k1 + k2);
-  }
-  if (time <= times[0]) return { reach: time / times[0], radius: 0 };
+  let time0 = (k1 * data[i - 1][0] + k2 * data[i][0]) / (k1 + k2);
+  if (time <= time0) return { reach: time / time0, radius: 0 };
   let j = 1;
-  while (times[j] < time && j < times.length - 1) j++;
-  const k = (distances[j] - distances[j - 1]) / (times[j] - times[j - 1]);
-  const b = distances[j] - k * times[j];
+  let time1 = (k1 * data[i - 1][j] + k2 * data[i][j]) / (k1 + k2);
+  while (time1 < time && j < distances.length - 1) {
+    time0 = time1;
+    j++;
+    time1 = (k1 * data[i - 1][j] + k2 * data[i][j]) / (k1 + k2);
+  }
+  const k = (distances[j] - distances[j - 1]) / (time1 - time0);
+  const b = distances[j] - k * time1;
   const distance = k * time + b;
   return { reach: 1, radius: distance };
 };
@@ -335,14 +337,12 @@ export const calcReachTime = (travelTime, isPWave, depth, distance) => {
   while (depths[i] < depth && i < depths.length - 1) i++;
   const k1 = depths[i] - depth;
   const k2 = depth - depths[i - 1];
-  const times = [];
-  for (let j = 0; j < distances.length; j++) {
-    times[j] = (k1 * data[i - 1][j] + k2 * data[i][j]) / (k1 + k2);
-  }
   let j = 1;
   while (distances[j] < distance && j < distances.length - 1) j++;
-  const k = (times[j] - times[j - 1]) / (distances[j] - distances[j - 1]);
-  const b = times[j] - k * distances[j];
+  const time0 = (k1 * data[i - 1][j - 1] + k2 * data[i][j - 1]) / (k1 + k2);
+  const time1 = (k1 * data[i - 1][j] + k2 * data[i][j]) / (k1 + k2);
+  const k = (time1 - time0) / (distances[j] - distances[j - 1]);
+  const b = time1 - k * distances[j];
   const time = k * distance + b;
   return time;
 };

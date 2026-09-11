@@ -55,7 +55,7 @@ const profile = modules.get(path.join(root, 'src/classes/NiedHypocenterProfile.j
 const { calcDistanceKm, calcReachTime } = modules.get(path.join(root, 'src/utils/Utils.js')).namespace
 const travelTimes = modules.get(path.join(root, 'src/utils/TravelTimes.js')).namespace.default
 for(const name of parameterNames) assert.deepStrictEqual(profile.parameters[name], baselineModule.namespace.baselineParameters[name], name)
-console.log(`PASS ${parameterNames.length} migrated parameters, including nested filter stages`)
+console.log(`PASS ${parameterNames.length} parameters against the unmodified original NIED baseline`)
 
 let comparisons = 0
 const equal = (current, baseline, label) => {
@@ -151,7 +151,12 @@ const adjacency = (stations, connected = () => true) => Object.fromEntries(stati
 // Compare all enumerable state apart from the new configuration references and opaque caches.
 const snapshot = finder => Object.fromEntries(Object.entries(finder)
     .filter(([key, value]) => key !== 'profile' && key !== 'parameters' && !(value instanceof WeakMap)))
-const pair = adj => ({ baseline: new Baseline([], adj), current: new Current([], adj) })
+// Keep the original density inputs to isolate solver equivalence. The intentional
+// 30 km density policy and initialized-table reuse are covered by palert_inference.mjs.
+const pair = adj => {
+    const baseline = new Baseline([], adj)
+    return { baseline, current: new Current([], adj, structuredClone(baseline.stationDensityWeights)) }
+}
 let frames = 0
 const update = (finders, picks, active = picks.map(activeSnapshot), inactive = []) => {
     const args = [picks, inactive, active]
@@ -235,7 +240,7 @@ for(const next of [{ ...hypocenter, depth: 40 }, null]) {
 
 // A separate profile can change policies without changing another finder or NIED defaults.
 const alternativeProfile = { ...profile, parameters: { ...profile.parameters, minInferenceStationCount: 99, initialDepth: 25 },
-    isValidStationId: id => typeof id === 'string', getAscendWeight: () => 2,
+    isValidStationId: id => typeof id === 'string', getPickBaseWeight: () => 2,
     isPenaltyReferencePick: () => false, selectTravelTimeTable: () => travelTimes.jb, calcQualityScore: () => 42 }
 const alternative = new Core([], {}, alternativeProfile)
 assert(alternative.hasValidPickCandidate({ stationId: 'W460', triggerStamp: stamp, pickId: `W460:${stamp}` }))
@@ -247,4 +252,4 @@ assert.equal(alternative.normalizeHypocenter({ lat: 35, lng: 139 }).depth, 25)
 assert.equal(alternative.getOptionCacheEntry(penaltyPicks[0], hypocenter, new Map()).travelTime, travelTimes.jb)
 assert.equal(alternative.update(mergePicks, [], mergePicks.map(activeSnapshot)).length, 0)
 assert.equal(newFinder.parameters.minInferenceStationCount, 5)
-console.log(`PASS ${frames} sequential frames and ${comparisons} exact comparisons; profile isolation verified`)
+console.log(`PASS ${frames} sequential frames and ${comparisons} exact comparisons with original density inputs; profile isolation verified`)

@@ -42,6 +42,27 @@
                                     <el-option label="60秒" :value="60" />
                                 </el-select>
                             </div>
+                            <div class="switch-full pl-4">
+                                <span>本地推算震源（P-Alert）</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.palertHypoInf" :disabled="!settingsStore.mainSettings.displaySeisNet.palertNet" />
+                            </div>
+                            <div class="switch-full pl-8">
+                                <span>不自动隐藏推算震源</span>
+                                <el-switch v-model="settingsStore.mainSettings.displaySeisNet.palertHypoInfAlwaysOn" :disabled="!settingsStore.mainSettings.displaySeisNet.palertNet || !settingsStore.mainSettings.displaySeisNet.palertHypoInf" />
+                            </div>
+                            <div class="switch-full pl-8">
+                                <span>震源推算文字信息</span>
+                                <el-select
+                                    v-model="settingsStore.mainSettings.displaySeisNet.palertHypoInfTextInfo"
+                                    size="small"
+                                    :disabled="!settingsStore.mainSettings.displaySeisNet.palertNet || !settingsStore.mainSettings.displaySeisNet.palertHypoInf"
+                                    style="width: 72px;"
+                                >
+                                    <el-option label="关闭" :value="0" />
+                                    <el-option label="打开" :value="1" />
+                                    <el-option label="详细" :value="2" v-show="accessStore.canUse('advancedHypoInf')" />
+                                </el-select>
+                            </div>
                         </div>
                         <div class="w-full" v-if="accessStore.canUse('tremFunctions')">
                             <div class="switch-full">
@@ -1605,6 +1626,8 @@ const handleAdvance = (val)=>{
             accessStore.revoke('advancedHypoInf')
             if (settingsStore.mainSettings.displaySeisNet.niedHypoInfTextInfo == 2)
                 settingsStore.mainSettings.displaySeisNet.niedHypoInfTextInfo = 1
+            if (settingsStore.mainSettings.displaySeisNet.palertHypoInfTextInfo == 2)
+                settingsStore.mainSettings.displaySeisNet.palertHypoInfTextInfo = 1
             ElMessage({
                 message: '功能已关闭',
                 type: 'success'

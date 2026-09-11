@@ -67,6 +67,7 @@ const activeEewList = inject('activeEewList')
 
 const maxHistoryNumber = 100
 const maxReplayDuration = 10 * 60 * 1000
+const replayLeadSeconds = 9
 const replayState = reactive({
     itemId: null,
     mockEewId: null,
@@ -100,7 +101,7 @@ const toggleReplay = (item) => {
     startReplay(item)
 }
 const startReplay = (item) => {
-    const passedTime = exactRound(Math.max(calcPassedTime(item.originTime, item.timeZone) / 60000 + 0.1, 0), 2)
+    const passedTime = exactRound(Math.max(calcPassedTime(item.originTime, item.timeZone) / 60000 + replayLeadSeconds / 60, 0), 2)
     settingsStore.mainSettings.displaySeisNet.delay = passedTime
     replayState.itemId = item.id
     if (settingsStore.advancedSettings.mockOnReplay && settingsStore.advancedSettings.mockEew) {
@@ -188,7 +189,7 @@ const displayOnMap = (item) => {
 }
 const createMockEew = (item) => {
     const now = timeStore.getTimeStamp()
-    const originTime = dayjs(now).add(6, 'seconds').utcOffset(item.timeZone * 60).format('YYYY-MM-DD HH:mm:ss')
+    const originTime = dayjs(now).add(replayLeadSeconds, 'seconds').utcOffset(item.timeZone * 60).format('YYYY-MM-DD HH:mm:ss')
     const eqMessage = {
         id: now,
         isEew: true,
@@ -221,7 +222,7 @@ const createMockEew = (item) => {
         replayState.issued = true
         replayState.mockTimer = null
         statusStore.setEqMessage('mockEew', eqMessage)
-    }, 6000);
+    }, replayLeadSeconds * 1000);
 }
 </script>
 

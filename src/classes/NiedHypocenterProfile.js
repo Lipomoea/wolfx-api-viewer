@@ -67,7 +67,29 @@ export const niedHypocenterProfile = {
         return Number.isFinite(id)
     },
 
-    getAscendWeight(maxAscend) {
+    createPickMetrics(pick) {
+        return { maxAscend: pick.ascend, maxLevel: pick.level }
+    },
+
+    updatePickMetrics(pick, source) {
+        const oldMaxAscend = pick.maxAscend
+        const oldMaxLevel = pick.maxLevel
+        pick.maxAscend = Math.max(pick.maxAscend || 0, source.ascend || 0)
+        pick.maxLevel = Math.max(pick.maxLevel ?? -1, source.level ?? -1)
+        return oldMaxAscend !== pick.maxAscend || oldMaxLevel !== pick.maxLevel
+    },
+
+    getPickMetrics(pick) {
+        return { maxAscend: pick.maxAscend, maxLevel: pick.maxLevel }
+    },
+
+    getEffectivePickStrength(item) {
+        return item.maxAscend || 0
+    },
+
+    fallbackReferenceMetrics: [pick => pick.maxAscend, pick => pick.maxLevel],
+
+    getPickBaseWeight({ maxAscend }) {
         if(maxAscend >= 4) return Math.min(0.2 * maxAscend, 2)
         else if(maxAscend >= 3) return 0.3
         else if(maxAscend >= 2) return 0.1

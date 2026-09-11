@@ -1,31 +1,54 @@
 <template>
-    <div>
-
-    </div>
+    <div />
 </template>
 
 <script setup>
 import { reactive, computed, onMounted, onBeforeUnmount, watch, inject } from 'vue';
+import { createPalertHypocenterUpdate, mergePalertHypocenterUpdates } from '@/utils/PalertHypocenterUpdates';
 import Palert from '@/classes/Palert';
 import { useStatusStore } from '@/stores/status';
 import { useSettingsStore } from '@/stores/settings';
 import { iconUrls } from '@/utils/Urls';
-import { calcDistanceKm, focusWindow, getPalertLevelFromPgaPgv, getShindoFromLevel, playSound, sendMyNotification, stampToTime } from '@/utils/Utils';
+import { calcDistanceKm, calcBearingDeg, calcLngDiff, calcWaveDistance, timeToStamp, focusWindow, getPalertLevelFromPgaPgv, getShindoFromLevel, playSound, sendMyNotification, stampToTime } from '@/utils/Utils';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { PalertStation, simpleIcon } from '@/classes/StationClasses';
 import { TaiwanGridCanvasLayer } from '@/classes/GridCanvasLayer';
 import { useTimeStore } from '@/stores/time';
+import travelTimes from '@/utils/TravelTimes';
+import infHypoIconUrl from '@/assets/icon/hypocenter/infHypo.svg';
 
 const statusStore = useStatusStore()
 const settingsStore = useSettingsStore()
 const timeStore = useTimeStore()
 const useStationCanvasRenderer = computed(() => !settingsStore.advancedSettings.fallbackSvgStationRender)
+let hypocenterWorker = null
+let hypocenterRequestId = 0
+let inFlightHypocenterRequestId = null
+let pendingHypocenterUpdate = null
+let adjStations4Hypo = {}
+let inferredHypocenterMap = null
+let inferredHypocenterLayers = null
+let inferredHypocenterLabelLayers = []
+const infHypoIcon = L.icon({ iconUrl: infHypoIconUrl, iconSize: [40, 40], iconAnchor: [20, 20] })
+const inferredHypocenterLabelOffset = 24
+const minDisplayedHypocenterQualityScore = -3
+const hypoInfEewMatchThreshold = { lat: 1, lng: 1, depth: 100, originStamp: 10000 }
+const bearingDirections = ['N', 'E', 'S', 'W']
+const minHypocenterNeighborsPerDirection = 3
+const triggerCompatibilityConfig = {
+    waveSpeedKmPerSecond: 3.5,
+    fixedToleranceMilliseconds: 2000
+}
+const isHypocenterEnabled = computed(() => settingsStore.mainSettings.displaySeisNet.palertNet &&
+    settingsStore.mainSettings.displaySeisNet.palertHypoInf)
 
 const stationList = reactive([])
 const stations = reactive({})
 const taiwanSeisNetLayers = inject('taiwanSeisNetLayers')
 const unregisterSource = taiwanSeisNetLayers.registerSource('palert', stations, station => station.holdLevel)
 let adjStationIds = {}
+let triggerDiffToleranceMatrix = {}
 let stationVersion = ''
 let map
 let stopped = false
@@ -38,6 +61,7 @@ const palertUpdateTime = inject('palertUpdateTime')
 const palertPeriodMaxShindo = inject('palertPeriodMaxShindo')
 const palertPeriodBarClass = inject('palertPeriodBarClass')
 const handleTempEqlists = inject('handleTempEqlists')
+const activeEewList = inject('activeEewList')
 let periodMaxLevel = -1
 let pendingRender = false
 
@@ -47,11 +71,10 @@ const handleVisibilityChange = () => {
         renderAll()
     }
 }
-const activeLevels = computed(() => Object.values(stations)
-    .filter(station => station.isActive)
-    .map(station => station.holdLevel))
+const activeStations = computed(() => Object.values(stations).filter(station => station.isActive))
+const activeLevels = computed(() => activeStations.value.map(station => station.holdLevel))
 const currentMaxShindo = computed(() => {
-    const currentMaxLevel = Math.max(...activeLevels.value, -1)
+    const currentMaxLevel = Math.max(...activeStations.value.map(station => station.recentMaxLevel), -1)
     if(currentMaxLevel == -1) return -1
     if(currentMaxLevel <= 7) return 0
     if(currentMaxLevel <= 9) return 1
@@ -81,7 +104,22 @@ const parseResponse = (response, allowEmpty = false) => {
     if(!Number.isFinite(timestamp)) throw new Error('P-Alert response has an invalid timestamp')
     return { dataVals: response.dataVals, timestamp }
 }
+const hasValidTriggerStamp = station =>
+    Number.isFinite(station.triggerStamp) && station.triggerStamp > 0
+const isStationTriggerCompatible = (station1, station2) => {
+    if(!hasValidTriggerStamp(station1) || !hasValidTriggerStamp(station2)) return false
+    const toleranceMilliseconds = triggerDiffToleranceMatrix[station1.id]?.[station2.id]
+    if(!Number.isFinite(toleranceMilliseconds)) return false
+    return Math.abs(station1.triggerStamp - station2.triggerStamp) <= toleranceMilliseconds
+}
+const getCompatibleNearbyStations = (centerStation, nearbyStations) => {
+    if(!hasValidTriggerStamp(centerStation)) return []
+    return nearbyStations.filter(station =>
+        station.activity > 0 && isStationTriggerCompatible(centerStation, station)
+    )
+}
 const chainActivate = (seedStation, activeStations) => {
+    if(!hasValidTriggerStamp(seedStation)) return
     const pendingStations = new Set([seedStation])
     while(pendingStations.size > 0) {
         const currentStation = pendingStations.values().next().value
@@ -90,7 +128,9 @@ const chainActivate = (seedStation, activeStations) => {
         const nearbyIds = adjStationIds[currentStation.id] ?? []
         nearbyIds.forEach(id => {
             const neighbor = stations[id]
-            if(neighbor?.activity > 0 && !activeStations.has(neighbor)) pendingStations.add(neighbor)
+            if(!neighbor || activeStations.has(neighbor) || pendingStations.has(neighbor)) return
+            if(neighbor.activity <= 0 || !isStationTriggerCompatible(currentStation, neighbor)) return
+            pendingStations.add(neighbor)
         })
     }
 }
@@ -99,23 +139,16 @@ const detectActiveStations = () => {
     const activeStations = new Set()
     possibleStations.forEach(station => {
         if(!activeStations.has(station)) {
-            if(station.isActive) {
+            if(station.isActive && station.level >= 10 && hasValidTriggerStamp(station)) {
                 chainActivate(station, activeStations)
             }
             else {
                 const nearbyStations = (adjStationIds[station.id] ?? [])
                     .map(id => stations[id])
                     .filter(Boolean)
-                const activeStationCount = nearbyStations.filter(nearbyStation => nearbyStation.activity > 0).length
-                const activitySum = nearbyStations.reduce((sum, nearbyStation) => sum + nearbyStation.activity, 0)
-                if(
-                    // activeStationCount >= Math.max(nearbyStations.length * 0.1, 2) &&
-                    activitySum >= Math.max(nearbyStations.length * 0.1, 3)
-                ) {
-                    console.log(nearbyStations.map(station => {
-                        const { activity, recentData } = station
-                        return { activity, recentData: [...recentData] }
-                    }))
+                const compatibleNearbyStations = getCompatibleNearbyStations(station, nearbyStations)
+                const activitySum = compatibleNearbyStations.reduce((sum, nearbyStation) => sum + nearbyStation.activity, 0)
+                if(activitySum >= Math.max(nearbyStations.length * 0.125, 3.5)) {
                     chainActivate(station, activeStations)
                 }
             }
@@ -161,6 +194,240 @@ const commitFrame = (frameStamp, pgaData, pgvData, generation) => {
     detectedStations.forEach(station => {
         station.setActive()
     })
+    updateHypocenters()
+}
+const updateHypocenters = () => {
+    if(!isHypocenterEnabled.value || pendingTimelineSwitch) return
+    const currentStations = Object.values(stations)
+    updateInferredHypocentersInWorker(createPalertHypocenterUpdate(currentStations))
+}
+const getHypocenterWorker = () => {
+    if(hypocenterWorker) return hypocenterWorker
+    const worker = new Worker(new URL('@/workers/FindPalertHypocenterWorker.js', import.meta.url), { type: 'module' })
+    hypocenterWorker = worker
+    worker.onmessage = ({ data }) => {
+        if(hypocenterWorker !== worker || data.requestId !== inFlightHypocenterRequestId) return
+        inFlightHypocenterRequestId = null
+        if(!isHypocenterEnabled.value) {
+            pendingHypocenterUpdate = null
+            return
+        }
+        renderInferredHypocenters(data.results || [])
+        postPendingHypocenterUpdate()
+    }
+    worker.onerror = error => {
+        if(hypocenterWorker !== worker) return
+        terminateHypocenterWorker()
+        clearInferredHypocenters()
+        console.error(error)
+    }
+    worker.postMessage({ type: 'init', adjStations: adjStations4Hypo })
+    return worker
+}
+const resetHypocenterWorker = () => {
+    inFlightHypocenterRequestId = null
+    pendingHypocenterUpdate = null
+    if(!hypocenterWorker) return
+    const requestId = ++hypocenterRequestId
+    hypocenterWorker.postMessage({ type: 'reset', requestId })
+}
+const terminateHypocenterWorker = () => {
+    hypocenterRequestId++
+    inFlightHypocenterRequestId = null
+    pendingHypocenterUpdate = null
+    hypocenterWorker?.terminate()
+    hypocenterWorker = null
+}
+const updateInferredHypocentersInWorker = update => {
+    if(update.activeStations.length === 0) {
+        resetHypocenterWorker()
+        clearInferredHypocenters()
+        return
+    }
+    if(inFlightHypocenterRequestId !== null) {
+        pendingHypocenterUpdate = mergePalertHypocenterUpdates(pendingHypocenterUpdate, update)
+        return
+    }
+    postHypocenterUpdate(update)
+}
+const postHypocenterUpdate = update => {
+    const worker = getHypocenterWorker()
+    inFlightHypocenterRequestId = ++hypocenterRequestId
+    worker.postMessage({ ...update, type: 'update', requestId: inFlightHypocenterRequestId })
+}
+const postPendingHypocenterUpdate = () => {
+    if(!pendingHypocenterUpdate) return
+    const update = pendingHypocenterUpdate
+    pendingHypocenterUpdate = null
+    postHypocenterUpdate(update)
+}
+const clearInferredHypocenters = () => {
+    inferredHypocenterLayers?.clearLayers()
+    inferredHypocenterLabelLayers = []
+    statusStore.isActive.palertInfHypo = false
+}
+const destroyInferredHypocenterLayers = () => {
+    inferredHypocenterMap?.off('zoomend moveend', layoutInferredHypocenterLabels)
+    clearInferredHypocenters()
+    inferredHypocenterLayers?.remove()
+    inferredHypocenterLayers = null
+    inferredHypocenterMap = null
+}
+const renderInferredHypocenters = results => {
+    if(inferredHypocenterMap !== statusStore.map) {
+        destroyInferredHypocenterLayers()
+        inferredHypocenterMap = statusStore.map
+        if(inferredHypocenterMap) {
+            inferredHypocenterLayers = L.layerGroup().addTo(inferredHypocenterMap)
+            inferredHypocenterMap.on('zoomend moveend', layoutInferredHypocenterLabels)
+        }
+    }
+    clearInferredHypocenters()
+    if(!inferredHypocenterMap || !isHypocenterEnabled.value || !Array.isArray(results)) return
+    const visible = results
+        .filter(result => result.hypocenter && Number.isFinite(result.score))
+        .filter(shouldDisplayHypocenterResult)
+    for(const result of visible) {
+        const { lat, lng, depth } = result.hypocenter
+        const latLng = [lat, lng]
+        const pickResults = Array.isArray(result.pickResults) ? result.pickResults : []
+        const waveCounts = pickResults.reduce((counts, pickResult) => {
+            const wave = getPickDisplayWave(pickResult)
+            if(wave) counts[wave] = (counts[wave] || 0) + 1
+            return counts
+        }, {})
+        const clusterStationCount = result.clusterStationCount ?? result.effectiveStationCount ?? 0
+        const originTimeTst = Number.isFinite(result.originStamp) ? stampToTime(result.originStamp, 8) : '-'
+        createInferredWaveLayers(latLng, result)
+        L.marker(latLng, { icon: infHypoIcon, pane: 'eewMarkerPane', interactive: false }).addTo(inferredHypocenterLayers)
+        const label = createInfLabelHtml(result, { lat, lng, depth, clusterStationCount, originTimeTst, waveCounts })
+        if(!label) continue
+        const marker = L.marker(latLng, {
+            icon: L.divIcon({ className: '', iconSize: null, iconAnchor: [0, 0], html: label }),
+            interactive: false
+        }).addTo(inferredHypocenterLayers)
+        inferredHypocenterLabelLayers.push(marker)
+    }
+    layoutInferredHypocenterLabels()
+    statusStore.isActive.palertInfHypo = visible.length > 0
+}
+const createInferredWaveLayers = (latLng, result) => {
+    const frameStamp = latestFrameStamp
+    const passedTime = (frameStamp - result.originStamp) / 1000
+    if(!Number.isFinite(frameStamp) || !Number.isFinite(result.originStamp) || !(passedTime >= 0)) return
+    for(const isPWave of [true, false]) {
+        let wave = calcWaveDistance(travelTimes.jma2001, isPWave, result.hypocenter.depth, passedTime)
+        if(wave.radius > 2000) wave = calcWaveDistance(travelTimes.jb, isPWave, result.hypocenter.depth, passedTime)
+        if(!Number.isFinite(wave.radius) || wave.radius <= 0) continue
+        L.circle(latLng, {
+            radius: wave.radius * 1000, color: isPWave ? '#ffffff' : '#ff9500',
+            weight: 2, opacity: 1, fill: false, dashArray: '8 8', interactive: false, pane: 'wavePane'
+        }).addTo(inferredHypocenterLayers)
+    }
+}
+const getPickDisplayWave = pickResult => {
+    if(pickResult.excludedReason === 'duplicate-phase') return 'D'
+    if(pickResult.weight > 0 || pickResult.wave === 'O' || pickResult.wave === 'L') return pickResult.wave
+    return null
+}
+const getFilterStageText = result => {
+    const inferenceLevels = Array.isArray(result.inferenceFilterStageLevels) && result.inferenceFilterStageLevels.length > 0
+        ? result.inferenceFilterStageLevels
+        : [result.filterStageLevel ?? 0]
+    return inferenceLevels.join(' -> ')
+}
+const shouldDisplayHypocenterResult = result => {
+    if(result.qualityScore < minDisplayedHypocenterQualityScore) return false
+    if(settingsStore.mainSettings.displaySeisNet.palertHypoInfAlwaysOn) return true
+    return !isMatchedWithActiveCwaEew(result)
+}
+const isMatchedWithActiveCwaEew = result => {
+    if(!Array.isArray(activeEewList)) return false
+    return activeEewList.some(event => isCloseToCwaEewHypocenter(result, event?.eqMessage))
+}
+const isCloseToCwaEewHypocenter = (result, eqMessage) => {
+    if(eqMessage?.source !== 'cwaEew') return false
+    if(eqMessage.isAssumption || eqMessage.isCanceled) return false
+    if(!Number.isFinite(result?.originStamp)) return false
+    if(!Number.isFinite(eqMessage.lat) || !Number.isFinite(eqMessage.lng)) return false
+    if(!Number.isFinite(eqMessage.depth)) return false
+    const eewOriginStamp = timeToStamp(eqMessage.originTime, eqMessage.timeZone)
+    if(!Number.isFinite(eewOriginStamp) || eewOriginStamp <= 0) return false
+    const hypocenter = result.hypocenter
+    return Math.abs(hypocenter.lat - eqMessage.lat) <= hypoInfEewMatchThreshold.lat &&
+        calcLngDiff(hypocenter.lng, eqMessage.lng) <= hypoInfEewMatchThreshold.lng &&
+        Math.abs((hypocenter.depth ?? 10) - eqMessage.depth) <= hypoInfEewMatchThreshold.depth &&
+        Math.abs(result.originStamp - eewOriginStamp) <= hypoInfEewMatchThreshold.originStamp
+}
+const createInfLabelHtml = (result, labelInfo) => {
+    const textInfoMode = settingsStore.effectivePalertHypoInfTextInfo
+    if(textInfoMode === 0) return ''
+    const { lat, lng, depth, clusterStationCount, originTimeTst, waveCounts } = labelInfo
+    const reportText = result.reportNum ?? '-'
+    const stableText = result.stable ? '（稳定）' : ''
+    const qualityText = result.qualityRank ? `质量${result.qualityRank}` : ''
+    const detailedHtml = textInfoMode === 2 ? `
+        <div style="opacity: 0.6;">
+            latlng: ${lat.toFixed(1)}, ${lng.toFixed(1)}<br>
+            clusterId: ${result.clusterId ?? '-'} / updates: ${result.updates ?? '-'}<br>
+            effective: ${result.effectiveStationCount} (${result.effectivePickCount ?? '-'}) / qualityScore: ${result.qualityScore.toFixed(2)} / filter: ${getFilterStageText(result)}<br>
+            loss: ${result.score.toFixed(2)} / rmse: ${result.rmse.toFixed(2)} / penalty: ${result.inactivePenalty.toFixed(2)} * ${result.inactivePenaltyWeight.toFixed(2)} + ${result.waveCountPenalty.toFixed(2)} + ${result.unexplainedPickPenalty.toFixed(2)}<br>
+            scenario: ${result.scenario ?? '-'} / P: ${waveCounts.P || 0} S: ${waveCounts.S || 0} O: ${waveCounts.O || 0} D: ${waveCounts.D || 0}
+        </div>
+    ` : ''
+    return `
+        <div style="
+            display: inline-block;
+            width: max-content;
+            max-width: 360px;
+            padding: 8px 10px;
+            color: #fff;
+            -webkit-text-stroke: 0.35px #000000cc;
+            paint-order: stroke fill;
+            text-shadow: 0 0 2px #000000cc, 0 0 4px #000000aa, 1px 1px 2px #000000cc, -1px -1px 2px #000000cc;
+            font-size: 12px;
+            line-height: 1.25;
+            text-align: center;
+            overflow: hidden;
+            pointer-events: none;
+            white-space: nowrap;
+            transform: translate(-50%, ${inferredHypocenterLabelOffset}px);
+        ">
+            <div style="font-size: 14px; font-weight: 700; line-height: 1.25; opacity: 0.8;">
+                P-Alert震源推算 第${reportText}报${stableText}<br>
+                ${originTimeTst} (+8)<br>
+                深${depth.toFixed(0)}km<br>
+                ${clusterStationCount}测站 ${qualityText}
+            </div>
+            ${detailedHtml}
+        </div>
+    `
+}
+const layoutInferredHypocenterLabels = () => {
+    if(!inferredHypocenterMap) return
+    const placed = []
+    const size = inferredHypocenterMap.getSize()
+    const labelOffset = inferredHypocenterLabelOffset
+    for(const marker of inferredHypocenterLabelLayers) {
+        const element = marker.getElement()?.firstElementChild
+        if(!element) continue
+        const width = element.offsetWidth
+        const height = element.offsetHeight
+        if(width <= 0 || height <= 0) continue
+        const point = inferredHypocenterMap.latLngToContainerPoint(marker.getLatLng())
+        const candidates = [
+            { left: point.x - width / 2, top: point.y + labelOffset, transform: `translate(-50%, ${labelOffset}px)` },
+            { left: point.x - width / 2, top: point.y - labelOffset - height, transform: `translate(-50%, calc(-100% - ${labelOffset}px))` },
+            { left: point.x + labelOffset, top: point.y - height / 2, transform: `translate(${labelOffset}px, -50%)` },
+            { left: point.x - labelOffset - width, top: point.y - height / 2, transform: `translate(calc(-100% - ${labelOffset}px), -50%)` }
+        ].map(box => ({ ...box, right: box.left + width, bottom: box.top + height }))
+        const fits = box => box.left >= 8 && box.top >= 8 && box.right <= size.x - 8 && box.bottom <= size.y - 8
+        const clear = box => placed.every(other => box.right + 4 <= other.left || box.left >= other.right + 4 ||
+            box.bottom + 4 <= other.top || box.top >= other.bottom + 4)
+        const chosen = candidates.find(box => fits(box) && clear(box)) ?? candidates.find(clear) ?? candidates.find(fits) ?? candidates[0]
+        element.style.transform = chosen.transform
+        placed.push(chosen)
+    }
 }
 const fetchRealtimeData = async () => {
     if(stopped) return
@@ -200,22 +467,57 @@ const fetchRealtimeData = async () => {
 const clearReactiveObject = obj => {
     Object.keys(obj).forEach(key => delete obj[key])
 }
-const buildAdjStationIds = () => {
+const calcBearingDirection = ([fromLat, fromLng], [toLat, toLng]) => {
+    const bearing = calcBearingDeg([fromLat, fromLng], [toLat, toLng])
+    return Number.isFinite(bearing)
+        ? bearingDirections[Math.floor(((bearing + 45) % 360) / 90)]
+        : null
+}
+const buildAdjStations = () => {
     const stationIds = Object.keys(stations)
-    const result = {}
+    const detectionAdjStations = {}
+    const hypocenterAdjStations = {}
+    const triggerDiffTolerances = {}
     stationIds.forEach(id => {
-        result[id] = stationIds
-            .map(nearbyId => ({
-                id: nearbyId,
-                distance: calcDistanceKm(stations[id].latLng, stations[nearbyId].latLng)
+        const sortedDistances = stationIds
+            .map(stationId => ({
+                stationId,
+                distance: calcDistanceKm(stations[id].latLng, stations[stationId].latLng)
             }))
-            .filter(({ distance }) => distance <= 30)
             .sort((a, b) => a.distance - b.distance)
-            .map(({ id: nearbyId }) => nearbyId)
+        // Keep the existing activation neighborhood; inference fills each direction to its minimum count.
+        const nearbyDistances = sortedDistances.filter(({ distance }) => distance <= 30)
+        detectionAdjStations[id] = nearbyDistances.map(({ stationId }) => stationId)
+        triggerDiffTolerances[id] = Object.fromEntries(nearbyDistances.map(({ stationId, distance }) => [
+            stationId,
+            distance / triggerCompatibilityConfig.waveSpeedKmPerSecond * 1000 +
+                triggerCompatibilityConfig.fixedToleranceMilliseconds
+        ]))
+        const directionCounts = Object.fromEntries(bearingDirections.map(direction => [direction, 0]))
+        const nearbyStations = sortedDistances.filter(({ stationId, distance }) => {
+            if(distance > 30) return false
+            if(stationId === id) return true
+            const direction = calcBearingDirection(stations[id].latLng, stations[stationId].latLng)
+            if(direction) directionCounts[direction]++
+            return true
+        })
+        sortedDistances
+            .filter(({ distance }) => distance > 30 && distance <= 100)
+            .some(station => {
+                if(bearingDirections.every(direction => directionCounts[direction] >= minHypocenterNeighborsPerDirection)) return true
+                const direction = calcBearingDirection(stations[id].latLng, stations[station.stationId].latLng)
+                if(!direction || directionCounts[direction] >= minHypocenterNeighborsPerDirection) return false
+                nearbyStations.push(station)
+                directionCounts[direction]++
+                return bearingDirections.every(direction => directionCounts[direction] >= minHypocenterNeighborsPerDirection)
+            })
+        hypocenterAdjStations[id] = nearbyStations
     })
-    return result
+    return { detectionAdjStations, hypocenterAdjStations, triggerDiffTolerances }
 }
 const clearTimelineState = (render = true) => {
+    terminateHypocenterWorker()
+    clearInferredHypocenters()
     latestFrameStamp = null
     periodMaxLevel = -1
     palertMaxShindo.value = '?'
@@ -226,21 +528,34 @@ const clearTimelineState = (render = true) => {
     if(render && useStationCanvasRenderer.value) renderAll()
 }
 const scheduleTimelineSwitch = () => {
+    resetHypocenterWorker()
+    clearInferredHypocenters()
     requestGeneration++
     pendingTimelineSwitch = true
     Object.values(stations).forEach(station => station.clearRecentData())
 }
+let fetchStationTimer, requestInterval
+const isValidStationInfo = info => typeof info?.station === 'string' && info.station.length > 0 &&
+    Number.isFinite(info.lat) && Math.abs(info.lat) <= 90 &&
+    Number.isFinite(info.lon) && Math.abs(info.lon) <= 180
 const fetchStationList = async () => {
     if(stopped) return
     try {
         const response = await Palert.getStationList()
         if(stopped || !Array.isArray(response?.staInfos)) return
-        if(response.version == stationVersion && JSON.stringify(response.staInfos) == JSON.stringify(stationList)) return
+        const validStations = response.staInfos.filter(isValidStationInfo)
+        if(validStations.length === 0) return
+        if(response.version == stationVersion && JSON.stringify(validStations) == JSON.stringify(stationList)) return
         stationVersion = response.version
-        stationList.splice(0, stationList.length, ...response.staInfos)
+        stationList.splice(0, stationList.length, ...validStations)
     }
     catch(err) {
         console.log(err)
+    }
+    finally {
+        if(!stopped) {
+            fetchStationTimer = setTimeout(fetchStationList, stationList.length > 0 ? 10 * 60 * 1000 : 20 * 1000)
+        }
     }
 }
 const renderAll = () => {
@@ -251,9 +566,7 @@ const renderAll = () => {
     Object.values(stations).forEach(station => station.render())
 }
 
-let fetchStationInterval, requestInterval
 onMounted(() => {
-    fetchStationInterval = setInterval(fetchStationList, 180 * 1000)
     fetchStationList()
     requestInterval = setInterval(fetchRealtimeData, 1000)
     fetchRealtimeData()
@@ -273,7 +586,7 @@ unwatchMap = watch(() => statusStore.map, newVal => {
         Object.values(stations).forEach(station => station.terminate())
         clearReactiveObject(stations)
         newVal.forEach(info => {
-            if(typeof info.station != 'string' || !Number.isFinite(info.lat) || !Number.isFinite(info.lon)) return
+            if(!isValidStationInfo(info)) return
             stations[info.station] = reactive(new PalertStation(
                 map,
                 info.station,
@@ -281,7 +594,10 @@ unwatchMap = watch(() => statusStore.map, newVal => {
                 useStationCanvasRenderer.value
             ))
         })
-        adjStationIds = buildAdjStationIds()
+        const adjacency = buildAdjStations()
+        adjStationIds = adjacency.detectionAdjStations
+        adjStations4Hypo = adjacency.hypocenterAdjStations
+        triggerDiffToleranceMatrix = adjacency.triggerDiffTolerances
         renderAll()
     }, { immediate: true })
     unwatchActivity = watch(activeLevels, newVal => {
@@ -310,6 +626,11 @@ unwatchMap = watch(() => statusStore.map, newVal => {
     })
 }, { immediate: true })
 unwatchDelay = watch(delay, scheduleTimelineSwitch)
+watch(isHypocenterEnabled, enabled => {
+    if(enabled) return
+    terminateHypocenterWorker()
+    clearInferredHypocenters()
+})
 watch(() => statusStore.isActive.cwaEew || statusStore.isActive.palertNet, newVal => {
     if(newVal) {
         if(periodMaxLevel == -1) {
@@ -354,8 +675,10 @@ watch(currentMaxShindo, (newVal, oldVal) => {
 
 onBeforeUnmount(() => {
     stopped = true
+    terminateHypocenterWorker()
+    destroyInferredHypocenterLayers()
     requestGeneration++
-    clearInterval(fetchStationInterval)
+    clearTimeout(fetchStationTimer)
     clearInterval(requestInterval)
     document.removeEventListener('visibilitychange', handleVisibilityChange)
     if(unwatchMap) unwatchMap()
